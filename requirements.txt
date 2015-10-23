@@ -1,0 +1,4 @@
+Django
+django-modeltranslation
+django-tastypie
+simplejson

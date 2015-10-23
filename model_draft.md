@@ -13,7 +13,7 @@
  - number of comments
  (avoid selects from comments, to count them by hearing, update hearing when commented)
  - location
- - status
+ - status (open/closed flag)
  - content
  - borough
  - comments enabled

@@ -19,14 +19,8 @@
  - comments enabled
  - author
 
-## HearingTranslation
-
-Translated content could be fetched after hearing has been fetched and then merged before payload is generated.
-
- - hearing FK
- - content
- - lang code
-
+Translation is done with django-modeltranslation.
+http://django-modeltranslation.readthedocs.org
 
 # HearingLabels
  - hearing FK

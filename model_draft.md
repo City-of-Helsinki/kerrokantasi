@@ -13,6 +13,7 @@
  - created
  - updated
  - deleted flag
+ - author (nullable) ?
 
 # Hearing 
  - closing time

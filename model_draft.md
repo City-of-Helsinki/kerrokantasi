@@ -84,6 +84,8 @@ http://django-modeltranslation.readthedocs.org
  - Processing FK
 
 # CommonImage
+ - type (original, small, thumbnail)
+ - title
 
 ## HearingImage
   - hearing FK

@@ -1,4 +1,4 @@
-Django
+Django==1.8.5
 django-modeltranslation==0.10.1
 django-tastypie
 simplejson

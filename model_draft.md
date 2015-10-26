@@ -88,6 +88,7 @@ http://django-modeltranslation.readthedocs.org
  - type (original, small, thumbnail)
  - title
  - caption
+ - ulr/location
 
 If multiple captions per image are required, we need CaptionImage model.
 

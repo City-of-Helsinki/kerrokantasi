@@ -89,6 +89,8 @@ http://django-modeltranslation.readthedocs.org
  - title
  - caption
  - ulr/location
+ - height
+ - width
 
 If multiple captions per image are required, we need CaptionImage model.
 

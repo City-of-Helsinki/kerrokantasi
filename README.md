@@ -4,7 +4,7 @@
  - Python 3.4
  - Django 1.8.5
  - django-modeltranslation (http://django-modeltranslation.readthedocs.org)
- - tastypie
+ - Django REST framework (http://www.django-rest-framework.org/)
 
 # Testing
 

@@ -86,6 +86,9 @@ http://django-modeltranslation.readthedocs.org
 # CommonImage
  - type (original, small, thumbnail)
  - title
+ - caption
+
+If multiple captions per image are required, we need CaptionImage model.
 
 ## HearingImage
   - hearing FK

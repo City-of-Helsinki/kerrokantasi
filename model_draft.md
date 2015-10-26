@@ -12,6 +12,7 @@
  - uuid
  - created
  - updated
+ - deleted flag
 
 # Hearing 
  - closing time

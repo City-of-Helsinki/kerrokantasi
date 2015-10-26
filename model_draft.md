@@ -72,10 +72,12 @@ http://django-modeltranslation.readthedocs.org
 
 # Scenario
  - hearing FK
+ - abstract
  - content
 
 # Introduction
  - hearing FK
+ - abstract
  - content
 
 # Processing

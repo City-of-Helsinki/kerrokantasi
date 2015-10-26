@@ -8,6 +8,11 @@
  
 # Languages (Could be hardcoded instead of db model. There are only three anyway.)
 
+# CommonModel
+ - uuid
+ - created
+ - updated
+
 # Hearing 
  - closing time
  - number of comments

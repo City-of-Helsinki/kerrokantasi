@@ -21,6 +21,8 @@
  (avoid selects from comments, to count them by hearing, update hearing when commented)
  - location
  - status (open/closed flag)
+ - heading
+ - abstract
  - content
  - borough
  - comments enabled

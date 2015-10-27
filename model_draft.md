@@ -50,6 +50,11 @@ http://django-modeltranslation.readthedocs.org
 ## ScenarioComment
   - scenario FK
 
+# ServiceComment
+ - email
+ - firstname, lastname
+ - title
+
 # CommentHistory
  - datetime
  - content

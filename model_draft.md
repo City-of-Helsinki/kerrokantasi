@@ -1,101 +1,140 @@
 
+
+# General rules
+
+Translation is done with django-modeltranslation.
+http://django-modeltranslation.readthedocs.org
+
+List of available languages can be builtin instead of database model.
+(We provide only three languages anyway)
+
 # User profile
 
 # Groups
  1. official
  2. resident
  3. anonymous (if required)
- 
-# Languages (Could be hardcoded instead of db model. There are only three anyway.)
 
-# CommonModel
- - uuid
- - created
- - updated
+# CommonModel 
 
-# Hearing 
- - closing time
- - number of comments
- (avoid selects from comments, to count them by hearing, update hearing when commented)
- - location
- - status (open/closed flag)
- - content
- - borough
- - comments enabled
- - author
+**This is an abstract model which provides common metadata for all models.**
 
-Translation is done with django-modeltranslation.
-http://django-modeltranslation.readthedocs.org
+Based on ModifiableModel (https://github.com/City-of-Helsinki/respa/blob/master/resources/models/base.py)
 
-# HearingLabels
- - hearing FK
- - label
+ - **uuid** - _unique to identify object_
+ - **created_at** - _date when object has been created_
+ - **created_by** - _user who created an object_
+ - **updated_at** - _date when object has been updated_
+ - **updated_by** - _user who updated an object_
+ - **deleted** - _flag, whether object is deleted_
 
-# Report (model or computed from data?)
+# Hearing (CommonModel)
+
+**Main model which provides info about hearing.**
+
+ - **closing** - _the date when hearing is closed_
+ - **ncomments** - _number of all comments (avoid selects from comments, to count them by hearing, update hearing when commented)_
+ - **status** - _open/closed flag, whether hearing is open or not_
+ - **heading** - _heading of the hearing_
+ - **abstract** -  _abstract of the hearing_
+ - **content** - _content of the hearing_
+ - **borough** - _a borough to which hearing concerns_
+ - **commens_option** - _option for comments (disallow, registered, anonymous)_
+ - **servicemap_url** - _url to the map to embed (http://palvelukartta.hel.fi)_
+ - **latitude** - _coordinate for position_
+ - **longitude** - _coordinate for position_
+
+# HearingLabels (CommonModel)
+
+**Provides labels (tags) for any hearing.**
+
+ - **hearing** - _reference to hearing (FK)_
+ - **label** - _user defined label (tag)_
 
 # CommonComment
- - author
- - time
- - likes (again, keep number of likes instead of counting them all the time)
- - comment
- - language
 
-## HearingComment
-  - hearing FK
+**An abstract model for all comments.**
 
-## ScenarioComment
-  - scenario FK
+ - **nvotes** - _number of votes given (again, keep number of votes instead of counting them all the time)_
+ - **comment** - _user's comment_
+ - **language** - _language of the comment (if explicitly defined)_
+ - **followers** - _users who follow comment (M2M)_ 
+ - **voters** - _users who voted on the comment (M2M)_
 
-# CommentHistory
- - datetime
- - content
- - author
+## HearingComment (CommonComment, CommonModel)
 
-# CommonLike
- - user FK
+**Comment given to hearing.**
 
-## HearingLike
- - hearing FK
+  - **hearing** - _a reference to hearing (FK)_
 
-## CommentLike
- - comment FK
+## ScenarioComment (CommonComment, CommonModel)
+
+**Comment given to scenario.**
+
+  - **scenario** - _a reference to scenario (FK)_
+
+## ServiceComment (CommonComment, CommonModel)
+
+**Comment given to service itself. A feedback from resident or anonymous user.**
+
+ - **email** - _an email of the user_
+ - **name** - _name of the user_
+ - **title** - _title (or type of the feedback, if predefined)_
  
-# CommonFollower
- - user FK
- 
-## CommentFollower
- - comment FK
+# Scenario (CommonModel)
 
-## HearingFollower
- - hearing FK
+**Main model which provides info for scenario.**
 
-# Scenario
- - hearing FK
- - content
+ - **hearing** - _a reference to hearing (FK)_
+ - **abstract** - _an abstract of the scenario_
+ - **content** - _content of the scenario_
 
-# Introduction
- - hearing FK
- - content
+# Introduction (CommonModel)
 
-# Processing
- - hearing FK
+**Main model which provides info for introduction.**
 
-# ProcessingStep
- - Processing FK
+ - **hearing** - _a reference to hearing (FK)_
+ - **abstract** - _an abstract of the introduction_
+ - **content** - _content of the introduction_
+
+# Processing (CommonModel)
+
+**Model for processing.**
+
+ - **hearing** - _a reference to hearing (FK)_
+
+# ProcessingStep (CommonModel)
+
+**Model for processing steps.**
+
+ - **processing** - _a reference to processing (FK)_
 
 # CommonImage
- - type (original, small, thumbnail)
- - title
- - caption
 
-If multiple captions per image are required, we need CaptionImage model.
+**An abstract model for images.**
 
-## HearingImage
-  - hearing FK
+ - **type** - _the type of the image (original, small, thumbnail)_
+ - **title** - _title of the image_
+ - **caption** - _caption of the image_
+ - **location** - _location of the image (url, path)_
+ - **height** - _height of the image_
+ - **width** - _width of the image_
 
-## ScenarioImage
-  - scenario FK
+## HearingImage (CommonImage, CommonModel)
 
-## IntroductionImage
-  - introduction FK
+**Model for hearing's images.**
+
+  - **hearing** - _a reference to hearing (FK)_
+
+## ScenarioImage (CommonImage, CommonModel)
+
+**Model for scenario's images.**
+
+  - **scenario** - _a reference to scenario (FK)_
+
+## IntroductionImage (CommonImage, CommonModel)
+
+**Model for introduction's images.**
+
+  - **introduction** - _a reference to introduction (FK)_
 

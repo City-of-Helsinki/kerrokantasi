@@ -62,23 +62,11 @@ List of available languages can be builtin instead of database model.
 
   - **hearing** - _a reference to hearing (FK)_
 
-## HearingCommentRevision (HearingComment)
-
-**Revision of the comment**
-
- - **comment** - _a reference to HearingComment (FK)_
-
 ## ScenarioComment (CommonComment, CommonModel)
 
 **Comment given to scenario.**
 
   - **scenario** - _a reference to scenario (FK)_
-
-## ScenarioCommentRevision (ScenarioComment)
-
-**Revision of the comment**
-
- - **comment** - _a reference to ScenarioComment (FK)_
 
 ## ServiceComment (CommonComment, CommonModel)
 

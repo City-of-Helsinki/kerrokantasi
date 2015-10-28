@@ -19,11 +19,14 @@ List of available languages can be builtin instead of database model.
 
 **This is an abstract model which provides common metadata for all models.**
 
+Based on ModifiableModel (https://github.com/City-of-Helsinki/respa/blob/master/resources/models/base.py)
+
  - **uuid** - _unique to identify object_
- - **created** - _date when object has been created_
- - **updated** - _date when object has been updated_
- - **deleted** - _whether object is deleted flag_
- - **author** - _an author, can be null in case of anonymous access, e.g. comment_
+ - **created_at** - _date when object has been created_
+ - **created_by** - _user who created an object_
+ - **updated_at** - _date when object has been updated_
+ - **updated_by** - _user who updated an object_
+ - **deleted** - _flag, whether object is deleted_
 
 # Hearing (CommonModel)
 

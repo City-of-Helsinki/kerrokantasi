@@ -58,6 +58,8 @@ Based on ModifiableModel (https://github.com/City-of-Helsinki/respa/blob/master/
  - **nvotes** - _number of votes given (again, keep number of votes instead of counting them all the time)_
  - **comment** - _user's comment_
  - **language** - _language of the comment (if explicitly defined)_
+ - **followers** - _users who follow comment (M2M)_ 
+ - **voters** - _users who voted on the comment (M2M)_
 
 ## HearingComment (CommonComment, CommonModel)
 
@@ -78,43 +80,7 @@ Based on ModifiableModel (https://github.com/City-of-Helsinki/respa/blob/master/
  - **email** - _an email of the user_
  - **name** - _name of the user_
  - **title** - _title (or type of the feedback, if predefined)_
-
-# CommonVote
-
-**An abstract model for all votes.**
-
- - **user** - _a weak reference to a user (FK), can be null in case of anonymous vote_
-
-## HearingCommentVote (CommonVote, CommonModel)
-
-**A vote given to comment of the hearing**
-
- - **comment** - _a reference to HearingComment (FK)_
-
-## ScenarioCommentVote (CommonVote, CommonModel)
-
-**A vote given to comment of the scenario.**
-
- - **comment** - _a reference to ScenarioComment (FK)_
  
-# CommonFollower
-
-**An abstract model for all followers.**
- 
- - **user** - _a reference to user who is a follower (FK)_
- 
-## HearingCommentFollower (CommonFollower, CommonModel)
-
-**Allows to follow hearing's comment.** 
-
- - **comment** - _a reference to a comment of hearing (FK)_
-
-## ScenarioCommentFollower (CommonFollower, CommonModel)
-
-**Allows to follow scenario's comment.** 
-
- - **comment** - _a reference to a comment of scenario (FK)_
-
 # Scenario (CommonModel)
 
 **Main model which provides info for scenario.**

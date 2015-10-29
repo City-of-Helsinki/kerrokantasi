@@ -40,9 +40,9 @@ Add comment, introduction, scenario, image.
  - **add scenario to hearing** #21 _/api/v1/hearing/[hearingID]/scenario/_
  - **add image to hearing** #18 _/api/v1/hearing/[hearingID]/image/_
 
-Follow hearing.
+Follow hearing. User is authenticated.
 
- - **add follower to a hearing** #10 _/api/v1/hearing/[hearingID]/follow/?follower=[userID]_
+ - **add follower to a hearing** #10 _/api/v1/hearing/[hearingID]/follow/_
 
 ### /api/v1/hearing/
 
@@ -117,9 +117,9 @@ Vote. Update or delete.
  - **get detail (with number of comments)** _/api/v1/comments/[commentID]_
  - **Update, delete** _/api/v1/comments/[commentID]_
 
-Follow comment.
+Follow comment. User is authenticated.
 
- - **add follower** #10 _/api/v1/comments/[commentID]/follow/?follower=[userID]_
+ - **add follower** #10 _/api/v1/comments/[commentID]/follow/_
 
 ## TODO:
 

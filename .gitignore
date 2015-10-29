@@ -1,0 +1,11 @@
+
+# local sqlite files
+*.sqlite3
+*.sqlite
+
+# swap files
+*.swp
+
+# pyc files
+*.pyc
+

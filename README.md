@@ -8,6 +8,12 @@
  - munigeo (https://github.com/City-of-Helsinki/munigeo)
  - django-reversion (http://django-reversion.readthedocs.org)
 
+# Install
+
+Install all required packages with pip command:
+
+     pip install -r requirements.txt
+
 # Testing
 
  - pytest

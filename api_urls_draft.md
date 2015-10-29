@@ -67,6 +67,8 @@ List reports. Get detail.
 
 ### /api/v1/images/
 
+**Or move to /api/v1/hearing/[hearingID]/image/[imageID]/**
+
 Get detail. Update, delete.
 
  - **Get detail. Update, delete** #18 _/api/v1/images/[imageID]_
@@ -74,6 +76,8 @@ Get detail. Update, delete.
 ## Scenarios
 
 ### /api/v1/scenario/
+
+**Or move to /api/v1/hearing/[hearingID]/scenario/[scenarioID]/**
 
 Get detail. Update, delete.
 
@@ -94,6 +98,8 @@ Add image, comment.
 
 ### /api/v1/introduction/
 
+**Or move to /api/v1/hearing/[hearingID]/introduction/[introductionID]/**
+
 Get detail. Update, delete.
 
  - **get detail about introduction** #25 _/api/v1/introduction/[introductionID]_
@@ -110,6 +116,8 @@ Add image.
 ## Comments
 
 ### /api/v1/comments/
+
+**Or move to /api/v1/hearing/[hearingID]/comment/[commentID]/**
 
 Vote. Update or delete.
 

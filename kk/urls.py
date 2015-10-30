@@ -4,6 +4,8 @@ from rest_framework import routers
 
 from kk.views import HearingViewSet
 
+admin.autodiscover()
+
 router = routers.DefaultRouter()
 router.register(r'hearing', HearingViewSet)
 

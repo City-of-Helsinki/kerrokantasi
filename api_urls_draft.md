@@ -12,90 +12,122 @@ Language used as GET parameter anywhere
  - register #9
  - update user info #11
 
-## /api/v1/hearing/
+## Hearings
+
+### /api/v1/hearing/
 
 List hearings, get detail. Anonymous access.
 
- - **get next closing hearings** #1 _/api/v1/hearing/<hearingID>/?nextclosing_
+ - **get next closing hearings** #1 _/api/v1/hearing/[hearingID]/?nextclosing_
  - **list all** #4 _/api/v1/hearing/_
- - **search/filter** #5 _/api/v1/hearing/<hearingID>/?filter=foo&search=bar_
- - **order** #6 _/api/v1/hearing/?orderby=<foo>_
- - **get location** #7 _/api/v1/hearing/<hearingID>/_
- - **get detail** #8 _/api/v1/hearing/<hearingID>/_
+ - **search/filter** #5 _/api/v1/hearing/[hearingID]/?filter=foo&search=bar_
+ - **order** #6 _/api/v1/hearing/?orderby=[foo]_
+ - **get location** #7 _/api/v1/hearing/[hearingID]/_
+ - **get detail** #8 _/api/v1/hearing/[hearingID]/_
  - **top hearings** #2 _/api/v1/hearing/?newest=N_
 
-## /api/v1/hearing/
+List comments, introductions, scenarios, images.
 
-List hearings. Get detail. Create, update, delete. Authenticated user at _/api/v1/hearing/<hearingID>/_ :
+ - **list all comments added to hearing** #28 _/api/v1/hearing/[hearingID]/comments/_
+ - **list all introductions added to hearing** #25 _/api/v1/hearing/[hearingID]/introductions/_
+ - **list all images added to hearing** #37 _/api/v1/hearing/[hearingID]/images/_
+ - **list all scenarios added to hearing** #21 _/api/v1/[hearingID]/scenarios_
 
- - **list all by owner** #15 _/api/v1/hearing/?createdby=<userID>_
+Add comment, introduction, scenario, image.
+
+ - **add comment to hearing** #28 _/api/v1/hearing/[hearingID]/comment/_
+ - **add introduction to hearing** #25 _/api/v1/hearing/[hearingID]/introduction/_
+ - **add scenario to hearing** #21 _/api/v1/hearing/[hearingID]/scenario/_
+ - **add image to hearing** #18 _/api/v1/hearing/[hearingID]/image/_
+
+Follow hearing. User is authenticated.
+
+ - **add follower to a hearing** #10 _/api/v1/hearing/[hearingID]/follow/_
+
+### /api/v1/hearing/
+
+List hearings. Get detail. Create, update, delete. Authenticated user at _/api/v1/hearing/[hearingID]/_ :
+
+ - **list all by owner** #15 _/api/v1/hearing/?createdby=[userID]_
  - **CRUD** #15
  - **disable/enable comments** #16
  - **set map** #17
  - **set commenting options** #22
 
-## /api/v1/labels/
+## Reports
 
-List labels. Get detail. Create, update.
-
- - **list** _/api/v1/labels/?hearing=<hearingID>_
- - **CRUD** #23 _/api/v1/labels/<labelID>_
-
-## /api/v1/reports/
+### /api/v1/reports/
 
 List reports. Get detail.
 
  - **top reports** _/api/v1/reports/?newest=N_
- - **get report** #24 _/api/v1/reports/<hearingID>_
+ - **get report** #24 _/api/v1/reports/[hearingID]_
 
-## /api/v1/follow/
+## Images
 
-Follow hearing or comment.
+### /api/v1/images/
 
- - **follow hearing** #10 _/api/v1/follow/?follower=<userID>&type=hearing&id=<hearingID>_
- - **follow comment** #10 _/api/v1/follow/?follower=<userID>&type=comment&id=<commentID>_
+**Or move to /api/v1/hearing/[hearingID]/image/[imageID]/**
 
-## /api/v1/images/
+Get detail. Update, delete.
 
-List images. Get detail. Create, update, delete.
+ - **Get detail. Update, delete** #18 _/api/v1/images/[imageID]_
 
- - **add image to hearing** #18 _/api/v1/images/?hearing=<hearingID>_
- - **add image to scenario** #40 _/api/v1/images/?scenario=<scenarioID>_
- - **add image to introduction** #40 _/api/v1/images/?introduction=<introductionID>_
- - **CRUD** #18 _/api/v1/images/<imageID>_
- - **list all added to hearing** #37 _/api/v1/images/?hearing=<hearingID>_
- - **list all added to scenario**  _/api/v1/images/?scenario=<scenarioID>_
- - **list all added to introduction** _/api/v1/images/?introduction=<introductionID>_
+## Scenarios
 
-## /api/v1/scenario/
+### /api/v1/scenario/
 
-List scenarios. Get detail. Create, update, delete.
+**Or move to /api/v1/hearing/[hearingID]/scenario/[scenarioID]/**
 
- - **list all scenarios added to hearing** #21 _/api/v1/scenario/?hearing=<hearingID>_
- - **add scenario to hearing** #21 _/api/v1/scenario/?hearing=<hearingID>_
- - **get detail about scenario** #21 _/api/v1/scenario/<scenarioID>_
- - **update and delete scenario** #25 _/api/v1/scenario/<scenarioID>_
+Get detail. Update, delete.
 
-## /api/v1/introduction/
+ - **get detail about scenario** #21 _/api/v1/scenario/[scenarioID]_
+ - **update and delete scenario** #25 _/api/v1/scenario/[scenarioID]_
 
-List introductions. Get detail. Create, update, delete.
+List images, comments.
 
- - **list all introductions added to hearing** #25 _/api/v1/introduction/?hearing=<hearingID>_
- - **add introduction to hearing** #25 _/api/v1/introduction/?hearing=<hearingID>_
- - **get detail about introduction** #25 _/api/v1/introduction/<introductionID>_
- - **update and delete introduction** #25 _/api/v1/introduction/<introductionID>_
+ - **list all added to scenario**  _/api/v1/scenario/[scenarioID]/images/_
+ - **list comments of a scenario** #27 _/api/v1/scenario/[scenarioID]/comments/_
 
-## /api/v1/comments/
+Add image, comment.
 
-List comments. Add comments. Vote. Update or delete.
+ - **add image to scenario** #40 _/api/v1/scenario/[scenarioID]/image/_
+ - **add comment to scenario** #27 _/api/v1/scenario/[scenarioID]/comment/_
 
- - **add comment to hearing** #28 _/api/v1/comments/?hearing=<hearingID>_
- - **list comments of a hearing** #28 _/api/v1/comments/?hearing=<hearingID>_
- - **add comment to scenario** #27 _/api/v1/comments/?scenario=<scenarioID>_
- - **list comments of a scenario** #27 _/api/v1/comments/?scenario=<scenarioID>_
- - **add a vote** #31 _/api/v1/comments/<commentID>?vote=<userID>_
- - **get detail (with number of comments)** _/api/v1/comments/<commentID>_
- - **Update, delete** _/api/v1/comments/<commentID>_
+## Introductions
+
+### /api/v1/introduction/
+
+**Or move to /api/v1/hearing/[hearingID]/introduction/[introductionID]/**
+
+Get detail. Update, delete.
+
+ - **get detail about introduction** #25 _/api/v1/introduction/[introductionID]_
+ - **update and delete introduction** #25 _/api/v1/introduction/[introductionID]_
+
+List images.
+
+ - **list all added to introduction** _/api/v1/introduction/[introductionID]/images/_
+
+Add image.
+
+ - **add image to introduction** #40 _/api/v1/introduction/[introductionID]/image/_
+
+## Comments
+
+### /api/v1/comments/
+
+**Or move to /api/v1/hearing/[hearingID]/comment/[commentID]/**
+
+Vote. Update or delete.
+
+ - **add a vote** #31 _/api/v1/comments/[commentID]/vote/?voter=[userID]_
+ - **get detail (with number of comments)** _/api/v1/comments/[commentID]_
+ - **Update, delete** _/api/v1/comments/[commentID]_
+
+Follow comment. User is authenticated.
+
+ - **add follower** #10 _/api/v1/comments/[commentID]/follow/_
 
 ## TODO:
 
@@ -113,4 +145,11 @@ List comments. Add comments. Vote. Update or delete.
 ### /comment/service
 
  - add comments about service itself #35
+
+## /api/v1/labels/
+
+List labels. Get detail. Create, update.
+
+ - **list** _/api/v1/labels/?hearing=[hearingID]_
+ - **CRUD** #23 _/api/v1/labels/[labelID]_
 

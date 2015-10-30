@@ -18,7 +18,7 @@ class Hearing(ModifiableModel):
     )
     close_at = models.DateTimeField(verbose_name=_('Closing time'), default=timezone.now)
     n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0)
-    status = models.BooleanField(verbose_name=_('Whether hearing is open'), default=True)
+    status = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
     heading = models.TextField(verbose_name=_('Heading'), blank=True, default='')
     abstract = models.TextField(verbose_name=_('Abstract'), blank=True, default='')
     heading = models.TextField(verbose_name=_('Content'), blank=True, default='')

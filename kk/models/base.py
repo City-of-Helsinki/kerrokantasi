@@ -1,5 +1,6 @@
 import base64
 import struct
+import time
 
 from django.conf import settings
 from django.db import models
@@ -12,7 +13,7 @@ def generate_id():
     return b.decode('utf8')
 
 class ModifiableModel(models.Model):
-    id = models.CharField(primary_key=True, max_length=100)
+    id = models.CharField(primary_key=True, max_length=100, blank=True)
     created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
         null=True, blank=True, related_name="%(class)s_created")

@@ -1,6 +1,6 @@
 
 from django.conf import settings
-from django.contrib.gis.db import models
+from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -30,5 +30,5 @@ class Hearing(ModifiableModel):
 
 
 class Label(ModifiableModel):
-    hearing = models.ManyToMany(Hearing)
+    hearing = models.ManyToManyField(Hearing)
     label = models.CharField(verbose_name=_('Label'), default='')

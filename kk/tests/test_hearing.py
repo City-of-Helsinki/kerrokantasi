@@ -217,3 +217,9 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert len(data['labels']) is 3
         assert label_one.label in data['labels']
+
+    def test_15_get_detail_empty(self):
+        raise NotImplementedError("Add tests for empty values")
+
+    def test_15_get_detail_invalid(self):
+        raise NotImplementedError("Add tests for invalid values")

@@ -6,6 +6,12 @@ from django.utils.translation import ugettext_lazy as _
 
 from .base import ModifiableModel
 
+class Label(ModifiableModel):
+    label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
+
+    def __str__(self):
+        return self.label
+
 class Hearing(ModifiableModel):
     COMMENT_OPTION_DISALLOW = '1'
     COMMENT_OPTION_REGISTERED = '2'
@@ -18,7 +24,7 @@ class Hearing(ModifiableModel):
     )
     close_at = models.DateTimeField(verbose_name=_('Closing time'), default=timezone.now)
     n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0)
-    status = models.BooleanField(verbose_name=_('Whether hearing is open'), default=True)
+    closed = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
     heading = models.TextField(verbose_name=_('Heading'), blank=True, default='')
     abstract = models.TextField(verbose_name=_('Abstract'), blank=True, default='')
     heading = models.TextField(verbose_name=_('Content'), blank=True, default='')
@@ -27,8 +33,4 @@ class Hearing(ModifiableModel):
     servicemap_url = models.CharField(verbose_name=_('Servicemap url'), default='', max_length=255, blank=True)
     latitude = models.CharField(verbose_name=_('Latitude'), max_length=20, default='', blank=True)
     longitude = models.CharField(verbose_name=_('Longitude'), max_length=20, default='', blank=True)
-
-
-class Label(ModifiableModel):
-    hearing = models.ManyToManyField(Hearing)
-    label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
+    labels = models.ManyToManyField(Label)

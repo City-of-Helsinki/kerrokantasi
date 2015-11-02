@@ -9,7 +9,7 @@ from .base import ModifiableModel
 class Label(ModifiableModel):
     label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.label
 
 class Hearing(ModifiableModel):
@@ -24,7 +24,7 @@ class Hearing(ModifiableModel):
     )
     close_at = models.DateTimeField(verbose_name=_('Closing time'), default=timezone.now)
     n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0)
-    status = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
+    closed = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
     heading = models.TextField(verbose_name=_('Heading'), blank=True, default='')
     abstract = models.TextField(verbose_name=_('Abstract'), blank=True, default='')
     heading = models.TextField(verbose_name=_('Content'), blank=True, default='')

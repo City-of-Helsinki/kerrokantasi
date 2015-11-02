@@ -1,4 +1,6 @@
 import pytest
+import datetime
+import urllib
 
 from kk.models import Hearing
 from kk.tests.base import BaseKKDBTest
@@ -71,4 +73,60 @@ class TestHearing(BaseKKDBTest):
         assert '7' in objects[3]['abstract']
         assert '6' in objects[4]['abstract']
 
+    def test_get_next_closing_hearing_one_available(self):
+        first_close_at = datetime.datetime.now()+datetime.timedelta(days=1)
+        third_close_at = datetime.datetime.now()+datetime.timedelta(days=3)
+        hearing_one = Hearing(abstract='Closing hearing one')
+        hearing_two = Hearing(abstract='Closing hearing two')
+        self.hearing_one.close_at = third_close_at
 
+        # hearing_one will close today
+        # hearing_two will close today
+        # First hearing created during setup will close in three days
+
+        # We expect first hearing created in a setup which is next for our hearing_one
+
+        hearing_one.save()
+        hearing_two.save()
+        self.hearing_one.save()
+
+        url = '%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(first_close_at.strftime('%Y-%m-%dT%H:%M:%S.%uZ')))
+        response = self.client.get(url)
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+ 
+        assert len(data) is 1
+        assert data[0]['abstract'] == self.hearing_one.abstract
+
+    def test_get_next_closing_hearing_two_available(self):
+        first_close_at = datetime.datetime.now()+datetime.timedelta(days=1)
+        second_close_at = datetime.datetime.now()+datetime.timedelta(days=2)
+        third_close_at = datetime.datetime.now()+datetime.timedelta(days=3)
+        hearing_one = Hearing(abstract='Closing hearing one', close_at=first_close_at)
+        hearing_two = Hearing(abstract='Closing hearing two', close_at=second_close_at)
+        self.hearing_one.close_at = third_close_at
+
+        # hearing_one will close in one day
+        # hearing_two will close in two days
+        # First hearing created during setup will close in three days
+
+        # We expect hearing_two which is next for our hearing_one
+
+        hearing_one.save()
+        hearing_two.save()
+        self.hearing_one.save()
+
+        # add one second to datetime
+        # at least it fixes the same datetime returned issue with SQLite in my case
+        # e.g. &next_closing=2015-11-03T08%3A28%3A09.2Z returns object which close_at is 2015-11-03T08:28:09
+        # though, query constraint is 'close_at > 2015-11-03T08:28:09'
+        next_close_date = first_close_at + datetime.timedelta(0,1)
+        url = '%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(next_close_date.strftime('%Y-%m-%dT%H:%M:%S.%uZ')))
+        response = self.client.get(url)
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+
+        assert len(data) is 1
+        assert data[0]['abstract'] == hearing_two.abstract

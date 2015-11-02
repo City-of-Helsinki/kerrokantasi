@@ -9,6 +9,9 @@ from .base import ModifiableModel
 class Label(ModifiableModel):
     label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
 
+    def __unicode__(self):
+        return self.label
+
 class Hearing(ModifiableModel):
     COMMENT_OPTION_DISALLOW = '1'
     COMMENT_OPTION_REGISTERED = '2'

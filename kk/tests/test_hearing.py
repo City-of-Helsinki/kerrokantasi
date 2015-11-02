@@ -2,7 +2,7 @@ import pytest
 import datetime
 import urllib
 
-from kk.models import Hearing
+from kk.models import Hearing, Label
 from kk.tests.base import BaseKKDBTest
 
 class TestHearing(BaseKKDBTest):
@@ -20,7 +20,10 @@ class TestHearing(BaseKKDBTest):
        
         self.endpoint = '%s/hearing/' % self.base_endpoint
         self.list_endpoint = '%s?format=json' % self.endpoint
-    
+   
+    def get_detail_url(self, id):
+        return '%s%s/?format=json' % (self.endpoint, id)
+
     def create_hearings(self, n):
         for i in range(1, n+1):
             Hearing(abstract='Test purpose created hearing %s' % str(i)).save()
@@ -84,18 +87,19 @@ class TestHearing(BaseKKDBTest):
         # hearing_two will close today
         # First hearing created during setup will close in three days
 
-        # We expect first hearing created in a setup which is next for our hearing_one
+        # We expect first hearing created in a setup which is next for our first_close_at date
 
         hearing_one.save()
         hearing_two.save()
         self.hearing_one.save()
 
         url = '%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(first_close_at.strftime('%Y-%m-%dT%H:%M:%S.%uZ')))
+        #url = '%s&next_closing=%s&limit=1' % (self.list_endpoint, urllib.parse.quote_plus(first_close_at.strftime('%Y-%m-%dT%H:%M:%S.%uZ')))      
         response = self.client.get(url)
         assert response.status_code is 200
 
         data = self.get_data_from_response(response)
- 
+
         assert len(data) is 1
         assert data[0]['abstract'] == self.hearing_one.abstract
 
@@ -123,6 +127,7 @@ class TestHearing(BaseKKDBTest):
         # though, query constraint is 'close_at > 2015-11-03T08:28:09'
         next_close_date = first_close_at + datetime.timedelta(0,1)
         url = '%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(next_close_date.strftime('%Y-%m-%dT%H:%M:%S.%uZ')))
+        #url = '%s&next_closing=%s&limit=1' % (self.list_endpoint, urllib.parse.quote_plus(next_close_date.strftime('%Y-%m-%dT%H:%M:%S.%uZ')))
         response = self.client.get(url)
         assert response.status_code is 200
 
@@ -130,3 +135,85 @@ class TestHearing(BaseKKDBTest):
 
         assert len(data) is 1
         assert data[0]['abstract'] == hearing_two.abstract
+
+    def test_15_get_detail_abstract(self):
+        hearing = Hearing(abstract='Lorem Ipsum Abstract')
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        
+        assert 'results' not in data
+        assert data['abstract'] == hearing.abstract
+
+    def test_15_get_detail_heading(self):
+        hearing = Hearing(heading='Lorem Ipsum Heading')
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        
+        assert 'results' not in data
+        assert data['heading'] == hearing.heading
+
+    def test_15_get_detail_borough(self):
+        hearing = Hearing(borough='Itäinen')
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        
+        assert 'results' not in data
+        assert data['borough'] == hearing.borough
+
+    def test_15_get_detail_n_comments(self):
+        hearing = Hearing(n_comments=1)
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        
+        assert 'results' not in data
+        assert data['n_comments'] == hearing.n_comments
+
+    def test_15_get_detail_closing_time(self):
+        hearing = Hearing()
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        
+        assert 'results' not in data
+        assert data['close_at'] == hearing.close_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+    def test_15_get_detail_labels(self):
+        hearing = Hearing()
+        hearing.save()
+
+        label_one = Label(label='Label One')
+        label_one.save()
+        label_two = Label(label='Label Two')
+        label_two.save()
+        label_three = Label(label='Label Three')
+        label_three.save()
+
+        hearing.labels.add(label_one, label_two, label_three)
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        
+        assert 'results' not in data
+        assert len(data['labels']) is 3
+        assert label_one.label in data['labels']

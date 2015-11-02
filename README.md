@@ -23,5 +23,11 @@ Install all required packages with pip command:
 
 # Testing
 
- - pytest
- - pytest-django
+Run all tests. Execute command in project root directory.
+
+     py.test
+
+Run test against particular issue.
+
+    py.test -k test_7 -v
+

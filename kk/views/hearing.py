@@ -23,7 +23,8 @@ class HearingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hearing
-        fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',]
+        fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
+                'latitude', 'longitude', 'servicemap_url']
 
 class HearingViewSet(viewsets.ModelViewSet):
     """

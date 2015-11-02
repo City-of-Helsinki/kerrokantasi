@@ -218,6 +218,31 @@ class TestHearing(BaseKKDBTest):
         assert len(data['labels']) is 3
         assert label_one.label in data['labels']
 
+    def test_7_get_detail_location(self):
+        hearing = Hearing(latitude='60.19276', longitude='24.93300')
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+
+        assert 'results' not in data
+        assert data['latitude'] == hearing.latitude
+        assert data['longitude'] == hearing.longitude
+
+    def test_7_get_detail_servicemap(self):
+        hearing = Hearing(servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki')
+        hearing.save()
+
+        response = self.client.get(self.get_detail_url(hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+
+        assert 'results' not in data
+        assert data['servicemap_url'] == hearing.servicemap_url
+
     def test_15_get_detail_empty(self):
         raise NotImplementedError("Add tests for empty values")
 

@@ -136,7 +136,7 @@ class TestHearing(BaseKKDBTest):
         assert len(data) is 1
         assert data[0]['abstract'] == hearing_two.abstract
 
-    def test_15_get_detail_abstract(self):
+    def test_8_get_detail_abstract(self):
         hearing = Hearing(abstract='Lorem Ipsum Abstract')
         hearing.save()
 
@@ -148,7 +148,7 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['abstract'] == hearing.abstract
 
-    def test_15_get_detail_heading(self):
+    def test_8_get_detail_heading(self):
         hearing = Hearing(heading='Lorem Ipsum Heading')
         hearing.save()
 
@@ -160,7 +160,7 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['heading'] == hearing.heading
 
-    def test_15_get_detail_borough(self):
+    def test_8_get_detail_borough(self):
         hearing = Hearing(borough='Itäinen')
         hearing.save()
 
@@ -172,7 +172,7 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['borough'] == hearing.borough
 
-    def test_15_get_detail_n_comments(self):
+    def test_8_get_detail_n_comments(self):
         hearing = Hearing(n_comments=1)
         hearing.save()
 
@@ -184,7 +184,7 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['n_comments'] == hearing.n_comments
 
-    def test_15_get_detail_closing_time(self):
+    def test_8_get_detail_closing_time(self):
         hearing = Hearing()
         hearing.save()
 
@@ -196,7 +196,7 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['close_at'] == hearing.close_at.strftime('%Y-%m-%dT%H:%M:%S.%fZ')
 
-    def test_15_get_detail_labels(self):
+    def test_8_get_detail_labels(self):
         hearing = Hearing()
         hearing.save()
 
@@ -218,6 +218,12 @@ class TestHearing(BaseKKDBTest):
         assert len(data['labels']) is 3
         assert label_one.label in data['labels']
 
+    def test_8_get_detail_empty(self):
+        raise NotImplementedError("Add tests for empty values")
+
+    def test_8_get_detail_invalid(self):
+        raise NotImplementedError("Add tests for invalid values")
+    
     def test_7_get_detail_location(self):
         hearing = Hearing(latitude='60.19276', longitude='24.93300')
         hearing.save()
@@ -242,9 +248,3 @@ class TestHearing(BaseKKDBTest):
 
         assert 'results' not in data
         assert data['servicemap_url'] == hearing.servicemap_url
-
-    def test_15_get_detail_empty(self):
-        raise NotImplementedError("Add tests for empty values")
-
-    def test_15_get_detail_invalid(self):
-        raise NotImplementedError("Add tests for invalid values")

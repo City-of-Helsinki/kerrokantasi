@@ -6,6 +6,9 @@ from django.utils.translation import ugettext_lazy as _
 
 from .base import ModifiableModel
 
+class Label(ModifiableModel):
+    label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
+
 class Hearing(ModifiableModel):
     COMMENT_OPTION_DISALLOW = '1'
     COMMENT_OPTION_REGISTERED = '2'
@@ -27,8 +30,4 @@ class Hearing(ModifiableModel):
     servicemap_url = models.CharField(verbose_name=_('Servicemap url'), default='', max_length=255, blank=True)
     latitude = models.CharField(verbose_name=_('Latitude'), max_length=20, default='', blank=True)
     longitude = models.CharField(verbose_name=_('Longitude'), max_length=20, default='', blank=True)
-
-
-class Label(ModifiableModel):
-    hearing = models.ManyToManyField(Hearing)
-    label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
+    labels = models.ManyToManyField(Label)

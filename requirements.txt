@@ -8,3 +8,5 @@ pytest==2.8.2
 pytest_django==2.9.1
 pillow==3.0.0
 easy-thumbnails==2.2
+pytest-cov==2.2.0
+flake8==2.4.1

@@ -1,16 +1,13 @@
-import base64
-import struct
-import time
-
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 
+
 def generate_id():
-    t = time.time() * 1000000
-    b = base64.b32encode(struct.pack(">Q", int(t)).lstrip(b'\x00')).strip(b'=').lower()
-    return b.decode('utf8')
+    return get_random_string(16)
+
 
 class ModifiableModel(models.Model):
     id = models.CharField(primary_key=True, max_length=100, blank=True)

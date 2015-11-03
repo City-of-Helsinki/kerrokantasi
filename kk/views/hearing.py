@@ -3,8 +3,10 @@ import django_filters
 from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import filters
+from rest_framework.decorators import detail_route
+from rest_framework.response import Response
 
-from kk.models import Hearing
+from kk.models import Hearing, HearingImage
 
 class HearingFilter(django_filters.FilterSet):
     next_closing = django_filters.DateTimeFilter(name='close_at',lookup_type='gt')
@@ -18,20 +20,26 @@ class LabelSerializer(serializers.RelatedField):
     def to_representation(self, value):
         return  value.label
 
-# Serializer for images.
-class ImageSerializer(serializers.RelatedField):
+# Serializer for 'image' field.
+class ImageFieldSerializer(serializers.RelatedField):
     def to_representation(self, image):
         return {'name': image.title, 'url': image.image.url, 'type': image.type,
                 'width': image.width, 'height': image.height}
 
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
-    images = ImageSerializer(many=True, read_only=True)
+    images = ImageFieldSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hearing
         fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
                 'latitude', 'longitude', 'servicemap_url', 'images']
+
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = HearingImage
+        fields = ['title', 'image', 'width', 'height']
+
 
 class HearingViewSet(viewsets.ModelViewSet):
     """
@@ -49,6 +57,21 @@ class HearingViewSet(viewsets.ModelViewSet):
         if next_closing is not None:
             return self.queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
         return self.queryset.order_by('-created_at')
+
+    @detail_route(methods=['get'])
+    def images(self, request, pk=None):
+        hearing = self.get_object()
+        images = hearing.images.all()
+
+        page = self.paginate_queryset(images)
+        if page is not None:
+            #serializer = self.get_serializer(page, many=True)
+            serializer = ImageSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        #serializer = self.get_serializer(images, many=True)
+        serializer = ImageSerializer(images, many=True, read_only=True)
+        return Response(serializer.data)
 
     # temporary for query debug purpose
     def _list(self, request, *args, **kwargs):

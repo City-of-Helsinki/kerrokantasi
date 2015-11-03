@@ -8,6 +8,8 @@ from rest_framework.response import Response
 
 from kk.models import Hearing, HearingImage
 
+from .image import ImageFieldSerializer, ImageSerializer
+
 class HearingFilter(django_filters.FilterSet):
     next_closing = django_filters.DateTimeFilter(name='close_at',lookup_type='gt')
 
@@ -20,12 +22,6 @@ class LabelSerializer(serializers.RelatedField):
     def to_representation(self, value):
         return  value.label
 
-# Serializer for 'image' field.
-class ImageFieldSerializer(serializers.RelatedField):
-    def to_representation(self, image):
-        return {'name': image.title, 'url': image.image.url, 'type': image.type,
-                'width': image.width, 'height': image.height}
-
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = ImageFieldSerializer(many=True, read_only=True)
@@ -34,12 +30,6 @@ class HearingSerializer(serializers.ModelSerializer):
         model = Hearing
         fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
                 'latitude', 'longitude', 'servicemap_url', 'images']
-
-class ImageSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = HearingImage
-        fields = ['title', 'image', 'width', 'height']
-
 
 class HearingViewSet(viewsets.ModelViewSet):
     """
@@ -65,12 +55,10 @@ class HearingViewSet(viewsets.ModelViewSet):
 
         page = self.paginate_queryset(images)
         if page is not None:
-            #serializer = self.get_serializer(page, many=True)
             serializer = ImageSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
         
-        #serializer = self.get_serializer(images, many=True)
-        serializer = ImageSerializer(images, many=True, read_only=True)
+        serializer = ImageSerializer(images, many=True)
         return Response(serializer.data)
 
     # temporary for query debug purpose

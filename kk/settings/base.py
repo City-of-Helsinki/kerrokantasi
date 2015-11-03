@@ -131,4 +131,5 @@ REST_FRAMEWORK = {
 }
 
 # Images
-IMAGES_DIR = '/images'
+IMAGES_URL = '/images'
+IMAGES_DIR = '%s/%s' % (BASE_DIR, IMAGES_URL)

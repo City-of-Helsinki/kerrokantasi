@@ -13,4 +13,4 @@ urlpatterns = [
     url(r'^v1/', include(router.urls, namespace='v1')),
     url(r'^admin/', include(admin.site.urls)),
     url(r'^api/v1', include('rest_framework.urls', namespace='rest_framework'))
-] + static('/', document_root=settings.BASE_DIR)
+] + static(settings.IMAGES_URL, document_root=settings.IMAGES_DIR)

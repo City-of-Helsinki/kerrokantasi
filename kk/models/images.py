@@ -8,7 +8,7 @@ from .base import ModifiableModel
 from .hearing import Hearing
 
 def get_images_dir():
-    return '%s/%s/' % (settings.BASE_DIR, settings.IMAGES_DIR)
+    return settings.IMAGES_DIR
 
 file_storage = FileSystemStorage(location=get_images_dir())
 
@@ -25,8 +25,8 @@ class CommonImage(ModifiableModel):
     type = models.CharField(verbose_name=_('The type of the image'), max_length=1, choices=IMAGE_TYPE, default='1')
     title = models.CharField(verbose_name=_('The title'), max_length=255, blank=True, default='')
     caption = models.TextField(verbose_name=_('Caption'), blank=True, default='')
-    height = models.CharField(verbose_name=_('Height'), max_length=10, blank=True, default='')
-    width = models.CharField(verbose_name=_('Width'), max_length=10, blank=True, default='')
+    height = models.IntegerField(verbose_name=_('Height'), default=0)
+    width = models.IntegerField(verbose_name=_('Width'), default=0)
     image = models.ImageField(verbose_name=_('Image'), storage=file_storage)
 
     class Meta:

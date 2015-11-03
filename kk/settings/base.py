@@ -118,7 +118,6 @@ LANGUAGES = (
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'fi'
 
 # DRF
-
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
@@ -131,3 +130,5 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
 }
 
+# Images
+IMAGES_DIR = '/images'

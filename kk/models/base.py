@@ -20,7 +20,7 @@ class ModifiableModel(models.Model):
     modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
         null=True, blank=True, related_name="%(class)s_modified")
-    deleted = models.BooleanField(verbose_name=_('Deleted flag'), default=False)
+    deleted = models.BooleanField(verbose_name=_('Deleted flag'), default=False, db_index=True)
 
     def save(self, *args, **kwargs):
         pk_type = self._meta.pk.get_internal_type()

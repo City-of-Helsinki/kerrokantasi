@@ -33,4 +33,4 @@ class Hearing(ModifiableModel):
     servicemap_url = models.CharField(verbose_name=_('Servicemap url'), default='', max_length=255, blank=True)
     latitude = models.CharField(verbose_name=_('Latitude'), max_length=20, default='', blank=True)
     longitude = models.CharField(verbose_name=_('Longitude'), max_length=20, default='', blank=True)
-    labels = models.ManyToManyField(Label)
+    labels = models.ManyToManyField(Label, blank=True)

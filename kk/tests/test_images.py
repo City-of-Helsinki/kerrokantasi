@@ -1,6 +1,7 @@
 import pytest
 import datetime
 import urllib
+import os
 
 from django.conf import settings
 
@@ -37,7 +38,7 @@ class TestImage(BaseKKDBTest):
         assert 'images' in data
         assert len(data['images']) == 3
 
-    def test_8_list_hearing_images_check_urls(self):
+    def test_8_list_hearing_images_check_names(self):
         self.create_hearing_image(self.hearing, 'original.jpg')
         self.create_hearing_image(self.hearing, 'small.jpg')
         self.create_hearing_image(self.hearing, 'thumbnail.jpg')
@@ -49,11 +50,11 @@ class TestImage(BaseKKDBTest):
 
         urls = []
         for im in data['images']:
-            urls.append(im['url'])
+            urls.append(os.path.basename(im['url']))
 
-        assert '/images/original.jpg' in urls
-        assert '/images/small.jpg' in urls
-        assert '/images/thumbnail.jpg' in urls
+        assert 'original.jpg' in urls
+        assert 'small.jpg' in urls
+        assert 'thumbnail.jpg' in urls
 
     def test_37_list_hearing_images_check_number_of_images(self):
         self.create_hearing_image(self.hearing, 'original.jpg')

@@ -35,7 +35,7 @@ class TestImage(BaseKKDBTest):
         data = self.get_data_from_response(response)
 
         assert 'images' in data
-        assert len(data['images']) is 3
+        assert len(data['images']) == 3
 
     def test_8_list_hearing_images_check_urls(self):
         self.create_hearing_image(self.hearing, 'original.jpg')
@@ -65,7 +65,7 @@ class TestImage(BaseKKDBTest):
         response = self.client.get(url)
         data = self.get_data_from_response(response)
 
-        assert len(data) is 3
+        assert len(data) == 3
 
     def test_37_list_hearing_images_check_titles(self):
         self.create_hearing_image(self.hearing, 'original.jpg')

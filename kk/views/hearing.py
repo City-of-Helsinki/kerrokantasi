@@ -18,13 +18,20 @@ class LabelSerializer(serializers.RelatedField):
     def to_representation(self, value):
         return  value.label
 
+# Serializer for images.
+class ImageSerializer(serializers.RelatedField):
+    def to_representation(self, image):
+        return {'name': image.title, 'url': image.image.url, 'type': image.type,
+                'width': image.width, 'height': image.height}
+
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
+    images = ImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hearing
         fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
-                'latitude', 'longitude', 'servicemap_url']
+                'latitude', 'longitude', 'servicemap_url', 'images']
 
 class HearingViewSet(viewsets.ModelViewSet):
     """

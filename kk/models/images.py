@@ -3,6 +3,7 @@ from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.core.files.storage import FileSystemStorage
+from easy_thumbnails.fields import ThumbnailerImageField
 
 from .base import ModifiableModel
 from .hearing import Hearing
@@ -13,21 +14,11 @@ def get_images_dir():
 file_storage = FileSystemStorage(location=get_images_dir())
 
 class CommonImage(ModifiableModel):
-    IMAGE_TYPE_ORIGINAL = '1'
-    IMAGE_TYPE_SMALL = '2'
-    IMAGE_TYPE_THUMBNAIL = '3'
-
-    IMAGE_TYPE = (
-        (IMAGE_TYPE_ORIGINAL, 'Original'),
-        (IMAGE_TYPE_SMALL, 'Small'),
-        (IMAGE_TYPE_THUMBNAIL, 'Thumbnail')
-    )
-    type = models.CharField(verbose_name=_('The type of the image'), max_length=1, choices=IMAGE_TYPE, default='1')
     title = models.CharField(verbose_name=_('The title'), max_length=255, blank=True, default='')
     caption = models.TextField(verbose_name=_('Caption'), blank=True, default='')
     height = models.IntegerField(verbose_name=_('Height'), default=0)
     width = models.IntegerField(verbose_name=_('Width'), default=0)
-    image = models.ImageField(verbose_name=_('Image'), storage=file_storage)
+    image = ThumbnailerImageField(verbose_name=_('Image'), storage=file_storage, resize_source=dict(size=(100, 100), sharpen=True))    
 
     class Meta:
         abstract = True

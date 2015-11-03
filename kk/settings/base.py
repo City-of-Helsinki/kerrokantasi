@@ -40,11 +40,13 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'reversion',
+    'corsheaders',
     'kk',
 )
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -114,8 +116,13 @@ LANGUAGES = (
     ('en', gettext('English')),
     )
 
-# default language 
+# default language
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'fi'
+
+# CORS for DRF
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_URLS_REGEX = r'^/v1/.*$'
 
 # DRF
 

@@ -6,7 +6,7 @@ from rest_framework import filters
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
-from kk.models import Hearing, HearingImage
+from kk.models import Hearing
 
 from .image import ImageFieldSerializer, ImageSerializer
 

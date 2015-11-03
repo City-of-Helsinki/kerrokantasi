@@ -51,9 +51,13 @@ class TestHearing(BaseKKDBTest):
         assert response.status_code is 200
 
         data = self.get_data_from_response(response)
-        assert data[0]['abstract'] == self.hearing_three.abstract
-        assert data[1]['abstract'] == self.hearing_two.abstract
-        assert data[2]['abstract'] == self.hearing_one.abstract
+        abstracts = []
+        for o in data:
+            abstracts.append(o['abstract'])
+
+        assert self.hearing_three.abstract in abstracts
+        assert self.hearing_two.abstract in abstracts
+        assert self.hearing_one.abstract in abstracts
 
     def test_list_top_5_hearings_check_number_of_objects(self):
         self.create_hearings(10)
@@ -70,6 +74,7 @@ class TestHearing(BaseKKDBTest):
 
         data = self.get_data_from_response(response)
         objects = data['results']
+        # We expect data to be returned in this, particular order
         assert '10' in objects[0]['abstract']
         assert '9' in objects[1]['abstract']
         assert '8' in objects[2]['abstract']

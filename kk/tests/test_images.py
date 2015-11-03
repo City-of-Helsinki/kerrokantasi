@@ -51,9 +51,9 @@ class TestImage(BaseKKDBTest):
         for im in data['images']:
             urls.append(im['url'])
 
-        assert 'original' in urls[0]
-        assert 'small' in urls[1]
-        assert 'thumbnail' in urls[2]
+        assert '/images/original.jpg' in urls
+        assert '/images/small.jpg' in urls
+        assert '/images/thumbnail.jpg' in urls
 
     def test_37_list_hearing_images_check_number_of_images(self):
         self.create_hearing_image(self.hearing, 'original.jpg')
@@ -76,6 +76,10 @@ class TestImage(BaseKKDBTest):
         response = self.client.get(url)
         data = self.get_data_from_response(response)
 
-        assert data[0]['title'] == 'original.jpg'
-        assert data[1]['title'] == 'small.jpg'
-        assert data[2]['title'] == 'thumbnail.jpg'
+        titles = []
+        for im in data:
+            titles.append(im['title'])
+ 
+        assert 'original.jpg' in titles
+        assert 'small.jpg' in titles
+        assert 'thumbnail.jpg' in titles

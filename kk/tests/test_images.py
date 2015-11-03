@@ -8,12 +8,15 @@ from django.conf import settings
 from kk.models import Hearing, HearingImage
 from kk.tests.base import BaseKKDBTest
 
+@pytest.fixture()
+def default_hearing():
+    hearing = Hearing(abstract='Hearing One')
+    hearing.save()
+    return hearing
+
 class TestImage(BaseKKDBTest):
     def setup(self):
         super(TestImage, self).setup()
-
-        self.hearing = Hearing(abstract='Hearing One')
-        self.hearing.save()
 
         self.hearing_endpoint = '%s/hearing/' % self.base_endpoint
         self.hearing_list_endpoint = '%s?format=json' % self.hearing_endpoint
@@ -27,23 +30,23 @@ class TestImage(BaseKKDBTest):
         image = HearingImage(hearing=hearing, image=path, title=name)
         image.save()
 
-    def test_8_list_hearing_images_check_number_of_images(self):
-        self.create_hearing_image(self.hearing, 'original.jpg')
-        self.create_hearing_image(self.hearing, 'small.jpg')
-        self.create_hearing_image(self.hearing, 'thumbnail.jpg')
+    def test_8_list_hearing_images_check_number_of_images(self, default_hearing):
+        self.create_hearing_image(default_hearing, 'original.jpg')
+        self.create_hearing_image(default_hearing, 'small.jpg')
+        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
 
-        response = self.client.get(self.get_hearing_detail_url(self.hearing.id))
+        response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
         data = self.get_data_from_response(response)
 
         assert 'images' in data
         assert len(data['images']) == 3
 
-    def test_8_list_hearing_images_check_names(self):
-        self.create_hearing_image(self.hearing, 'original.jpg')
-        self.create_hearing_image(self.hearing, 'small.jpg')
-        self.create_hearing_image(self.hearing, 'thumbnail.jpg')
+    def test_8_list_hearing_images_check_names(self, default_hearing):
+        self.create_hearing_image(default_hearing, 'original.jpg')
+        self.create_hearing_image(default_hearing, 'small.jpg')
+        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
 
-        response = self.client.get(self.get_hearing_detail_url(self.hearing.id))
+        response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
         data = self.get_data_from_response(response)
 
         assert 'images' in data
@@ -56,24 +59,24 @@ class TestImage(BaseKKDBTest):
         assert 'small.jpg' in urls
         assert 'thumbnail.jpg' in urls
 
-    def test_37_list_hearing_images_check_number_of_images(self):
-        self.create_hearing_image(self.hearing, 'original.jpg')
-        self.create_hearing_image(self.hearing, 'small.jpg')
-        self.create_hearing_image(self.hearing, 'thumbnail.jpg')
+    def test_37_list_hearing_images_check_number_of_images(self, default_hearing):
+        self.create_hearing_image(default_hearing, 'original.jpg')
+        self.create_hearing_image(default_hearing, 'small.jpg')
+        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
 
         # /v1/hearing/<hearingID>/images/
-        url = '%s%s/images/?format=json' % (self.hearing_endpoint, self.hearing.id)
+        url = '%s%s/images/?format=json' % (self.hearing_endpoint, default_hearing.id)
         response = self.client.get(url)
         data = self.get_data_from_response(response)
 
         assert len(data) == 3
 
-    def test_37_list_hearing_images_check_titles(self):
-        self.create_hearing_image(self.hearing, 'original.jpg')
-        self.create_hearing_image(self.hearing, 'small.jpg')
-        self.create_hearing_image(self.hearing, 'thumbnail.jpg')
+    def test_37_list_hearing_images_check_titles(self, default_hearing):
+        self.create_hearing_image(default_hearing, 'original.jpg')
+        self.create_hearing_image(default_hearing, 'small.jpg')
+        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
 
-        url = '%s%s/images/?format=json' % (self.hearing_endpoint, self.hearing.id)
+        url = '%s%s/images/?format=json' % (self.hearing_endpoint, default_hearing.id)
         response = self.client.get(url)
         data = self.get_data_from_response(response)
 

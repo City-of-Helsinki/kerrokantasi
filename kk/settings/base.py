@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'rest_framework',
     'reversion',
     'corsheaders',
+    'easy_thumbnails',
     'kk',
 )
 

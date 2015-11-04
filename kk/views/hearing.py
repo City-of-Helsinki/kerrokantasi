@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from kk.models import Hearing
 
 from .image import ImageFieldSerializer, ImageSerializer
+from .introduction import IntroductionFieldSerializer, IntroductionSerializer
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -30,11 +31,14 @@ class LabelSerializer(serializers.RelatedField):
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = ImageFieldSerializer(many=True, read_only=True)
+    introductions = IntroductionFieldSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hearing
-        fields = ['id', 'heading', 'abstract', 'content', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
-                  'latitude', 'longitude', 'servicemap_url', 'images']
+        fields = ['abstract', 'heading', 'content', 'id', 'borough', 'n_comments',
+                'labels', 'close_at', 'created_at', 'latitude', 'longitude',
+                'servicemap_url', 'images', 'introductions', 'images',
+                'closed']
 
 
 class HearingViewSet(viewsets.ReadOnlyModelViewSet):
@@ -65,6 +69,19 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = ImageSerializer(images, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def introductions(self, request, pk=None):
+        hearing = self.get_object()
+        intros = hearing.introductions.all()
+
+        page = self.paginate_queryset(intros)
+        if page is not None:
+            serializer = IntroductionSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = IntroductionSerializer(intros, many=True)
         return Response(serializer.data)
 
     # temporary for query debug purpose

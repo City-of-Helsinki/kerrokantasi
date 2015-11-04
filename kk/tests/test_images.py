@@ -5,16 +5,13 @@ import os
 
 from django.conf import settings
 
-from kk.models import Hearing, HearingImage
-from kk.tests.base import BaseKKDBTest
+from kk.models import Hearing, Image
+from kk.tests.base import BaseKKDBTest, default_hearing
 
 
-@pytest.fixture()
-def default_hearing():
-    hearing = Hearing(abstract='Hearing One')
-    hearing.save()
-    return hearing
-
+ORIGINAL = 'original.jpg'
+SMALL = 'small.jpg'
+THUMBNAIL = 'thumbnail.jpg'
 
 class TestImage(BaseKKDBTest):
 
@@ -27,16 +24,19 @@ class TestImage(BaseKKDBTest):
     def get_hearing_detail_url(self, id):
         return '%s%s/?format=json' % (self.hearing_endpoint, id)
 
-    def create_hearing_image(self, hearing, name):
+    def create_image(self, instance, name):
         # TODO: copy images to IMAGES_DIR if required
         path = '%s/%s' % (settings.IMAGES_DIR, name)
-        image = HearingImage(hearing=hearing, image=path, title=name)
-        image.save()
+        image = Image.objects.create(image=path, title=name)
+        instance.images.add(image)
+
+    def create_default_images(self, instance):
+        self.create_image(instance, ORIGINAL)
+        self.create_image(instance, SMALL)
+        self.create_image(instance, THUMBNAIL)
 
     def test_8_list_hearing_images_check_number_of_images(self, default_hearing):
-        self.create_hearing_image(default_hearing, 'original.jpg')
-        self.create_hearing_image(default_hearing, 'small.jpg')
-        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
+        self.create_default_images(default_hearing)
 
         response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
         data = self.get_data_from_response(response)
@@ -45,9 +45,7 @@ class TestImage(BaseKKDBTest):
         assert len(data['images']) == 3
 
     def test_8_list_hearing_images_check_names(self, default_hearing):
-        self.create_hearing_image(default_hearing, 'original.jpg')
-        self.create_hearing_image(default_hearing, 'small.jpg')
-        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
+        self.create_default_images(default_hearing)
 
         response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
         data = self.get_data_from_response(response)
@@ -58,14 +56,12 @@ class TestImage(BaseKKDBTest):
         for im in data['images']:
             urls.append(os.path.basename(im['url']))
 
-        assert 'original.jpg' in urls
-        assert 'small.jpg' in urls
-        assert 'thumbnail.jpg' in urls
+        assert ORIGINAL in urls
+        assert SMALL in urls
+        assert THUMBNAIL in urls
 
     def test_37_list_hearing_images_check_number_of_images(self, default_hearing):
-        self.create_hearing_image(default_hearing, 'original.jpg')
-        self.create_hearing_image(default_hearing, 'small.jpg')
-        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
+        self.create_default_images(default_hearing)
 
         # /v1/hearing/<hearingID>/images/
         url = '%s%s/images/?format=json' % (self.hearing_endpoint, default_hearing.id)
@@ -75,9 +71,7 @@ class TestImage(BaseKKDBTest):
         assert len(data) == 3
 
     def test_37_list_hearing_images_check_titles(self, default_hearing):
-        self.create_hearing_image(default_hearing, 'original.jpg')
-        self.create_hearing_image(default_hearing, 'small.jpg')
-        self.create_hearing_image(default_hearing, 'thumbnail.jpg')
+        self.create_default_images(default_hearing)
 
         url = '%s%s/images/?format=json' % (self.hearing_endpoint, default_hearing.id)
         response = self.client.get(url)
@@ -87,6 +81,6 @@ class TestImage(BaseKKDBTest):
         for im in data:
             titles.append(im['title'])
 
-        assert 'original.jpg' in titles
-        assert 'small.jpg' in titles
-        assert 'thumbnail.jpg' in titles
+        assert ORIGINAL in titles
+        assert SMALL in titles
+        assert THUMBNAIL in titles

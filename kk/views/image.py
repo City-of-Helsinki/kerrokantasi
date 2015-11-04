@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from kk.models import HearingImage
+from kk.models import Image
 
 # Serializer for image
 
@@ -8,7 +8,7 @@ from kk.models import HearingImage
 class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = HearingImage
+        model = Image
         fields = ['title', 'image', 'width', 'height']
 
 # Serializer for 'image' field.

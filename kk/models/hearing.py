@@ -29,7 +29,7 @@ class Hearing(ModifiableModel):
     closed = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
     heading = models.TextField(verbose_name=_('Heading'), blank=True, default='')
     abstract = models.TextField(verbose_name=_('Abstract'), blank=True, default='')
-    heading = models.TextField(verbose_name=_('Content'), blank=True, default='')
+    content = models.TextField(verbose_name=_('Content'), blank=True, default='')
     borough = models.CharField(verbose_name=_('Borough to which hearing concerns'), blank=True, default='', max_length=200)
     comment_option = models.CharField(verbose_name=_('Commenting option'), max_length=1, choices=COMMENT_OPTION, default='1')
     servicemap_url = models.CharField(verbose_name=_('Servicemap url'), default='', max_length=255, blank=True)

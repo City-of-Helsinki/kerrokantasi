@@ -5,7 +5,7 @@ import urllib
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import now
 from kk.models import Hearing, Label
-from kk.tests.base import BaseKKDBTest
+from kk.tests.base import BaseKKDBTest, default_hearing
 
 
 class TestHearing(BaseKKDBTest):

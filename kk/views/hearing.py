@@ -33,7 +33,7 @@ class HearingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Hearing
-        fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
+        fields = ['id', 'heading', 'abstract', 'content', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
                   'latitude', 'longitude', 'servicemap_url', 'images']
 
 

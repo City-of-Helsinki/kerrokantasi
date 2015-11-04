@@ -10,17 +10,22 @@ from kk.models import Hearing
 
 from .image import ImageFieldSerializer, ImageSerializer
 
+
 class HearingFilter(django_filters.FilterSet):
-    next_closing = django_filters.DateTimeFilter(name='close_at',lookup_type='gt')
+    next_closing = django_filters.DateTimeFilter(name='close_at', lookup_type='gt')
 
     class Meta:
         model = Hearing
-        fields = ['next_closing',]
+        fields = ['next_closing', ]
 
 # Serializer for labels. Get label names instead of IDs.
+
+
 class LabelSerializer(serializers.RelatedField):
+
     def to_representation(self, value):
-        return  value.label
+        return value.label
+
 
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
@@ -29,7 +34,8 @@ class HearingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hearing
         fields = ['abstract', 'heading', 'borough', 'n_comments', 'labels', 'close_at', 'created_at',
-                'latitude', 'longitude', 'servicemap_url', 'images']
+                  'latitude', 'longitude', 'servicemap_url', 'images']
+
 
 class HearingViewSet(viewsets.ModelViewSet):
     """
@@ -57,15 +63,15 @@ class HearingViewSet(viewsets.ModelViewSet):
         if page is not None:
             serializer = ImageSerializer(page, many=True)
             return self.get_paginated_response(serializer.data)
-        
+
         serializer = ImageSerializer(images, many=True)
         return Response(serializer.data)
 
     # temporary for query debug purpose
     def _list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        
-        print (queryset.query)
+
+        print(queryset.query)
 
         page = self.paginate_queryset(queryset)
         if page is not None:

@@ -13,10 +13,10 @@ class ModifiableModel(models.Model):
     id = models.CharField(primary_key=True, max_length=100, blank=True)
     created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
-        null=True, blank=True, related_name="%(class)s_created")
+                                   null=True, blank=True, related_name="%(class)s_created")
     modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now)
     modified_by = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
-        null=True, blank=True, related_name="%(class)s_modified")
+                                    null=True, blank=True, related_name="%(class)s_modified")
     deleted = models.BooleanField(verbose_name=_('Deleted flag'), default=False, db_index=True)
 
     def save(self, *args, **kwargs):

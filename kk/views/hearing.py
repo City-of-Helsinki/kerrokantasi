@@ -10,6 +10,7 @@ from kk.models import Hearing
 
 from .image import ImageFieldSerializer, ImageSerializer
 from .introduction import IntroductionFieldSerializer, IntroductionSerializer
+from .scenario import ScenarioFieldSerializer, ScenarioSerializer
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -32,12 +33,13 @@ class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = ImageFieldSerializer(many=True, read_only=True)
     introductions = IntroductionFieldSerializer(many=True, read_only=True)
+    scenarios = ScenarioFieldSerializer(many=True, read_only=True)
 
     class Meta:
         model = Hearing
         fields = ['abstract', 'heading', 'content', 'id', 'borough', 'n_comments',
                 'labels', 'close_at', 'created_at', 'latitude', 'longitude',
-                'servicemap_url', 'images', 'introductions', 'images',
+                'servicemap_url', 'images', 'introductions', 'scenarios', 'images',
                 'closed']
 
 
@@ -82,6 +84,19 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = IntroductionSerializer(intros, many=True)
+        return Response(serializer.data)
+
+    @detail_route(methods=['get'])
+    def scenarios(self, request, pk=None):
+        hearing = self.get_object()
+        scenarios = hearing.scenarios.all()
+
+        page = self.paginate_queryset(scenarios)
+        if page is not None:
+            serializer = ScenarioSerializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = ScenarioSerializer(scenarios, many=True)
         return Response(serializer.data)
 
     # temporary for query debug purpose

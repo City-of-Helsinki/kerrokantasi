@@ -37,7 +37,7 @@ class HearingSerializer(serializers.ModelSerializer):
                   'latitude', 'longitude', 'servicemap_url', 'images']
 
 
-class HearingViewSet(viewsets.ModelViewSet):
+class HearingViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for hearings.
     """

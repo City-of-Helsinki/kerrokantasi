@@ -115,7 +115,7 @@ LANGUAGES = (
     ('fi', gettext('Finish')),
     ('se', gettext('Swedish')),
     ('en', gettext('English')),
-    )
+)
 
 # default language
 MODELTRANSLATION_DEFAULT_LANGUAGE = 'fi'

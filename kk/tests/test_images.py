@@ -8,19 +8,22 @@ from django.conf import settings
 from kk.models import Hearing, HearingImage
 from kk.tests.base import BaseKKDBTest
 
+
 @pytest.fixture()
 def default_hearing():
     hearing = Hearing(abstract='Hearing One')
     hearing.save()
     return hearing
 
+
 class TestImage(BaseKKDBTest):
+
     def setup(self):
         super(TestImage, self).setup()
 
         self.hearing_endpoint = '%s/hearing/' % self.base_endpoint
         self.hearing_list_endpoint = '%s?format=json' % self.hearing_endpoint
-   
+
     def get_hearing_detail_url(self, id):
         return '%s%s/?format=json' % (self.hearing_endpoint, id)
 
@@ -83,7 +86,7 @@ class TestImage(BaseKKDBTest):
         titles = []
         for im in data:
             titles.append(im['title'])
- 
+
         assert 'original.jpg' in titles
         assert 'small.jpg' in titles
         assert 'thumbnail.jpg' in titles

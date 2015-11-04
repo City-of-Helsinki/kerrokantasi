@@ -4,6 +4,7 @@ from kk.models import Hearing, Label
 
 
 class Command(BaseCommand):
+
     def handle(self, *args, **options):
         while Label.objects.count() < 5:
             label = LabelFactory()

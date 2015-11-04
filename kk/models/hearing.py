@@ -6,11 +6,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from .base import ModifiableModel
 
+
 class Label(ModifiableModel):
     label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
 
     def __str__(self):
         return self.label
+
 
 class Hearing(ModifiableModel):
     COMMENT_OPTION_DISALLOW = '1'

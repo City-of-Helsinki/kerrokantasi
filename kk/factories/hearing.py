@@ -10,6 +10,7 @@ from kk.models import Hearing, Label
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Label
 
@@ -17,6 +18,7 @@ class LabelFactory(factory.django.DjangoModelFactory):
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Hearing
 

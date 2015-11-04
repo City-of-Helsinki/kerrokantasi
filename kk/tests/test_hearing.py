@@ -7,7 +7,9 @@ from django.utils.timezone import now
 from kk.models import Hearing, Label
 from kk.tests.base import BaseKKDBTest
 
+
 class TestHearing(BaseKKDBTest):
+
     def setup(self):
         super(TestHearing, self).setup()
         self.endpoint = '%s/hearing/' % self.base_endpoint
@@ -27,7 +29,7 @@ class TestHearing(BaseKKDBTest):
             hearings.append(
                 Hearing.objects.create(
                     abstract='Test purpose created hearing %s' % (i + 1),
-                    created_at=now() - datetime.timedelta(seconds = 1 + (n - i))
+                    created_at=now() - datetime.timedelta(seconds=1 + (n - i))
                 )
             )
         return hearings

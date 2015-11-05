@@ -28,6 +28,8 @@ class BaseKKDBTest(BaseKKTest):
     pytestmark = pytest.mark.django_db
 
 # fixture for default hearing
+
+
 @pytest.fixture()
 def default_hearing():
     hearing = Hearing(abstract='Default test hearing One')

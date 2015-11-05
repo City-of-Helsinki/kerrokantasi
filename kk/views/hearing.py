@@ -38,9 +38,9 @@ class HearingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hearing
         fields = ['abstract', 'heading', 'content', 'id', 'borough', 'n_comments',
-                'labels', 'close_at', 'created_at', 'latitude', 'longitude',
-                'servicemap_url', 'images', 'introductions', 'scenarios', 'images',
-                'closed']
+                  'labels', 'close_at', 'created_at', 'latitude', 'longitude',
+                  'servicemap_url', 'images', 'introductions', 'scenarios', 'images',
+                  'closed']
 
 
 class HearingViewSet(viewsets.ReadOnlyModelViewSet):

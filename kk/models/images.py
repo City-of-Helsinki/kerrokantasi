@@ -6,6 +6,7 @@ from easy_thumbnails.fields import ThumbnailerImageField
 
 from .base import ModifiableModel
 
+
 def get_images_dir():
     return settings.IMAGES_DIR
 

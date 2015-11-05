@@ -13,6 +13,7 @@ ORIGINAL = 'original.jpg'
 SMALL = 'small.jpg'
 THUMBNAIL = 'thumbnail.jpg'
 
+
 class TestImage(BaseKKDBTest):
 
     def setup(self):

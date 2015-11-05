@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
 from .base import ModifiableModel
+from .images import WithImageMixin
 
 
 class Label(ModifiableModel):
@@ -14,7 +15,7 @@ class Label(ModifiableModel):
         return self.label
 
 
-class Hearing(ModifiableModel):
+class Hearing(WithImageMixin, ModifiableModel):
     COMMENT_OPTION_DISALLOW = '1'
     COMMENT_OPTION_REGISTERED = '2'
     COMMENT_OPTION_ANONYMOUS = '3'

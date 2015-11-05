@@ -5,7 +5,7 @@ import urllib
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import now
 from kk.models import Hearing, Label
-from kk.tests.base import BaseKKDBTest
+from kk.tests.base import BaseKKDBTest, default_hearing
 
 
 class TestHearing(BaseKKDBTest):
@@ -94,6 +94,33 @@ class TestHearing(BaseKKDBTest):
         data = self.get_data_from_response(response)
         assert len(data) == 1
         assert data[0]['abstract'] == future_hearing_2.abstract
+
+    def test_list_hearings_check_references_not_included(self):
+        # DynamicFieldsMixin (https://gist.github.com/dbrgn/4e6fc1fe5922598592d6)
+        pytest.xfail("Test fields requested dynamicaly for a list")
+
+    def test_8_get_detail_check_properties(self, default_hearing):
+        response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+
+        assert 'abstract' in data
+        assert 'heading' in data
+        assert 'content' in data
+        assert 'images' in data
+        assert 'labels' in data
+        assert 'introductions' in data
+        assert 'scenarios' in data
+        assert 'created_at' in data
+        assert 'closed' in data
+        assert 'close_at' in data
+        assert 'id' in data
+        assert 'borough' in data
+        assert 'servicemap_url' in data
+        assert 'latitude' in data
+        assert 'longitude' in data
+        assert 'n_comments' in data
 
     def test_8_get_detail_abstract(self):
         hearing = Hearing(abstract='Lorem Ipsum Abstract')

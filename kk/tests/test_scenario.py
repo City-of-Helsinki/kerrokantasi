@@ -8,19 +8,21 @@ from django.conf import settings
 from kk.models import Hearing,  Scenario
 from kk.tests.base import BaseKKDBTest, default_hearing
 
+
 class TestScenario(BaseKKDBTest):
+
     def setup(self):
         super(TestScenario, self).setup()
 
         self.hearing_endpoint = '%s/hearing/' % self.base_endpoint
         self.hearing_list_endpoint = '%s?format=json' % self.hearing_endpoint
-   
+
     def create_scenarios(self, hearing, n):
         Scenario.objects.all().delete()
         scenarios = []
-        for i in range (n):
-            scenario = Scenario(abstract='Test scenario abstract %s' % str(i + 1), 
-                    content='Test scenario content %s' % str(i + 1), hearing=hearing)
+        for i in range(n):
+            scenario = Scenario(abstract='Test scenario abstract %s' % str(i + 1),
+                                content='Test scenario content %s' % str(i + 1), hearing=hearing)
             scenario.save()
             scenarios.append(scenario)
         return scenarios
@@ -72,7 +74,7 @@ class TestScenario(BaseKKDBTest):
 
         # ensure we have 3 abstracts
         assert len(abstracts) == 3
-        
+
         assert scenarios[0].abstract in abstracts
         assert scenarios[1].abstract in abstracts
         assert scenarios[2].abstract in abstracts
@@ -88,7 +90,7 @@ class TestScenario(BaseKKDBTest):
 
         # ensure we have 3 contents
         assert len(contents) == 3
-        
+
         assert scenarios[0].content in contents
         assert scenarios[1].content in contents
         assert scenarios[2].content in contents
@@ -140,7 +142,7 @@ class TestScenario(BaseKKDBTest):
 
         # ensure we have 3 abstracts
         assert len(abstracts) == 3
-        
+
         assert scenarios[0].abstract in abstracts
         assert scenarios[1].abstract in abstracts
         assert scenarios[2].abstract in abstracts
@@ -156,8 +158,7 @@ class TestScenario(BaseKKDBTest):
 
         # ensure we have 3 contents
         assert len(contents) == 3
-        
+
         assert scenarios[0].content in contents
         assert scenarios[1].content in contents
         assert scenarios[2].content in contents
-

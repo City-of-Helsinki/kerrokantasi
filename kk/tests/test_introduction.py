@@ -8,19 +8,21 @@ from django.conf import settings
 from kk.models import Hearing, Introduction
 from kk.tests.base import BaseKKDBTest, default_hearing
 
+
 class TestIntroduction(BaseKKDBTest):
+
     def setup(self):
         super(TestIntroduction, self).setup()
 
         self.hearing_endpoint = '%s/hearing/' % self.base_endpoint
         self.hearing_list_endpoint = '%s?format=json' % self.hearing_endpoint
-   
+
     def create_introductions(self, hearing, n):
         Introduction.objects.all().delete()
         intros = []
-        for i in range (n):
-            introduction = Introduction(abstract='Test introduction abstract %s' % str(i + 1), 
-                    content='Test introduction content %s' % str(i + 1), hearing=hearing)
+        for i in range(n):
+            introduction = Introduction(abstract='Test introduction abstract %s' % str(i + 1),
+                                        content='Test introduction content %s' % str(i + 1), hearing=hearing)
             introduction.save()
             intros.append(introduction)
         return intros
@@ -72,7 +74,7 @@ class TestIntroduction(BaseKKDBTest):
 
         # ensure we have 3 abstracts
         assert len(abstracts) == 3
-        
+
         assert intros[0].abstract in abstracts
         assert intros[1].abstract in abstracts
         assert intros[2].abstract in abstracts
@@ -88,7 +90,7 @@ class TestIntroduction(BaseKKDBTest):
 
         # ensure we have 3 contents
         assert len(contents) == 3
-        
+
         assert intros[0].content in contents
         assert intros[1].content in contents
         assert intros[2].content in contents
@@ -140,7 +142,7 @@ class TestIntroduction(BaseKKDBTest):
 
         # ensure we have 3 abstracts
         assert len(abstracts) == 3
-        
+
         assert intros[0].abstract in abstracts
         assert intros[1].abstract in abstracts
         assert intros[2].abstract in abstracts
@@ -156,8 +158,7 @@ class TestIntroduction(BaseKKDBTest):
 
         # ensure we have 3 contents
         assert len(contents) == 3
-        
+
         assert intros[0].content in contents
         assert intros[1].content in contents
         assert intros[2].content in contents
-

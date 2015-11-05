@@ -3,6 +3,8 @@ from rest_framework import serializers
 from kk.models import Scenario
 
 # Serializer for scenario
+
+
 class ScenarioSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -10,6 +12,8 @@ class ScenarioSerializer(serializers.ModelSerializer):
         fields = ['abstract', 'content', 'created_at', 'created_by']
 
 # Serializer for 'scenarios' field.
+
+
 class ScenarioFieldSerializer(serializers.RelatedField):
 
     def to_representation(self, scenario):

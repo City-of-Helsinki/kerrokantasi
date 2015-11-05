@@ -1,15 +1,19 @@
 from rest_framework import serializers
 
 from kk.models import Introduction
+from .image import ImageFieldSerializer
+
 
 # Serializer for introduction
 
 
 class IntroductionSerializer(serializers.ModelSerializer):
 
+    images = ImageFieldSerializer(many=True, read_only=True)
+
     class Meta:
         model = Introduction
-        fields = ['abstract', 'content', 'created_at', 'created_by']
+        fields = ['abstract', 'content', 'created_at', 'created_by', 'images']
 
 # Serializer for 'introductions' field.
 
@@ -17,9 +21,4 @@ class IntroductionSerializer(serializers.ModelSerializer):
 class IntroductionFieldSerializer(serializers.RelatedField):
 
     def to_representation(self, intro):
-        return {
-            'abstract': intro.abstract,
-            'content': intro.content,
-            'created_at': intro.created_at,
-            'created_by': intro.created_by
-        }
+        return IntroductionSerializer(intro).data

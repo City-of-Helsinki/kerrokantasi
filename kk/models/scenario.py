@@ -6,7 +6,8 @@ from .hearing import Hearing
 from .images import WithImageMixin
 
 
-class Scenario(ModifiableModel, WithImageMixin):
+class Scenario(WithImageMixin, ModifiableModel):
     abstract = models.TextField(verbose_name=_('Abstract'))
     content = models.TextField(verbose_name=_('Content'))
-    hearing = models.ForeignKey(Hearing, related_name='scenarios', on_delete=models.SET_NULL, null=True)
+    hearing = models.ForeignKey(
+        Hearing, related_name='scenarios', on_delete=models.SET_NULL, null=True)

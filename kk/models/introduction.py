@@ -8,8 +8,7 @@ from .hearing import Hearing
 class Introduction(BaseModel):
     abstract = models.TextField(verbose_name=_('Abstract'))
     content = models.TextField(verbose_name=_('Content'))
-    hearing = models.ForeignKey(
-        Hearing, related_name='introductions', on_delete=models.SET_NULL, null=True)
+    hearing = models.ForeignKey(Hearing, related_name='introductions', on_delete=models.PROTECT)
 
 
 class IntroductionImage(BaseImage):

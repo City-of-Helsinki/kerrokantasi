@@ -10,8 +10,7 @@ class Scenario(BaseModel):
     title = models.CharField(verbose_name=_('Title'), max_length=255)
     abstract = models.TextField(verbose_name=_('Abstract'))
     content = models.TextField(verbose_name=_('Content'))
-    hearing = models.ForeignKey(
-        Hearing, related_name='scenarios', on_delete=models.SET_NULL, null=True)
+    hearing = models.ForeignKey(Hearing, related_name='scenarios', on_delete=models.PROTECT)
 
 
 

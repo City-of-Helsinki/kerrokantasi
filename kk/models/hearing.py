@@ -29,6 +29,9 @@ class Hearing(BaseModel):
     longitude = models.CharField(verbose_name=_('Longitude'), max_length=20, default='', blank=True)
     labels = models.ManyToManyField("Label", blank=True)
 
+    def __str__(self):
+        return self.heading
+
 
 class HearingImage(BaseImage):
     hearing = models.ForeignKey(Hearing, related_name="images")

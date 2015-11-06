@@ -12,6 +12,8 @@ class Scenario(BaseModel):
     content = models.TextField(verbose_name=_('Content'))
     hearing = models.ForeignKey(Hearing, related_name='scenarios', on_delete=models.PROTECT)
 
+    def __str__(self):
+        return "%s: %s" % (self.hearing, self.title)
 
 
 class ScenarioImage(BaseImage):

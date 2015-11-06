@@ -1,0 +1,15 @@
+language: python
+
+python:
+- '3.4'
+
+env:
+- DJANGO=Django>=1.8
+
+install:
+- pip install coveralls -r requirements.txt
+
+script: py.test -vvv --cov kk kk/tests
+
+after_success:
+  coveralls

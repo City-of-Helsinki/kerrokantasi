@@ -21,4 +21,4 @@ class ScenarioSerializer(serializers.ModelSerializer):
 class ScenarioFieldSerializer(serializers.RelatedField):
 
     def to_representation(self, scenario):
-        return ScenarioSerializer(scenario).data
+        return ScenarioSerializer(scenario, context=self.context).data

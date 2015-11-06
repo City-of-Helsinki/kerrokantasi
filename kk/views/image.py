@@ -15,12 +15,9 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImageFieldSerializer(serializers.RelatedField):
+    """
+    Serializer for nested image fields.
+    """
 
     def to_representation(self, image):
-        return {
-            'title': image.title,
-            'url': image.image.url,
-            'width': image.width,
-            'height': image.height,
-            'caption': image.caption
-        }
+        return ImageSerializer(image, context=self.context).data

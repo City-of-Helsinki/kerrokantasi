@@ -9,7 +9,7 @@ class ImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Image
-        fields = ['title', 'image', 'width', 'height']
+        fields = ['title', 'image', 'width', 'height', 'caption']
 
 # Serializer for 'image' field.
 
@@ -21,5 +21,6 @@ class ImageFieldSerializer(serializers.RelatedField):
             'title': image.title,
             'url': image.image.url,
             'width': image.width,
-            'height': image.height
+            'height': image.height,
+            'caption': image.caption
         }

@@ -61,6 +61,22 @@ class TestImage(BaseKKDBTest):
         assert SMALL in urls
         assert THUMBNAIL in urls
 
+    def test_get_hering_check_image_fields(self, default_hearing):
+        self.create_default_images(default_hearing)
+
+        response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        assert 'images' in data
+
+        for im in data['images']:
+            assert 'caption' in im
+            assert 'title' in im
+            assert 'width' in im
+            assert 'height' in im
+            assert 'url' in im
+
     def test_37_list_hearing_images_check_number_of_images(self, default_hearing):
         self.create_default_images(default_hearing)
 

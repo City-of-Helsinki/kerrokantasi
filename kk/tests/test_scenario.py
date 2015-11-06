@@ -104,6 +104,17 @@ class TestScenario(BaseKKDBTest):
         data = self.get_data_from_response(response)
         assert len(data['scenarios']) == 1
 
+    def test_45_get_hearing_with_one_scenario_check_fields(self, default_hearing):
+        self.create_scenarios(default_hearing, 1)
+
+        response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
+        assert response.status_code is 200
+
+        data = self.get_data_from_response(response)
+        assert 'title' in data['scenarios'][0]
+        assert 'abstract' in data['scenarios'][0]
+        assert 'content' in data['scenarios'][0]
+
     def test_45_get_hearing_with_one_scenario_check_abstract(self, default_hearing):
         scenarios = self.create_scenarios(default_hearing, 1)
 

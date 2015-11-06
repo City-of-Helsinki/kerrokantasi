@@ -7,6 +7,7 @@ from .images import WithImageMixin
 
 
 class Scenario(WithImageMixin, ModifiableModel):
+    title = models.CharField(verbose_name=_('Title'), max_length=255)
     abstract = models.TextField(verbose_name=_('Abstract'))
     content = models.TextField(verbose_name=_('Content'))
     hearing = models.ForeignKey(

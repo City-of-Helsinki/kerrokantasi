@@ -107,6 +107,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, "var", "static")
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, "var", "media")
 
 # Modeltranslation settings
 # available languages
@@ -138,6 +141,3 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
 }
 
-# Images
-IMAGES_URL = '/images'
-IMAGES_DIR = '%s/%s' % (BASE_DIR, IMAGES_URL)

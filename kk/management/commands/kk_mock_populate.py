@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
-from kk.factories.hearing import HearingFactory, LabelFactory
-from kk.models import Hearing, Label
+from kk.factories.hearing import HearingFactory, LabelFactory, ScenarioFactory
+from kk.models import Hearing, Label, Scenario
 
 
 class Command(BaseCommand):
@@ -12,3 +12,6 @@ class Command(BaseCommand):
         while Hearing.objects.count() < 10:
             hearing = HearingFactory()
             print("Created hearing %s" % hearing.pk)
+        while Scenario.objects.count() < 50:
+            scenario = ScenarioFactory()
+            print("Created scenario %s" % scenario.pk)

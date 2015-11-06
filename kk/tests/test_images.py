@@ -13,6 +13,7 @@ def check_entity_images(entity):
     assert 'images' in entity
     image_list = entity['images']
     assert len(image_list) == 3
+    assert all([im['url'].startswith("http") for im in image_list])
     assert set(im['title'] for im in image_list) == set(IMAGES.values())
 
     for im in image_list:

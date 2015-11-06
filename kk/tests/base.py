@@ -1,6 +1,7 @@
 import pytest
 import json
 
+from django.contrib.auth.models import User
 from django.test.client import Client as DjangoTestClient
 
 from kk.models import Hearing
@@ -14,6 +15,9 @@ class BaseKKTest:
         self.client = DjangoTestClient()
         self.base_endpoint = '/v1'
         self.hearing_endpoint = '%s/hearing/' % self.base_endpoint
+        self.username = 'testresident'
+        self.email = 'testresident@helo.fi'
+        self.password = 'password'
 
     def get_hearing_detail_url(self, id, element=None):
         element = '' if element is None else '/%s' % element
@@ -21,6 +25,12 @@ class BaseKKTest:
 
     def get_data_from_response(self, response):
         return json.loads(response.content.decode('utf-8'))
+
+    def user_login(self):
+        user = User.objects.create_user(self.username, self.email, self.password)
+        assert user is not None
+        result = self.client.login(username=self.username, password=self.password)
+        assert result is True
 
 
 @pytest.mark.django_db

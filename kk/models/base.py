@@ -1,3 +1,6 @@
+from django.db.models import ManyToOneRel
+from functools import lru_cache
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -51,6 +54,24 @@ class BaseModel(models.Model):
 
     def delete(self, using=None):
         raise NotImplementedError("This model does not support hard deletion")
+
+    @classmethod
+    @lru_cache()
+    def find_subclass(cls, parent_model):
+        """
+        Find the subclass that's used with the given `parent_model`.
+
+        This is only useful for models that are related to another model, such
+        as Comments or Images.
+
+        :param parent_model: A model (class or instance)
+        :return: The model subclass, or None
+        :rtype: class|None
+        """
+        for field in parent_model._meta.get_fields():
+            if isinstance(field, ManyToOneRel):
+                if issubclass(field.related_model, cls):
+                    return field.related_model
 
     class Meta:
         abstract = True

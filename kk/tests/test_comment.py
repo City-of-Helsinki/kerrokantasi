@@ -1,12 +1,4 @@
-import pytest
-import datetime
-import urllib
-import os
-
-from django.conf import settings
-
-from kk.models import Hearing, Comment
-from kk.tests.base import BaseKKDBTest, default_hearing
+from kk.tests.base import BaseKKDBTest
 
 
 class TestComment(BaseKKDBTest):

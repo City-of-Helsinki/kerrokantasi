@@ -72,10 +72,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
         page = self.paginate_queryset(images)
         if page is not None:
-            serializer = ImageSerializer(page, many=True)
+            serializer = ImageSerializer(page, many=True, context=self.get_serializer_context())
             return self.get_paginated_response(serializer.data)
 
-        serializer = ImageSerializer(images, many=True)
+        serializer = ImageSerializer(images, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     @detail_route(methods=['get'])
@@ -85,10 +85,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
         page = self.paginate_queryset(intros)
         if page is not None:
-            serializer = IntroductionSerializer(page, many=True)
+            serializer = IntroductionSerializer(page, many=True, context=self.get_serializer_context())
             return self.get_paginated_response(serializer.data)
 
-        serializer = IntroductionSerializer(intros, many=True)
+        serializer = IntroductionSerializer(intros, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     @detail_route(methods=['get'])
@@ -98,10 +98,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
         page = self.paginate_queryset(scenarios)
         if page is not None:
-            serializer = ScenarioSerializer(page, many=True)
+            serializer = ScenarioSerializer(page, many=True, context=self.get_serializer_context())
             return self.get_paginated_response(serializer.data)
 
-        serializer = ScenarioSerializer(scenarios, many=True)
+        serializer = ScenarioSerializer(scenarios, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     def create_comment(self, hearing, request):
@@ -109,13 +109,13 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         if len(request.data) == 0 or 'content' not in request.data:
             return Response({'detail': 'Missing content'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = CommentCreateSerializer(data=request.data)
+        serializer = CommentCreateSerializer(data=request.data, context=self.get_serializer_context())
         if serializer.is_valid():
             comment = Comment.objects.create(
                 content=serializer.data['content'],
                 created_by=request.user,
             )
-            return Response(CommentSerializer(comment).data)
+            return Response(CommentSerializer(comment, context=self.get_serializer_context()).data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -129,10 +129,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         comments = hearing.comments.all()
         page = self.paginate_queryset(comments)
         if page is not None:
-            serializer = CommentSerializer(page, many=True)
+            serializer = CommentSerializer(page, many=True, context=self.get_serializer_context())
             return self.get_paginated_response(serializer.data)
 
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(comments, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     # temporary for query debug purpose

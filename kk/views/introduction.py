@@ -21,4 +21,4 @@ class IntroductionSerializer(serializers.ModelSerializer):
 class IntroductionFieldSerializer(serializers.RelatedField):
 
     def to_representation(self, intro):
-        return IntroductionSerializer(intro).data
+        return IntroductionSerializer(intro, context=self.context).data

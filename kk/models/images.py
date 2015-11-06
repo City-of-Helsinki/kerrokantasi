@@ -1,11 +1,11 @@
 from django.db import models
 from django.db.models import ImageField
 from django.utils.translation import ugettext_lazy as _
-from .base import ModifiableModel
+from .base import BaseModel
 
 
 
-class Image(ModifiableModel):
+class Image(BaseModel):
     title = models.CharField(verbose_name=_('The title'), max_length=255, blank=True, default='')
     caption = models.TextField(verbose_name=_('Caption'), blank=True, default='')
     height = models.IntegerField(verbose_name=_('Height'), default=0)

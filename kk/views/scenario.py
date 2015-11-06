@@ -13,7 +13,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Scenario
-        fields = ['abstract', 'content', 'created_at', 'created_by', 'images']
+        fields = ['title', 'abstract', 'content', 'created_at', 'created_by', 'images']
 
 # Serializer for 'scenarios' field.
 

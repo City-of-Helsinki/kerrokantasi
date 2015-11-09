@@ -32,7 +32,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
     def get_url(self, obj):
         url = obj.image.url
         if not self.context:
-            raise NotImplementedError("Not implemented")
+            raise NotImplementedError("Not implemented")  # pragma: no cover
 
         request = self.context.get("request")
         if request:

@@ -1,3 +1,5 @@
+from django.shortcuts import get_object_or_404
+
 import django_filters
 from kk.models import Hearing, HearingComment, HearingImage
 from kk.views.base import BaseImageSerializer
@@ -18,10 +20,17 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingImageSerializer(BaseImageSerializer):
-
     class Meta:
         model = HearingImage
         fields = ['title', 'url', 'width', 'height', 'caption']
+
+
+class HearingImageViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = HearingImageSerializer
+
+    def get_queryset(self):
+        hearing = get_object_or_404(Hearing, pk=self.kwargs["hearing_pk"])
+        return hearing.images.all()
 
 
 class HearingSerializer(serializers.ModelSerializer):
@@ -56,16 +65,3 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         if next_closing is not None:
             return self.queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
         return self.queryset.order_by('-created_at')
-
-    @detail_route(methods=['get'])
-    def images(self, request, pk=None):
-        hearing = self.get_object()
-        images = hearing.images.all()
-
-        page = self.paginate_queryset(images)
-        if page is not None:
-            serializer = HearingImageSerializer(page, many=True, context=self.get_serializer_context())
-            return self.get_paginated_response(serializer.data)
-
-        serializer = HearingImageSerializer(images, many=True, context=self.get_serializer_context())
-        return Response(serializer.data)

@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.db.models.signals import post_save
+
 from .base import BaseModel
 from .comment import BaseComment
 from .images import BaseImage
@@ -45,3 +47,10 @@ class HearingImage(BaseImage):
 
 class HearingComment(BaseComment):
     hearing = models.ForeignKey(Hearing, related_name="comments")
+
+
+def hearing_n_comments_bump(sender, instance, using, **kwargs):
+    instance.hearing.n_comments += 1
+    instance.hearing.save()
+
+post_save.connect(hearing_n_comments_bump, sender=HearingComment)

@@ -166,6 +166,17 @@ class TestComment(BaseKKDBTest):
 
         assert len(data['comments']) == 3
 
+    def test_54_get_hearing_with_comments_check_n_comments_property(self, default_hearing):
+        self.user_login()
+        self.create_default_comments(default_hearing)
+
+        # list all comments
+        response = self.client.get(self.get_hearing_detail_url(default_hearing.id))
+        assert response.status_code == 200
+
+        data = self.get_data_from_response(response)
+        assert data['n_comments'] == 3
+
     def test_54_get_hearing_with_comments_check_comment_properties(self, default_hearing):
         self.user_login()
         self.create_default_comments(default_hearing)
@@ -249,3 +260,22 @@ class TestComment(BaseKKDBTest):
 
         assert 'content' in data
         assert data['content'] == self.default_content
+
+    def test_56_get_hearing_with_scenario_check_n_comments_property(self):
+        hearing = Hearing.objects.create(abstract='Hearing to test scenario comments')
+        scenario = Scenario.objects.create(title='Scenario to comment', hearing=hearing)
+        self.user_login()
+        url = self.get_hearing_detail_url(hearing.id, 'scenarios/%s/comments' % scenario.id)
+
+        self.comment_data['scenario'] = scenario.pk
+        response = self.client.post(url, data=self.comment_data)
+        assert response.status_code == 201
+
+        # get hearing and check scenarios's n_comments property
+        url = self.get_hearing_detail_url(hearing.id)
+        response = self.client.get(url)
+        assert response.status_code == 200
+
+        data = self.get_data_from_response(response)
+        assert 'n_comments' in data['scenarios'][0]
+        assert data['scenarios'][0]['n_comments'] == 1

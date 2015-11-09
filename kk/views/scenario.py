@@ -25,7 +25,7 @@ class ScenarioSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Scenario
-        fields = ['title', 'abstract', 'content', 'created_at', 'created_by', 'images']
+        fields = ['title', 'abstract', 'content', 'created_at', 'created_by', 'images', 'n_comments']
 
 
 class ScenarioFieldSerializer(serializers.RelatedField):

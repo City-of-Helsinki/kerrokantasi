@@ -1,14 +1,14 @@
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 
-from .base import BaseModel
+from .base import BaseModel, WithCommentsMixin
 from .comment import BaseComment
 from .images import BaseImage
 
 
-class Hearing(BaseModel):
+class Hearing(WithCommentsMixin, BaseModel):
     COMMENT_OPTION_DISALLOW = '1'
     COMMENT_OPTION_REGISTERED = '2'
     COMMENT_OPTION_ANONYMOUS = '3'
@@ -19,7 +19,6 @@ class Hearing(BaseModel):
         (COMMENT_OPTION_ANONYMOUS, 'Anonymous')
     )
     close_at = models.DateTimeField(verbose_name=_('Closing time'), default=timezone.now)
-    n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0)
     closed = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
     heading = models.TextField(verbose_name=_('Heading'), blank=True, default='')
     abstract = models.TextField(verbose_name=_('Abstract'), blank=True, default='')
@@ -34,12 +33,6 @@ class Hearing(BaseModel):
     def __str__(self):
         return self.heading
 
-    def recache_n_comments(self):
-        new_n_comments = self.comments.count()
-        if new_n_comments != self.n_comments:
-            self.n_comments = new_n_comments
-            self.save(update_fields=("n_comments",))
-
 
 class HearingImage(BaseImage):
     hearing = models.ForeignKey(Hearing, related_name="images")
@@ -50,7 +43,6 @@ class HearingComment(BaseComment):
 
 
 def hearing_n_comments_bump(sender, instance, using, **kwargs):
-    instance.hearing.n_comments += 1
-    instance.hearing.save()
+    instance.hearing.recache_n_comments()
 
 post_save.connect(hearing_n_comments_bump, sender=HearingComment)

@@ -5,6 +5,7 @@ from django.utils.dateparse import parse_datetime
 from django.utils.timezone import now
 from kk.models import Hearing, Label
 from kk.tests.base import BaseKKDBTest, default_hearing
+from kk.tests.utils import assert_datetime_fuzzy_equal
 
 
 class TestHearing(BaseKKDBTest):
@@ -179,8 +180,7 @@ class TestHearing(BaseKKDBTest):
         data = self.get_data_from_response(response)
 
         assert 'results' not in data
-        # Allow for subsecond inaccuracy
-        assert (parse_datetime(data['close_at']) - hearing.close_at).total_seconds() < 1
+        assert_datetime_fuzzy_equal(data['close_at'], hearing.close_at)
 
     def test_8_get_detail_labels(self):
         hearing = Hearing()

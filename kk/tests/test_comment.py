@@ -4,9 +4,10 @@ import urllib
 import os
 
 from django.conf import settings
-
+from django.utils.timezone import now
 from kk.models import Hearing, Scenario
 from kk.tests.base import BaseKKDBTest, default_hearing
+from kk.tests.utils import assert_datetime_fuzzy_equal
 
 
 class TestComment(BaseKKDBTest):
@@ -151,7 +152,7 @@ class TestComment(BaseKKDBTest):
 
         data = self.get_data_from_response(response)
         for comment in data:
-            assert datetime.datetime.now().strftime('%Y-%m-%dT%H:%M') in comment['created_at']
+            assert_datetime_fuzzy_equal(now(), comment['created_at'])
 
     def test_54_get_hearing_with_comments_check_amount_of_comments(self, default_hearing):
         self.user_login()

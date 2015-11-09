@@ -1,13 +1,10 @@
+from django.shortcuts import get_object_or_404
+from kk.models import Scenario
 from kk.models.scenario import ScenarioImage
 from kk.views.base import BaseImageSerializer
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework import status
 from rest_framework.response import Response
-
-from kk.models import Scenario, ScenarioComment
-from .base import CreatedBySerializer
 
 
 class ScenarioImageSerializer(BaseImageSerializer):
@@ -37,24 +34,6 @@ class ScenarioFieldSerializer(serializers.RelatedField):
         return ScenarioSerializer(scenario, context=self.context).data
 
 
-class ScenarioCommentCreateSerializer(serializers.ModelSerializer):
-    """
-    Serializer for comments creation.
-    """
-    class Meta:
-        model = ScenarioComment
-        fields = ['content', 'scenario']
-
-
-class ScenarioCommentSerializer(CreatedBySerializer, serializers.ModelSerializer):
-    """
-    Serializer for comment added to scenario.
-    """
-    class Meta:
-        model = ScenarioComment
-        fields = ['content', 'votes', 'created_by', 'created_at']
-
-
 class ScenarioViewSet(viewsets.ViewSet):
     serializer_class = ScenarioSerializer
 
@@ -68,19 +47,3 @@ class ScenarioViewSet(viewsets.ViewSet):
         scenario = get_object_or_404(queryset, pk=pk)
         serializer = ScenarioSerializer(scenario)
         return Response(serializer.data)
-
-
-class ScenarioCommentViewSet(viewsets.ModelViewSet):
-    """
-    Viewset for comments added to scenario.
-    """
-    queryset = ScenarioComment.objects.all()
-    serializer_class = ScenarioCommentSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-
-    def create(self, request, *args, **kwargs):
-        serializer = ScenarioCommentCreateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

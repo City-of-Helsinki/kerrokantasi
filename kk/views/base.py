@@ -1,4 +1,3 @@
-from kk.models.comment import BaseComment
 from kk.models.images import BaseImage
 from kk.views.utils import AbstractSerializerMixin
 from rest_framework import serializers
@@ -11,12 +10,6 @@ class UserFieldSerializer(serializers.ModelSerializer):
 
 class CreatedBySerializer(serializers.ModelSerializer):
     created_by = UserFieldSerializer()
-
-
-class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
-    class Meta:
-        model = BaseComment
-        fields = ['content', 'votes', 'created_by', 'created_at']
 
 
 class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):

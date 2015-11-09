@@ -7,13 +7,11 @@ from kk import models
 class IntroductionInline(admin.StackedInline):
     model = models.Introduction
     extra = 0
-    exclude = ["id"]
 
 
 class ScenarioInline(admin.StackedInline):
     model = models.Scenario
     extra = 0
-    exclude = ["id"]
 
 
 class HearingImageInline(admin.StackedInline):

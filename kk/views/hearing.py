@@ -69,17 +69,3 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
         serializer = HearingImageSerializer(images, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
-
-    # temporary for query debug purpose
-    def _list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        print(queryset.query)
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)

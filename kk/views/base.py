@@ -4,6 +4,7 @@ from rest_framework import serializers
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
+
     def to_representation(self, user):
         return user.username
 

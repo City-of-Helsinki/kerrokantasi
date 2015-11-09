@@ -44,6 +44,7 @@ class HearingComment(BaseComment):
     parent_model = Hearing
     hearing = models.ForeignKey(Hearing, related_name="comments")
 
+
 def hearing_n_comments_bump(sender, instance, using, **kwargs):
     instance.hearing.recache_n_comments()
 

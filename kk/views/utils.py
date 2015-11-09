@@ -12,6 +12,7 @@ class AbstractFieldSerializer(serializers.RelatedField):
 
 
 class AbstractSerializerMixin(object):
+
     @classmethod
     @lru_cache()
     def get_field_serializer_class(cls):

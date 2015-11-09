@@ -9,6 +9,7 @@ from rest_framework import serializers, viewsets, permissions, status, response
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
+
     class Meta:
         model = BaseComment
         fields = ['content', 'votes', 'created_by', 'created_at']
@@ -29,7 +30,7 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
             if "data" in kwargs:  # With data, too?!
                 # So inject a reference to the parent object
                 comment_model = serializer_class.Meta.model
-                #parent_obj = get_object_or_404(comment_model.parent_model, pk=)
+                # parent_obj = get_object_or_404(comment_model.parent_model, pk=)
                 kwargs["data"][comment_model.parent_field] = context["comment_parent"]
         return serializer_class(*args, **kwargs)
 

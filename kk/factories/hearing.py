@@ -12,6 +12,7 @@ LOG = logging.getLogger(__name__)
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Label
 
@@ -19,16 +20,19 @@ class LabelFactory(factory.django.DjangoModelFactory):
 
 
 class HearingCommentFactory(BaseCommentFactory):
+
     class Meta:
         model = HearingComment
 
 
 class ScenarioCommentFactory(BaseCommentFactory):
+
     class Meta:
         model = ScenarioComment
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Hearing
 
@@ -60,6 +64,7 @@ class HearingFactory(factory.django.DjangoModelFactory):
 
 
 class ScenarioFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Scenario
 

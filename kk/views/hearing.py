@@ -18,6 +18,7 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingImageSerializer(BaseImageSerializer):
+
     class Meta:
         model = HearingImage
         fields = ['title', 'url', 'width', 'height', 'caption']

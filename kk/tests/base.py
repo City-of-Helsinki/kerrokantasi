@@ -11,6 +11,7 @@ pytestmark = pytest.mark.django_db
 
 
 class BaseKKTest:
+
     def setup(self):
         self.client = DjangoTestClient()
         self.base_endpoint = '/v1'

@@ -4,10 +4,6 @@ from kk import models
 
 ### Inlines
 
-class IntroductionInline(admin.StackedInline):
-    model = models.Introduction
-    extra = 0
-
 
 class ScenarioInline(admin.StackedInline):
     model = models.Scenario
@@ -16,11 +12,6 @@ class ScenarioInline(admin.StackedInline):
 
 class HearingImageInline(admin.StackedInline):
     model = models.HearingImage
-    extra = 0
-
-
-class IntroductionImageInline(admin.StackedInline):
-    model = models.IntroductionImage
     extra = 0
 
 
@@ -33,11 +24,7 @@ class ScenarioImageInline(admin.StackedInline):
 
 
 class HearingAdmin(admin.ModelAdmin):
-    inlines = [HearingImageInline, IntroductionInline, ScenarioInline]
-
-
-class IntroductionAdmin(admin.ModelAdmin):
-    inlines = [IntroductionImageInline]
+    inlines = [HearingImageInline, ScenarioInline]
 
 
 class ScenarioAdmin(admin.ModelAdmin):
@@ -49,5 +36,4 @@ class ScenarioAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Label)
 admin.site.register(models.Hearing, HearingAdmin)
-admin.site.register(models.Introduction, IntroductionAdmin)
 admin.site.register(models.Scenario, ScenarioAdmin)

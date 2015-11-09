@@ -1,7 +1,6 @@
 import pytest
 import datetime
 import urllib
-
 from django.utils.dateparse import parse_datetime
 from django.utils.timezone import now
 from kk.models import Hearing, Label
@@ -9,7 +8,6 @@ from kk.tests.base import BaseKKDBTest, default_hearing
 
 
 class TestHearing(BaseKKDBTest):
-
     def setup(self):
         super(TestHearing, self).setup()
         self.endpoint = '%s/hearing/' % self.base_endpoint
@@ -86,11 +84,13 @@ class TestHearing(BaseKKDBTest):
         closed_hearing_2 = Hearing.objects.create(abstract='Gone too', close_at=now() - datetime.timedelta(days=2))
         future_hearing_1 = Hearing.objects.create(abstract='Next up', close_at=now() + datetime.timedelta(days=1))
         future_hearing_2 = Hearing.objects.create(abstract='Next up', close_at=now() + datetime.timedelta(days=5))
-        response = self.client.get('%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(now().isoformat())))
+        response = self.client.get(
+            '%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(now().isoformat())))
         data = self.get_data_from_response(response)
         assert len(data) == 1
         assert data[0]['abstract'] == future_hearing_1.abstract
-        response = self.client.get('%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(future_hearing_1.close_at.isoformat())))
+        response = self.client.get(
+            '%s&next_closing=%s' % (self.list_endpoint, urllib.parse.quote_plus(future_hearing_1.close_at.isoformat())))
         data = self.get_data_from_response(response)
         assert len(data) == 1
         assert data[0]['abstract'] == future_hearing_2.abstract
@@ -110,7 +110,6 @@ class TestHearing(BaseKKDBTest):
         assert 'content' in data
         assert 'images' in data
         assert 'labels' in data
-        assert 'introductions' in data
         assert 'scenarios' in data
         assert 'created_at' in data
         assert 'closed' in data
@@ -225,7 +224,8 @@ class TestHearing(BaseKKDBTest):
         assert data['longitude'] == hearing.longitude
 
     def test_7_get_detail_servicemap(self):
-        hearing = Hearing(servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki')
+        hearing = Hearing(
+            servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki')
         hearing.save()
 
         response = self.client.get(self.get_detail_url(hearing.id))

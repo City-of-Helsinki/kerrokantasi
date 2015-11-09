@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
 from kk.models import Hearing, HearingComment
-from .introduction import IntroductionFieldSerializer, IntroductionSerializer
 from .scenario import ScenarioFieldSerializer, ScenarioSerializer
 
 
@@ -43,7 +42,6 @@ class HearingCommentCreateSerializer(BaseCommentSerializer):
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = HearingImageSerializer.get_field_serializer(many=True, read_only=True)
-    introductions = IntroductionFieldSerializer(many=True, read_only=True)
     scenarios = ScenarioFieldSerializer(many=True, read_only=True)
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
 
@@ -51,7 +49,7 @@ class HearingSerializer(serializers.ModelSerializer):
         model = Hearing
         fields = ['abstract', 'heading', 'content', 'id', 'borough', 'n_comments',
                   'labels', 'close_at', 'created_at', 'latitude', 'longitude',
-                  'servicemap_url', 'images', 'introductions', 'scenarios', 'images',
+                  'servicemap_url', 'images', 'scenarios', 'images',
                   'closed', 'comments']
 
 
@@ -85,19 +83,6 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = HearingImageSerializer(images, many=True, context=self.get_serializer_context())
-        return Response(serializer.data)
-
-    @detail_route(methods=['get'])
-    def introductions(self, request, pk=None):
-        hearing = self.get_object()
-        intros = hearing.introductions.all()
-
-        page = self.paginate_queryset(intros)
-        if page is not None:
-            serializer = IntroductionSerializer(page, many=True, context=self.get_serializer_context())
-            return self.get_paginated_response(serializer.data)
-
-        serializer = IntroductionSerializer(intros, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     @detail_route(methods=['get'])

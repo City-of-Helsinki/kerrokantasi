@@ -1,4 +1,5 @@
 import pytest
+from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, Scenario
 from kk.tests.utils import create_default_images
 
@@ -15,3 +16,13 @@ def default_hearing():
         scenario = Scenario.objects.create(abstract='Scenario %d abstract' % x, hearing=hearing)
         create_default_images(scenario)
     return hearing
+
+
+@pytest.fixture()
+def random_hearing():
+    return HearingFactory()
+
+
+@pytest.fixture()
+def random_label():
+    return LabelFactory()

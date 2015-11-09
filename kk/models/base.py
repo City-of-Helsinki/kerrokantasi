@@ -81,10 +81,10 @@ class WithCommentsMixin(models.Model):
     """
     Mixin for models which can be commented.
     """
-    n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0)
+    n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0, editable=False)
 
     def recache_n_comments(self):
-        new_n_comments = self.comments.count()
+        new_n_comments = self.comments.exclude(deleted=True).count()
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))

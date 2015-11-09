@@ -23,6 +23,7 @@ class ScenarioImage(BaseImage):
 
 
 class ScenarioComment(BaseComment):
+    parent_field = "scenario"
     scenario = models.ForeignKey(Scenario, related_name="comments")
 
 

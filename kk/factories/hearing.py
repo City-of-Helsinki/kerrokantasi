@@ -3,9 +3,12 @@ from datetime import timedelta
 import factory
 import factory.fuzzy
 import random
+import logging
 from django.utils.timezone import now
-from kk.factories.comment import BaseCommentFactoryMixin
+from kk.factories.comment import BaseCommentFactory
 from kk.models import Hearing, Label, Scenario, HearingComment, ScenarioComment
+
+LOG = logging.getLogger(__name__)
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
@@ -15,12 +18,12 @@ class LabelFactory(factory.django.DjangoModelFactory):
     label = factory.Faker("sentence")
 
 
-class HearingCommentFactory(BaseCommentFactoryMixin, factory.django.DjangoModelFactory):
+class HearingCommentFactory(BaseCommentFactory):
     class Meta:
         model = HearingComment
 
 
-class ScenarioCommentFactory(BaseCommentFactoryMixin, factory.django.DjangoModelFactory):
+class ScenarioCommentFactory(BaseCommentFactory):
     class Meta:
         model = ScenarioComment
 
@@ -44,13 +47,14 @@ class HearingFactory(factory.django.DjangoModelFactory):
             label = Label.objects.order_by("?").first()
             if label:
                 obj.labels.add(label)
+
         for x in range(random.randint(1, 5)):
             scenario = ScenarioFactory(hearing=obj)
-            print(".. Created scenario %s" % scenario.pk)
+            LOG.info("Hearing %s: Created scenario %s", obj, scenario)
 
         for x in range(random.randint(1, 5)):
             comment = HearingCommentFactory(hearing=obj)
-            print(".. Created hearing comment %s" % comment.pk)
+            LOG.info("Hearing %s: Created comment %s", obj, comment)
 
         obj.recache_n_comments()
 

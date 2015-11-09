@@ -39,6 +39,7 @@ class HearingImage(BaseImage):
 
 
 class HearingComment(BaseComment):
+    parent_field = "hearing"
     hearing = models.ForeignKey(Hearing, related_name="comments")
 
 

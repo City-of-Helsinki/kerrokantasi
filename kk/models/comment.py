@@ -6,6 +6,7 @@ from .base import BaseModel
 
 
 class BaseComment(BaseModel):
+    parent_field = None  # Required in concrete subclasses for factories
     content = models.TextField(verbose_name=_('Content'), blank=True, default='')
     votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0)
     followers = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who follow'), related_name='+', blank=True)

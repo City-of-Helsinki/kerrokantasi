@@ -2,7 +2,7 @@ from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import post_save, post_delete
-
+import reversion
 from .base import BaseModel, WithCommentsMixin
 from .comment import BaseComment
 from .images import BaseImage
@@ -38,11 +38,11 @@ class HearingImage(BaseImage):
     hearing = models.ForeignKey(Hearing, related_name="images")
 
 
+@reversion.register
 class HearingComment(BaseComment):
     parent_field = "hearing"
     parent_model = Hearing
     hearing = models.ForeignKey(Hearing, related_name="comments")
-
 
 def hearing_n_comments_bump(sender, instance, using, **kwargs):
     instance.hearing.recache_n_comments()

@@ -2,12 +2,13 @@ import pytest
 import datetime
 import urllib
 import os
-
+import reversion
 from django.conf import settings
 from django.utils.timezone import now
 from kk.models import Hearing, Scenario
+from kk.models.hearing import HearingComment
 from kk.tests.base import BaseKKDBTest, default_hearing
-from kk.tests.utils import assert_datetime_fuzzy_equal
+from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
 
 
 class TestComment(BaseKKDBTest):
@@ -293,3 +294,22 @@ def test_n_comments_updates(admin_user, default_hearing):
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 1
     comment.soft_delete()
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 0
+
+
+@pytest.mark.django_db
+def test_comment_edit_versioning(john_doe_api_client, random_hearing):
+    response = john_doe_api_client.post('/v1/hearing/%s/comments/' % random_hearing.pk, data={
+        "content": "THIS SERVICE SUCKS"
+    })
+    data = get_data_from_response(response, 201)
+    comment_id = data["id"]
+    comment = HearingComment.objects.get(pk=comment_id)
+    assert comment.content.isupper()  # Oh my, all that screaming :(
+    assert not reversion.get_for_object(comment)  # No revisions
+    response = john_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
+        "content": "Never mind, it's nice :)"
+    })
+    data = get_data_from_response(response, 200)
+    comment = HearingComment.objects.get(pk=comment_id)
+    assert not comment.content.isupper()  # Screaming is gone
+    assert len(reversion.get_for_object(comment)) == 1  # One old revision

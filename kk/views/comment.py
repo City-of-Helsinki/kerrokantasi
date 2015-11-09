@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import reversion
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from kk.models.comment import BaseComment
 from kk.views.base import CreatedBySerializer
@@ -51,3 +53,7 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
         # and another for the response
         serializer = self.get_serializer(instance=comment)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def perform_update(self, serializer):
+        with transaction.atomic(), reversion.create_revision():
+            super().perform_update(serializer)

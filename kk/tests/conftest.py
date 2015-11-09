@@ -1,7 +1,9 @@
 import pytest
+from django.contrib.auth.models import User
 from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, Scenario
 from kk.tests.utils import create_default_images
+from rest_framework.test import APIClient
 
 
 @pytest.fixture()
@@ -26,3 +28,25 @@ def random_hearing():
 @pytest.fixture()
 def random_label():
     return LabelFactory()
+
+
+@pytest.fixture()
+def john_doe():
+    user = User.objects.filter(username="john_doe").first()
+    if not user:
+        user = User.objects.create_user("john_doe", "john@example.com", password="password")
+    return user
+
+
+@pytest.fixture()
+def john_doe_api_client(john_doe):
+    api_client = APIClient()
+    api_client.login(username=john_doe.username, password="password")
+    return api_client
+
+
+@pytest.fixture()
+def admin_api_client(admin_user):
+    api_client = APIClient()
+    api_client.login(username=admin_user.username, password="password")
+    return api_client

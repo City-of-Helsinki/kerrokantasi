@@ -12,7 +12,7 @@ class ScenarioCommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ScenarioComment
-        fields = ['content', 'scenario']
+        fields = ['scenario', 'content']
 
 
 class ScenarioCommentSerializer(CreatedBySerializer, serializers.ModelSerializer):
@@ -22,7 +22,7 @@ class ScenarioCommentSerializer(CreatedBySerializer, serializers.ModelSerializer
 
     class Meta:
         model = ScenarioComment
-        fields = ['content', 'scenario', 'votes', 'created_by', 'created_at']
+        fields = ['id', 'scenario', 'content', 'votes', 'created_by', 'created_at']
 
 
 class ScenarioCommentViewSet(BaseCommentViewSet):

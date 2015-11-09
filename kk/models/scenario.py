@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import post_save
 from kk.models.comment import BaseComment
 from kk.models.images import BaseImage
-
+import reversion
 from .base import BaseModel, WithCommentsMixin
 from .hearing import Hearing
 
@@ -22,6 +22,7 @@ class ScenarioImage(BaseImage):
     scenario = models.ForeignKey(Scenario, related_name="images")
 
 
+@reversion.register
 class ScenarioComment(BaseComment):
     parent_field = "scenario"
     parent_model = Scenario

@@ -5,7 +5,7 @@ import os
 
 from django.conf import settings
 
-from kk.models import Hearing, Scenario, Comment
+from kk.models import Hearing, Scenario
 from kk.tests.base import BaseKKDBTest, default_hearing
 
 
@@ -17,6 +17,7 @@ class TestComment(BaseKKDBTest):
         self.default_content = 'I agree with you sir Lancelot. My favourite colour is blue'
         self.comment_data = {
             'content': self.default_content,
+            'scenario': None
         }
 
     def test_55_add_comment_without_authentication(self, default_hearing):
@@ -62,10 +63,62 @@ class TestComment(BaseKKDBTest):
         assert data['content'] == self.default_content
         assert data['votes'] == 0
 
+    def test_56_add_comment_to_scenario_scenario_pk_none(self, default_hearing):
+        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        self.user_login()
+
+        # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
+        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+
+        response = self.client.post(url, data=self.comment_data)
+        # expect bad request, we didn't specify scenario id
+        assert response.status_code == 400
+
+    def test_56_add_comment_to_scenario_content_none(self, default_hearing):
+        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        self.user_login()
+        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+
+        # nullify content
+        self.comment_data['content'] = None
+        response = self.client.post(url, data=self.comment_data)
+        # expect bad request, we didn't specify scenario id
+        assert response.status_code == 400
+
+    def test_56_add_comment_to_scenario_without_data(self, default_hearing):
+        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        self.user_login()
+        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+
+        response = self.client.post(url, data=None)
+        # expect bad request, we didn't specify scenario id
+        assert response.status_code == 400
+
+    def test_56_add_comment_to_scenario_invalid_key(self, default_hearing):
+        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        self.user_login()
+
+        # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
+        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+
+        response = self.client.post(url, data={'invalidKey': 'Yes it is'})
+        # expect bad request, we didn't specify scenario id
+        assert response.status_code == 400
+
     def test_56_add_comment_to_scenario(self, default_hearing):
         scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
         self.user_login()
-     # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments'% scenario.id)
+        # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
+        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+
+        # set scenario explicitly
+        self.comment_data['scenario'] = scenario.pk
         response = self.client.post(url, data=self.comment_data)
-        assert response.status_code == 200
+        assert response.status_code == 201
+
+        data = self.get_data_from_response(response)
+        assert 'scenario' in data
+        assert data['scenario'] == scenario.pk
+
+        assert 'content' in data
+        assert data['content'] == self.default_content

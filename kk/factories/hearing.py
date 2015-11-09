@@ -14,7 +14,7 @@ class LabelFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Label
 
-    label = factory.Faker("text")
+    label = factory.Faker("sentence")
 
 
 class HearingCommentFactory(BaseCommentFactoryMixin, factory.django.DjangoModelFactory):
@@ -36,7 +36,7 @@ class HearingFactory(factory.django.DjangoModelFactory):
         start_dt=now() + timedelta(days=5),
         end_dt=now() + timedelta(days=150),
     )
-    heading = factory.fuzzy.FuzzyText(length=20, chars=(string.ascii_letters + "   "))
+    heading = factory.Faker("sentence")
     abstract = factory.Faker("text")
     borough = factory.Faker("city")
     comment_option = factory.fuzzy.FuzzyChoice(choices=Hearing.COMMENT_OPTION)
@@ -62,8 +62,8 @@ class ScenarioFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Scenario
 
-    title = factory.fuzzy.FuzzyText(length=random.randint(10, 50), chars=(string.ascii_letters + "   "))
-    abstract = factory.Faker("text")
+    title = factory.Faker("sentence")
+    abstract = factory.Faker("paragraph")
     content = factory.Faker("text")
 
     @factory.post_generation

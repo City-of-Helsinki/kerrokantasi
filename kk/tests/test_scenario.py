@@ -4,7 +4,7 @@ import urllib
 import os
 
 from django.conf import settings
-
+from django.utils.encoding import force_text
 from kk.models import Hearing,  Scenario
 from kk.tests.base import BaseKKDBTest, default_hearing
 
@@ -173,3 +173,11 @@ class TestScenario(BaseKKDBTest):
         assert scenarios[0].content in contents
         assert scenarios[1].content in contents
         assert scenarios[2].content in contents
+
+
+@pytest.mark.django_db
+def test_scenario_stringification(random_hearing):
+    scenario = random_hearing.scenarios.first()
+    stringified = force_text(scenario)
+    assert scenario.title in stringified
+    assert random_hearing.heading in stringified

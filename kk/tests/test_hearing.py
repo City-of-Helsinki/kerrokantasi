@@ -3,6 +3,7 @@ import datetime
 import urllib
 
 from django.utils.dateparse import parse_datetime
+from django.utils.encoding import force_text
 from django.utils.timezone import now
 from kk.models import Hearing, Label
 from kk.tests.base import BaseKKDBTest, default_hearing
@@ -235,3 +236,8 @@ class TestHearing(BaseKKDBTest):
 
         assert 'results' not in data
         assert data['servicemap_url'] == hearing.servicemap_url
+
+
+@pytest.mark.django_db
+def test_hearing_stringification(random_hearing):
+    assert force_text(random_hearing) == random_hearing.heading

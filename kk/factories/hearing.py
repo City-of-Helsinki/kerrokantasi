@@ -45,7 +45,7 @@ class HearingFactory(factory.django.DjangoModelFactory):
     def post(obj, create, extracted, **kwargs):
         for x in range(random.randint(0, 3)):
             label = Label.objects.order_by("?").first()
-            if label:
+            if label:  # pragma: no branch
                 obj.labels.add(label)
 
         for x in range(random.randint(1, 5)):

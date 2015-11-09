@@ -19,6 +19,3 @@ class Command(BaseCommand):
         while Hearing.objects.count() < 10:
             hearing = HearingFactory()
             print("Created hearing %s" % hearing.pk)
-        while Scenario.objects.count() < 50:
-            scenario = ScenarioFactory()
-            print("Created scenario %s" % scenario.pk)

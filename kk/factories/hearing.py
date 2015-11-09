@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import string
 from datetime import timedelta
-
 import factory
 import factory.fuzzy
 import random
@@ -10,7 +9,6 @@ from kk.models import Hearing, Label, Scenario
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
-
     class Meta:
         model = Label
 
@@ -18,7 +16,6 @@ class LabelFactory(factory.django.DjangoModelFactory):
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
-
     class Meta:
         model = Hearing
 
@@ -38,19 +35,15 @@ class HearingFactory(factory.django.DjangoModelFactory):
             label = Label.objects.order_by("?").first()
             if label:
                 obj.labels.add(label)
+        for x in range(random.randint(1, 5)):
+            scenario = ScenarioFactory(hearing=obj)
+            print(".. Created scenario %s" % scenario.pk)
 
 
 class ScenarioFactory(factory.django.DjangoModelFactory):
-
     class Meta:
         model = Scenario
 
     title = factory.fuzzy.FuzzyText(length=random.randint(10, 50), chars=(string.ascii_letters + "   "))
     abstract = factory.Faker("text")
     content = factory.Faker("text")
-
-    @factory.post_generation
-    def post(obj, create, extracted, **kwargs):
-        hearing = Hearing.objects.order_by("?").first()
-        obj.hearing = hearing
-        obj.save()

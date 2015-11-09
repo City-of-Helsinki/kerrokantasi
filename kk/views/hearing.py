@@ -1,5 +1,7 @@
 import django_filters
-
+from kk.models.hearing import HearingImage
+from kk.views.base import BaseImageSerializer, BaseCommentSerializer
+from kk.views.label import LabelSerializer
 from rest_framework import viewsets
 from rest_framework import serializers
 from rest_framework import filters
@@ -7,13 +9,9 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 from rest_framework import permissions
 from rest_framework import status
-
-from kk.models import Hearing, Comment
-
-from .image import ImageFieldSerializer, ImageSerializer
+from kk.models import Hearing, HearingComment
 from .introduction import IntroductionFieldSerializer, IntroductionSerializer
 from .scenario import ScenarioFieldSerializer, ScenarioSerializer
-from .comment import CommentFieldSerializer, CommentSerializer, CommentCreateSerializer
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -23,21 +21,31 @@ class HearingFilter(django_filters.FilterSet):
         model = Hearing
         fields = ['next_closing', ]
 
-# Serializer for labels. Get label names instead of IDs.
+
+class HearingImageSerializer(BaseImageSerializer):
+    class Meta:
+        model = HearingImage
+        fields = ['title', 'url', 'width', 'height', 'caption']
 
 
-class LabelSerializer(serializers.RelatedField):
+class HearingCommentSerializer(BaseCommentSerializer):
+    class Meta:
+        model = HearingComment
+        fields = ['content', 'votes', 'created_by', 'created_at']
 
-    def to_representation(self, value):
-        return value.label
+
+class HearingCommentCreateSerializer(BaseCommentSerializer):
+    class Meta:
+        model = HearingComment
+        fields = ['content']
 
 
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
-    images = ImageFieldSerializer(many=True, read_only=True)
+    images = HearingImageSerializer.get_field_serializer(many=True, read_only=True)
     introductions = IntroductionFieldSerializer(many=True, read_only=True)
     scenarios = ScenarioFieldSerializer(many=True, read_only=True)
-    comments = CommentFieldSerializer(many=True, read_only=True)
+    comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
 
     class Meta:
         model = Hearing
@@ -55,9 +63,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = HearingSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    #ordering_fields = ('created_at',)
-    #ordering = ('-created_at',)
-    #filter_class = HearingFilter
+
+    # ordering_fields = ('created_at',)
+    # ordering = ('-created_at',)
+    # filter_class = HearingFilter
 
     def get_queryset(self):
         next_closing = self.request.query_params.get('next_closing', None)
@@ -72,10 +81,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
         page = self.paginate_queryset(images)
         if page is not None:
-            serializer = ImageSerializer(page, many=True, context=self.get_serializer_context())
+            serializer = HearingImageSerializer(page, many=True, context=self.get_serializer_context())
             return self.get_paginated_response(serializer.data)
 
-        serializer = ImageSerializer(images, many=True, context=self.get_serializer_context())
+        serializer = HearingImageSerializer(images, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     @detail_route(methods=['get'])
@@ -109,13 +118,14 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         if len(request.data) == 0 or 'content' not in request.data:
             return Response({'detail': 'Missing content'}, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer = CommentCreateSerializer(data=request.data, context=self.get_serializer_context())
+        serializer = HearingCommentCreateSerializer(data=request.data, context=self.get_serializer_context())
         if serializer.is_valid():
-            comment = Comment.objects.create(
+            comment = HearingComment.objects.create(
+                hearing=hearing,
                 content=serializer.data['content'],
                 created_by=request.user,
             )
-            return Response(CommentSerializer(comment, context=self.get_serializer_context()).data)
+            return Response(HearingCommentSerializer(comment, context=self.get_serializer_context()).data)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -129,10 +139,10 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         comments = hearing.comments.all()
         page = self.paginate_queryset(comments)
         if page is not None:
-            serializer = CommentSerializer(page, many=True, context=self.get_serializer_context())
+            serializer = HearingCommentSerializer(page, many=True, context=self.get_serializer_context())
             return self.get_paginated_response(serializer.data)
 
-        serializer = CommentSerializer(comments, many=True, context=self.get_serializer_context())
+        serializer = HearingCommentSerializer(comments, many=True, context=self.get_serializer_context())
         return Response(serializer.data)
 
     # temporary for query debug purpose

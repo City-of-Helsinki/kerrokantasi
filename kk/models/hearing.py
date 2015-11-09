@@ -1,22 +1,12 @@
-
-from django.conf import settings
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-
-from .base import ModifiableModel
-from .images import WithImageMixin
-from .comment import WithCommentMixin
-
-
-class Label(ModifiableModel):
-    label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
-
-    def __str__(self):
-        return self.label
+from .base import BaseModel
+from .comment import BaseComment
+from .images import BaseImage
 
 
-class Hearing(WithCommentMixin, WithImageMixin, ModifiableModel):
+class Hearing(BaseModel):
     COMMENT_OPTION_DISALLOW = '1'
     COMMENT_OPTION_REGISTERED = '2'
     COMMENT_OPTION_ANONYMOUS = '3'
@@ -37,4 +27,15 @@ class Hearing(WithCommentMixin, WithImageMixin, ModifiableModel):
     servicemap_url = models.CharField(verbose_name=_('Servicemap url'), default='', max_length=255, blank=True)
     latitude = models.CharField(verbose_name=_('Latitude'), max_length=20, default='', blank=True)
     longitude = models.CharField(verbose_name=_('Longitude'), max_length=20, default='', blank=True)
-    labels = models.ManyToManyField(Label, blank=True)
+    labels = models.ManyToManyField("Label", blank=True)
+
+    def __str__(self):
+        return self.heading
+
+
+class HearingImage(BaseImage):
+    hearing = models.ForeignKey(Hearing, related_name="images")
+
+
+class HearingComment(BaseComment):
+    hearing = models.ForeignKey(Hearing, related_name="comments")

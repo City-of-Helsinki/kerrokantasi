@@ -279,3 +279,11 @@ class TestComment(BaseKKDBTest):
         data = self.get_data_from_response(response)
         assert 'n_comments' in data['scenarios'][0]
         assert data['scenarios'][0]['n_comments'] == 1
+
+
+def test_n_comments_updates(admin_user, default_hearing):
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 0
+    comment = default_hearing.comments.create(created_by=admin_user, content="Hello")
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 1
+    comment.soft_delete()
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 0

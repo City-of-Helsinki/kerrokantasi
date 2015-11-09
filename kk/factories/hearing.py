@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-import string
 from datetime import timedelta
 
 import factory
@@ -31,11 +29,10 @@ class HearingFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Hearing
 
-    # XXX: The datetimes are import-time relative :(
-    close_at = factory.fuzzy.FuzzyDateTime(
+    close_at = factory.LazyAttribute(lambda obj: factory.fuzzy.FuzzyDateTime(
         start_dt=now() + timedelta(days=5),
         end_dt=now() + timedelta(days=150),
-    )
+    ).fuzz())
     heading = factory.Faker("sentence")
     abstract = factory.Faker("text")
     borough = factory.Faker("city")

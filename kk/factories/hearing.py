@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 import string
 from datetime import timedelta
+
 import factory
 import factory.fuzzy
 import random
 from django.utils.timezone import now
-from kk.models import Hearing, Label, Scenario
+from kk.factories.comment import BaseCommentFactoryMixin
+from kk.models import Hearing, Label, Scenario, HearingComment, ScenarioComment
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
@@ -13,6 +15,16 @@ class LabelFactory(factory.django.DjangoModelFactory):
         model = Label
 
     label = factory.Faker("text")
+
+
+class HearingCommentFactory(BaseCommentFactoryMixin, factory.django.DjangoModelFactory):
+    class Meta:
+        model = HearingComment
+
+
+class ScenarioCommentFactory(BaseCommentFactoryMixin, factory.django.DjangoModelFactory):
+    class Meta:
+        model = ScenarioComment
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
@@ -39,6 +51,12 @@ class HearingFactory(factory.django.DjangoModelFactory):
             scenario = ScenarioFactory(hearing=obj)
             print(".. Created scenario %s" % scenario.pk)
 
+        for x in range(random.randint(1, 5)):
+            comment = HearingCommentFactory(hearing=obj)
+            print(".. Created hearing comment %s" % comment.pk)
+
+        obj.recache_n_comments()
+
 
 class ScenarioFactory(factory.django.DjangoModelFactory):
     class Meta:
@@ -47,3 +65,9 @@ class ScenarioFactory(factory.django.DjangoModelFactory):
     title = factory.fuzzy.FuzzyText(length=random.randint(10, 50), chars=(string.ascii_letters + "   "))
     abstract = factory.Faker("text")
     content = factory.Faker("text")
+
+    @factory.post_generation
+    def post(obj, create, extracted, **kwargs):
+        for x in range(random.randint(1, 5)):
+            comment = ScenarioCommentFactory(scenario=obj)
+            print(".... Created scenario comment %s" % comment.pk)

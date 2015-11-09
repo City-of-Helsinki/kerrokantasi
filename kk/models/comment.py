@@ -14,3 +14,9 @@ class BaseComment(BaseModel):
     class Meta:
         abstract = True
         ordering = ("created_at",)
+
+    def recache_votes(self):
+        n_votes = self.voters.all().count()
+        if n_votes != self.votes:
+            self.votes = n_votes
+            self.save(update_fields=("votes", ))

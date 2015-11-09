@@ -8,8 +8,8 @@ from .base import BaseModel
 class BaseComment(BaseModel):
     content = models.TextField(verbose_name=_('Content'), blank=True, default='')
     votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0)
-    followers = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who follow'), related_name='followers', blank=True)
-    voters = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who voted'), related_name='voters', blank=True)
+    followers = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who follow'), related_name='+', blank=True)
+    voters = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who voted'), related_name='+', blank=True)
 
     class Meta:
         abstract = True

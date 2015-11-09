@@ -55,6 +55,8 @@ class HearingFactory(factory.django.DjangoModelFactory):
             comment = HearingCommentFactory(hearing=obj)
             print(".. Created hearing comment %s" % comment.pk)
 
+        obj.recache_n_comments()
+
 
 class ScenarioFactory(factory.django.DjangoModelFactory):
     class Meta:

@@ -32,6 +32,12 @@ class Hearing(BaseModel):
     def __str__(self):
         return self.heading
 
+    def recache_n_comments(self):
+        new_n_comments = self.comments.count()
+        if new_n_comments != self.n_comments:
+            self.n_comments = new_n_comments
+            self.save(update_fields=("n_comments",))
+
 
 class HearingImage(BaseImage):
     hearing = models.ForeignKey(Hearing, related_name="images")

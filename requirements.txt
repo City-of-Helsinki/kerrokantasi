@@ -11,3 +11,4 @@ easy-thumbnails==2.2
 pytest-cov==2.2.0
 flake8==2.4.1
 factory-boy==2.6.0
+drf-nested-routers==0.10.0

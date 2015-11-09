@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'corsheaders',
     'easy_thumbnails',
     'kk',
+    'rest_framework_nested'
 )
 
 MIDDLEWARE_CLASSES = (

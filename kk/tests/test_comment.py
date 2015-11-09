@@ -1,4 +1,12 @@
-from kk.tests.base import BaseKKDBTest
+import pytest
+import datetime
+import urllib
+import os
+
+from django.conf import settings
+
+from kk.models import Hearing, Scenario, Comment
+from kk.tests.base import BaseKKDBTest, default_hearing
 
 
 class TestComment(BaseKKDBTest):
@@ -53,3 +61,11 @@ class TestComment(BaseKKDBTest):
         assert data['created_by'] == self.username
         assert data['content'] == self.default_content
         assert data['votes'] == 0
+
+    def test_56_add_comment_to_scenario(self, default_hearing):
+        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        self.user_login()
+     # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
+        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments'% scenario.id)
+        response = self.client.post(url, data=self.comment_data)
+        assert response.status_code == 200

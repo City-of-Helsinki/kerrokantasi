@@ -12,7 +12,7 @@ router.register(r'hearing', HearingViewSet)
 hearing_comments_router = routers.NestedSimpleRouter(router, r'hearing', lookup='comment_parent')
 hearing_comments_router.register(r'comments', HearingCommentViewSet, base_name='comments')
 
-scenario_router = routers.NestedSimpleRouter(router, r'hearing')
+scenario_router = routers.NestedSimpleRouter(router, r'hearing', lookup='hearing')
 scenario_router.register(r'scenarios', ScenarioViewSet, base_name='scenarios')
 
 scenario_comments_router = routers.NestedSimpleRouter(scenario_router, r'scenarios', lookup='comment_parent')

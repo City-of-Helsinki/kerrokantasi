@@ -8,7 +8,6 @@ from rest_framework.response import Response
 
 
 class ScenarioImageSerializer(BaseImageSerializer):
-
     class Meta:
         model = ScenarioImage
         fields = ['title', 'url', 'width', 'height', 'caption']
@@ -34,16 +33,8 @@ class ScenarioFieldSerializer(serializers.RelatedField):
         return ScenarioSerializer(scenario, context=self.context).data
 
 
-class ScenarioViewSet(viewsets.ViewSet):
+class ScenarioViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ScenarioSerializer
 
-    def list(self, request, hearing=None):
-        queryset = Scenario.objects.filter(hearing=hearing)
-        serializer = ScenarioSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    def retrieve(self, request, pk=None, hearing=None):
-        queryset = Scenario.objects.filter(pk=pk, hearing=hearing)
-        scenario = get_object_or_404(queryset, pk=pk)
-        serializer = ScenarioSerializer(scenario)
-        return Response(serializer.data)
+    def get_queryset(self):
+        return Scenario.objects.filter(hearing_id=self.kwargs["hearing_pk"])

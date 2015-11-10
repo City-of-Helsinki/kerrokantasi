@@ -1,8 +1,10 @@
 import json
 
-import pytest
 from django.contrib.auth.models import User
 from django.test.client import Client as DjangoTestClient
+
+import pytest
+
 from .conftest import default_hearing  # TODO: Remove me
 
 __all__ = ["BaseKKTest", "default_hearing", "BaseKKDBTest"]

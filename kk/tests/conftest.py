@@ -1,5 +1,6 @@
-import pytest
 from django.contrib.auth.models import User
+
+import pytest
 from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, Scenario
 from kk.tests.utils import create_default_images

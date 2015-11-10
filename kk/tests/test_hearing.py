@@ -1,9 +1,11 @@
-import pytest
 import datetime
 import urllib
+
 from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_text
 from django.utils.timezone import now
+
+import pytest
 from kk.models import Hearing, Label
 from kk.tests.base import BaseKKDBTest, default_hearing
 from kk.tests.utils import assert_datetime_fuzzy_equal

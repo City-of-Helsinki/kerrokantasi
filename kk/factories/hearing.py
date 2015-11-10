@@ -1,12 +1,13 @@
+import logging
+import random
 from datetime import timedelta
+
+from django.utils.timezone import now
 
 import factory
 import factory.fuzzy
-import random
-import logging
-from django.utils.timezone import now
 from kk.factories.comment import BaseCommentFactory
-from kk.models import Hearing, Label, Scenario, HearingComment, ScenarioComment
+from kk.models import Hearing, HearingComment, Label, Scenario, ScenarioComment
 
 LOG = logging.getLogger(__name__)
 

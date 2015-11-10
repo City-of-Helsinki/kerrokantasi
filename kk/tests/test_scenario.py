@@ -1,11 +1,12 @@
-import pytest
 import datetime
-import urllib
 import os
+import urllib
 
 from django.conf import settings
 from django.utils.encoding import force_text
-from kk.models import Hearing,  Scenario
+
+import pytest
+from kk.models import Hearing, Scenario
 from kk.tests.base import BaseKKDBTest, default_hearing
 
 

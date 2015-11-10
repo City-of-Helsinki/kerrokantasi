@@ -1,9 +1,11 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import post_save
+from django.utils.translation import ugettext_lazy as _
+
+import reversion
 from kk.models.comment import BaseComment
 from kk.models.images import BaseImage
-import reversion
+
 from .base import BaseModel, WithCommentsMixin
 from .hearing import Hearing
 

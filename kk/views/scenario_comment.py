@@ -1,7 +1,7 @@
 from kk.models import ScenarioComment
-
 from kk.views.comment import BaseCommentViewSet
 from rest_framework import serializers
+
 from .base import CreatedBySerializer
 
 

@@ -1,10 +1,12 @@
-import pytest
 import datetime
-import urllib
 import os
-import reversion
+import urllib
+
 from django.conf import settings
 from django.utils.timezone import now
+
+import pytest
+import reversion
 from kk.models import Hearing, Scenario
 from kk.models.hearing import HearingComment
 from kk.tests.base import BaseKKDBTest, default_hearing

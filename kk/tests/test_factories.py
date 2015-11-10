@@ -1,5 +1,6 @@
-import pytest
 from django.utils.timezone import now
+
+import pytest
 from kk.models import Hearing, Label
 
 

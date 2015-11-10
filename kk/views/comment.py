@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-import reversion
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+
+import reversion
 from kk.models.comment import BaseComment
 from kk.views.base import CreatedBySerializer
 from kk.views.utils import AbstractSerializerMixin
-from rest_framework import serializers, viewsets, permissions, status, response
+from rest_framework import permissions, response, serializers, status, viewsets
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):

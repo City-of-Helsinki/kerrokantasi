@@ -40,26 +40,6 @@ def test_37_list_hearing_images_check_titles(client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_38_get_introduction_with_images(client, default_hearing):
-    """
-    Check images exist in introduction payloads
-    """
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id, 'introductions')))
-    first_intro = data[0]
-    check_entity_images(first_intro)
-
-
-@pytest.mark.django_db
-def test_38_get_hearing_check_introduction_with_images(client, default_hearing):
-    """
-    Check images exist in introductions nested in hearing payloads
-    """
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id)))
-    assert 'introductions' in data
-    check_entity_images(data['introductions'][0])
-
-
-@pytest.mark.django_db
 def test_38_get_scenario_with_images(client, default_hearing):
     """
     Check images exist in scenario payloads

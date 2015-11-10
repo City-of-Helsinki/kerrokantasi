@@ -74,7 +74,7 @@ class TestComment(BaseKKDBTest):
         assert response.status_code in [200, 201]
 
         data = self.get_data_from_response(response)
-        assert data['created_by'] == self.username
+        assert data['created_by']['username'] == self.username
         assert data['content'] == self.default_content
         assert data['n_votes'] == 0
 
@@ -143,7 +143,7 @@ class TestComment(BaseKKDBTest):
 
         data = self.get_data_from_response(response)
         for comment in data:
-            assert comment['created_by'] == self.username
+            assert comment['created_by']['username'] == self.username
 
     def test_54_list_all_comments_added_to_hearing_check_created_at(self, default_hearing):
         self.user_login()

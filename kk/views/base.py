@@ -4,9 +4,13 @@ from rest_framework import serializers
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
-
     def to_representation(self, user):
-        return user.username
+        return {
+            "uuid": user.uuid,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+        }
 
 
 class CreatedBySerializer(serializers.ModelSerializer):

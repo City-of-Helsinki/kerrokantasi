@@ -1,10 +1,8 @@
 import json
 
-from django.contrib.auth.models import User
-from django.test.client import Client as DjangoTestClient
-
 import pytest
-
+from django.contrib.auth import get_user_model
+from django.test.client import Client as DjangoTestClient
 from .conftest import default_hearing  # TODO: Remove me
 
 __all__ = ["BaseKKTest", "default_hearing", "BaseKKDBTest"]
@@ -31,7 +29,7 @@ class BaseKKTest:
         return json.loads(response.content.decode('utf-8'))
 
     def user_login(self):
-        user = User.objects.create_user(self.username, self.email, self.password)
+        user = get_user_model().objects.create_user(self.username, self.email, self.password)
         assert user is not None
         result = self.client.login(username=self.username, password=self.password)
         assert result is True

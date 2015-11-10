@@ -1,6 +1,6 @@
-from django.contrib.auth.models import User
 
 import pytest
+from django.contrib.auth import get_user_model
 from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, Scenario
 from kk.tests.utils import create_default_images
@@ -33,9 +33,9 @@ def random_label():
 
 @pytest.fixture()
 def john_doe():
-    user = User.objects.filter(username="john_doe").first()
+    user = get_user_model().objects.filter(username="john_doe").first()
     if not user:
-        user = User.objects.create_user("john_doe", "john@example.com", password="password")
+        user = get_user_model().objects.create_user("john_doe", "john@example.com", password="password")
     return user
 
 

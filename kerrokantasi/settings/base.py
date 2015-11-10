@@ -20,8 +20,10 @@ INSTALLED_APPS = (
     'reversion',
     'corsheaders',
     'easy_thumbnails',
-    'kk',
-    'rest_framework_nested'
+    'rest_framework_nested',
+    'helusers',
+    'kerrokantasi',  # User model is project-wide
+    'kk',  # Reusable participatory democracy app
 )
 
 MIDDLEWARE_CLASSES = (
@@ -69,6 +71,7 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+AUTH_USER_MODEL = 'kerrokantasi.User'
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "var", "static")
 MEDIA_URL = '/media/'
@@ -84,13 +87,20 @@ CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/v1/.*$'
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ],
-    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
-    'DEFAULT_VERSION': '1',
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'helusers.jwt.JWTAuthentication',
+    ),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'],
+    'DEFAULT_VERSION': '1',
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
+}
+
+
+JWT_AUTH = {
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
+    'JWT_SECRET_KEY': 'kerrokantasi',
+    'JWT_AUDIENCE': 'kerrokantasi'
 }

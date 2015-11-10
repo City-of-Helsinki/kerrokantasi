@@ -12,6 +12,15 @@ def generate_id():
     return get_random_string(32)
 
 
+class BaseModelManager(models.Manager):
+
+    def get_queryset(self):
+        return super().get_queryset().exclude(deleted=True)
+
+    def deleted(self):
+        return super().get_queryset().filter(deleted=True)
+
+
 class BaseModel(models.Model):
     id = models.CharField(
         primary_key=True,
@@ -35,6 +44,7 @@ class BaseModel(models.Model):
         verbose_name=_('Deleted flag'), default=False, db_index=True,
         editable=False
     )
+    objects = BaseModelManager()
 
     def save(self, *args, **kwargs):
         pk_type = self._meta.pk.get_internal_type()
@@ -84,7 +94,7 @@ class WithCommentsMixin(models.Model):
     n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0, editable=False)
 
     def recache_n_comments(self):
-        new_n_comments = self.comments.exclude(deleted=True).count()
+        new_n_comments = self.comments.count()
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))

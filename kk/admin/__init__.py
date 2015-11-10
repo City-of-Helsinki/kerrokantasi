@@ -2,7 +2,7 @@ from django.contrib import admin
 from kk import models
 
 
-### Inlines
+# Inlines
 
 
 class ScenarioInline(admin.StackedInline):
@@ -20,7 +20,7 @@ class ScenarioImageInline(admin.StackedInline):
     extra = 0
 
 
-### Admins
+# Admins
 
 
 class HearingAdmin(admin.ModelAdmin):
@@ -31,7 +31,7 @@ class ScenarioAdmin(admin.ModelAdmin):
     inlines = [ScenarioImageInline]
 
 
-### Wire it up!
+# Wire it up!
 
 
 admin.site.register(models.Label)

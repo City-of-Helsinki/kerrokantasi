@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 import os
+
+from django.utils.dateparse import parse_datetime
+
 from kk.models.images import BaseImage
 
 IMAGES = {
@@ -30,5 +33,16 @@ def create_default_images(instance):
 
 def get_data_from_response(response, status_code=200):
     if status_code:
-        assert response.status_code == status_code, "Status code mismatch"
+        assert response.status_code == status_code, (
+            "Status code mismatch (%s is not the expected %s)" % (response.status_code, status_code)
+        )
     return json.loads(response.content.decode('utf-8'))
+
+
+def assert_datetime_fuzzy_equal(dt1, dt2, fuzziness=1):
+    if isinstance(dt1, str):
+        dt1 = parse_datetime(dt1)
+    if isinstance(dt2, str):
+        dt2 = parse_datetime(dt2)
+
+    assert abs(dt1 - dt2).total_seconds() < fuzziness

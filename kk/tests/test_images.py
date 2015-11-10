@@ -1,5 +1,5 @@
 import pytest
-from kk.tests.utils import get_data_from_response, IMAGES
+from kk.tests.utils import IMAGES, get_data_from_response
 
 
 def get_hearing_detail_url(id, element=None):

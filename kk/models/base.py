@@ -1,8 +1,8 @@
-from django.db.models import ManyToOneRel
 from functools import lru_cache
 
 from django.conf import settings
 from django.db import models
+from django.db.models import ManyToOneRel
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
@@ -81,10 +81,10 @@ class WithCommentsMixin(models.Model):
     """
     Mixin for models which can be commented.
     """
-    n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0)
+    n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0, editable=False)
 
     def recache_n_comments(self):
-        new_n_comments = self.comments.count()
+        new_n_comments = self.comments.exclude(deleted=True).count()
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))

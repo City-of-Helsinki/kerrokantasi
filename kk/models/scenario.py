@@ -1,6 +1,8 @@
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from django.db.models.signals import post_save
+from django.utils.translation import ugettext_lazy as _
+
+import reversion
 from kk.models.comment import BaseComment
 from kk.models.images import BaseImage
 
@@ -22,7 +24,10 @@ class ScenarioImage(BaseImage):
     scenario = models.ForeignKey(Scenario, related_name="images")
 
 
+@reversion.register
 class ScenarioComment(BaseComment):
+    parent_field = "scenario"
+    parent_model = Scenario
     scenario = models.ForeignKey(Scenario, related_name="comments")
 
 

@@ -1,22 +1,16 @@
-from kk.models.comment import BaseComment
 from kk.models.images import BaseImage
 from kk.views.utils import AbstractSerializerMixin
 from rest_framework import serializers
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
+
     def to_representation(self, user):
         return user.username
 
 
 class CreatedBySerializer(serializers.ModelSerializer):
     created_by = UserFieldSerializer()
-
-
-class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
-    class Meta:
-        model = BaseComment
-        fields = ['content', 'votes', 'created_by', 'created_at']
 
 
 class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
@@ -32,7 +26,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
     def get_url(self, obj):
         url = obj.image.url
         if not self.context:
-            raise NotImplementedError("Not implemented")
+            raise NotImplementedError("Not implemented")  # pragma: no cover
 
         request = self.context.get("request")
         if request:

@@ -36,7 +36,7 @@ class TestComment(BaseKKDBTest):
     def test_55_add_comment_without_authentication(self, default_hearing):
         # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
         response = self.client.post(self.get_hearing_detail_url(default_hearing.id, 'comments'), data=self.comment_data)
-        assert response.status_code == 403
+        assert response.status_code == 201
 
     def test_55_add_comment_to_hearing_empty_data(self, default_hearing):
         pytest.xfail("Not sure what this is testing")
@@ -202,13 +202,12 @@ class TestComment(BaseKKDBTest):
 
     def test_56_add_comment_to_scenario_without_authentication(self, default_hearing):
         scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
-
         # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
         url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
 
         response = self.client.post(url, data=self.comment_data)
-        # expect forbidden
-        assert response.status_code == 403
+        # expect success
+        assert response.status_code == 201
 
     def test_56_add_comment_to_scenario_scenario_pk_none(self, default_hearing):
         pytest.xfail("not required anymore")

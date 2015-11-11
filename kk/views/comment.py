@@ -22,7 +22,7 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
     """
     Base viewset for comments.
     """
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (permissions.AllowAny,)
     serializer_class = None
     create_serializer_class = None
 
@@ -53,7 +53,10 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
         # Use one serializer for creation,
         serializer = self.get_serializer(serializer_class=self.create_serializer_class, data=request.data)
         serializer.is_valid(raise_exception=True)
-        comment = serializer.save(created_by=self.request._request.user)
+        kwargs = {}
+        if self.request._request.user.is_authenticated():
+            kwargs['created_by'] = self.request._request.user
+        comment = serializer.save(**kwargs)
         # and another for the response
         serializer = self.get_serializer(instance=comment)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -64,6 +67,10 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def votes(self, request, **kwargs):
+        # Return 403 if user is not authenticated
+        if not request.user.is_authenticated():
+            return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
         comment = self.get_object()
 
         # Check if user voted already. If yes, return 400.

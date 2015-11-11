@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
+import reversion
+
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import detail_route
+from rest_framework import permissions, response, serializers, status, viewsets
 
-import reversion
 from kk.models.comment import BaseComment
 from kk.views.base import CreatedBySerializer
 from kk.views.utils import AbstractSerializerMixin
-from rest_framework import permissions, response, serializers, status, viewsets
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
@@ -59,3 +61,18 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         with transaction.atomic(), reversion.create_revision():
             super().perform_update(serializer)
+
+    @detail_route(methods=['post'])
+    def votes(self, request, **kwargs):
+        comment = self.get_object()
+
+        # Check if user voted already. If yes, return 400.
+        if comment.__class__.objects.filter(id=comment.id, voters=request.user).exists():
+            return response.Response({'status': 'Already voted'}, status=status.HTTP_304_NOT_MODIFIED)
+
+        # add voter
+        comment.voters.add(request.user)
+        # update number of votes
+        comment.recache_n_votes()
+        # return success
+        return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)

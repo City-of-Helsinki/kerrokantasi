@@ -6,7 +6,7 @@ class HearingCommentSerializer(BaseCommentSerializer):
 
     class Meta:
         model = HearingComment
-        fields = ['id', 'hearing', 'content', 'votes', 'created_by', 'created_at']
+        fields = ['id', 'hearing', 'content', 'n_votes', 'created_by', 'created_at']
 
 
 class HearingCommentCreateSerializer(BaseCommentSerializer):
@@ -17,6 +17,7 @@ class HearingCommentCreateSerializer(BaseCommentSerializer):
 
 
 class HearingCommentViewSet(BaseCommentViewSet):
-    queryset = HearingComment.objects.all()
+
+    queryset = HearingComment.objects.filter(deleted=False)
     serializer_class = HearingCommentSerializer
     create_serializer_class = HearingCommentCreateSerializer

@@ -21,6 +21,7 @@ class BaseKKTest:
         self.username = 'testresident'
         self.email = 'testresident@helo.fi'
         self.password = 'password'
+        self.user = None
 
     def get_hearing_detail_url(self, id, element=None):
         element = '' if element is None else '/%s' % element
@@ -34,6 +35,7 @@ class BaseKKTest:
         assert user is not None
         result = self.client.login(username=self.username, password=self.password)
         assert result is True
+        self.user = user
 
 
 @pytest.mark.django_db

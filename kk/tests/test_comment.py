@@ -76,7 +76,7 @@ class TestComment(BaseKKDBTest):
         data = self.get_data_from_response(response)
         assert data['created_by'] == self.username
         assert data['content'] == self.default_content
-        assert data['votes'] == 0
+        assert data['n_votes'] == 0
 
     def test_54_list_all_comments_added_to_hearing_check_amount(self, default_hearing):
         self.user_login()
@@ -103,7 +103,7 @@ class TestComment(BaseKKDBTest):
 
         assert 'content' in comment
         assert 'created_at' in comment
-        assert 'votes' in comment
+        assert 'n_votes' in comment
         assert 'created_by' in comment
 
     def test_54_list_all_comments_added_to_hearing_check_content(self, default_hearing):
@@ -131,7 +131,7 @@ class TestComment(BaseKKDBTest):
 
         data = self.get_data_from_response(response)
         for comment in data:
-            assert comment['votes'] == 0
+            assert comment['n_votes'] == 0
 
     def test_54_list_all_comments_added_to_hearing_check_created_by(self, default_hearing):
         self.user_login()
@@ -197,7 +197,7 @@ class TestComment(BaseKKDBTest):
 
         assert 'content' in comment
         assert 'created_at' in comment
-        assert 'votes' in comment
+        assert 'n_votes' in comment
         assert 'created_by' in comment
 
     def test_56_add_comment_to_scenario_without_authentication(self, default_hearing):

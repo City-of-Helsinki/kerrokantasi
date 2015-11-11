@@ -17,7 +17,7 @@ class BaseCommentFactory(factory.django.DjangoModelFactory):
             obj.followers.add(get_random_user())
         for x in range(int(random.random() * random.random() * 5)):
             obj.voters.add(get_random_user())
-        obj.recache_votes()
+        obj.recache_n_votes()
 
         # Can't be done in a lazy attribute because they have no access to the concrete factory's model class,
         # for `parent_field`...

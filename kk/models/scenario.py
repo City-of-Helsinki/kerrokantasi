@@ -1,6 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
+from django.conf import settings
 
 import reversion
 from kk.models.comment import BaseComment
@@ -31,7 +32,10 @@ class ScenarioComment(BaseComment):
     scenario = models.ForeignKey(Scenario, related_name="comments")
 
 
-def scenario_n_comments_bump(sender, instance, using, **kwargs):
+def scenario_recache(sender, instance, using, **kwargs):
+    # recache number of comments
     instance.scenario.recache_n_comments()
+    # also, recache number of votes
+    instance.recache_n_votes()
 
-post_save.connect(scenario_n_comments_bump, sender=ScenarioComment)
+post_save.connect(scenario_recache, sender=ScenarioComment)

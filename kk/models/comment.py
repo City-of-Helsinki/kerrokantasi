@@ -9,7 +9,7 @@ class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
     content = models.TextField(verbose_name=_('Content'))
-    votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0)
+    n_votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0, editable=False)
     followers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         verbose_name=_('Users who follow'),
@@ -27,8 +27,8 @@ class BaseComment(BaseModel):
         abstract = True
         ordering = ("created_at",)
 
-    def recache_votes(self):
+    def recache_n_votes(self):
         n_votes = self.voters.all().count()
-        if n_votes != self.votes:
-            self.votes = n_votes
-            self.save(update_fields=("votes", ))
+        if n_votes != self.n_votes:
+            self.n_votes = n_votes
+            self.save(update_fields=("n_votes", ))

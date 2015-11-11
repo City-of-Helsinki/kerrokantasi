@@ -14,8 +14,6 @@ class BaseCommentFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def post(obj, create, extracted, **kwargs):
         for x in range(int(random.random() * random.random() * 5)):
-            obj.followers.add(get_random_user())
-        for x in range(int(random.random() * random.random() * 5)):
             obj.voters.add(get_random_user())
         obj.recache_n_votes()
 

@@ -112,6 +112,7 @@ class TestScenario(BaseKKDBTest):
         assert response.status_code is 200
 
         data = self.get_data_from_response(response)
+        assert 'id' in data['scenarios'][0]
         assert 'title' in data['scenarios'][0]
         assert 'abstract' in data['scenarios'][0]
         assert 'content' in data['scenarios'][0]

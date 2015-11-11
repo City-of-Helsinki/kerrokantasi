@@ -10,8 +10,18 @@ class BaseComment(BaseModel):
     parent_model = None  # Required for factories and API
     content = models.TextField(verbose_name=_('Content'))
     votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0)
-    followers = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who follow'), related_name='+', blank=True)
-    voters = models.ManyToManyField(settings.AUTH_USER_MODEL, verbose_name=_('Users who voted'), related_name='+', blank=True)
+    followers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('Users who follow'),
+        related_name="followed_%(app_label)s_%(class)s",
+        blank=True
+    )
+    voters = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('Users who voted'),
+        related_name="voted_%(app_label)s_%(class)s",
+        blank=True
+    )
 
     class Meta:
         abstract = True

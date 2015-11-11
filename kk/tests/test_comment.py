@@ -1,10 +1,9 @@
 import datetime
 import os
 import urllib
-
 from django.conf import settings
+from django.utils.encoding import force_text
 from django.utils.timezone import now
-
 import pytest
 import reversion
 from kk.models import Hearing, Scenario
@@ -14,7 +13,6 @@ from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
 
 
 class TestComment(BaseKKDBTest):
-
     def setup(self):
         super(TestComment, self).setup()
 
@@ -315,3 +313,14 @@ def test_comment_edit_versioning(john_doe_api_client, random_hearing):
     comment = HearingComment.objects.get(pk=comment_id)
     assert not comment.content.isupper()  # Screaming is gone
     assert len(reversion.get_for_object(comment)) == 1  # One old revision
+
+
+@pytest.mark.django_db
+def test_correct_m2m_fks(admin_user, default_hearing):
+    hearing_comment = default_hearing.comments.create(created_by=admin_user, content="hello")
+    first_scenario = default_hearing.scenarios.first()
+    scenario_comment = first_scenario.comments.create(created_by=admin_user, content="hello")
+    hc_voters_query = force_text(hearing_comment.voters.all().query)
+    sc_voters_query = force_text(scenario_comment.voters.all().query)
+    assert "scenariocomment" in sc_voters_query and "hearingcomment" not in sc_voters_query
+    assert "hearingcomment" in hc_voters_query and "scenariocomment" not in hc_voters_query

@@ -33,7 +33,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
             raise NotImplementedError("Not implemented")  # pragma: no cover
 
         request = self.context.get("request")
-        if request:
+        if request:  # pragma: no branch
             url = request.build_absolute_uri(url)
 
         return url

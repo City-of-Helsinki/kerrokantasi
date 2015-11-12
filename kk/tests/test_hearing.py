@@ -239,6 +239,11 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['servicemap_url'] == hearing.servicemap_url
 
+    def test_24_get_report(self, default_hearing):
+        response = self.client.get('%s%s/report/' % (self.endpoint, default_hearing.id))
+        assert response.status_code == 200
+        assert len(response.content) > 0
+
 @pytest.mark.django_db
 def test_hearing_stringification(random_hearing):
     assert force_text(random_hearing) == random_hearing.heading

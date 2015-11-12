@@ -9,6 +9,7 @@ from kk.views.hearing_comment import HearingCommentSerializer
 from kk.views.label import LabelSerializer
 from kk.views.scenario import ScenarioFieldSerializer, ScenarioSerializer
 
+from .hearing_report import HearingReport
 
 class HearingFilter(django_filters.FilterSet):
     next_closing = django_filters.DateTimeFilter(name='close_at', lookup_type='gt')
@@ -78,3 +79,8 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
         # return success
         return response.Response({'status': 'You follow a hearing now'}, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=['get'])
+    def report(self, request, pk=None):
+        report = HearingReport(HearingSerializer(self.get_object()).data)
+        return report.get_response()

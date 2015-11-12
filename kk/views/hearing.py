@@ -82,5 +82,5 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
 
     @detail_route(methods=['get'])
     def report(self, request, pk=None):
-        report = HearingReport(HearingSerializer(self.get_object()).data)
+        report = HearingReport(HearingSerializer(self.get_object(), context=self.get_serializer_context()).data)
         return report.get_response()

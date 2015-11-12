@@ -58,7 +58,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
 )
 
-ROOT_URLCONF = 'kk.urls'
+ROOT_URLCONF = 'kerrokantasi.urls'
 
 TEMPLATES = [
     {
@@ -76,7 +76,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'kk.wsgi.application'
+WSGI_APPLICATION = 'kerrokantasi.wsgi.application'
 
 
 # Database

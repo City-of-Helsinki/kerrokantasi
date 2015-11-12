@@ -1,8 +1,4 @@
-from django.conf import settings
 from django.conf.urls import include, url
-from django.conf.urls.static import static
-from django.contrib import admin
-
 from kk.views import HearingCommentViewSet, HearingImageViewSet, HearingViewSet, ScenarioCommentViewSet, ScenarioViewSet
 from rest_framework_nested import routers
 
@@ -20,10 +16,8 @@ scenario_comments_router = routers.NestedSimpleRouter(hearing_child_router, r'sc
 scenario_comments_router.register(r'comments', ScenarioCommentViewSet, base_name='comments')
 
 urlpatterns = [
-    url(r'^v1/', include(router.urls, namespace='v1')),
-    url(r'^v1/', include(hearing_comments_router.urls, namespace='v1')),
-    url(r'^v1/', include(hearing_child_router.urls, namespace='v1')),
-    url(r'^v1/', include(scenario_comments_router.urls, namespace='v1')),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^api/v1', include('rest_framework.urls', namespace='rest_framework'))
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    url(r'^', include(router.urls, namespace='v1')),
+    url(r'^', include(hearing_comments_router.urls, namespace='v1')),
+    url(r'^', include(hearing_child_router.urls, namespace='v1')),
+    url(r'^', include(scenario_comments_router.urls, namespace='v1')),
+]

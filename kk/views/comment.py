@@ -83,3 +83,22 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
         comment.recache_n_votes()
         # return success
         return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=['post'])
+    def unvotes(self, request, **kwargs):
+        # Return 403 if user is not authenticated
+        if not request.user.is_authenticated():
+            return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
+        comment = self.get_object()
+
+        # Check if user voted already. If yes, return 400.
+        if comment.__class__.objects.filter(id=comment.id, voters=request.user).exists():
+            # remove voter
+            comment.voters.remove(request.user)
+            # update number of votes
+            comment.recache_n_votes()
+            # return success
+            return response.Response({'status': 'Removed vote'}, status=status.HTTP_204_NO_CONTENT)
+
+        return response.Response({'status': 'You have not voted for this comment'}, status=status.HTTP_304_NOT_MODIFIED)

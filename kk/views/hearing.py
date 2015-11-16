@@ -80,6 +80,17 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         # return success
         return response.Response({'status': 'You follow a hearing now'}, status=status.HTTP_201_CREATED)
 
+    @detail_route(methods=['post'])
+    def unfollow(self, request, pk=None):
+        hearing = self.get_object()
+
+        if Hearing.objects.filter(id=hearing.id, followers=request.user).exists():
+            hearing.followers.remove(request.user)
+            return response.Response({'status': 'You stopped following a hearing'}, status=status.HTTP_204_NO_CONTENT)
+
+        return response.Response({'status': 'You are not following this hearing'}, status=status.HTTP_304_NOT_MODIFIED)
+
+
     @detail_route(methods=['get'])
     def report(self, request, pk=None):
         report = HearingReport(HearingSerializer(self.get_object(), context=self.get_serializer_context()).data)

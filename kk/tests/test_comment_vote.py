@@ -36,6 +36,10 @@ class TestCommentVote(BaseKKDBTest):
         # /v1/hearings/<hearingID>/comments/<commentID>/votes/
         return self.get_hearing_detail_url(hearing_id, 'comments/%s/votes' % comment_id)
 
+    def get_hearing_comment_unvote_url(self, hearing_id, comment_id):
+        # /v1/hearings/<hearingID>/comments/<commentID>/unvotes/
+        return self.get_hearing_detail_url(hearing_id, 'comments/%s/unvotes' % comment_id)
+
     def test_31_scenario_comment_vote_without_authentication(self, default_hearing):
         scenario, comment = self.add_default_scenario_and_comment(default_hearing)
         response = self.client.post(self.get_scenario_comment_vote_url(default_hearing.id, scenario.id, comment.id))
@@ -112,4 +116,16 @@ class TestCommentVote(BaseKKDBTest):
         assert response.status_code == 201
         # Add vote again. Expect error, because vote has been given already.
         response = self.client.post(self.get_hearing_comment_vote_url(default_hearing.id, comment.id))
+        assert response.status_code == 304
+
+    def test_hearing_comment_unvote(self, default_hearing):
+        comment = self.add_default_hearing_comment(default_hearing)
+        response = self.client.post(self.get_hearing_comment_unvote_url(default_hearing.id, comment.id))
+        assert response.status_code == 403
+        self.user_login()
+        self.client.post(self.get_hearing_comment_vote_url(default_hearing.id, comment.id))
+        response = self.client.post(self.get_hearing_comment_unvote_url(default_hearing.id, comment.id))
+        assert response.status_code == 204
+        assert comment.n_votes == 0
+        response = self.client.post(self.get_hearing_comment_unvote_url(default_hearing.id, comment.id))
         assert response.status_code == 304

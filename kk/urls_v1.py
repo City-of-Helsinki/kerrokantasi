@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
-from kk.views import HearingCommentViewSet, HearingImageViewSet, HearingViewSet, ScenarioCommentViewSet, ScenarioViewSet
+from kk.views import (HearingCommentViewSet, HearingImageViewSet, HearingViewSet, ScenarioCommentViewSet,
+                      ScenarioViewSet, UserDataView)
 from rest_framework_nested import routers
 
 router = routers.SimpleRouter()
@@ -20,4 +21,5 @@ urlpatterns = [
     url(r'^', include(hearing_comments_router.urls, namespace='v1')),
     url(r'^', include(hearing_child_router.urls, namespace='v1')),
     url(r'^', include(scenario_comments_router.urls, namespace='v1')),
+    url(r'^me', UserDataView.as_view()),
 ]

@@ -12,14 +12,17 @@
 *.sqlite
 *.sqlite3
 *.swp
+*~
 .cache
 .coverage
 .coverage.*
+.django_secret
 .eggs/
 .hypothesis/
 .installed.cfg
 .Python
 .tox/
+/*hack*py
 /.idea
 /venv*
 __pycache__/

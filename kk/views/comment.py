@@ -66,7 +66,7 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
             super().perform_update(serializer)
 
     @detail_route(methods=['post'])
-    def votes(self, request, **kwargs):
+    def vote(self, request, **kwargs):
         # Return 403 if user is not authenticated
         if not request.user.is_authenticated():
             return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
@@ -85,7 +85,7 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
         return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
 
     @detail_route(methods=['post'])
-    def unvotes(self, request, **kwargs):
+    def unvote(self, request, **kwargs):
         # Return 403 if user is not authenticated
         if not request.user.is_authenticated():
             return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)

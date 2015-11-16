@@ -27,18 +27,18 @@ class TestCommentVote(BaseKKDBTest):
 
     def get_scenario_comment_vote_url(self, hearing_id, scenario_id, comment_id):
         # /v1/hearings/<hearingID>/scenarios/<scenarioID>/comments/<commentID>/votes/
-        return self.get_hearing_detail_url(hearing_id, 'scenarios/%s/comments/%s/votes' % (scenario_id, comment_id))
+        return self.get_hearing_detail_url(hearing_id, 'scenarios/%s/comments/%s/vote' % (scenario_id, comment_id))
 
     def add_default_hearing_comment(self, hearing):
         return HearingComment.objects.create(content='Comment text', hearing=hearing)
 
     def get_hearing_comment_vote_url(self, hearing_id, comment_id):
         # /v1/hearings/<hearingID>/comments/<commentID>/votes/
-        return self.get_hearing_detail_url(hearing_id, 'comments/%s/votes' % comment_id)
+        return self.get_hearing_detail_url(hearing_id, 'comments/%s/vote' % comment_id)
 
     def get_hearing_comment_unvote_url(self, hearing_id, comment_id):
         # /v1/hearings/<hearingID>/comments/<commentID>/unvotes/
-        return self.get_hearing_detail_url(hearing_id, 'comments/%s/unvotes' % comment_id)
+        return self.get_hearing_detail_url(hearing_id, 'comments/%s/unvote' % comment_id)
 
     def test_31_scenario_comment_vote_without_authentication(self, default_hearing):
         scenario, comment = self.add_default_scenario_and_comment(default_hearing)

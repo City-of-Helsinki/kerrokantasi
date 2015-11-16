@@ -4,7 +4,6 @@ from kk import models
 
 # Inlines
 
-
 class ScenarioInline(admin.StackedInline):
     model = models.Scenario
     extra = 0

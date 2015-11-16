@@ -13,3 +13,6 @@ flake8==2.4.1
 factory-boy==2.6.0
 drf-nested-routers==0.10.0
 xlsxwriter==0.7.7
+git+https://github.com/City-of-Helsinki/django-helusers.git@405028e4c45a33e0aaf893fee5#egg=django-helusers
+djangorestframework-jwt
+pyjwt

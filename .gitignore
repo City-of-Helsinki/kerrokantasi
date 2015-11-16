@@ -12,14 +12,17 @@
 *.sqlite
 *.sqlite3
 *.swp
+*~
 .cache
 .coverage
 .coverage.*
+.django_secret
 .eggs/
 .hypothesis/
 .installed.cfg
 .Python
 .tox/
+/*hack*py
 /.idea
 /venv*
 __pycache__/
@@ -34,6 +37,7 @@ env/
 htmlcov/
 lib/
 lib64/
+local_settings.py
 nosetests.xml
 parts/
 pip-delete-this-directory.txt

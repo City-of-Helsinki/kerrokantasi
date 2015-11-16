@@ -20,3 +20,11 @@ def test_manager_exclude_deleted():
         obj.comments.first().soft_delete()
     assert obj.comments.count() == (7 + orig_nb_comments)
     assert obj.comments.deleted().count() == 3
+
+
+@pytest.mark.django_db
+def test_cant_delete():
+    hearing = HearingFactory()
+    with pytest.raises(NotImplementedError):
+        hearing.delete()
+    assert hearing.pk

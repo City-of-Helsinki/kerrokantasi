@@ -52,5 +52,5 @@ class TestHearingFollow(BaseKKDBTest):
     def test_followed_hearing_appear_in_user_data(self, default_hearing):
         self.user_login()
         self.client.post(self.get_hearing_follow_url(default_hearing.id))
-        response = self.client.get('/v1/me/')
-        assert default_hearing.id in response.data['followed_hearings']
+        response = self.client.get('/v1/users/')
+        assert default_hearing.id in response.data[0]['followed_hearings']

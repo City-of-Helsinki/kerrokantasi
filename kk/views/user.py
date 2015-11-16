@@ -14,13 +14,14 @@ class UserDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = get_user_model()
-        fields = ['uuid', 'username', 'voted_hearing_comments', 'voted_scenario_comments', 'followed_hearings']
+        fields = ['uuid', 'username', 'first_name', 'last_name', 'voted_hearing_comments', 'voted_scenario_comments',
+                  'followed_hearings']
 
 
-class UserDataView(viewsets.generics.RetrieveAPIView):
-    model = get_user_model()
+class UserDataViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserDataSerializer
     permission_classes = (permissions.IsAuthenticated, )
+    lookup_field = 'uuid'
 
-    def get_object(self, *args, **kwargs):
-        return self.request.user
+    def get_queryset(self, *args, **kwargs):
+        return get_user_model().objects.filter(pk=self.request.user.pk)

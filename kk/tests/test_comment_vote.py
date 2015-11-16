@@ -136,6 +136,6 @@ class TestCommentVote(BaseKKDBTest):
         self.client.post(self.get_hearing_comment_vote_url(default_hearing.id, comment.id))
         scenario, sc_comment = self.add_default_scenario_and_comment(default_hearing)
         self.client.post(self.get_scenario_comment_vote_url(default_hearing.id, scenario.id, sc_comment.id))
-        response = self.client.get('/v1/me/')
-        assert comment.id in response.data['voted_hearing_comments']
-        assert sc_comment.id in response.data['voted_scenario_comments']
+        response = self.client.get('/v1/users/')
+        assert comment.id in response.data[0]['voted_hearing_comments']
+        assert sc_comment.id in response.data[0]['voted_scenario_comments']

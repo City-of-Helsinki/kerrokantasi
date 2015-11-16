@@ -48,3 +48,9 @@ class TestHearingFollow(BaseKKDBTest):
         assert response.status_code == 204
         response = self.client.post(self.get_hearing_unfollow_url(default_hearing.id))
         assert response.status_code == 304
+
+    def test_followed_hearing_appear_in_user_data(self, default_hearing):
+        self.user_login()
+        self.client.post(self.get_hearing_follow_url(default_hearing.id))
+        response = self.client.get('/v1/me/')
+        assert default_hearing.id in response.data['followed_hearings']

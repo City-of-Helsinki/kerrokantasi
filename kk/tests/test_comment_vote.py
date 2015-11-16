@@ -129,3 +129,13 @@ class TestCommentVote(BaseKKDBTest):
         assert comment.n_votes == 0
         response = self.client.post(self.get_hearing_comment_unvote_url(default_hearing.id, comment.id))
         assert response.status_code == 304
+
+    def test_vote_appears_in_user_data(self, default_hearing):
+        self.user_login()
+        comment = self.add_default_hearing_comment(default_hearing)
+        self.client.post(self.get_hearing_comment_vote_url(default_hearing.id, comment.id))
+        scenario, sc_comment = self.add_default_scenario_and_comment(default_hearing)
+        self.client.post(self.get_scenario_comment_vote_url(default_hearing.id, scenario.id, sc_comment.id))
+        response = self.client.get('/v1/me/')
+        assert comment.id in response.data['voted_hearing_comments']
+        assert sc_comment.id in response.data['voted_scenario_comments']

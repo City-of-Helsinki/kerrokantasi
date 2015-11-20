@@ -1,3 +1,4 @@
+from enumfields.fields import EnumIntegerField
 from functools import lru_cache
 
 from django.conf import settings
@@ -6,6 +7,7 @@ from django.db.models import ManyToOneRel
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
+from kk.enums import Commenting
 
 
 def generate_id():
@@ -22,12 +24,6 @@ class BaseModelManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    id = models.CharField(
-        primary_key=True,
-        max_length=32,
-        blank=True,
-        help_text=_('You may leave this empty to automatically generate an ID')
-    )
     created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now, editable=False)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
@@ -87,17 +83,40 @@ class BaseModel(models.Model):
         abstract = True
 
 
-class WithCommentsMixin(models.Model):
+class StringIdBaseModel(BaseModel):
+    id = models.CharField(
+        primary_key=True,
+        max_length=32,
+        blank=True,
+        help_text=_('You may leave this empty to automatically generate an ID')
+    )
+    class Meta:
+        abstract = True
+
+
+
+class Commentable(models.Model):
     """
     Mixin for models which can be commented.
     """
     n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0, editable=False)
+    commenting = EnumIntegerField(Commenting, default=Commenting.NONE)
 
     def recache_n_comments(self):
         new_n_comments = self.comments.count()
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))
+
+    def may_comment(self, request):
+        if self.commenting == Commenting.NONE:
+            return False
+        elif self.commenting == Commenting.OPEN:
+            return True
+        elif self.commenting == Commenting.REGISTERED:
+            return request.user.is_authenticated()
+        else:  # pragma: no cover
+            raise NotImplementedError("Not implemented")
 
     class Meta:
         abstract = True

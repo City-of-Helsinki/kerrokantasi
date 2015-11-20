@@ -1,8 +1,8 @@
-
 import pytest
 from django.contrib.auth import get_user_model
+from kk.enums import SectionType, Commenting
 from kk.factories.hearing import HearingFactory, LabelFactory
-from kk.models import Hearing, Scenario, Label
+from kk.models import Hearing, Section, Label
 from kk.tests.utils import create_default_images
 from rest_framework.test import APIClient
 
@@ -10,14 +10,20 @@ from rest_framework.test import APIClient
 @pytest.fixture()
 def default_hearing():
     """
-    Fixture for a "default" hearing with three scenarios.
+    Fixture for a "default" hearing with three sections (one introduction, two sections).
     All objects will have the 3 default images attached.
+    All objects will allow open commenting.
     """
-    hearing = Hearing.objects.create(abstract='Default test hearing One')
+    hearing = Hearing.objects.create(abstract='Default test hearing One', commenting=Commenting.OPEN)
     create_default_images(hearing)
     for x in range(1, 4):
-        scenario = Scenario.objects.create(abstract='Scenario %d abstract' % x, hearing=hearing)
-        create_default_images(scenario)
+        section = Section.objects.create(
+            abstract='Section %d abstract' % x,
+            hearing=hearing,
+            type=(SectionType.INTRODUCTION if x == 1 else SectionType.SCENARIO),
+            commenting=Commenting.OPEN
+        )
+        create_default_images(section)
     return hearing
 
 

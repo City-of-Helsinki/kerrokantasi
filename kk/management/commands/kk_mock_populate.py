@@ -18,7 +18,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options.pop("nuke", False):
             if "sqlite" in settings.DATABASES["default"]["ENGINE"]:
-                os.unlink(settings.DATABASES["default"]["NAME"])
+                db_file = settings.DATABASES["default"]["NAME"]
+                if os.path.isfile(db_file):
+                    os.unlink(db_file)
             call_command("migrate", **options.copy())
 
         User = get_user_model()

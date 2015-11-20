@@ -6,7 +6,8 @@ from django.utils.encoding import force_text
 from django.utils.timezone import now
 import pytest
 import reversion
-from kk.models import Hearing, Scenario
+from kk.enums import Commenting
+from kk.models import Hearing, Section
 from kk.models.hearing import HearingComment
 from kk.tests.base import BaseKKDBTest, default_hearing
 from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
@@ -21,7 +22,7 @@ class TestComment(BaseKKDBTest):
         self.green_content = 'I like green'
         self.comment_data = {
             'content': self.default_content,
-            'scenario': None
+            'section': None
         }
 
     def create_default_comments(self, hearing):
@@ -200,30 +201,30 @@ class TestComment(BaseKKDBTest):
         assert 'n_votes' in comment
         assert 'created_by' in comment
 
-    def test_56_add_comment_to_scenario_without_authentication(self, default_hearing):
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
-        # post data to scenario endpoint /v1/hearing/<hearingID>/scenarios/<scenarioID>/comments/
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+    def test_56_add_comment_to_section_without_authentication(self, default_hearing):
+        section = default_hearing.sections.first()
+        # post data to section endpoint /v1/hearing/<hearingID>/sections/<sectionID>/comments/
+        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
         response = self.client.post(url, data=self.comment_data)
         # expect success
         assert response.status_code == 201
 
-    def test_56_add_comment_to_scenario_scenario_pk_none(self, default_hearing):
+    def test_56_add_comment_to_section_section_pk_none(self, default_hearing):
         pytest.xfail("not required anymore")
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        section = Section.objects.create(title='Section to comment', hearing=default_hearing)
         self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
         response = self.client.post(url, data=self.comment_data)
-        # expect bad request, we didn't specify scenario id
+        # expect bad request, we didn't specify section id
         assert response.status_code == 400
 
-    def test_56_add_comment_to_scenario_content_none(self, default_hearing):
+    def test_56_add_comment_to_section_content_none(self, default_hearing):
         pytest.xfail("not sure what this is testing")
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+        section = Section.objects.create(title='Section to comment', hearing=default_hearing)
         self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
         # nullify content
         self.comment_data['content'] = None
@@ -231,59 +232,59 @@ class TestComment(BaseKKDBTest):
         # expect bad request, we didn't set any content
         assert response.status_code == 400
 
-    def test_56_add_comment_to_scenario_without_data(self, default_hearing):
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+    def test_56_add_comment_to_section_without_data(self, default_hearing):
+        section = default_hearing.sections.first()
         self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
         response = self.client.post(url, data=None)
         # expect bad request, we didn't set any data
         assert response.status_code == 400
 
-    def test_56_add_comment_to_scenario_invalid_key(self, default_hearing):
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+    def test_56_add_comment_to_section_invalid_key(self, default_hearing):
+        section = default_hearing.sections.first()
         self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
         response = self.client.post(url, data={'invalidKey': 'Yes it is'})
         # expect bad request, we have invalid key in payload
         assert response.status_code == 400
 
-    def test_56_add_comment_to_scenario(self, default_hearing):
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=default_hearing)
+    def test_56_add_comment_to_section(self, default_hearing):
+        section = default_hearing.sections.first()
         self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'scenarios/%s/comments' % scenario.id)
+        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
-        # set scenario explicitly
-        self.comment_data['scenario'] = scenario.pk
+        # set section explicitly
+        self.comment_data['section'] = section.pk
         response = self.client.post(url, data=self.comment_data)
         assert response.status_code == 201
 
         data = self.get_data_from_response(response)
-        assert 'scenario' in data
-        assert data['scenario'] == scenario.pk
+        assert 'section' in data
+        assert data['section'] == section.pk
 
         assert 'content' in data
         assert data['content'] == self.default_content
 
-    def test_56_get_hearing_with_scenario_check_n_comments_property(self):
-        hearing = Hearing.objects.create(abstract='Hearing to test scenario comments')
-        scenario = Scenario.objects.create(title='Scenario to comment', hearing=hearing)
+    def test_56_get_hearing_with_section_check_n_comments_property(self):
+        hearing = Hearing.objects.create(abstract='Hearing to test section comments')
+        section = Section.objects.create(title='Section to comment', hearing=hearing, commenting=Commenting.OPEN)
         self.user_login()
-        url = self.get_hearing_detail_url(hearing.id, 'scenarios/%s/comments' % scenario.id)
+        url = self.get_hearing_detail_url(hearing.id, 'sections/%s/comments' % section.id)
 
-        self.comment_data['scenario'] = scenario.pk
+        self.comment_data['section'] = section.pk
         response = self.client.post(url, data=self.comment_data)
         assert response.status_code == 201
 
-        # get hearing and check scenarios's n_comments property
+        # get hearing and check sections's n_comments property
         url = self.get_hearing_detail_url(hearing.id)
         response = self.client.get(url)
         assert response.status_code == 200
 
         data = self.get_data_from_response(response)
-        assert 'n_comments' in data['scenarios'][0]
-        assert data['scenarios'][0]['n_comments'] == 1
+        assert 'n_comments' in data['sections'][0]
+        assert data['sections'][0]['n_comments'] == 1
 
 
 @pytest.mark.django_db
@@ -297,6 +298,8 @@ def test_n_comments_updates(admin_user, default_hearing):
 
 @pytest.mark.django_db
 def test_comment_edit_versioning(john_doe_api_client, random_hearing):
+    random_hearing.commenting = Commenting.OPEN
+    random_hearing.save()
     response = john_doe_api_client.post('/v1/hearing/%s/comments/' % random_hearing.pk, data={
         "content": "THIS SERVICE SUCKS"
     })
@@ -317,9 +320,9 @@ def test_comment_edit_versioning(john_doe_api_client, random_hearing):
 @pytest.mark.django_db
 def test_correct_m2m_fks(admin_user, default_hearing):
     hearing_comment = default_hearing.comments.create(created_by=admin_user, content="hello")
-    first_scenario = default_hearing.scenarios.first()
-    scenario_comment = first_scenario.comments.create(created_by=admin_user, content="hello")
+    first_section = default_hearing.sections.first()
+    section_comment = first_section.comments.create(created_by=admin_user, content="hello")
     hc_voters_query = force_text(hearing_comment.voters.all().query)
-    sc_voters_query = force_text(scenario_comment.voters.all().query)
-    assert "scenariocomment" in sc_voters_query and "hearingcomment" not in sc_voters_query
-    assert "hearingcomment" in hc_voters_query and "scenariocomment" not in hc_voters_query
+    sc_voters_query = force_text(section_comment.voters.all().query)
+    assert "sectioncomment" in sc_voters_query and "hearingcomment" not in sc_voters_query
+    assert "hearingcomment" in hc_voters_query and "sectioncomment" not in hc_voters_query

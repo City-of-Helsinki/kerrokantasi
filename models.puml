@@ -1,0 +1,71 @@
+@startuml
+skinparam shadowing false
+
+abstract class Base {
+  created_by: FK user
+  created_on: datetime
+  modified_by: FK user
+  modified_by: datetime
+  deleted: soft-deletion flag
+}
+
+abstract class Comment << versioned >> {
+  n_votes: cache value
+  content
+  followers: M2M
+  voters: M2M
+}
+
+abstract class Image {
+  title
+  caption
+  height
+  width
+  image
+  ordering
+}
+
+abstract class Commentable {
+  n_comments: cache value
+  commenting: disallow, registered, anonymous
+}
+
+class Hearing  {
+  opens_on: datetime
+  closes_on: datetime
+  heading: heading of the hearing
+  abstract: abstract of the hearing
+  borough: borough which the hearing concerns
+  servicemap_url: url to the map to embed at http://palvelukartta.hel.fi
+  latitude: coordinate for position
+  longitude: coordinate for position
+}
+
+class HearingLabel {
+  label
+}
+
+class Section {
+  type - `introduction`, `section`, `scenario`, `area`, possibly others in the future
+  position
+  heading
+  abstract
+  content
+  ordering
+}
+
+Base <|-- Hearing
+Base <|-- Section
+Base <|-- Comment
+Base <|-- Image
+
+Hearing *-- "many" Section : contains
+Commentable <|-- Hearing
+Commentable <|-- Section
+Hearing *-- "many" Comment
+Hearing *-- "many" Image
+Hearing *-- "many" HearingLabel
+Section *-- "many" Comment
+Section *-- "many" Image
+
+@enduml

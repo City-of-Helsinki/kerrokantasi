@@ -16,3 +16,4 @@ xlsxwriter==0.7.7
 git+https://github.com/City-of-Helsinki/django-helusers.git@405028e4c45a33e0aaf893fee5#egg=django-helusers
 djangorestframework-jwt
 pyjwt
+django-enumfields==0.7.4

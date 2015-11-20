@@ -108,22 +108,11 @@ class TestHearing(BaseKKDBTest):
         assert response.status_code is 200
 
         data = self.get_data_from_response(response)
-
-        assert 'abstract' in data
-        assert 'heading' in data
-        assert 'content' in data
-        assert 'images' in data
-        assert 'labels' in data
-        assert 'scenarios' in data
-        assert 'created_at' in data
-        assert 'closed' in data
-        assert 'close_at' in data
-        assert 'id' in data
-        assert 'borough' in data
-        assert 'servicemap_url' in data
-        assert 'latitude' in data
-        assert 'longitude' in data
-        assert 'n_comments' in data
+        assert set(data.keys()) >= {
+            'abstract', 'borough', 'close_at', 'closed', 'created_at', 'id', 'images', 'labels',
+            'latitude', 'longitude', 'n_comments', 'open_at', 'sections', 'servicemap_url',
+            'title'
+        }
 
     def test_8_get_detail_abstract(self):
         hearing = Hearing(abstract='Lorem Ipsum Abstract')
@@ -137,8 +126,8 @@ class TestHearing(BaseKKDBTest):
         assert 'results' not in data
         assert data['abstract'] == hearing.abstract
 
-    def test_8_get_detail_heading(self):
-        hearing = Hearing(heading='Lorem Ipsum Heading')
+    def test_8_get_detail_title(self):
+        hearing = Hearing(title='Lorem Ipsum Title')
         hearing.save()
 
         response = self.client.get(self.get_detail_url(hearing.id))
@@ -147,7 +136,7 @@ class TestHearing(BaseKKDBTest):
         data = self.get_data_from_response(response)
 
         assert 'results' not in data
-        assert data['heading'] == hearing.heading
+        assert data['title'] == hearing.title
 
     def test_8_get_detail_borough(self):
         hearing = Hearing(borough='Itäinen')
@@ -246,4 +235,4 @@ class TestHearing(BaseKKDBTest):
 
 @pytest.mark.django_db
 def test_hearing_stringification(random_hearing):
-    assert force_text(random_hearing) == random_hearing.heading
+    assert force_text(random_hearing) == random_hearing.title

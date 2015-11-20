@@ -2,8 +2,8 @@ import io
 import xlsxwriter
 from django.http import HttpResponse
 
-from kk.models import ScenarioComment
-from .scenario_comment import ScenarioCommentSerializer
+from kk.models import SectionComment
+from .section_comment import SectionCommentSerializer
 
 
 class HearingReport(object):
@@ -31,18 +31,17 @@ class HearingReport(object):
         self.hearing_worksheet.set_column('B:B', 200)
 
         # add header to hearing worksheet
-        self.hearing_worksheet.set_header(self.json['heading'])
+        self.hearing_worksheet.set_header(self.json['title'])
 
-        self.add_hearing_row('Heading', self.json['heading'])
+        self.add_hearing_row('Title', self.json['title'])
         self.add_hearing_row('Created', self.json['created_at'])
         self.add_hearing_row('Close', self.json['close_at'])
         #self.add_hearing_row('Author', self.json['created_by'])
         self.add_hearing_row('Abstract', self.json['abstract'])
-        self.add_hearing_row('Content', self.json['content'])
         self.add_hearing_row('Borough', self.json['borough'])
         self.add_hearing_row('Labels', str('%s' % ', '.join(label for label in self.json['labels'])))
         self.add_hearing_row('Comments', str(self.json['n_comments']))
-        self.add_hearing_row('Scenarios', str(len(self.json['scenarios'])))
+        self.add_hearing_row('Sections', str(len(self.json['sections'])))
 
     def add_comment_row(self, commented_type, title, comment):
         row = self.comments_worksheet_active_row
@@ -67,7 +66,7 @@ class HearingReport(object):
         self.comments_worksheet.set_column('E:E', 5)
         self.comments_worksheet.set_column('F:F', 200)
 
-        self.comments_worksheet.set_header('Comments of %s' % self.json['heading'])
+        self.comments_worksheet.set_header('Comments of %s' % self.json['title'])
 
         self.comments_worksheet.write(0, 0, 'Title', self.format_bold)
         self.comments_worksheet.write(0, 1, 'Type', self.format_bold)
@@ -81,14 +80,14 @@ class HearingReport(object):
         comments_count = 0
 
         for comment in self.json['comments']:
-            self.add_comment_row('Hearing', self.json['heading'], comment)
+            self.add_comment_row('Hearing', self.json['title'], comment)
             comments_count += 1
 
-        scenarios = [s for s in self.json['scenarios']]
-        for s in scenarios:
-            comments = [ScenarioCommentSerializer(c).data for c in ScenarioComment.objects.filter(scenario=s['id'])]
+        sections = [s for s in self.json['sections']]
+        for s in sections:
+            comments = [SectionCommentSerializer(c).data for c in SectionComment.objects.filter(section=s['id'])]
             for comment in comments:
-                self.add_comment_row('Scenario', s['title'], comment)
+                self.add_comment_row('Section', s['title'], comment)
                 comments_count += 1
 
         self.add_hearing_row('All comments', str(comments_count))
@@ -102,5 +101,5 @@ class HearingReport(object):
 
     def get_response(self):
         response = HttpResponse(self.get_xlsx(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(filename=self.json['heading'])
+        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(filename=self.json['title'])
         return response

@@ -1,5 +1,7 @@
 import django_filters
 from django.shortcuts import get_object_or_404
+from kk.enums import Commenting
+from kk.utils.drf_enum_field import EnumField
 from rest_framework import filters, permissions, serializers, status, viewsets, response
 from rest_framework.decorators import detail_route
 
@@ -7,7 +9,7 @@ from kk.models import Hearing, HearingComment, HearingImage
 from kk.views.base import BaseImageSerializer
 from kk.views.hearing_comment import HearingCommentSerializer
 from kk.views.label import LabelSerializer
-from kk.views.scenario import ScenarioFieldSerializer, ScenarioSerializer
+from kk.views.section import SectionFieldSerializer, SectionSerializer
 
 from .hearing_report import HearingReport
 
@@ -36,15 +38,19 @@ class HearingImageViewSet(viewsets.ReadOnlyModelViewSet):
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = HearingImageSerializer.get_field_serializer(many=True, read_only=True)
-    scenarios = ScenarioFieldSerializer(many=True, read_only=True)
+    sections = SectionFieldSerializer(many=True, read_only=True)
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
+    commenting = EnumField(enum_type=Commenting)
 
     class Meta:
         model = Hearing
-        fields = ['abstract', 'heading', 'content', 'id', 'borough', 'n_comments',
-                  'labels', 'close_at', 'created_at', 'latitude', 'longitude',
-                  'servicemap_url', 'images', 'scenarios', 'images',
-                  'closed', 'comments']
+        fields = [
+            'abstract', 'title', 'id', 'borough', 'n_comments',
+            'commenting',
+            'labels', 'open_at', 'close_at', 'created_at', 'latitude', 'longitude',
+            'servicemap_url', 'images', 'sections', 'images',
+            'closed', 'comments'
+        ]
 
 
 class HearingViewSet(viewsets.ReadOnlyModelViewSet):

@@ -5,12 +5,11 @@ import os
 
 from django.conf import settings
 
-from kk.models import Hearing, HearingComment, Scenario, ScenarioComment
+from kk.models import Hearing, HearingComment, Section, SectionComment
 from kk.tests.base import BaseKKDBTest, default_hearing
 
 
 class TestHearingFollow(BaseKKDBTest):
-
     def setup(self):
         super(TestHearingFollow, self).setup()
 

@@ -5,7 +5,7 @@ from kk.views import (
 )
 from rest_framework_nested import routers
 
-router = routers.SimpleRouter()
+router = routers.DefaultRouter()
 router.register(r'hearing', HearingViewSet)
 router.register(r'users', UserDataViewSet, base_name='users')
 

@@ -1,4 +1,5 @@
 import pytest
+
 from kk.tests.utils import IMAGES, get_data_from_response
 
 

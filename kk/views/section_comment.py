@@ -1,6 +1,7 @@
+from rest_framework import serializers
+
 from kk.models import SectionComment
 from kk.views.comment import BaseCommentViewSet
-from rest_framework import serializers
 
 from .base import CreatedBySerializer
 

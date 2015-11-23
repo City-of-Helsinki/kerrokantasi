@@ -3,6 +3,7 @@ from rest_framework import permissions, serializers, viewsets
 
 
 class ForeignKeyListSerializer(serializers.ReadOnlyField):
+
     def to_representation(self, value):
         return value.all().values_list('pk', flat=True)
 

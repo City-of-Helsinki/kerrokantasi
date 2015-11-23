@@ -1,4 +1,3 @@
-from enumfields.fields import EnumIntegerField
 from functools import lru_cache
 
 from django.conf import settings
@@ -7,6 +6,8 @@ from django.db.models import ManyToOneRel
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
+from enumfields.fields import EnumIntegerField
+
 from kk.enums import Commenting
 
 
@@ -90,9 +91,9 @@ class StringIdBaseModel(BaseModel):
         blank=True,
         help_text=_('You may leave this empty to automatically generate an ID')
     )
+
     class Meta:
         abstract = True
-
 
 
 class Commentable(models.Model):

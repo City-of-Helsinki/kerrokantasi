@@ -3,6 +3,7 @@ import pytest
 from kk.models import HearingComment, Section, SectionComment
 from kk.tests.test_images import get_hearing_detail_url
 
+
 default_content = 'Awesome comment to vote.'
 comment_data = {
     'content': default_content,

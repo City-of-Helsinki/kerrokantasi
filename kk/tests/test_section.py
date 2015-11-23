@@ -2,10 +2,10 @@ import datetime
 import os
 import urllib
 
+import pytest
 from django.conf import settings
 from django.utils.encoding import force_text
 
-import pytest
 from kk.enums import SectionType
 from kk.models import Hearing, Section
 from kk.tests.base import BaseKKDBTest, default_hearing

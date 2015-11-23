@@ -1,8 +1,8 @@
-import pytest
 import datetime
-import urllib
 import os
+import urllib
 
+import pytest
 from django.conf import settings
 
 from kk.models import Hearing, HearingComment, Section, SectionComment
@@ -10,6 +10,7 @@ from kk.tests.base import BaseKKDBTest, default_hearing
 
 
 class TestHearingFollow(BaseKKDBTest):
+
     def setup(self):
         super(TestHearingFollow, self).setup()
 

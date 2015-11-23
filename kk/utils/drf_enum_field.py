@@ -4,9 +4,8 @@ from django.utils.encoding import force_text
 from rest_framework.fields import ChoiceField
 
 
-
-
 class EnumField(ChoiceField):
+
     def __init__(self, **kwargs):
         self.enum_type = kwargs.pop("enum_type")
         kwargs["choices"] = self.enum_type.choices()

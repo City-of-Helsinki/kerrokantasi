@@ -1,17 +1,18 @@
 import datetime
 import urllib
 
+import pytest
 from django.utils.dateparse import parse_datetime
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
-import pytest
 from kk.models import Hearing, Label
 from kk.tests.base import BaseKKDBTest, default_hearing
 from kk.tests.utils import assert_datetime_fuzzy_equal
 
 
 class TestHearing(BaseKKDBTest):
+
     def setup(self):
         super(TestHearing, self).setup()
         self.endpoint = '%s/hearing/' % self.base_endpoint
@@ -232,6 +233,7 @@ class TestHearing(BaseKKDBTest):
         response = self.client.get('%s%s/report/' % (self.endpoint, default_hearing.id))
         assert response.status_code == 200
         assert len(response.content) > 0
+
 
 @pytest.mark.django_db
 def test_hearing_stringification(random_hearing):

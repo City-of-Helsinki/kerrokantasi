@@ -1,17 +1,18 @@
 import django_filters
 from django.shortcuts import get_object_or_404
-from kk.enums import Commenting
-from kk.utils.drf_enum_field import EnumField
-from rest_framework import filters, permissions, serializers, status, viewsets, response
+from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 
-from kk.models import Hearing, HearingComment, HearingImage
+from kk.enums import Commenting
+from kk.models import Hearing, HearingImage
+from kk.utils.drf_enum_field import EnumField
 from kk.views.base import BaseImageSerializer
 from kk.views.hearing_comment import HearingCommentSerializer
 from kk.views.label import LabelSerializer
-from kk.views.section import SectionFieldSerializer, SectionSerializer
+from kk.views.section import SectionFieldSerializer
 
 from .hearing_report import HearingReport
+
 
 class HearingFilter(django_filters.FilterSet):
     next_closing = django_filters.DateTimeFilter(name='close_at', lookup_type='gt')
@@ -22,6 +23,7 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingImageSerializer(BaseImageSerializer):
+
     class Meta:
         model = HearingImage
         fields = ['title', 'url', 'width', 'height', 'caption']
@@ -95,7 +97,6 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
             return response.Response({'status': 'You stopped following a hearing'}, status=status.HTTP_204_NO_CONTENT)
 
         return response.Response({'status': 'You are not following this hearing'}, status=status.HTTP_304_NOT_MODIFIED)
-
 
     @detail_route(methods=['get'])
     def report(self, request, pk=None):

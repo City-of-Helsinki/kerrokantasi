@@ -2,10 +2,12 @@ import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from enumfields.fields import EnumField
+
 from kk.enums import SectionType
 from kk.models.comment import BaseComment, recache_on_save
 from kk.models.images import BaseImage
-from .base import StringIdBaseModel, Commentable
+
+from .base import Commentable, StringIdBaseModel
 from .hearing import Hearing
 
 

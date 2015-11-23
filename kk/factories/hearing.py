@@ -2,10 +2,10 @@ import logging
 import random
 from datetime import timedelta
 
-from django.utils.timezone import now
-
 import factory
 import factory.fuzzy
+from django.utils.timezone import now
+
 from kk.enums import Commenting, SectionType
 from kk.factories.comment import BaseCommentFactory
 from kk.models import Hearing, HearingComment, Label, Section, SectionComment
@@ -14,6 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Label
 
@@ -21,22 +22,25 @@ class LabelFactory(factory.django.DjangoModelFactory):
 
 
 class HearingCommentFactory(BaseCommentFactory):
+
     class Meta:
         model = HearingComment
 
 
 class SectionCommentFactory(BaseCommentFactory):
+
     class Meta:
         model = SectionComment
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Hearing
 
     close_at = factory.LazyAttribute(lambda obj: factory.fuzzy.FuzzyDateTime(
-            start_dt=now() + timedelta(days=5),
-            end_dt=now() + timedelta(days=150),
+        start_dt=now() + timedelta(days=5),
+        end_dt=now() + timedelta(days=150),
     ).fuzz())
     title = factory.Faker("sentence")
     abstract = factory.Faker("text")
@@ -62,6 +66,7 @@ class HearingFactory(factory.django.DjangoModelFactory):
 
 
 class SectionFactory(factory.django.DjangoModelFactory):
+
     class Meta:
         model = Section
 

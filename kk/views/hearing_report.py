@@ -1,8 +1,10 @@
 import io
+
 import xlsxwriter
 from django.http import HttpResponse
 
 from kk.models import SectionComment
+
 from .section_comment import SectionCommentSerializer
 
 
@@ -13,6 +15,7 @@ def format_user_dict(user_dict):
 
 
 class HearingReport(object):
+
     def __init__(self, json):
         self.json = json
         self.buffer = io.BytesIO()
@@ -41,7 +44,7 @@ class HearingReport(object):
         self.add_hearing_row('Title', self.json['title'])
         self.add_hearing_row('Created', self.json['created_at'])
         self.add_hearing_row('Close', self.json['close_at'])
-        #self.add_hearing_row('Author', self.json['created_by'])
+        # self.add_hearing_row('Author', self.json['created_by'])
         self.add_hearing_row('Abstract', self.json['abstract'])
         self.add_hearing_row('Borough', self.json['borough'])
         self.add_hearing_row('Labels', str('%s' % ', '.join(label for label in self.json['labels'])))
@@ -105,6 +108,9 @@ class HearingReport(object):
         return self.buffer.getvalue()
 
     def get_response(self):
-        response = HttpResponse(self.get_xlsx(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(
+            self.get_xlsx(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
         response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(filename=self.json['title'])
         return response

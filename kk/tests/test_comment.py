@@ -2,9 +2,10 @@ import pytest
 import reversion
 from django.utils.encoding import force_text
 from django.utils.timezone import now
+
 from kk.enums import Commenting
-from kk.models import Hearing, Section, HearingComment
-from kk.tests.conftest import default_comment_content, red_comment_content, green_comment_content
+from kk.models import Hearing, HearingComment, Section
+from kk.tests.conftest import default_comment_content, green_comment_content, red_comment_content
 from kk.tests.test_images import get_hearing_detail_url
 from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
 
@@ -229,6 +230,7 @@ comment_status_spec = {
     Commenting.REGISTERED: (403, 201),
     Commenting.OPEN: (201, 201),
 }
+
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("commenting", comment_status_spec.keys())

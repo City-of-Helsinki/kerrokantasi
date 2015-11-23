@@ -1,9 +1,11 @@
+from rest_framework import serializers
+
 from kk.models.images import BaseImage
 from kk.views.utils import AbstractSerializerMixin
-from rest_framework import serializers
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
+
     def to_representation(self, user):
         return {
             "uuid": user.uuid,

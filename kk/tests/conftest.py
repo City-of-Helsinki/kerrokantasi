@@ -1,10 +1,12 @@
 import pytest
 from django.contrib.auth import get_user_model
-from kk.enums import SectionType, Commenting
-from kk.factories.hearing import HearingFactory, LabelFactory
-from kk.models import Hearing, Section, Label, HearingComment
-from kk.tests.utils import create_default_images, assert_ascending_sequence
 from rest_framework.test import APIClient
+
+from kk.enums import Commenting, SectionType
+from kk.factories.hearing import HearingFactory, LabelFactory
+from kk.models import Hearing, HearingComment, Label, Section
+from kk.tests.utils import assert_ascending_sequence, create_default_images
+
 
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
 red_comment_content = 'Mine is red'

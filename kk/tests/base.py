@@ -3,6 +3,7 @@ import json
 import pytest
 from django.contrib.auth import get_user_model
 from django.test.client import Client as DjangoTestClient
+
 from .conftest import default_hearing  # TODO: Remove me
 
 __all__ = ["BaseKKTest", "default_hearing", "BaseKKDBTest"]

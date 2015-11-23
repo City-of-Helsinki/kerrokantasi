@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import reversion
-
 from django.db import transaction
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route

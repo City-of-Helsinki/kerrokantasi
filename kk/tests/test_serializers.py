@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
+
 from kk.enums import SectionType
 from kk.views.section import SectionSerializer
 

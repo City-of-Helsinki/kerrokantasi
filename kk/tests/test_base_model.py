@@ -1,6 +1,6 @@
 import pytest
 
-from kk.factories.hearing import HearingFactory, HearingCommentFactory
+from kk.factories.hearing import HearingCommentFactory, HearingFactory
 from kk.models import Hearing, HearingComment
 
 

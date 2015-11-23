@@ -4,6 +4,7 @@ from datetime import timedelta
 
 import factory
 import factory.fuzzy
+
 from kk.factories.utils import get_random_user
 
 

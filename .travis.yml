@@ -9,7 +9,9 @@ env:
 install:
 - pip install coveralls -r requirements.txt
 
-script: py.test -vvv --cov kk kk/tests
+script:
+- flake8 kk
+- py.test -vvv --cov kk kk/tests
 
 after_success:
   coveralls

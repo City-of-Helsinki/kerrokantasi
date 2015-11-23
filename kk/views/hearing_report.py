@@ -6,8 +6,13 @@ from kk.models import SectionComment
 from .section_comment import SectionCommentSerializer
 
 
-class HearingReport(object):
+def format_user_dict(user_dict):
+    if not user_dict:
+        return None
+    return user_dict["username"]
 
+
+class HearingReport(object):
     def __init__(self, json):
         self.json = json
         self.buffer = io.BytesIO()
@@ -50,7 +55,7 @@ class HearingReport(object):
         # add type
         self.comments_worksheet.write(row, 1, commented_type)
         # add author
-        self.comments_worksheet.write(row, 2, comment['created_by'])
+        self.comments_worksheet.write(row, 2, format_user_dict(comment['created_by']))
         # add creation date
         self.comments_worksheet.write(row, 3, comment['created_at'])
         # add votes

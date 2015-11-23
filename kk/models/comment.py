@@ -9,6 +9,7 @@ from .base import BaseModel
 class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
+    title = models.CharField(blank=True, max_length=80)
     content = models.TextField(verbose_name=_('Content'))
     author_name = models.CharField(max_length=40, blank=True, null=True)
     n_votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0, editable=False)

@@ -15,9 +15,9 @@ class Section(Commentable, StringIdBaseModel):
     hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
     ordering = models.IntegerField(default=0, db_index=True)
     type = EnumField(SectionType, default=SectionType.PLAIN)
-    title = models.CharField(verbose_name=_('Title'), max_length=255)
-    abstract = models.TextField(verbose_name=_('Abstract'))
-    content = models.TextField(verbose_name=_('Content'))
+    title = models.CharField(verbose_name=_('Title'), max_length=255, blank=True)
+    abstract = models.TextField(verbose_name=_('Abstract'), blank=True)
+    content = models.TextField(verbose_name=_('Content'), blank=True)
 
     class Meta:
         ordering = ["ordering"]

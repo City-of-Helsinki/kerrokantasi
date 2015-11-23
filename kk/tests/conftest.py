@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from kk.enums import SectionType, Commenting
 from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, Section, Label
-from kk.tests.utils import create_default_images
+from kk.tests.utils import create_default_images, assert_ascending_sequence
 from rest_framework.test import APIClient
 
 
@@ -24,6 +24,7 @@ def default_hearing():
             commenting=Commenting.OPEN
         )
         create_default_images(section)
+    assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
     return hearing
 
 

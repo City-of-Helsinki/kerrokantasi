@@ -17,8 +17,17 @@ class Section(Commentable, StringIdBaseModel):
     abstract = models.TextField(verbose_name=_('Abstract'))
     content = models.TextField(verbose_name=_('Content'))
 
+    class Meta:
+        ordering = ["ordering"]
+
     def __str__(self):
         return "%s: %s" % (self.hearing, self.title)
+
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.ordering and self.hearing_id:
+            # Automatically derive next ordering on initial save, if possible
+            self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
+        return super(Section, self).save(*args, **kwargs)
 
 
 class SectionImage(BaseImage):

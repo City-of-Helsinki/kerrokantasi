@@ -23,7 +23,6 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingImageSerializer(BaseImageSerializer):
-
     class Meta:
         model = HearingImage
         fields = ['title', 'url', 'width', 'height', 'caption']
@@ -55,6 +54,16 @@ class HearingSerializer(serializers.ModelSerializer):
         ]
 
 
+class HearingListSerializer(HearingSerializer):
+    def get_fields(self):
+        fields = super(HearingListSerializer, self).get_fields()
+        # Elide comments and sections when listing hearings; one can get to them via
+        # detail routes
+        fields.pop("comments")
+        fields.pop("sections")
+        return fields
+
+
 class HearingViewSet(viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for hearings.
@@ -67,6 +76,14 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
     # ordering_fields = ('created_at',)
     # ordering = ('-created_at',)
     # filter_class = HearingFilter
+
+    def get_serializer(self, *args, **kwargs):
+        if kwargs.get("many"):  # List serialization?
+            serializer_class = HearingListSerializer
+        else:
+            serializer_class = HearingSerializer
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
     def get_queryset(self):
         next_closing = self.request.query_params.get('next_closing', None)

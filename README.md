@@ -31,3 +31,12 @@ Run test against particular issue.
 
     py.test -k test_7 -v
 
+# Migration
+
+1. Import the dump of a Kuulemma database into your PostgreSQL instance
+   (the default expected database name is `kerrokantasi_old`).
+2. Run `migrator/pg_to_xml.py`; if the PG database is `kerrokantasi_old`, no arguments
+   should be necessary. (Otherwise, see `--help`.)
+3. Run `migrator/xml_to_json.py`; no arguments should be necessary.
+4. Run the `kk_import_json` management command with the path of the JSON file created in step 3.
+5. Done.

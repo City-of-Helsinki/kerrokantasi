@@ -39,33 +39,6 @@ class TestComment(BaseKKDBTest):
         response = self.client.post(self.get_hearing_detail_url(default_hearing.id, 'comments'), data=self.comment_data)
         assert response.status_code == 201
 
-    def test_55_add_comment_to_hearing_empty_data(self, default_hearing):
-        pytest.xfail("Not sure what this is testing")
-        # authenticate first
-        self.user_login()
-
-        # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-        response = self.client.post(self.get_hearing_detail_url(default_hearing.id, 'comments'), data=None)
-        assert response.status_code == 400
-
-        data = self.get_data_from_response(response)
-        assert data is not None
-
-    def test_55_add_comment_to_hearing_invalid_data(self, default_hearing):
-        pytest.xfail("Not sure what this is testing")
-        # authenticate first
-        self.user_login()
-
-        # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-        invalid_data = {
-            'invalidKey': 'Korben Dallas multipass'
-        }
-        response = self.client.post(self.get_hearing_detail_url(default_hearing.id, 'comments'), data=invalid_data)
-        assert response.status_code == 400
-
-        data = self.get_data_from_response(response)
-        assert data is not None
-
     def test_55_add_comment_to_hearing(self, default_hearing):
         # authenticate first
         self.user_login()
@@ -209,28 +182,6 @@ class TestComment(BaseKKDBTest):
         response = self.client.post(url, data=self.comment_data)
         # expect success
         assert response.status_code == 201
-
-    def test_56_add_comment_to_section_section_pk_none(self, default_hearing):
-        pytest.xfail("not required anymore")
-        section = Section.objects.create(title='Section to comment', hearing=default_hearing)
-        self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-
-        response = self.client.post(url, data=self.comment_data)
-        # expect bad request, we didn't specify section id
-        assert response.status_code == 400
-
-    def test_56_add_comment_to_section_content_none(self, default_hearing):
-        pytest.xfail("not sure what this is testing")
-        section = Section.objects.create(title='Section to comment', hearing=default_hearing)
-        self.user_login()
-        url = self.get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-
-        # nullify content
-        self.comment_data['content'] = None
-        response = self.client.post(url, data=self.comment_data)
-        # expect bad request, we didn't set any content
-        assert response.status_code == 400
 
     def test_56_add_comment_to_section_without_data(self, default_hearing):
         section = default_hearing.sections.first()

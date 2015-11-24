@@ -23,8 +23,10 @@ def create_image(instance, filename):
     if not image_field.storage.exists(image_path):  # pragma: no cover
         with open(os.path.join(IMAGE_SOURCE_PATH, filename), "rb") as infp:
             image_field.storage.save(image_path, infp)
-    image_file = image_field.storage.open(image_path)
-    return instance.images.create(image=image_file, title=filename)
+    image = image_class(title=filename)
+    image.image.name = image_path
+    instance.images.add(image)
+    return image
 
 
 def create_default_images(instance):

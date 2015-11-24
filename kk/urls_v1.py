@@ -1,9 +1,11 @@
 from django.conf.urls import include, url
-from kk.views import HearingCommentViewSet, HearingImageViewSet, HearingViewSet, ScenarioCommentViewSet, ScenarioViewSet
+from kk.views import (HearingCommentViewSet, HearingImageViewSet, HearingViewSet, ScenarioCommentViewSet,
+                      ScenarioViewSet, UserDataViewSet)
 from rest_framework_nested import routers
 
 router = routers.SimpleRouter()
 router.register(r'hearing', HearingViewSet)
+router.register(r'users', UserDataViewSet, base_name='users')
 
 hearing_comments_router = routers.NestedSimpleRouter(router, r'hearing', lookup='comment_parent')
 hearing_comments_router.register(r'comments', HearingCommentViewSet, base_name='comments')

@@ -5,7 +5,7 @@ from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 
 from kk.models.comment import BaseComment
-from kk.views.base import CreatedBySerializer
+from kk.views.base import CreatedBySerializer, AdminsSeeUnpublishedMixin
 from kk.views.utils import AbstractSerializerMixin
 
 
@@ -16,7 +16,7 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         fields = ['content', 'author', 'votes', 'created_by', 'created_at']
 
 
-class BaseCommentViewSet(viewsets.ModelViewSet):
+class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """
     Base viewset for comments.
     """
@@ -27,12 +27,9 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
     def get_serializer(self, *args, **kwargs):
         serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()
         context = kwargs['context'] = self.get_serializer_context()
-        if serializer_class is self.create_serializer_class:  # Creating things?
-            if "data" in kwargs:  # With data, too?!
-                # So inject a reference to the parent object
-                comment_model = serializer_class.Meta.model
-                # parent_obj = get_object_or_404(comment_model.parent_model, pk=)
-                kwargs["data"][comment_model.parent_field] = context["comment_parent"]
+        if serializer_class is self.create_serializer_class and "data" in kwargs:  # Creating things with data?
+            # So inject a reference to the parent object
+            kwargs["data"][serializer_class.Meta.model.parent_field] = context["comment_parent"]
         return serializer_class(*args, **kwargs)
 
     def get_comment_parent_id(self):

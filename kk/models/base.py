@@ -16,12 +16,17 @@ def generate_id():
 
 
 class BaseModelManager(models.Manager):
-
     def get_queryset(self):
-        return super().get_queryset().exclude(deleted=True)
+        return super().get_queryset().exclude(deleted=True).exclude(published=False)
 
-    def deleted(self):
-        return super().get_queryset().filter(deleted=True)
+    def with_unpublished(self, *args, **kwargs):
+        return super().get_queryset().exclude(deleted=True).filter(*args, **kwargs)
+
+    def deleted(self, *args, **kwargs):
+        return super().get_queryset().filter(deleted=True).filter(*args, **kwargs)
+
+    def everything(self, *args, **kwargs):
+        return super().get_queryset().filter(*args, **kwargs)
 
 
 class BaseModel(models.Model):
@@ -37,6 +42,7 @@ class BaseModel(models.Model):
         null=True, blank=True, related_name="%(class)s_modified",
         editable=False
     )
+    published = models.BooleanField(verbose_name=_('Publish flag'), default=True, db_index=True)
     deleted = models.BooleanField(
         verbose_name=_('Deleted flag'), default=False, db_index=True,
         editable=False
@@ -52,7 +58,9 @@ class BaseModel(models.Model):
             pass
         else:  # pragma: no cover
             raise Exception('Unsupported primary key field: %s' % pk_type)
-        self.modified_at = timezone.now()
+        if not kwargs.pop("no_modified_at_update", False):
+            # Useful for importing, etc.
+            self.modified_at = timezone.now()
         super().save(*args, **kwargs)
 
     def soft_delete(self, using=None):

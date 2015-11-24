@@ -1,14 +1,11 @@
-import os
 from optparse import make_option
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
-from django.core.management import call_command
 from django.core.management.base import BaseCommand
-
 from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.factories.user import UserFactory
+from kk.management.commands.utils import nuke
 from kk.models import Hearing, Label
 
 
@@ -19,11 +16,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if options.pop("nuke", False):
-            if "sqlite" in settings.DATABASES["default"]["ENGINE"]:
-                db_file = settings.DATABASES["default"]["NAME"]
-                if os.path.isfile(db_file):
-                    os.unlink(db_file)
-            call_command("migrate", **options.copy())
+            nuke(command_options=options)
 
         User = get_user_model()
         if issubclass(User, AbstractUser):

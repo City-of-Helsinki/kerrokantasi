@@ -17,7 +17,6 @@ class HearingCommentCreateSerializer(BaseCommentSerializer):
 
 
 class HearingCommentViewSet(BaseCommentViewSet):
-
-    queryset = HearingComment.objects.filter(deleted=False)
+    model = HearingComment
     serializer_class = HearingCommentSerializer
     create_serializer_class = HearingCommentCreateSerializer

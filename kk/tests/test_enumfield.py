@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+import pytest
 from enumfields import Enum
 from kk.utils.drf_enum_field import EnumField
+from rest_framework.exceptions import ValidationError
 
 
 class PeculiarEnum(Enum):
     COOL = 1
     HOT = 100
     BLEGBLAGPLEPLOP = "foo"
-
-
 
 
 def test_enum():
@@ -25,3 +25,5 @@ def test_enum():
     assert ef.to_internal_value("foo") == PeculiarEnum.BLEGBLAGPLEPLOP
     assert ef.to_internal_value("fOO") == PeculiarEnum.BLEGBLAGPLEPLOP
     assert ef.to_internal_value("BLEGBLAGPLEPLOP") == PeculiarEnum.BLEGBLAGPLEPLOP
+    with pytest.raises(ValidationError):
+        ef.to_internal_value("jmsdfkgi")

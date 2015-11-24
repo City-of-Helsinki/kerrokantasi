@@ -1,13 +1,6 @@
 import pytest
 
-from kk.tests.utils import IMAGES, get_data_from_response
-
-
-def get_hearing_detail_url(id, element=None):
-    url = '/v1/hearing/%s/' % id
-    if element:
-        url += "%s/" % element
-    return url
+from kk.tests.utils import IMAGES, get_data_from_response, get_hearing_detail_url
 
 
 def check_entity_images(entity):

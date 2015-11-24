@@ -30,6 +30,10 @@ def default_hearing(john_doe):
             commenting=Commenting.OPEN
         )
         create_default_images(section)
+        section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+        section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
+        section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
+
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
     hearing.comments.add(HearingComment(created_by=john_doe, content=default_comment_content))
@@ -54,7 +58,7 @@ def random_label():
 @pytest.fixture()
 def john_doe():
     user = get_user_model().objects.filter(username="john_doe").first()
-    if not user:
+    if not user:  # pragma: no branch
         user = get_user_model().objects.create_user("john_doe", "john@example.com", password="password")
     return user
 

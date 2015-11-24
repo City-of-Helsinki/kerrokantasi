@@ -19,7 +19,8 @@ def create_image(instance, filename):
     image_class = BaseImage.find_subclass(parent_model=instance)
     image_field = image_class._meta.get_field("image")
     image_path = image_field.generate_filename(instance, filename)
-    if not image_field.storage.exists(image_path):  # Copy the image into the storage if it isn't there
+    # Copy the image into the storage if it isn't there:
+    if not image_field.storage.exists(image_path):  # pragma: no cover
         with open(os.path.join(IMAGE_SOURCE_PATH, filename), "rb") as infp:
             image_field.storage.save(image_path, infp)
     image_file = image_field.storage.open(image_path)
@@ -32,7 +33,7 @@ def create_default_images(instance):
 
 
 def get_data_from_response(response, status_code=200):
-    if status_code:
+    if status_code:  # pragma: no branch
         assert response.status_code == status_code, (
             "Status code mismatch (%s is not the expected %s)" % (response.status_code, status_code)
         )

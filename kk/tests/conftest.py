@@ -7,10 +7,23 @@ from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, HearingComment, Label, Section
 from kk.tests.utils import assert_ascending_sequence, create_default_images
 
-
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
 red_comment_content = 'Mine is red'
 green_comment_content = 'I like green'
+
+
+def pytest_configure():
+    # During tests, crypt passwords with MD5. This should make things run faster.
+    from django.conf import settings
+    settings.PASSWORD_HASHERS = (
+        'django.contrib.auth.hashers.MD5PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+        'django.contrib.auth.hashers.BCryptPasswordHasher',
+        'django.contrib.auth.hashers.SHA1PasswordHasher',
+        'django.contrib.auth.hashers.CryptPasswordHasher',
+    )
 
 
 @pytest.fixture()

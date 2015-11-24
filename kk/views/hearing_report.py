@@ -9,7 +9,7 @@ from .section_comment import SectionCommentSerializer
 
 
 def format_user_dict(user_dict):
-    if not user_dict:
+    if not user_dict:  # pragma: no cover
         return None
     return user_dict["username"]
 

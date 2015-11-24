@@ -50,7 +50,7 @@ class BaseModel(models.Model):
                 self.pk = generate_id()
         elif pk_type == 'AutoField':
             pass
-        else:
+        else:  # pragma: no cover
             raise Exception('Unsupported primary key field: %s' % pk_type)
         self.modified_at = timezone.now()
         super().save(*args, **kwargs)
@@ -75,10 +75,9 @@ class BaseModel(models.Model):
         :return: The model subclass, or None
         :rtype: class|None
         """
-        for field in parent_model._meta.get_fields():
-            if isinstance(field, ManyToOneRel):
-                if issubclass(field.related_model, cls):
-                    return field.related_model
+        for field in parent_model._meta.get_fields():  # pragma: no branch
+            if isinstance(field, ManyToOneRel) and issubclass(field.related_model, cls):  # pragma: no branch
+                return field.related_model
 
     class Meta:
         abstract = True

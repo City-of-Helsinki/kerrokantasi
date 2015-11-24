@@ -6,7 +6,7 @@ from rest_framework.decorators import detail_route
 from kk.enums import Commenting
 from kk.models import Hearing, HearingImage
 from kk.utils.drf_enum_field import EnumField
-from kk.views.base import BaseImageSerializer
+from kk.views.base import BaseImageSerializer, AdminsSeeUnpublishedMixin
 from kk.views.hearing_comment import HearingCommentSerializer
 from kk.views.label import LabelSerializer
 from kk.views.section import SectionFieldSerializer
@@ -47,7 +47,7 @@ class HearingSerializer(serializers.ModelSerializer):
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
-            'commenting',
+            'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at', 'latitude', 'longitude',
             'servicemap_url', 'images', 'sections', 'images',
             'closed', 'comments'
@@ -64,11 +64,11 @@ class HearingListSerializer(HearingSerializer):
         return fields
 
 
-class HearingViewSet(viewsets.ReadOnlyModelViewSet):
+class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for hearings.
     """
-    queryset = Hearing.objects.all()
+    model = Hearing
     serializer_class = HearingSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -86,10 +86,11 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
         return serializer_class(*args, **kwargs)
 
     def get_queryset(self):
+        queryset = super(HearingViewSet, self).get_queryset()
         next_closing = self.request.query_params.get('next_closing', None)
         if next_closing is not None:
-            return self.queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
-        return self.queryset.order_by('-created_at')
+            return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
+        return queryset.order_by('-created_at')
 
     @detail_route(methods=['post'])
     def follow(self, request, pk=None):

@@ -252,3 +252,18 @@ def test_24_get_report(client, default_hearing):
 @pytest.mark.django_db
 def test_hearing_stringification(random_hearing):
     assert force_text(random_hearing) == random_hearing.title
+
+
+@pytest.mark.django_db
+def test_admin_can_see_unpublished(client, john_doe_api_client, admin_api_client):
+    hearings = create_hearings(3)
+    unpublished_hearing = hearings[0]
+    unpublished_hearing.published = False
+    unpublished_hearing.save()
+    data = get_data_from_response(client.get(list_endpoint))
+    assert len(data) == 2  # Can't see it as anon
+    data = get_data_from_response(john_doe_api_client.get(list_endpoint))
+    assert len(data) == 2  # Can't see it as registered
+    data = get_data_from_response(admin_api_client.get(list_endpoint))
+    assert len(data) == 3  # Can see it as admin
+    assert len([1 for h in data if not h["published"]]) == 1  # Only one unpublished, yeah?

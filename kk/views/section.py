@@ -3,11 +3,10 @@ from rest_framework import serializers, viewsets
 from kk.enums import Commenting, SectionType
 from kk.models import Section, SectionImage
 from kk.utils.drf_enum_field import EnumField
-from kk.views.base import BaseImageSerializer
+from kk.views.base import BaseImageSerializer, AdminsSeeUnpublishedMixin
 
 
 class SectionImageSerializer(BaseImageSerializer):
-
     class Meta:
         model = SectionImage
         fields = ['title', 'url', 'width', 'height', 'caption']
@@ -24,7 +23,7 @@ class SectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting',
+            'id', 'type', 'commenting', 'published',
             'title', 'abstract', 'content', 'created_at', 'created_by', 'images', 'n_comments'
         ]
 
@@ -38,8 +37,9 @@ class SectionFieldSerializer(serializers.RelatedField):
         return SectionSerializer(section, context=self.context).data
 
 
-class SectionViewSet(viewsets.ReadOnlyModelViewSet):
+class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = SectionSerializer
+    model = Section
 
     def get_queryset(self):
-        return Section.objects.filter(hearing_id=self.kwargs["hearing_pk"])
+        return super(SectionViewSet, self).get_queryset().filter(hearing_id=self.kwargs["hearing_pk"])

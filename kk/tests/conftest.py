@@ -57,6 +57,9 @@ def random_label():
 
 @pytest.fixture()
 def john_doe():
+    """
+    John Doe is your average registered user.
+    """
     user = get_user_model().objects.filter(username="john_doe").first()
     if not user:  # pragma: no branch
         user = get_user_model().objects.create_user("john_doe", "john@example.com", password="password")
@@ -65,6 +68,9 @@ def john_doe():
 
 @pytest.fixture()
 def john_doe_api_client(john_doe):
+    """
+    John Doe is your average registered user; this is his API client.
+    """
     api_client = APIClient()
     api_client.login(username=john_doe.username, password="password")
     api_client.user = john_doe
@@ -77,8 +83,3 @@ def admin_api_client(admin_user):
     api_client.login(username=admin_user.username, password="password")
     api_client.user = admin_user
     return api_client
-
-
-@pytest.fixture()
-def api_client():
-    return APIClient()

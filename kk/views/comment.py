@@ -5,7 +5,7 @@ from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 
 from kk.models.comment import BaseComment
-from kk.views.base import CreatedBySerializer
+from kk.views.base import CreatedBySerializer, AdminsSeeUnpublishedMixin
 from kk.views.utils import AbstractSerializerMixin
 
 
@@ -16,7 +16,7 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         fields = ['content', 'author', 'votes', 'created_by', 'created_at']
 
 
-class BaseCommentViewSet(viewsets.ModelViewSet):
+class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """
     Base viewset for comments.
     """

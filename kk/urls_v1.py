@@ -6,7 +6,7 @@ from kk.views import (
 )
 
 router = routers.DefaultRouter()
-router.register(r'hearing', HearingViewSet)
+router.register(r'hearing', HearingViewSet, base_name='hearing')
 router.register(r'users', UserDataViewSet, base_name='users')
 
 hearing_comments_router = routers.NestedSimpleRouter(router, r'hearing', lookup='comment_parent')

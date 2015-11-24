@@ -27,6 +27,6 @@ class SectionCommentSerializer(CreatedBySerializer, serializers.ModelSerializer)
 
 
 class SectionCommentViewSet(BaseCommentViewSet):
-    queryset = SectionComment.objects.all()
+    model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer

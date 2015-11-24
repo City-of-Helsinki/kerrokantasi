@@ -20,7 +20,7 @@ class EnumField(ChoiceField):
         # Case-insensitive logic:
         l_data = force_text(data).lower()
         for choice in self.enum_type:
-            if choice.name.lower() == l_data or force_text(choice.value).lower() == data:
+            if choice.name.lower() == l_data or force_text(choice.value).lower() == l_data:
                 return choice
 
         # Fallback:

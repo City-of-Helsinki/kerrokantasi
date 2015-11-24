@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth import get_user_model
-
 import factory
 import factory.fuzzy
+from django.contrib.auth import get_user_model
 
 
 class UserFactory(factory.django.DjangoModelFactory):

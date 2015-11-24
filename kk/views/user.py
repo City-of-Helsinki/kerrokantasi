@@ -3,24 +3,29 @@ from rest_framework import permissions, serializers, viewsets
 
 
 class ForeignKeyListSerializer(serializers.ReadOnlyField):
+
     def to_representation(self, value):
         return value.all().values_list('pk', flat=True)
 
 
 class UserDataSerializer(serializers.ModelSerializer):
     voted_hearing_comments = ForeignKeyListSerializer(source='voted_kk_hearingcomment')
-    voted_scenario_comments = ForeignKeyListSerializer(source='voted_kk_scenariocomment')
+    voted_section_comments = ForeignKeyListSerializer(source='voted_kk_sectioncomment')
     followed_hearings = ForeignKeyListSerializer()
 
     class Meta:
         model = get_user_model()
-        fields = ['uuid', 'username', 'first_name', 'last_name', 'voted_hearing_comments', 'voted_scenario_comments',
-                  'followed_hearings']
+        fields = [
+            'uuid',
+            'username', 'first_name', 'last_name',
+            'voted_hearing_comments', 'voted_section_comments',
+            'followed_hearings'
+        ]
 
 
 class UserDataViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserDataSerializer
-    permission_classes = (permissions.IsAuthenticated, )
+    permission_classes = (permissions.IsAuthenticated,)
     lookup_field = 'uuid'
 
     def get_queryset(self, *args, **kwargs):

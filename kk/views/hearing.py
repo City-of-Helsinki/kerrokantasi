@@ -1,15 +1,18 @@
 import django_filters
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, serializers, status, viewsets, response
+from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 
-from kk.models import Hearing, HearingComment, HearingImage
+from kk.enums import Commenting
+from kk.models import Hearing, HearingImage
+from kk.utils.drf_enum_field import EnumField
 from kk.views.base import BaseImageSerializer
 from kk.views.hearing_comment import HearingCommentSerializer
 from kk.views.label import LabelSerializer
-from kk.views.scenario import ScenarioFieldSerializer, ScenarioSerializer
+from kk.views.section import SectionFieldSerializer
 
 from .hearing_report import HearingReport
+
 
 class HearingFilter(django_filters.FilterSet):
     next_closing = django_filters.DateTimeFilter(name='close_at', lookup_type='gt')
@@ -36,15 +39,29 @@ class HearingImageViewSet(viewsets.ReadOnlyModelViewSet):
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = HearingImageSerializer.get_field_serializer(many=True, read_only=True)
-    scenarios = ScenarioFieldSerializer(many=True, read_only=True)
+    sections = SectionFieldSerializer(many=True, read_only=True)
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
+    commenting = EnumField(enum_type=Commenting)
 
     class Meta:
         model = Hearing
-        fields = ['abstract', 'heading', 'content', 'id', 'borough', 'n_comments',
-                  'labels', 'close_at', 'created_at', 'latitude', 'longitude',
-                  'servicemap_url', 'images', 'scenarios', 'images',
-                  'closed', 'comments']
+        fields = [
+            'abstract', 'title', 'id', 'borough', 'n_comments',
+            'commenting',
+            'labels', 'open_at', 'close_at', 'created_at', 'latitude', 'longitude',
+            'servicemap_url', 'images', 'sections', 'images',
+            'closed', 'comments'
+        ]
+
+
+class HearingListSerializer(HearingSerializer):
+    def get_fields(self):
+        fields = super(HearingListSerializer, self).get_fields()
+        # Elide comments and sections when listing hearings; one can get to them via
+        # detail routes
+        fields.pop("comments")
+        fields.pop("sections")
+        return fields
 
 
 class HearingViewSet(viewsets.ReadOnlyModelViewSet):
@@ -59,6 +76,14 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
     # ordering_fields = ('created_at',)
     # ordering = ('-created_at',)
     # filter_class = HearingFilter
+
+    def get_serializer(self, *args, **kwargs):
+        if kwargs.get("many"):  # List serialization?
+            serializer_class = HearingListSerializer
+        else:
+            serializer_class = HearingSerializer
+        kwargs['context'] = self.get_serializer_context()
+        return serializer_class(*args, **kwargs)
 
     def get_queryset(self):
         next_closing = self.request.query_params.get('next_closing', None)
@@ -89,7 +114,6 @@ class HearingViewSet(viewsets.ReadOnlyModelViewSet):
             return response.Response({'status': 'You stopped following a hearing'}, status=status.HTTP_204_NO_CONTENT)
 
         return response.Response({'status': 'You are not following this hearing'}, status=status.HTTP_304_NOT_MODIFIED)
-
 
     @detail_route(methods=['get'])
     def report(self, request, pk=None):

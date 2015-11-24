@@ -1,12 +1,6 @@
 import pytest
-from kk.tests.utils import IMAGES, get_data_from_response
 
-
-def get_hearing_detail_url(id, element=None):
-    url = '/v1/hearing/%s/' % id
-    if element:
-        url += "%s/" % element
-    return url
+from kk.tests.utils import IMAGES, get_data_from_response, get_hearing_detail_url
 
 
 def check_entity_images(entity):
@@ -40,21 +34,21 @@ def test_37_list_hearing_images_check_titles(client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_38_get_scenario_with_images(client, default_hearing):
+def test_38_get_section_with_images(client, default_hearing):
     """
-    Check images exist in scenario payloads
+    Check images exist in section payloads
     """
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id, 'scenarios')))
-    first_scenario = data[0]
-    check_entity_images(first_scenario)
+    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    check_entity_images(first_section)
 
 
 @pytest.mark.django_db
-def test_38_get_hearing_check_scenario_with_images(client, default_hearing):
+def test_38_get_hearing_check_section_with_images(client, default_hearing):
     """
-    Check images exist in scenarios nested in hearing payloads
+    Check images exist in sections nested in hearing payloads
     """
     data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id)))
-    assert 'scenarios' in data
-    first_scenario = data['scenarios'][0]
-    check_entity_images(first_scenario)
+    assert 'sections' in data
+    first_section = data['sections'][0]
+    check_entity_images(first_section)

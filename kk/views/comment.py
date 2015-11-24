@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 import reversion
-
 from django.db import transaction
-from django.shortcuts import get_object_or_404
-from rest_framework.decorators import detail_route
 from rest_framework import permissions, response, serializers, status, viewsets
+from rest_framework.decorators import detail_route
 
 from kk.models.comment import BaseComment
 from kk.views.base import CreatedBySerializer
@@ -15,7 +13,7 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
 
     class Meta:
         model = BaseComment
-        fields = ['content', 'votes', 'created_by', 'created_at']
+        fields = ['content', 'author', 'votes', 'created_by', 'created_at']
 
 
 class BaseCommentViewSet(viewsets.ModelViewSet):
@@ -40,6 +38,12 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
     def get_comment_parent_id(self):
         return self.kwargs["comment_parent_pk"]
 
+    def get_comment_parent(self):
+        """
+        :rtype: Commentable
+        """
+        return self.get_queryset().model.parent_model.objects.get(pk=self.get_comment_parent_id())
+
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context["comment_parent"] = self.get_comment_parent_id()
@@ -50,12 +54,18 @@ class BaseCommentViewSet(viewsets.ModelViewSet):
         return queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
 
     def create(self, request, *args, **kwargs):
+        parent = self.get_comment_parent()
+        if not parent.may_comment(request):
+            return response.Response(
+                {'status': 'Only %s commenting allowed' % parent.commenting},
+                status=status.HTTP_403_FORBIDDEN
+            )
         # Use one serializer for creation,
         serializer = self.get_serializer(serializer_class=self.create_serializer_class, data=request.data)
         serializer.is_valid(raise_exception=True)
         kwargs = {}
-        if self.request._request.user.is_authenticated():
-            kwargs['created_by'] = self.request._request.user
+        if self.request.user.is_authenticated():
+            kwargs['created_by'] = self.request.user
         comment = serializer.save(**kwargs)
         # and another for the response
         serializer = self.get_serializer(instance=comment)

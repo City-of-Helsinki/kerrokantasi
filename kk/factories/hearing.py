@@ -2,12 +2,13 @@ import logging
 import random
 from datetime import timedelta
 
-from django.utils.timezone import now
-
 import factory
 import factory.fuzzy
+from django.utils.timezone import now
+
+from kk.enums import Commenting, SectionType
 from kk.factories.comment import BaseCommentFactory
-from kk.models import Hearing, HearingComment, Label, Scenario, ScenarioComment
+from kk.models import Hearing, HearingComment, Label, Section, SectionComment
 
 LOG = logging.getLogger(__name__)
 
@@ -26,10 +27,10 @@ class HearingCommentFactory(BaseCommentFactory):
         model = HearingComment
 
 
-class ScenarioCommentFactory(BaseCommentFactory):
+class SectionCommentFactory(BaseCommentFactory):
 
     class Meta:
-        model = ScenarioComment
+        model = SectionComment
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
@@ -41,10 +42,10 @@ class HearingFactory(factory.django.DjangoModelFactory):
         start_dt=now() + timedelta(days=5),
         end_dt=now() + timedelta(days=150),
     ).fuzz())
-    heading = factory.Faker("sentence")
+    title = factory.Faker("sentence")
     abstract = factory.Faker("text")
     borough = factory.Faker("city")
-    comment_option = factory.fuzzy.FuzzyChoice(choices=Hearing.COMMENT_OPTION)
+    commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
 
     @factory.post_generation
     def post(obj, create, extracted, **kwargs):
@@ -54,8 +55,8 @@ class HearingFactory(factory.django.DjangoModelFactory):
                 obj.labels.add(label)
 
         for x in range(random.randint(1, 5)):
-            scenario = ScenarioFactory(hearing=obj)
-            LOG.info("Hearing %s: Created scenario %s", obj, scenario)
+            section = SectionFactory(hearing=obj)
+            LOG.info("Hearing %s: Created section %s", obj, section)
 
         for x in range(random.randint(1, 5)):
             comment = HearingCommentFactory(hearing=obj)
@@ -64,17 +65,20 @@ class HearingFactory(factory.django.DjangoModelFactory):
         obj.recache_n_comments()
 
 
-class ScenarioFactory(factory.django.DjangoModelFactory):
+class SectionFactory(factory.django.DjangoModelFactory):
 
     class Meta:
-        model = Scenario
+        model = Section
 
     title = factory.Faker("sentence")
     abstract = factory.Faker("paragraph")
     content = factory.Faker("text")
+    type = factory.fuzzy.FuzzyChoice(choices=SectionType)
+    commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
 
     @factory.post_generation
     def post(obj, create, extracted, **kwargs):
         for x in range(random.randint(1, 5)):
-            comment = ScenarioCommentFactory(scenario=obj)
-            print(".... Created scenario comment %s" % comment.pk)
+            comment = SectionCommentFactory(section=obj)
+            print(".... Created section comment %s" % comment.pk)
+        obj.recache_n_comments()

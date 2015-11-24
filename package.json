@@ -1,0 +1,19 @@
+{
+  "name": "kerrokantasi",
+  "version": "0.0.0",
+  "description": "Kerro Kantasi participatory democracy backend",
+  "scripts": {
+    "test": "py.test --cov kk kk/tests"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/City-of-Helsinki/kerrokantasi.git"
+  },
+  "author": "Anders Innovations Ltd",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/City-of-Helsinki/kerrokantasi/issues"
+  },
+  "homepage": "https://github.com/City-of-Helsinki/kerrokantasi#readme",
+  "private": true
+}

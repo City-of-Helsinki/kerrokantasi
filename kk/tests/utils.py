@@ -46,3 +46,18 @@ def assert_datetime_fuzzy_equal(dt1, dt2, fuzziness=1):
         dt2 = parse_datetime(dt2)
 
     assert abs(dt1 - dt2).total_seconds() < fuzziness
+
+
+def assert_ascending_sequence(seq):
+    last = None
+    for x in seq:
+        if last is not None:
+            assert x > last
+        last = x
+
+
+def get_hearing_detail_url(id, element=None):
+    url = '/v1/hearing/%s/' % id
+    if element:
+        url += "%s/" % element
+    return url

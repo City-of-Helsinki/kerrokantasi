@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 import argparse
 import json
-import os
-import xml.etree.ElementTree as ET
-from collections import defaultdict
 import logging
+import xml.etree.ElementTree as ET
+import os
+from collections import defaultdict
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("importer")
+
+try:
+    import psycopg2
+except ImportError as psycopg_import_error:
+    psycopg2 = None
 
 
 def _add_to_target(target_map, object, key):
@@ -83,15 +88,56 @@ def process_tree(xml_tree, geometries):
     return out
 
 
+def dump_xml(conn, xml_file):
+    cur = conn.cursor()
+    with open(xml_file, "w", encoding="utf8") as outf:
+        cur.execute("SELECT database_to_xml(false, false, '');")
+        row = cur.fetchone()
+        outf.write(row[0])
+        outf.flush()
+        log.info("Database XML: Wrote %d bytes to %s" % (outf.tell(), outf.name))
+
+
+def dump_geojson(conn, geometry_json_file):
+    cur = conn.cursor()
+    with open(geometry_json_file, "w", encoding="utf8") as outf:
+        cur.execute("SELECT id, ST_AsGeoJSON(_area, 15, 1) FROM hearing;")
+        hearing_geometries = {row[0]: json.loads(row[1]) for row in cur}
+        geometries = {
+            "hearing": hearing_geometries
+        }
+        json.dump(geometries, outf, ensure_ascii=False, indent=1, sort_keys=True)
+        outf.flush()
+        log.info("Geometry JSON: Wrote %d bytes to %s" % (outf.tell(), outf.name))
+
+
 def main():
     log_levels = {n.lower(): l for (n, l) in logging._nameToLevel.items()}
     ap = argparse.ArgumentParser()
+    ap.add_argument(
+        "-p", "--from-pgsql", dest="pgsql", action="store_true", default=False,
+        help="import from PostgreSQL first"
+    )
+    ap.add_argument("--dsn", default="dbname=kerrokantasi_old user=postgres")
     ap.add_argument("--xml", default="kerrokantasi.xml")
     ap.add_argument("--geometry-json", default="kerrokantasi.geometries.json")
     ap.add_argument("--output-json", default="kerrokantasi.json")
     ap.add_argument("--log-level", default="info", choices=log_levels)
     args = ap.parse_args()
     logging.basicConfig(level=log_levels[args.log_level])
+
+    if args.pgsql:
+        log.info("Creating XML and geometry files")
+        if not psycopg2:
+            raise ValueError("Psycopg2 is not available") from psycopg_import_error
+        conn = psycopg2.connect(args.dsn)
+        cur = conn.cursor()
+        cur.execute("SET CLIENT_ENCODING TO 'utf8';")
+        dump_xml(conn, args.xml)
+        dump_geojson(conn, args.geometry_json)
+        conn.close()
+
+    log.info("Importing data from XML and geometry files...")
 
     tree = ET.parse(args.xml)
 
@@ -106,7 +152,7 @@ def main():
     with open(args.output_json, "w", encoding="utf8") as outf:
         json.dump(tree, outf, ensure_ascii=False, indent=1, sort_keys=True)
         outf.flush()
-        log.info("Wrote %d bytes to %s", outf.tell(), outf.name)
+        log.info("Output JSON: Wrote %d bytes to %s", outf.tell(), outf.name)
 
 
 if __name__ == '__main__':

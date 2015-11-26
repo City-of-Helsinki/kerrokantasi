@@ -35,10 +35,13 @@ Run test against particular issue.
 
 1. Import the dump of a Kuulemma database into your PostgreSQL instance
    (the default expected database name is `kerrokantasi_old`).
-2. Run `migrator/pg_to_xml.py`; if the PG database is `kerrokantasi_old`, no arguments
-   should be necessary. (Otherwise, see `--help`.)
-3. Run `migrator/xml_to_json.py`; no arguments should be necessary.
-4. Copy the `images` directory from your Kuulemma filesystem's `kuulemma/static` directory
+2. Run `migrator/process_legacy_data.py -p`; if the PG database is `kerrokantasi_old`, no arguments
+   should be necessary. (Otherwise, see `--help`.)  This will generate three files:
+   * `kerrokantasi.xml` -- an XML dump of the original PG database
+   * `kerrokantasi.geometries.json` -- a temporary JSON file of the GIS geometries in the original PG database
+   * `kerrokantasi.json` -- a reformatted amalgamation of the XML and geometry files to be ingested by the
+     `kk_import_json` management command.
+3. Copy the `images` directory from your Kuulemma filesystem's `kuulemma/static` directory
    to the `kerrokantasi` media directory (defaults to `kerrokantasi/var/media`).
-5. Run the `kk_import_json` management command with the path of the JSON file created in step 3.
-6. Done.
+4. Run the `kk_import_json` management command with the path of the JSON file created in step 3.
+5. Done.

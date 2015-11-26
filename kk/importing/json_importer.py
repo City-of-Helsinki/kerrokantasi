@@ -38,22 +38,24 @@ def import_comments(target, comments_data):
 
 def import_comment(CommentModel, datum, target):
     hidden = (datum.pop("is_hidden") == "true")
-    likes = datum.pop("likes", ())
-    like_count = int(datum.pop("like_count", 0))
+    like_count = max(int(datum.pop("like_count", 0)), len(datum.pop("likes", ())))
+    updated_at = datum.pop("updated_at", None)
+    created_at = datum.pop("created_at", None)
     c_args = {
         CommentModel.parent_field: target,
-        "created_at": parse_aware_datetime(datum.pop("created_at")),
+        "created_at": parse_aware_datetime(created_at),
+        "modified_at": parse_aware_datetime(updated_at or created_at),
         "author_name": datum.pop("username"),
         "title": (datum.pop("title") or ""),
         "content": ("%s %s" % (  # TODO: Should we have a separate lead field?
             datum.pop("lead", "") or "",
             datum.pop("body", "") or "",
         )).strip(),
-        "published": not hidden
+        "published": not hidden,
+        "n_legacy_votes": like_count,
+        "n_votes": like_count
     }
-    comment = CommentModel.objects.create(**c_args)
-    if likes or like_count:  # TODO: Implement vote import
-        log.warn("Did not know how to import votes for %s %s", CommentModel.__name__, comment.pk)
+    return CommentModel.objects.create(**c_args)
 
 
 def import_section(hearing, section_datum, section_type):

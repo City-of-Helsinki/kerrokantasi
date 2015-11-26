@@ -13,6 +13,7 @@ class BaseComment(BaseModel):
     content = models.TextField(verbose_name=_('Content'))
     author_name = models.CharField(max_length=40, blank=True, null=True)
     n_votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0, editable=False)
+    n_legacy_votes = models.IntegerField(verbose_name=_('Votes imported from legacy system'), default=0)
     voters = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         verbose_name=_('Users who voted'),
@@ -39,11 +40,12 @@ class BaseComment(BaseModel):
         return getattr(self, "%s_id" % self.parent_field, None)
 
     def save(self, *args, **kwargs):
-        self.author_name = (str(self.created_by) if self.created_by_id else None)
+        if not self.author_name:
+            self.author_name = (str(self.created_by) if self.created_by_id else None)
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):
-        n_votes = self.voters.all().count()
+        n_votes = self.voters.all().count() + self.n_legacy_votes
         if n_votes != self.n_votes:
             self.n_votes = n_votes
             self.save(update_fields=("n_votes", ))

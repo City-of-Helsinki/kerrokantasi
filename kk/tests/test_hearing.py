@@ -4,11 +4,11 @@ import urllib
 import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
-from kk.models import Hearing, Label
+from kk.models import Hearing, Label, Section, SectionImage, HearingImage, SectionComment, HearingComment
 from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_hearing_detail_url
 
 endpoint = '/v1/hearing/'
-list_endpoint = '%s?format=json' % endpoint
+list_endpoint = endpoint
 
 
 def get_detail_url(id):
@@ -16,7 +16,13 @@ def get_detail_url(id):
 
 
 def create_hearings(n):
-    Hearing.objects.all().delete()  # Get rid of all other hearings
+    # Get rid of all other hearings:
+    SectionImage.objects.all().delete()
+    SectionComment.objects.all().delete()
+    Section.objects.all().delete()
+    HearingImage.objects.all().delete()
+    HearingComment.objects.all().delete()
+    Hearing.objects.all().delete()
     hearings = []
 
     # Depending on the database backend, created_at dates (which are used for ordering)
@@ -267,3 +273,24 @@ def test_admin_can_see_unpublished(client, john_doe_api_client, admin_api_client
     data = get_data_from_response(admin_api_client.get(list_endpoint))
     assert len(data) == 3  # Can see it as admin
     assert len([1 for h in data if not h["published"]]) == 1  # Only one unpublished, yeah?
+
+
+@pytest.mark.django_db
+def test_hearing_geo(client, random_hearing):
+    random_hearing.geojson = {
+        "type": "Feature",
+        "properties": {
+            "name": "Coors Field",
+            "amenity": "Baseball Stadium",
+            "popupContent": "This is where the Rockies play!"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-104.99404, 39.75621]
+        }
+    }
+    random_hearing.save()
+    data = get_data_from_response(client.get(get_detail_url(random_hearing.id)))
+    assert data["geojson"] == random_hearing.geojson
+    map_data = get_data_from_response(client.get(list_endpoint + "map/"))
+    assert map_data[0]["geojson"] == random_hearing.geojson

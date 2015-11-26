@@ -33,6 +33,7 @@ class Hearing(Commentable, StringIdBaseModel):
 
 
 class HearingImage(BaseImage):
+    parent_field = "hearing"
     hearing = models.ForeignKey(Hearing, related_name="images")
 
 

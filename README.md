@@ -38,5 +38,7 @@ Run test against particular issue.
 2. Run `migrator/pg_to_xml.py`; if the PG database is `kerrokantasi_old`, no arguments
    should be necessary. (Otherwise, see `--help`.)
 3. Run `migrator/xml_to_json.py`; no arguments should be necessary.
-4. Run the `kk_import_json` management command with the path of the JSON file created in step 3.
-5. Done.
+4. Copy the `images` directory from your Kuulemma filesystem's `kuulemma/static` directory
+   to the `kerrokantasi` media directory (defaults to `kerrokantasi/var/media`).
+5. Run the `kk_import_json` management command with the path of the JSON file created in step 3.
+6. Done.

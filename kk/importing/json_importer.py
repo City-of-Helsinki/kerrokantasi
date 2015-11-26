@@ -8,10 +8,12 @@ from copy import deepcopy
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.utils.dateparse import parse_datetime, parse_date
+from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from kk.enums import SectionType
 from kk.models import Hearing
 from kk.models.comment import BaseComment
+from kk.models.images import BaseImage
 from operator import itemgetter
 
 log = logging.getLogger(__name__)
@@ -38,22 +40,58 @@ def import_comments(target, comments_data):
 
 def import_comment(CommentModel, datum, target):
     hidden = (datum.pop("is_hidden") == "true")
-    likes = datum.pop("likes", ())
-    like_count = int(datum.pop("like_count", 0))
+    like_count = max(int(datum.pop("like_count", 0)), len(datum.pop("likes", ())))
+    updated_at = datum.pop("updated_at", None)
+    created_at = datum.pop("created_at", None)
     c_args = {
         CommentModel.parent_field: target,
-        "created_at": parse_aware_datetime(datum.pop("created_at")),
+        "created_at": parse_aware_datetime(created_at),
+        "modified_at": parse_aware_datetime(updated_at or created_at),
         "author_name": datum.pop("username"),
         "title": (datum.pop("title") or ""),
         "content": ("%s %s" % (  # TODO: Should we have a separate lead field?
             datum.pop("lead", "") or "",
             datum.pop("body", "") or "",
         )).strip(),
-        "published": not hidden
+        "published": not hidden,
+        "n_legacy_votes": like_count,
+        "n_votes": like_count
     }
-    comment = CommentModel.objects.create(**c_args)
-    if likes or like_count:  # TODO: Implement vote import
-        log.warn("Did not know how to import votes for %s %s", CommentModel.__name__, comment.pk)
+    return CommentModel.objects.create(**c_args)
+
+
+def import_images(target, datum):
+    main_image = datum.pop("main_image", None)
+    main_image_id = datum.pop("main_image_id", None)
+    if main_image:
+        assert main_image_id == main_image["id"]
+    alt_images = datum.pop("images", ())
+    images = sorted(
+        [i for i in [main_image] + list(alt_images) if i],
+        key=lambda i: (i.get("position"), i.get("id"))
+    )
+    for index, image_datum in enumerate(images):
+        import_image(target, image_datum, index)
+
+
+def import_image(target, datum, position):
+    ImageModel = BaseImage.find_subclass(target)
+    image_path = datum.pop("filename")
+    updated_at = datum.pop("updated_at", None)
+    created_at = datum.pop("created_at", None)
+    i_args = {
+        ImageModel.parent_field: target,
+        "created_at": parse_aware_datetime(created_at),
+        "modified_at": parse_aware_datetime(updated_at or created_at),
+        "caption": datum.pop("caption"),
+        "ordering": position
+    }
+    image = ImageModel(**i_args)
+    image.image.name = image_path
+    if not image.image.storage.exists(image.image):  # pragma: no cover
+        log.warn("Image %s (for %r) not in storage -- continuing anyway", image_path, target)
+    image.save()
+    return image
 
 
 def import_section(hearing, section_datum, section_type):
@@ -69,11 +107,11 @@ def import_section(hearing, section_datum, section_type):
         "abstract": (section_datum.pop("lead") or ""),
         "content": (section_datum.pop("body") or ""),
     }
+    if s_args.get("title"):  # sane ids if possible
+        s_args["pk"] = "%s-%s" % (hearing.pk, slugify(s_args["title"]))
     section = hearing.sections.create(**s_args)
     import_comments(section, section_datum.pop("comments", ()))
-    main_image = section_datum.pop("main_image", None)
-    if main_image:  # pragma: no branch  # TODO: Implement image import
-        log.warn("Did not know how to import main image for section %s", section.pk)
+    import_images(section, section_datum)
 
 
 def import_hearing(hearing_datum, force=False):
@@ -104,8 +142,8 @@ def import_hearing(hearing_datum, force=False):
         abstract=(hearing_datum.pop("lead") or ""),
         content=(hearing_datum.pop("body") or ""),
     )
-
     import_comments(hearing, hearing_datum.pop("comments", ()))
+    import_images(hearing, hearing_datum)
 
     for section_datum in sorted(hearing_datum.pop("sections", ()), key=itemgetter("position")):
         import_section(hearing, section_datum, SectionType.PLAIN)

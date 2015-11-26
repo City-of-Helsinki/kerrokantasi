@@ -33,6 +33,7 @@ class Section(Commentable, StringIdBaseModel):
 
 
 class SectionImage(BaseImage):
+    parent_field = "section"
     section = models.ForeignKey(Section, related_name="images")
 
 

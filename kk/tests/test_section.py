@@ -6,7 +6,7 @@ from kk.models import Section
 from kk.tests.utils import get_hearing_detail_url, get_data_from_response
 
 hearing_endpoint = '/v1/hearing/'
-hearing_list_endpoint = '%s?format=json' % hearing_endpoint
+hearing_list_endpoint = hearing_endpoint
 
 
 @pytest.mark.django_db
@@ -26,50 +26,50 @@ def create_sections(hearing, n):
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_amount(client, default_hearing):
+def test_45_get_one_section_check_amount(api_client, default_hearing):
     create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
 
     data = get_data_from_response(response)
     assert len(data) == 1
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_abstract(client, default_hearing):
+def test_45_get_one_section_check_abstract(api_client, default_hearing):
     sections = create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
 
     data = get_data_from_response(response)
     assert data[0]['abstract'] == sections[0].abstract
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_content(client, default_hearing):
+def test_45_get_one_section_check_content(api_client, default_hearing):
     sections = create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
 
     data = get_data_from_response(response)
     assert data[0]['content'] == sections[0].content
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_amount(client, default_hearing):
+def test_45_get_many_sections_check_amount(api_client, default_hearing):
     create_sections(default_hearing, 3)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
 
     data = get_data_from_response(response)
     assert len(data) == 3
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_abstract(client, default_hearing):
+def test_45_get_many_sections_check_abstract(api_client, default_hearing):
     sections = create_sections(default_hearing, 3)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
 
     data = get_data_from_response(response)
     abstracts = [s['abstract'] for s in data]
@@ -83,10 +83,10 @@ def test_45_get_many_sections_check_abstract(client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_content(client, default_hearing):
+def test_45_get_many_sections_check_content(api_client, default_hearing):
     sections = create_sections(default_hearing, 3)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
 
     data = get_data_from_response(response)
     contents = [s['content'] for s in data]
@@ -100,20 +100,20 @@ def test_45_get_many_sections_check_content(client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_one_section_check_amount(client, default_hearing):
+def test_45_get_hearing_with_one_section_check_amount(api_client, default_hearing):
     create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert len(data['sections']) == 1
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_one_section_check_fields(client, default_hearing):
+def test_45_get_hearing_with_one_section_check_fields(api_client, default_hearing):
     create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert 'id' in data['sections'][0]
@@ -124,50 +124,50 @@ def test_45_get_hearing_with_one_section_check_fields(client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_one_section_check_abstract(client, default_hearing):
+def test_45_get_hearing_with_one_section_check_abstract(api_client, default_hearing):
     sections = create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert data['sections'][0]['abstract'] == sections[0].abstract
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_one_section_check_content(client, default_hearing):
+def test_45_get_hearing_with_one_section_check_content(api_client, default_hearing):
     sections = create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert data['sections'][0]['content'] == sections[0].content
 
 
 @pytest.mark.django_db
-def test_45_get_section_type(client, default_hearing):
+def test_45_get_section_type(api_client, default_hearing):
     sections = create_sections(default_hearing, 1)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert SectionType(data['sections'][0]['type']) == SectionType.PLAIN
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_many_sections_check_amount(client, default_hearing):
+def test_45_get_hearing_with_many_sections_check_amount(api_client, default_hearing):
     create_sections(default_hearing, 3)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert len(data['sections']) == 3
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_many_sections_check_abstract(client, default_hearing):
+def test_45_get_hearing_with_many_sections_check_abstract(api_client, default_hearing):
     sections = create_sections(default_hearing, 3)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, ))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, ))
 
     data = get_data_from_response(response)
     abstracts = [s['abstract'] for s in data['sections']]
@@ -181,10 +181,10 @@ def test_45_get_hearing_with_many_sections_check_abstract(client, default_hearin
 
 
 @pytest.mark.django_db
-def test_45_get_hearing_with_many_sections_check_content(client, default_hearing):
+def test_45_get_hearing_with_many_sections_check_content(api_client, default_hearing):
     sections = create_sections(default_hearing, 3)
 
-    response = client.get(get_hearing_detail_url(default_hearing.id, ))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, ))
 
     data = get_data_from_response(response)
     contents = [s['content'] for s in data['sections']]

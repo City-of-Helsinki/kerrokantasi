@@ -96,3 +96,8 @@ def admin_api_client(admin_user):
     api_client.login(username=admin_user.username, password="password")
     api_client.user = admin_user
     return api_client
+
+
+@pytest.fixture()
+def api_client():
+    return APIClient()

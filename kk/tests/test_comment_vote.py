@@ -37,16 +37,16 @@ def get_hearing_comment_unvote_url(hearing_id, comment_id):
 
 
 @pytest.mark.django_db
-def test_31_section_comment_vote_without_authentication(client, default_hearing):
+def test_31_section_comment_vote_without_authentication(api_client, default_hearing):
     section, comment = add_default_section_and_comment(default_hearing)
-    response = client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
+    response = api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
     assert response.status_code == 403
 
 
 @pytest.mark.django_db
-def test_31_hearing_comment_vote_without_authentication(client, default_hearing):
+def test_31_hearing_comment_vote_without_authentication(api_client, default_hearing):
     comment = add_default_hearing_comment(default_hearing)
-    response = client.post(get_hearing_comment_vote_url(default_hearing.id, comment.id))
+    response = api_client.post(get_hearing_comment_vote_url(default_hearing.id, comment.id))
     assert response.status_code == 403
 
 
@@ -127,9 +127,9 @@ def test_31_hearing_comment_vote_add_second_vote(john_doe_api_client, default_he
 
 
 @pytest.mark.django_db
-def test_hearing_comment_unvote(client, john_doe_api_client, default_hearing):
+def test_hearing_comment_unvote(api_client, john_doe_api_client, default_hearing):
     comment = add_default_hearing_comment(default_hearing)
-    response = client.post(get_hearing_comment_unvote_url(default_hearing.id, comment.id))
+    response = api_client.post(get_hearing_comment_unvote_url(default_hearing.id, comment.id))
     assert response.status_code == 403
 
     john_doe_api_client.post(get_hearing_comment_vote_url(default_hearing.id, comment.id))

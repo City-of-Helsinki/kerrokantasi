@@ -4,7 +4,7 @@ import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from kk.models import Hearing, Label, Section, SectionImage, HearingImage, SectionComment, HearingComment
-from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_hearing_detail_url
+from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_hearing_detail_url, get_geojson
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint
@@ -263,18 +263,7 @@ def test_admin_can_see_unpublished(api_client, john_doe_api_client, admin_api_cl
 
 @pytest.mark.django_db
 def test_hearing_geo(api_client, random_hearing):
-    random_hearing.geojson = {
-        "type": "Feature",
-        "properties": {
-            "name": "Coors Field",
-            "amenity": "Baseball Stadium",
-            "popupContent": "This is where the Rockies play!"
-        },
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-104.99404, 39.75621]
-        }
-    }
+    random_hearing.geojson = get_geojson()
     random_hearing.save()
     data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id)))
     assert data["geojson"] == random_hearing.geojson

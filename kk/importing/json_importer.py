@@ -126,6 +126,10 @@ def import_hearing(hearing_datum, force=False):
         else:
             log.info("Hearing %s already exists, skipping", slug)
             return
+
+    if "_geometry" in hearing_datum:  # These two are equivalent
+        hearing_datum.pop("_area")
+
     hearing = Hearing(
         id=slug,
         created_at=parse_aware_datetime(hearing_datum.pop("created_at")),
@@ -133,8 +137,10 @@ def import_hearing(hearing_datum, force=False):
         open_at=parse_aware_datetime(hearing_datum.pop("opens_at")),
         close_at=parse_aware_datetime(hearing_datum.pop("closes_at")),
         title=hearing_datum.pop("title"),
-        published=(hearing_datum.pop("published") == "true")
+        published=(hearing_datum.pop("published") == "true"),
+        geojson=(hearing_datum.pop("_geometry", None) or None)
     )
+    assert not hearing.geojson or isinstance(hearing.geojson, dict)
     hearing.save(no_modified_at_update=True)
     hearing.sections.create(
         type=SectionType.INTRODUCTION,

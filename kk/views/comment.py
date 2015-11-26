@@ -9,11 +9,14 @@ from kk.views.base import CreatedBySerializer, AdminsSeeUnpublishedMixin
 from kk.views.utils import AbstractSerializerMixin
 
 
+COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_by', 'created_at']
+
+
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
 
     class Meta:
         model = BaseComment
-        fields = ['content', 'author', 'votes', 'created_by', 'created_at']
+        fields = COMMENT_FIELDS
 
 
 class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):

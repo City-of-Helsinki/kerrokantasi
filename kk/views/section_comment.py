@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from kk.models import SectionComment
-from kk.views.comment import BaseCommentViewSet
+from kk.views.comment import BaseCommentViewSet, COMMENT_FIELDS
 
 from .base import CreatedBySerializer
 
@@ -23,7 +23,7 @@ class SectionCommentSerializer(CreatedBySerializer, serializers.ModelSerializer)
 
     class Meta:
         model = SectionComment
-        fields = ['id', 'section', 'content', 'n_votes', 'created_by', 'created_at']
+        fields = ['section'] + COMMENT_FIELDS
 
 
 class SectionCommentViewSet(BaseCommentViewSet):

@@ -1,12 +1,12 @@
 from kk.models import HearingComment
-from kk.views.comment import BaseCommentSerializer, BaseCommentViewSet
+from kk.views.comment import BaseCommentSerializer, BaseCommentViewSet, COMMENT_FIELDS
 
 
 class HearingCommentSerializer(BaseCommentSerializer):
 
     class Meta:
         model = HearingComment
-        fields = ['id', 'hearing', 'content', 'n_votes', 'created_by', 'created_at']
+        fields = ['hearing'] + COMMENT_FIELDS
 
 
 class HearingCommentCreateSerializer(BaseCommentSerializer):

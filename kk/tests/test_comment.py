@@ -28,6 +28,7 @@ def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearin
     response = john_doe_api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=comment_data)
     data = get_data_from_response(response, status_code=201)
     assert data['created_by']['username'] == john_doe.username
+    assert data['author_name'] == john_doe.username
     assert data['content'] == default_comment_content
     assert data['n_votes'] == 0
 

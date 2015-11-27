@@ -82,8 +82,7 @@ def process_tree(xml_tree, geometries):
     hearings = _process_hearings_tree(tables, geometries)
 
     out = {
-        "hearings": hearings,
-        "users": {u["id"]: u for u in tables.pop("user")}
+        "hearings": hearings
     }
     return out
 

@@ -16,9 +16,9 @@ comment_data = {
 
 
 @pytest.mark.django_db
-def test_55_add_comment_without_authentication(client, default_hearing):
+def test_55_add_comment_without_authentication(api_client, default_hearing):
     # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-    response = client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=comment_data)
+    response = api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=comment_data)
     assert response.status_code == 201
 
 
@@ -33,18 +33,18 @@ def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearin
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_amount(client, default_hearing):
+def test_54_list_all_comments_added_to_hearing_check_amount(api_client, default_hearing):
     # list all comments
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
 
     data = get_data_from_response(response)
     assert len(data) == 3
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_all_properties(client, default_hearing):
+def test_54_list_all_comments_added_to_hearing_check_all_properties(api_client, default_hearing):
     # list all comments
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
     data = get_data_from_response(response)
     # get first returned comment
     comment = data[0]
@@ -56,9 +56,9 @@ def test_54_list_all_comments_added_to_hearing_check_all_properties(client, defa
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_content(client, default_hearing):
+def test_54_list_all_comments_added_to_hearing_check_content(api_client, default_hearing):
     # list all comments
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
 
     data = get_data_from_response(response)
     contents = [c['content'] for c in data]
@@ -69,9 +69,9 @@ def test_54_list_all_comments_added_to_hearing_check_content(client, default_hea
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_votes(client, default_hearing):
+def test_54_list_all_comments_added_to_hearing_check_votes(api_client, default_hearing):
     # list all comments
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
 
     data = get_data_from_response(response)
     for comment in data:
@@ -79,8 +79,8 @@ def test_54_list_all_comments_added_to_hearing_check_votes(client, default_heari
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_created_by(client, default_hearing, john_doe):
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+def test_54_list_all_comments_added_to_hearing_check_created_by(api_client, default_hearing, john_doe):
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
 
     data = get_data_from_response(response)
     for comment in data:
@@ -88,8 +88,8 @@ def test_54_list_all_comments_added_to_hearing_check_created_by(client, default_
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_created_at(client, default_hearing):
-    response = client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+def test_54_list_all_comments_added_to_hearing_check_created_at(api_client, default_hearing):
+    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
 
     data = get_data_from_response(response)
     for comment in data:
@@ -97,8 +97,8 @@ def test_54_list_all_comments_added_to_hearing_check_created_at(client, default_
 
 
 @pytest.mark.django_db
-def test_54_get_hearing_with_comments_check_amount_of_comments(client, default_hearing):
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+def test_54_get_hearing_with_comments_check_amount_of_comments(api_client, default_hearing):
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
     data = get_data_from_response(response)
     assert 'comments' in data
     assert len(data['comments']) == 3
@@ -106,8 +106,8 @@ def test_54_get_hearing_with_comments_check_amount_of_comments(client, default_h
 
 
 @pytest.mark.django_db
-def test_54_get_hearing_with_comments_check_comment_properties(client, default_hearing):
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+def test_54_get_hearing_with_comments_check_comment_properties(api_client, default_hearing):
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert 'comments' in data
@@ -122,28 +122,28 @@ def test_54_get_hearing_with_comments_check_comment_properties(client, default_h
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_authentication(client, default_hearing):
+def test_56_add_comment_to_section_without_authentication(api_client, default_hearing):
     section = default_hearing.sections.first()
     # post data to section endpoint /v1/hearing/<hearingID>/sections/<sectionID>/comments/
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    response = client.post(url, data=comment_data)
+    response = api_client.post(url, data=comment_data)
     assert response.status_code == 201
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_data(client, default_hearing):
+def test_56_add_comment_to_section_without_data(api_client, default_hearing):
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    response = client.post(url, data=None)
+    response = api_client.post(url, data=None)
     # expect bad request, we didn't set any data
     assert response.status_code == 400
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_invalid_key(client, default_hearing):
+def test_56_add_comment_to_section_invalid_key(api_client, default_hearing):
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    response = client.post(url, data={'invalidKey': 'Yes it is'})
+    response = api_client.post(url, data={'invalidKey': 'Yes it is'})
     # expect bad request, we have invalid key in payload
     assert response.status_code == 400
 
@@ -166,18 +166,18 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_56_get_hearing_with_section_check_n_comments_property(client):
+def test_56_get_hearing_with_section_check_n_comments_property(api_client):
     hearing = Hearing.objects.create(abstract='Hearing to test section comments')
     section = Section.objects.create(title='Section to comment', hearing=hearing, commenting=Commenting.OPEN)
     url = get_hearing_detail_url(hearing.id, 'sections/%s/comments' % section.id)
 
     comment_data['section'] = section.pk
-    response = client.post(url, data=comment_data)
+    response = api_client.post(url, data=comment_data)
     assert response.status_code == 201
 
     # get hearing and check sections's n_comments property
     url = get_hearing_detail_url(hearing.id)
-    response = client.get(url)
+    response = api_client.get(url)
 
     data = get_data_from_response(response)
     assert 'n_comments' in data['sections'][0]
@@ -234,10 +234,10 @@ comment_status_spec = {
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("commenting", comment_status_spec.keys())
-def test_commenting_modes(client, john_doe_api_client, commenting):
+def test_commenting_modes(api_client, john_doe_api_client, commenting):
     hearing = Hearing.objects.create(commenting=commenting)
     anon_status, reg_status = comment_status_spec[commenting]
-    response = client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
+    response = api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
     assert response.status_code == anon_status
     response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
     assert response.status_code == reg_status

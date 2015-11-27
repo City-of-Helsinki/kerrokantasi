@@ -19,36 +19,36 @@ def check_entity_images(entity):
 
 
 @pytest.mark.django_db
-def test_8_list_hearing_images(client, default_hearing):
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id)))
+def test_8_list_hearing_images(api_client, default_hearing):
+    data = get_data_from_response(api_client.get(get_hearing_detail_url(default_hearing.id)))
     check_entity_images(data)
 
 
 @pytest.mark.django_db
-def test_37_list_hearing_images_check_titles(client, default_hearing):
+def test_37_list_hearing_images_check_titles(api_client, default_hearing):
     """
     Check images exist in hearing image payloads
     """
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id, 'images')))
+    data = get_data_from_response(api_client.get(get_hearing_detail_url(default_hearing.id, 'images')))
     check_entity_images({"images": data})
 
 
 @pytest.mark.django_db
-def test_38_get_section_with_images(client, default_hearing):
+def test_38_get_section_with_images(api_client, default_hearing):
     """
     Check images exist in section payloads
     """
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    data = get_data_from_response(api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     check_entity_images(first_section)
 
 
 @pytest.mark.django_db
-def test_38_get_hearing_check_section_with_images(client, default_hearing):
+def test_38_get_hearing_check_section_with_images(api_client, default_hearing):
     """
     Check images exist in sections nested in hearing payloads
     """
-    data = get_data_from_response(client.get(get_hearing_detail_url(default_hearing.id)))
+    data = get_data_from_response(api_client.get(get_hearing_detail_url(default_hearing.id)))
     assert 'sections' in data
     first_section = data['sections'][0]
     check_entity_images(first_section)

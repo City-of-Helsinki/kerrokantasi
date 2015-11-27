@@ -1,7 +1,7 @@
 import django_filters
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, permissions, response, serializers, status, viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 
 from kk.enums import Commenting
 from kk.models import Hearing, HearingImage
@@ -10,6 +10,8 @@ from kk.views.base import BaseImageSerializer, AdminsSeeUnpublishedMixin
 from kk.views.hearing_comment import HearingCommentSerializer
 from kk.views.label import LabelSerializer
 from kk.views.section import SectionFieldSerializer
+from rest_framework.fields import JSONField
+from rest_framework.response import Response
 
 from .hearing_report import HearingReport
 
@@ -42,6 +44,7 @@ class HearingSerializer(serializers.ModelSerializer):
     sections = SectionFieldSerializer(many=True, read_only=True)
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)
+    geojson = JSONField()
 
     class Meta:
         model = Hearing
@@ -50,18 +53,28 @@ class HearingSerializer(serializers.ModelSerializer):
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at', 'latitude', 'longitude',
             'servicemap_url', 'images', 'sections', 'images',
-            'closed', 'comments'
+            'closed', 'comments', 'geojson'
         ]
 
 
 class HearingListSerializer(HearingSerializer):
     def get_fields(self):
         fields = super(HearingListSerializer, self).get_fields()
-        # Elide comments and sections when listing hearings; one can get to them via
-        # detail routes
+        # Elide comments, section and geo data when listing hearings; one can get to them via detail routes
         fields.pop("comments")
         fields.pop("sections")
+        fields.pop("geojson")
         return fields
+
+
+class HearingMapSerializer(serializers.ModelSerializer):
+    geojson = JSONField()
+
+    class Meta:
+        model = Hearing
+        fields = [
+            'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'latitude', 'longitude'
+        ]
 
 
 class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
@@ -120,3 +133,9 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     def report(self, request, pk=None):
         report = HearingReport(HearingSerializer(self.get_object(), context=self.get_serializer_context()).data)
         return report.get_response()
+
+    @list_route(methods=['get'])
+    def map(self, request):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = HearingMapSerializer(queryset, many=True)
+        return Response(serializer.data)

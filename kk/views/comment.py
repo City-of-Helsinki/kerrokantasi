@@ -29,7 +29,9 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         context = kwargs['context'] = self.get_serializer_context()
         if serializer_class is self.create_serializer_class and "data" in kwargs:  # Creating things with data?
             # So inject a reference to the parent object
-            kwargs["data"][serializer_class.Meta.model.parent_field] = context["comment_parent"]
+            data = kwargs["data"].copy()
+            data[serializer_class.Meta.model.parent_field] = context["comment_parent"]
+            kwargs["data"] = data
         return serializer_class(*args, **kwargs)
 
     def get_comment_parent_id(self):

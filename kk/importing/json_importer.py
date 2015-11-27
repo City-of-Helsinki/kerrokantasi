@@ -107,7 +107,7 @@ def import_section(hearing, section_datum, section_type):
         "abstract": (section_datum.pop("lead") or ""),
         "content": (section_datum.pop("body") or ""),
     }
-    if s_args.get("title"):  # sane ids if possible
+    if s_args.get("title"):  # pragma: no branch  # sane ids if possible
         s_args["pk"] = "%s-%s" % (hearing.pk, slugify(s_args["title"]))
     section = hearing.sections.create(**s_args)
     import_comments(section, section_datum.pop("comments", ()))
@@ -126,6 +126,11 @@ def import_hearing(hearing_datum, force=False):
         else:
             log.info("Hearing %s already exists, skipping", slug)
             return
+
+    if "_geometry" in hearing_datum:  # pragma: no branch
+        # `_geometry` is the parsed version of `_area`, so get rid of that
+        hearing_datum.pop("_area", None)
+
     hearing = Hearing(
         id=slug,
         created_at=parse_aware_datetime(hearing_datum.pop("created_at")),
@@ -133,8 +138,10 @@ def import_hearing(hearing_datum, force=False):
         open_at=parse_aware_datetime(hearing_datum.pop("opens_at")),
         close_at=parse_aware_datetime(hearing_datum.pop("closes_at")),
         title=hearing_datum.pop("title"),
-        published=(hearing_datum.pop("published") == "true")
+        published=(hearing_datum.pop("published") == "true"),
+        geojson=(hearing_datum.pop("_geometry", None) or None)
     )
+    assert not hearing.geojson or isinstance(hearing.geojson, dict)
     hearing.save(no_modified_at_update=True)
     hearing.sections.create(
         type=SectionType.INTRODUCTION,
@@ -155,7 +162,7 @@ def import_hearing(hearing_datum, force=False):
         section.ordering = index
         section.save(update_fields=("ordering",))
 
-    if hearing_datum.keys():  # pragma: no branch
+    if hearing_datum.keys():  # pragma: no cover
         log.warn("These keys were not handled while importing %s: %s", hearing, hearing_datum.keys())
     return hearing
 

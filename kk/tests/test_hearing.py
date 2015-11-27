@@ -1,22 +1,27 @@
 import datetime
-import urllib
 
 import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
-from kk.models import Hearing, Label
-from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_hearing_detail_url
+from kk.models import Hearing, Label, Section, SectionImage, HearingImage, SectionComment, HearingComment
+from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_hearing_detail_url, get_geojson
 
 endpoint = '/v1/hearing/'
-list_endpoint = '%s?format=json' % endpoint
+list_endpoint = endpoint
 
 
 def get_detail_url(id):
-    return '%s%s/?format=json' % (endpoint, id)
+    return '%s%s/' % (endpoint, id)
 
 
 def create_hearings(n):
-    Hearing.objects.all().delete()  # Get rid of all other hearings
+    # Get rid of all other hearings:
+    SectionImage.objects.all().delete()
+    SectionComment.objects.all().delete()
+    Section.objects.all().delete()
+    HearingImage.objects.all().delete()
+    HearingComment.objects.all().delete()
+    Hearing.objects.all().delete()
     hearings = []
 
     # Depending on the database backend, created_at dates (which are used for ordering)
@@ -33,26 +38,26 @@ def create_hearings(n):
 
 
 @pytest.mark.django_db
-def test_list_all_hearings_no_objects(client):
+def test_list_all_hearings_no_objects(api_client):
     create_hearings(0)
-    response = client.get(list_endpoint)
+    response = api_client.get(list_endpoint)
 
     data = get_data_from_response(response)
     assert len(data) == 0
 
 
 @pytest.mark.django_db
-def test_list_all_hearings_check_number_of_objects(client):
-    response = client.get(list_endpoint)
+def test_list_all_hearings_check_number_of_objects(api_client):
+    response = api_client.get(list_endpoint)
 
     data = get_data_from_response(response)
     assert len(data) == Hearing.objects.count()
 
 
 @pytest.mark.django_db
-def test_list_all_hearings_check_abstract(client):
+def test_list_all_hearings_check_abstract(api_client):
     hearings = create_hearings(3)
-    response = client.get(list_endpoint)
+    response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
     assert data[0]['abstract'] == hearings[2].abstract
     assert data[1]['abstract'] == hearings[1].abstract
@@ -60,18 +65,18 @@ def test_list_all_hearings_check_abstract(client):
 
 
 @pytest.mark.django_db
-def test_list_top_5_hearings_check_number_of_objects(client):
+def test_list_top_5_hearings_check_number_of_objects(api_client):
     create_hearings(10)
-    response = client.get('%s&limit=5' % list_endpoint)
+    response = api_client.get(list_endpoint, data={"limit": 5})
 
     data = get_data_from_response(response)
     assert len(data['results']) == 5
 
 
 @pytest.mark.django_db
-def test_list_top_5_hearings_check_abstract(client):
+def test_list_top_5_hearings_check_abstract(api_client):
     create_hearings(10)
-    response = client.get('%s&limit=5' % list_endpoint)
+    response = api_client.get(list_endpoint, data={"limit": 5})
 
     data = get_data_from_response(response)
     objects = data['results']
@@ -84,29 +89,25 @@ def test_list_top_5_hearings_check_abstract(client):
 
 
 @pytest.mark.django_db
-def test_get_next_closing_hearings(client):
+def test_get_next_closing_hearings(api_client):
     create_hearings(0)  # Clear out old hearings
     closed_hearing_1 = Hearing.objects.create(abstract='Gone', close_at=now() - datetime.timedelta(days=1))
     closed_hearing_2 = Hearing.objects.create(abstract='Gone too', close_at=now() - datetime.timedelta(days=2))
     future_hearing_1 = Hearing.objects.create(abstract='Next up', close_at=now() + datetime.timedelta(days=1))
     future_hearing_2 = Hearing.objects.create(abstract='Next up', close_at=now() + datetime.timedelta(days=5))
-    response = client.get(
-        '%s&next_closing=%s' % (list_endpoint, urllib.parse.quote_plus(now().isoformat()))
-    )
+    response = api_client.get(list_endpoint, {"next_closing": now().isoformat()})
     data = get_data_from_response(response)
     assert len(data) == 1
     assert data[0]['abstract'] == future_hearing_1.abstract
-    response = client.get(
-        '%s&next_closing=%s' % (list_endpoint, urllib.parse.quote_plus(future_hearing_1.close_at.isoformat()))
-    )
+    response = api_client.get(list_endpoint, {"next_closing": future_hearing_1.close_at.isoformat()})
     data = get_data_from_response(response)
     assert len(data) == 1
     assert data[0]['abstract'] == future_hearing_2.abstract
 
 
 @pytest.mark.django_db
-def test_8_get_detail_check_properties(client, default_hearing):
-    response = client.get(get_hearing_detail_url(default_hearing.id))
+def test_8_get_detail_check_properties(api_client, default_hearing):
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
     assert set(data.keys()) >= {
@@ -117,11 +118,11 @@ def test_8_get_detail_check_properties(client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_abstract(client):
+def test_8_get_detail_abstract(api_client):
     hearing = Hearing(abstract='Lorem Ipsum Abstract')
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -130,11 +131,11 @@ def test_8_get_detail_abstract(client):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_title(client):
+def test_8_get_detail_title(api_client):
     hearing = Hearing(title='Lorem Ipsum Title')
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -143,11 +144,11 @@ def test_8_get_detail_title(client):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_borough(client):
+def test_8_get_detail_borough(api_client):
     hearing = Hearing(borough='Itäinen')
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -156,11 +157,11 @@ def test_8_get_detail_borough(client):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_n_comments(client):
+def test_8_get_detail_n_comments(api_client):
     hearing = Hearing(n_comments=1)
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -169,11 +170,11 @@ def test_8_get_detail_n_comments(client):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_closing_time(client):
+def test_8_get_detail_closing_time(api_client):
     hearing = Hearing()
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -182,7 +183,7 @@ def test_8_get_detail_closing_time(client):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_labels(client):
+def test_8_get_detail_labels(api_client):
     hearing = Hearing()
     hearing.save()
 
@@ -195,7 +196,7 @@ def test_8_get_detail_labels(client):
 
     hearing.labels.add(label_one, label_two, label_three)
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -205,36 +206,27 @@ def test_8_get_detail_labels(client):
 
 
 @pytest.mark.django_db
-def test_8_get_detail_empty():
-    pytest.xfail("Add tests for empty values")
-
-
-@pytest.mark.django_db
-def test_8_get_detail_invalid():
-    pytest.xfail("Add tests for invalid values")
-
-
-@pytest.mark.django_db
-def test_7_get_detail_location(client):
-    hearing = Hearing(latitude='60.19276', longitude='24.93300')
+def test_7_get_detail_location(api_client):
+    hearing = Hearing(latitude=60.19276, longitude=24.93300)
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
     assert 'results' not in data
-    assert data['latitude'] == hearing.latitude
-    assert data['longitude'] == hearing.longitude
+    assert abs(data['latitude'] - hearing.latitude) < 0.1
+    assert abs(data['longitude'] - hearing.longitude) < 0.1
 
 
 @pytest.mark.django_db
-def test_7_get_detail_servicemap(client):
+def test_7_get_detail_servicemap(api_client):
     hearing = Hearing(
-        servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki')
+        servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki'
+    )
     hearing.save()
 
-    response = client.get(get_detail_url(hearing.id))
+    response = api_client.get(get_detail_url(hearing.id))
 
     data = get_data_from_response(response)
 
@@ -243,8 +235,8 @@ def test_7_get_detail_servicemap(client):
 
 
 @pytest.mark.django_db
-def test_24_get_report(client, default_hearing):
-    response = client.get('%s%s/report/' % (endpoint, default_hearing.id))
+def test_24_get_report(api_client, default_hearing):
+    response = api_client.get('%s%s/report/' % (endpoint, default_hearing.id))
     assert response.status_code == 200
     assert len(response.content) > 0
 
@@ -255,15 +247,25 @@ def test_hearing_stringification(random_hearing):
 
 
 @pytest.mark.django_db
-def test_admin_can_see_unpublished(client, john_doe_api_client, admin_api_client):
+def test_admin_can_see_unpublished(api_client, john_doe_api_client, admin_api_client):
     hearings = create_hearings(3)
     unpublished_hearing = hearings[0]
     unpublished_hearing.published = False
     unpublished_hearing.save()
-    data = get_data_from_response(client.get(list_endpoint))
+    data = get_data_from_response(api_client.get(list_endpoint))
     assert len(data) == 2  # Can't see it as anon
     data = get_data_from_response(john_doe_api_client.get(list_endpoint))
     assert len(data) == 2  # Can't see it as registered
     data = get_data_from_response(admin_api_client.get(list_endpoint))
     assert len(data) == 3  # Can see it as admin
     assert len([1 for h in data if not h["published"]]) == 1  # Only one unpublished, yeah?
+
+
+@pytest.mark.django_db
+def test_hearing_geo(api_client, random_hearing):
+    random_hearing.geojson = get_geojson()
+    random_hearing.save()
+    data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id)))
+    assert data["geojson"] == random_hearing.geojson
+    map_data = get_data_from_response(api_client.get(list_endpoint + "map/"))
+    assert map_data[0]["geojson"] == random_hearing.geojson

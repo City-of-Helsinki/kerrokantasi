@@ -64,3 +64,18 @@ def get_hearing_detail_url(id, element=None):
     if element:
         url += "%s/" % element
     return url
+
+
+def get_geojson():
+    return {
+        "type": "Feature",
+        "properties": {
+            "name": "Coors Field",
+            "amenity": "Baseball Stadium",
+            "popupContent": "This is where the Rockies play!"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-104.99404, 39.75621]
+        }
+    }

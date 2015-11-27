@@ -1,7 +1,9 @@
 import reversion
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 
@@ -15,7 +17,7 @@ from .images import BaseImage
 class Hearing(Commentable, StringIdBaseModel):
     open_at = models.DateTimeField(verbose_name=_('Opening time'), default=timezone.now)
     close_at = models.DateTimeField(verbose_name=_('Closing time'), default=timezone.now)
-    closed = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
+    force_closed = models.BooleanField(verbose_name=_('Whether hearing is closed'), default=False)
     title = models.CharField(verbose_name=_('Title'), max_length=255)
     abstract = models.TextField(verbose_name=_('Abstract'), blank=True, default='')
     borough = models.CharField(
@@ -31,7 +33,16 @@ class Hearing(Commentable, StringIdBaseModel):
     )
 
     def __str__(self):
-        return self.title
+        return self.title or self.id
+
+    @property
+    def closed(self):
+        return self.force_closed or not (self.open_at <= now() <= self.close_at)
+
+    def may_comment(self, request):
+        if self.closed:
+            raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
+        return super().may_comment(request)
 
 
 class HearingImage(BaseImage):

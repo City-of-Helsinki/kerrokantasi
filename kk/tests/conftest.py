@@ -1,5 +1,8 @@
+import datetime
+
 import pytest
 from django.contrib.auth import get_user_model
+from django.utils.timezone import now
 from rest_framework.test import APIClient
 
 from kk.enums import Commenting, SectionType
@@ -33,7 +36,13 @@ def default_hearing(john_doe):
     All objects will have the 3 default images attached.
     All objects will allow open commenting.
     """
-    hearing = Hearing.objects.create(abstract='Default test hearing One', commenting=Commenting.OPEN)
+    hearing = Hearing.objects.create(
+        title='Default test hearing One',
+        abstract='Default test hearing One',
+        commenting=Commenting.OPEN,
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+    )
     create_default_images(hearing)
     for x in range(1, 4):
         section = Section.objects.create(

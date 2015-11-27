@@ -1,7 +1,7 @@
-from django.core.exceptions import ValidationError
 from functools import lru_cache
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import ManyToOneRel
 from django.utils import timezone
@@ -17,6 +17,7 @@ def generate_id():
 
 
 class BaseModelManager(models.Manager):
+
     def get_queryset(self):
         return super().get_queryset().exclude(deleted=True)
 

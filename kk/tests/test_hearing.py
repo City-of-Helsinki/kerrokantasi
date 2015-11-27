@@ -3,8 +3,9 @@ import datetime
 import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
-from kk.models import Hearing, Label, Section, SectionImage, HearingImage, SectionComment, HearingComment
-from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_hearing_detail_url, get_geojson
+
+from kk.models import Hearing, HearingComment, HearingImage, Label, Section, SectionComment, SectionImage
+from kk.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, get_geojson, get_hearing_detail_url
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint

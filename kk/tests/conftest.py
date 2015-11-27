@@ -10,6 +10,7 @@ from kk.factories.hearing import HearingFactory, LabelFactory
 from kk.models import Hearing, HearingComment, Label, Section
 from kk.tests.utils import assert_ascending_sequence, create_default_images
 
+
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
 red_comment_content = 'Mine is red'
 green_comment_content = 'I like green'

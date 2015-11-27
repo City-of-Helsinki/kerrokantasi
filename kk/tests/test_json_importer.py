@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import pytest
-
 # Please ignore the mess.
 from copy import deepcopy
+
+import pytest
 from django.utils.crypto import get_random_string
+
 from kk.enums import SectionType
 from kk.importing.json_importer import import_from_data, parse_aware_datetime
 from kk.models import Hearing
@@ -62,10 +63,10 @@ ALT1 = {'body': 'ghmss idtflgqchqxx qudexo xhjcdq', 'comments': [
     {'alternative_id': '35', 'body': 'cpkpvgrrmttnwsprmfo qouyeyqlvutl', 'created_at': '2014-11-30T08:27:17.305858',
      'id': '181', 'is_hidden': 'false', 'lead': 'rchcvjenxt szclinijw jbabqhzsdna', 'like_count': '0', 'likes': [],
      'main_image': None, 'title': 'mdzxrue xnh   vltlqeg rvu kfsphi', 'username': 'Pertti'}],
-        'created_at': '2014-11-25T19:01:23.885067', 'hearing_id': '12', 'id': '35',
-        'lead': 'qcpxtft cfvm sx uz  xadxctnvvqbt',
-        'main_image': None, 'main_image_id': None,
-        'position': '1', 'title': 'nox v qj qsndntryubrnhvsbwmgdzmx', 'updated_at': '2014-11-25T19:01:23.900769'}
+    'created_at': '2014-11-25T19:01:23.885067', 'hearing_id': '12', 'id': '35',
+    'lead': 'qcpxtft cfvm sx uz  xadxctnvvqbt',
+    'main_image': None, 'main_image_id': None,
+    'position': '1', 'title': 'nox v qj qsndntryubrnhvsbwmgdzmx', 'updated_at': '2014-11-25T19:01:23.900769'}
 
 ALT2 = {'body': 'qixzbjypctfgffvro kjqlangqf ltvp', 'comments': [
     {'alternative_id': '34', 'body': 'jsks njxemfiaqxtsawch vzzmvhwnu ', 'created_at': '2014-12-03T19:22:44.262491',
@@ -74,28 +75,28 @@ ALT2 = {'body': 'qixzbjypctfgffvro kjqlangqf ltvp', 'comments': [
     {'alternative_id': '34', 'body': 'zpt  fnrdfyhm   irzlmdtghrdzpygt', 'created_at': '2014-11-27T08:25:28.055787',
      'id': '98', 'is_hidden': 'false', 'lead': 'rchcvjenxt szclinijw jbabqhzsdna', 'like_count': '1', 'likes': [LIKE],
      'main_image': None, 'title': 'hzyew gspcp ptpeltsznjgnxr uvcpm', 'username': 'Johannes'}],
-        'created_at': '2014-11-25T19:01:23.881728', 'hearing_id': '12', 'id': '34',
-        'lead': 'kovgskyhbthkdqmzguoyvnwvsenq lqu',
-        'main_image': {'caption': 'Vaihtoehdon 1 esimerkkikuva.', 'created_at': '2014-11-25T19:01:23.890566',
-                       'filename': 'images/hameentie/alternative_1/main_image.jpg', 'id': '45'}, 'main_image_id': '45',
-        'position': '0', 'title': 'aksebfq rufmmwszkdkdocanzliys cv', 'updated_at': '2014-11-25T19:01:23.900758'}
+    'created_at': '2014-11-25T19:01:23.881728', 'hearing_id': '12', 'id': '34',
+    'lead': 'kovgskyhbthkdqmzguoyvnwvsenq lqu',
+    'main_image': {'caption': 'Vaihtoehdon 1 esimerkkikuva.', 'created_at': '2014-11-25T19:01:23.890566',
+                   'filename': 'images/hameentie/alternative_1/main_image.jpg', 'id': '45'}, 'main_image_id': '45',
+    'position': '0', 'title': 'aksebfq rufmmwszkdkdocanzliys cv', 'updated_at': '2014-11-25T19:01:23.900758'}
 
 HEARING = {'_area': 'x', '_geometry': get_geojson(), 'alternatives': [ALT1, ALT2],
            'body': ' gcthqzqrndsutwhoiqiabothsomtjwp',
            'closes_at': '2014-12-31', 'comments': [
-        {'body': 'x hisydetgyr tooetpydxmmdg  ylnc', 'created_at': '2014-12-23T09:30:51.991187', 'hearing_id': '12',
-         'id': '245', 'is_hidden': 'false', 'lead': 'rchcvjenxt szclinijw jbabqhzsdna', 'like_count': '0', 'likes': [],
-         'main_image': None, 'title': 'figlxwalwwze pyffyhjywksjlslijkj', 'username': 'ratikka4'},
-        {'body': 'kdrzglteivqdtgfuxiigyjbsezsz urx', 'created_at': '2014-11-27T09:34:56.023891', 'hearing_id': '12',
-         'id': '112', 'is_hidden': 'false', 'lead': 'rchcvjenxt szclinijw jbabqhzsdna', 'like_count': '0', 'likes': [],
-         'main_image': None, 'title': ' clpcjxkhxw lgaejuywfpwsrikszcqy', 'username': 'Pasi'}],
-           'created_at': '2014-11-25T19:01:23.859401', 'id': '12', 'lead': 'lipibmupbapezxiloyqjzd jnao knvd',
-           'main_image': {
+    {'body': 'x hisydetgyr tooetpydxmmdg  ylnc', 'created_at': '2014-12-23T09:30:51.991187', 'hearing_id': '12',
+     'id': '245', 'is_hidden': 'false', 'lead': 'rchcvjenxt szclinijw jbabqhzsdna', 'like_count': '0', 'likes': [],
+     'main_image': None, 'title': 'figlxwalwwze pyffyhjywksjlslijkj', 'username': 'ratikka4'},
+    {'body': 'kdrzglteivqdtgfuxiigyjbsezsz urx', 'created_at': '2014-11-27T09:34:56.023891', 'hearing_id': '12',
+     'id': '112', 'is_hidden': 'false', 'lead': 'rchcvjenxt szclinijw jbabqhzsdna', 'like_count': '0', 'likes': [],
+     'main_image': None, 'title': ' clpcjxkhxw lgaejuywfpwsrikszcqy', 'username': 'Pasi'}],
+    'created_at': '2014-11-25T19:01:23.859401', 'id': '12', 'lead': 'lipibmupbapezxiloyqjzd jnao knvd',
+    'main_image': {
                'caption': 'Liikenne nykyisin Hõmeentiellõ. (Helsingin kaupungin aineistopankki / Seppo Laakso)',
                'created_at': '2014-11-25T19:01:23.898028', 'filename': 'images/hameentie/main_image.jpg',
                'id': '48'}, 'main_image_id': '48', 'opens_at': '2014-11-25', 'published': 'true',
-           'sections': [SECTION], 'slug': '', 'title': 'ikwnydbg hjl riffyjsbrq shxv nkl',
-           'updated_at': '2015-01-26T10:20:12.869162'}
+    'sections': [SECTION], 'slug': '', 'title': 'ikwnydbg hjl riffyjsbrq shxv nkl',
+    'updated_at': '2015-01-26T10:20:12.869162'}
 
 EXAMPLE_DATA = {
     'hearings': {

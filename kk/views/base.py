@@ -1,12 +1,13 @@
 from django.core.exceptions import ImproperlyConfigured
-from kk.models.base import BaseModel
 from rest_framework import serializers
 
+from kk.models.base import BaseModel
 from kk.models.images import BaseImage
 from kk.views.utils import AbstractSerializerMixin
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
+
     def to_representation(self, user):
         return {
             "uuid": user.uuid,

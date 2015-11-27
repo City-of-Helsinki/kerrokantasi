@@ -3,7 +3,7 @@ from django.utils.encoding import force_text
 
 from kk.enums import SectionType
 from kk.models import Section
-from kk.tests.utils import get_hearing_detail_url, get_data_from_response
+from kk.tests.utils import get_data_from_response, get_hearing_detail_url
 
 hearing_endpoint = '/v1/hearing/'
 hearing_list_endpoint = hearing_endpoint

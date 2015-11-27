@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from functools import lru_cache
 
 from django.conf import settings
@@ -117,12 +118,15 @@ class Commentable(models.Model):
             self.save(update_fields=("n_comments",))
 
     def may_comment(self, request):
+        is_authenticated = request.user.is_authenticated()
         if self.commenting == Commenting.NONE:
-            return False
+            raise ValidationError(_("%s does not allow commenting") % self, code="commenting_none")
+        elif self.commenting == Commenting.REGISTERED:
+            if not is_authenticated:
+                raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
+            return True
         elif self.commenting == Commenting.OPEN:
             return True
-        elif self.commenting == Commenting.REGISTERED:
-            return request.user.is_authenticated()
         else:  # pragma: no cover
             raise NotImplementedError("Not implemented")
 

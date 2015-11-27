@@ -18,10 +18,13 @@ def generate_id():
 
 class BaseModelManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().exclude(deleted=True).exclude(published=False)
+        return super().get_queryset().exclude(deleted=True)
+
+    def public(self, *args, **kwargs):
+        return self.get_queryset().exclude(published=False).filter(*args, **kwargs)
 
     def with_unpublished(self, *args, **kwargs):
-        return super().get_queryset().exclude(deleted=True).filter(*args, **kwargs)
+        return self.get_queryset().filter(*args, **kwargs)
 
     def deleted(self, *args, **kwargs):
         return super().get_queryset().filter(deleted=True).filter(*args, **kwargs)

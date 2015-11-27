@@ -30,12 +30,12 @@ class HearingImageSerializer(BaseImageSerializer):
         fields = ['title', 'url', 'width', 'height', 'caption']
 
 
-class HearingImageViewSet(viewsets.ReadOnlyModelViewSet):
+class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+    model = HearingImage
     serializer_class = HearingImageSerializer
 
     def get_queryset(self):
-        hearing = get_object_or_404(Hearing, pk=self.kwargs["hearing_pk"])
-        return hearing.images.all()
+        return super(HearingImageViewSet, self).get_queryset().filter(hearing_id=self.kwargs["hearing_pk"])
 
 
 class HearingSerializer(serializers.ModelSerializer):

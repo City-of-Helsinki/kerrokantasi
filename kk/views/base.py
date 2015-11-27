@@ -60,7 +60,7 @@ class AdminsSeeUnpublishedMixin(object):
         if user.is_authenticated() and user.is_superuser:
             return self.model.objects.with_unpublished()
         else:
-            return self.model.objects.all()
+            return self.model.objects.public()
 
     def _get_user_from_request_or_context(self):
         if hasattr(self, "request"):  # pragma: no branch

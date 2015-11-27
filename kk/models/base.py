@@ -34,23 +34,24 @@ class BaseModelManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now, editable=False)
+    created_at = models.DateTimeField(
+        verbose_name=_('time of creation'), default=timezone.now, editable=False, db_index=True
+    )
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
+        settings.AUTH_USER_MODEL, verbose_name=_('created by'),
         null=True, blank=True, related_name="%(class)s_created",
         editable=False
     )
-    modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now, editable=False)
+    modified_at = models.DateTimeField(
+        verbose_name=_('time of last modification'), default=timezone.now, editable=False
+    )
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
+        settings.AUTH_USER_MODEL, verbose_name=_('last modified by'),
         null=True, blank=True, related_name="%(class)s_modified",
         editable=False
     )
-    published = models.BooleanField(verbose_name=_('Publish flag'), default=True, db_index=True)
-    deleted = models.BooleanField(
-        verbose_name=_('Deleted flag'), default=False, db_index=True,
-        editable=False
-    )
+    published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
+    deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
     objects = BaseModelManager()
 
     def save(self, *args, **kwargs):
@@ -97,6 +98,7 @@ class BaseModel(models.Model):
 
 class StringIdBaseModel(BaseModel):
     id = models.CharField(
+        verbose_name=_('identifier'),
         primary_key=True,
         max_length=32,
         blank=True,

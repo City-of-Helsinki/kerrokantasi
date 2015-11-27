@@ -5,7 +5,7 @@ from .base import BaseModel
 
 
 class Label(BaseModel):
-    label = models.CharField(verbose_name=_('Label'), default='', max_length=200)
+    label = models.CharField(verbose_name=_('label'), default='', max_length=200)
 
     def __str__(self):
         return self.label

@@ -1,5 +1,5 @@
 from kk.models import HearingComment
-from kk.views.comment import BaseCommentSerializer, BaseCommentViewSet, COMMENT_FIELDS
+from kk.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet
 
 
 class HearingCommentSerializer(BaseCommentSerializer):

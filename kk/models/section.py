@@ -13,11 +13,11 @@ from .hearing import Hearing
 
 class Section(Commentable, StringIdBaseModel):
     hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
-    ordering = models.IntegerField(default=0, db_index=True)
-    type = EnumField(SectionType, default=SectionType.PLAIN)
-    title = models.CharField(verbose_name=_('Title'), max_length=255, blank=True)
-    abstract = models.TextField(verbose_name=_('Abstract'), blank=True)
-    content = models.TextField(verbose_name=_('Content'), blank=True)
+    ordering = models.IntegerField(verbose_name=_('ordering'), default=0, db_index=True)
+    type = EnumField(verbose_name=_('type'), enum=SectionType, default=SectionType.PLAIN)
+    title = models.CharField(verbose_name=_('title'), max_length=255, blank=True)
+    abstract = models.TextField(verbose_name=_('abstract'), blank=True)
+    content = models.TextField(verbose_name=_('content'), blank=True)
 
     class Meta:
         ordering = ["ordering"]
@@ -30,6 +30,9 @@ class Section(Commentable, StringIdBaseModel):
             # Automatically derive next ordering on initial save, if possible
             self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
         return super(Section, self).save(*args, **kwargs)
+
+    def may_comment(self, request):
+        return super().may_comment(request) and self.hearing.may_comment(request)
 
 
 class SectionImage(BaseImage):

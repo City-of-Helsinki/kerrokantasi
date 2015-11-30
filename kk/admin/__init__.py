@@ -7,6 +7,7 @@ from kk import models
 class SectionInline(admin.StackedInline):
     model = models.Section
     extra = 0
+    show_change_link = True
 
 
 class HearingImageInline(admin.StackedInline):
@@ -24,9 +25,15 @@ class SectionImageInline(admin.StackedInline):
 
 class HearingAdmin(admin.ModelAdmin):
     inlines = [HearingImageInline, SectionInline]
+    list_display = ("id", "published", "title", "open_at", "close_at", "force_closed")
+    list_filter = ("published",)
+    search_fields = ("id", "title")
 
 
 class SectionAdmin(admin.ModelAdmin):
+    list_filter = ("hearing", "published", "type")
+    list_display = ("id", "published", "type", "hearing", "title")
+    list_display_links = list_display
     inlines = [SectionImageInline]
 
 

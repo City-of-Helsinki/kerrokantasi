@@ -9,14 +9,14 @@ from .base import BaseModel
 class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
-    title = models.CharField(blank=True, max_length=80)
-    content = models.TextField(verbose_name=_('Content'))
-    author_name = models.CharField(max_length=40, blank=True, null=True)
-    n_votes = models.IntegerField(verbose_name=_('Votes given to this comment'), default=0, editable=False)
-    n_legacy_votes = models.IntegerField(verbose_name=_('Votes imported from legacy system'), default=0)
+    title = models.CharField(verbose_name=_('title'), blank=True, max_length=80)
+    content = models.TextField(verbose_name=_('content'))
+    author_name = models.CharField(verbose_name=_('author name'), max_length=40, blank=True, null=True, editable=False)
+    n_votes = models.IntegerField(verbose_name=_('number of votes given to this comment'), default=0, editable=False)
+    n_legacy_votes = models.IntegerField(verbose_name=_('number of votes imported from legacy system'), default=0)
     voters = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('Users who voted'),
+        verbose_name=_('users who voted for this comment'),
         related_name="voted_%(app_label)s_%(class)s",
         blank=True
     )

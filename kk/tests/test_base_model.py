@@ -34,7 +34,7 @@ def test_cant_delete():
 def test_unpublished():
     # the story of an unpublished hearing
     hearing = Hearing.objects.create(published=False)
-    assert not Hearing.objects.filter(pk=hearing.pk).exists()  # not in the regular qs
+    assert not Hearing.objects.public(pk=hearing.pk).exists()  # not in the regular qs
     assert Hearing.objects.with_unpublished(pk=hearing.pk).exists()  # but in the unpub qs
     assert Hearing.objects.everything(pk=hearing.pk).exists()  # and the everything qs
     assert not Hearing.objects.deleted(pk=hearing.pk).exists()  # not deleted yet

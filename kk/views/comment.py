@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import reversion
+from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 
 from kk.models.comment import BaseComment
-from kk.views.base import CreatedBySerializer, AdminsSeeUnpublishedMixin
+from kk.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from kk.views.utils import AbstractSerializerMixin
-
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_by', 'created_at']
 
@@ -57,11 +58,16 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         parent = self.get_comment_parent()
-        if not parent.may_comment(request):
+        try:
+            may_comment = parent.may_comment(request)
+        except ValidationError as verr:
             return response.Response(
-                {'status': 'Only %s commenting allowed' % parent.commenting},
+                {'status': force_text(verr), 'code': verr.code},
                 status=status.HTTP_403_FORBIDDEN
             )
+        if not may_comment:
+            return response.Response({'status': 'Commenting not allowed'}, status=status.HTTP_403_FORBIDDEN)
+
         # Use one serializer for creation,
         serializer = self.get_serializer(serializer_class=self.create_serializer_class, data=request.data)
         serializer.is_valid(raise_exception=True)

@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import ManyToOneRel
 from django.utils import timezone
@@ -16,11 +17,15 @@ def generate_id():
 
 
 class BaseModelManager(models.Manager):
+
     def get_queryset(self):
-        return super().get_queryset().exclude(deleted=True).exclude(published=False)
+        return super().get_queryset().exclude(deleted=True)
+
+    def public(self, *args, **kwargs):
+        return self.get_queryset().exclude(published=False).filter(*args, **kwargs)
 
     def with_unpublished(self, *args, **kwargs):
-        return super().get_queryset().exclude(deleted=True).filter(*args, **kwargs)
+        return self.get_queryset().filter(*args, **kwargs)
 
     def deleted(self, *args, **kwargs):
         return super().get_queryset().filter(deleted=True).filter(*args, **kwargs)
@@ -30,23 +35,24 @@ class BaseModelManager(models.Manager):
 
 
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(verbose_name=_('Time of creation'), default=timezone.now, editable=False)
+    created_at = models.DateTimeField(
+        verbose_name=_('time of creation'), default=timezone.now, editable=False, db_index=True
+    )
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('Created by'),
+        settings.AUTH_USER_MODEL, verbose_name=_('created by'),
         null=True, blank=True, related_name="%(class)s_created",
         editable=False
     )
-    modified_at = models.DateTimeField(verbose_name=_('Time of modification'), default=timezone.now, editable=False)
+    modified_at = models.DateTimeField(
+        verbose_name=_('time of last modification'), default=timezone.now, editable=False
+    )
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('Modified by'),
+        settings.AUTH_USER_MODEL, verbose_name=_('last modified by'),
         null=True, blank=True, related_name="%(class)s_modified",
         editable=False
     )
-    published = models.BooleanField(verbose_name=_('Publish flag'), default=True, db_index=True)
-    deleted = models.BooleanField(
-        verbose_name=_('Deleted flag'), default=False, db_index=True,
-        editable=False
-    )
+    published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
+    deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
     objects = BaseModelManager()
 
     def save(self, *args, **kwargs):
@@ -93,6 +99,7 @@ class BaseModel(models.Model):
 
 class StringIdBaseModel(BaseModel):
     id = models.CharField(
+        verbose_name=_('identifier'),
         primary_key=True,
         max_length=32,
         blank=True,
@@ -117,12 +124,15 @@ class Commentable(models.Model):
             self.save(update_fields=("n_comments",))
 
     def may_comment(self, request):
+        is_authenticated = request.user.is_authenticated()
         if self.commenting == Commenting.NONE:
-            return False
+            raise ValidationError(_("%s does not allow commenting") % self, code="commenting_none")
+        elif self.commenting == Commenting.REGISTERED:
+            if not is_authenticated:
+                raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
+            return True
         elif self.commenting == Commenting.OPEN:
             return True
-        elif self.commenting == Commenting.REGISTERED:
-            return request.user.is_authenticated()
         else:  # pragma: no cover
             raise NotImplementedError("Not implemented")
 

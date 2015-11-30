@@ -80,5 +80,5 @@ class SectionFactory(factory.django.DjangoModelFactory):
     def post(obj, create, extracted, **kwargs):
         for x in range(random.randint(1, 5)):
             comment = SectionCommentFactory(section=obj)
-            print(".... Created section comment %s" % comment.pk)
+            LOG.info("Hearing %s: Section %s: Created section comment %s", obj.hearing, obj, comment.pk)
         obj.recache_n_comments()

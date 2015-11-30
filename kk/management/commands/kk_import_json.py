@@ -4,11 +4,13 @@ import logging
 
 from django.core.management.base import BaseCommand
 from django.db.transaction import atomic
+
 from kk.importing.json_importer import import_from_data
 from kk.management.commands.utils import nuke
 
 
 class Command(BaseCommand):
+
     def add_arguments(self, parser):
         parser.add_argument("input_file", type=argparse.FileType("r", encoding="utf8"), nargs=1)
         parser.add_argument("--nuke", dest="nuke", action="store_true")

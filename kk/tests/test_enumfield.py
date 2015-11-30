@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import pytest
 from enumfields import Enum
-from kk.utils.drf_enum_field import EnumField
 from rest_framework.exceptions import ValidationError
+
+from kk.utils.drf_enum_field import EnumField
 
 
 class PeculiarEnum(Enum):

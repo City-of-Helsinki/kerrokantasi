@@ -3,10 +3,11 @@ from rest_framework import serializers, viewsets
 from kk.enums import Commenting, SectionType
 from kk.models import Section, SectionImage
 from kk.utils.drf_enum_field import EnumField
-from kk.views.base import BaseImageSerializer, AdminsSeeUnpublishedMixin
+from kk.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 
 
 class SectionImageSerializer(BaseImageSerializer):
+
     class Meta:
         model = SectionImage
         fields = ['title', 'url', 'width', 'height', 'caption']

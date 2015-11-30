@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 import datetime
 import logging
+from copy import deepcopy
+from operator import itemgetter
 
 import pytz
-from copy import deepcopy
-
 from django.conf import settings
 from django.utils.crypto import get_random_string
-from django.utils.dateparse import parse_datetime, parse_date
+from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
+
 from kk.enums import SectionType
 from kk.models import Hearing
 from kk.models.comment import BaseComment
 from kk.models.images import BaseImage
-from operator import itemgetter
 
 log = logging.getLogger(__name__)
 

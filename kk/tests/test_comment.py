@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 import reversion
 from django.utils.encoding import force_text
@@ -168,13 +170,19 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_56_get_hearing_with_section_check_n_comments_property(api_client):
-    hearing = Hearing.objects.create(abstract='Hearing to test section comments')
+    hearing = Hearing.objects.create(
+        title='Test Hearing',
+        abstract='Hearing to test section comments',
+        commenting=Commenting.OPEN,
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+    )
     section = Section.objects.create(title='Section to comment', hearing=hearing, commenting=Commenting.OPEN)
     url = get_hearing_detail_url(hearing.id, 'sections/%s/comments' % section.id)
 
     comment_data['section'] = section.pk
     response = api_client.post(url, data=comment_data)
-    assert response.status_code == 201
+    assert response.status_code == 201, ("response was %s" % response.content)
 
     # get hearing and check sections's n_comments property
     url = get_hearing_detail_url(hearing.id)
@@ -236,7 +244,11 @@ comment_status_spec = {
 @pytest.mark.django_db
 @pytest.mark.parametrize("commenting", comment_status_spec.keys())
 def test_commenting_modes(api_client, john_doe_api_client, commenting):
-    hearing = Hearing.objects.create(commenting=commenting)
+    hearing = Hearing.objects.create(
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        commenting=commenting
+    )
     anon_status, reg_status = comment_status_spec[commenting]
     response = api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
     assert response.status_code == anon_status

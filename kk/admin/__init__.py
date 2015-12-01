@@ -1,5 +1,6 @@
 from django.contrib import admin
 from kk import models
+from .utils import WymifyMixin
 
 
 # Inlines
@@ -30,11 +31,12 @@ class HearingAdmin(admin.ModelAdmin):
     search_fields = ("id", "title")
 
 
-class SectionAdmin(admin.ModelAdmin):
+class SectionAdmin(WymifyMixin, admin.ModelAdmin):
     list_filter = ("hearing", "published", "type")
     list_display = ("id", "published", "type", "hearing", "title")
     list_display_links = list_display
     inlines = [SectionImageInline]
+    wymify_fields = ("content",)
 
 
 # Wire it up!

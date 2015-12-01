@@ -1,0 +1,211 @@
+.wym_skin_djangoadmin {
+  font-size: 12px;
+  border: 1px solid #808080;
+  background: #f2f2f2;
+  padding: 5px;
+}
+.wym_skin_djangoadmin.wym_box {
+  max-width: 920px;
+}
+.wym_skin_djangoadmin .wym_area_left {
+  display: none;
+}
+.wym_skin_djangoadmin .wym_area_right {
+  display: block;
+  width: 150px;
+  float: right;
+}
+.wym_skin_djangoadmin .wym_area_main {
+  margin-right: 160px;
+}
+.wym_skin_djangoadmin h2,
+.wym_skin_djangoadmin h3,
+.wym_skin_djangoadmin li {
+  font-size: 12px;
+}
+.wym_skin_djangoadmin .wym_html {
+  width: 98%;
+}
+.wym_skin_djangoadmin .wym_html textarea {
+  width: 100%;
+  height: 200px;
+  border: 1px solid #808080;
+  background: #fff;
+}
+.wym_skin_djangoadmin .wym_iframe {
+  width: 98%;
+}
+.wym_skin_djangoadmin .wym_iframe iframe {
+  width: 100%;
+  height: 500px;
+  border: 1px solid #808080;
+  background: #fff;
+}
+.wym_skin_djangoadmin .wym_area_bottom {
+  height: 1%;
+  clear: both;
+}
+.wym_skin_djangoadmin .wym_section {
+  margin-bottom: 5px;
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.wym_skin_djangoadmin .wym_section a {
+  padding: 0 3px;
+  display: block;
+  text-decoration: none;
+  color: #000;
+}
+.wym_skin_djangoadmin .wym_section a:hover {
+  background-color: #f2f2f2;
+}
+.wym_skin_djangoadmin .wym_section h2 {
+  display: none;
+  background: #ddd;
+  border: solid #808080;
+  border-width: 0 0 1px;
+}
+.wym_skin_djangoadmin .wym_section h2 span {
+  color: #808080;
+}
+.wym_skin_djangoadmin .wym_section ul:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+.wym_skin_djangoadmin .wym_panel {
+  padding: 0;
+  border: solid #808080;
+  border-width: 1px;
+  background: #fff;
+}
+.wym_skin_djangoadmin .wym_panel h2 {
+  display: none;
+}
+.wym_skin_djangoadmin .wym_panel ul {
+  margin: 2px 0 5px !important;
+}
+.wym_skin_djangoadmin .wym_buttons li {
+  float: left;
+}
+.wym_skin_djangoadmin .wym_buttons li a {
+  background: url("icons.png") no-repeat;
+  text-indent: -9999px;
+}
+.wym_skin_djangoadmin .wym_buttons li a:hover {
+  background-color: #fff;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_strong a {
+  background-position: 0 -382px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_emphasis a {
+  background-position: 0 -22px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_superscript a {
+  background-position: 0 -430px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_subscript a {
+  background-position: 0 -454px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_ordered_list a {
+  background-position: 0 -48px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_unordered_list a {
+  background-position: 0 -72px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_indent a {
+  background-position: 0 -574px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_outdent a {
+  background-position: 0 -598px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_undo a {
+  background-position: 0 -502px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_redo a {
+  background-position: 0 -526px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_link a {
+  background-position: 0 -96px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_unlink a {
+  background-position: 0 -168px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_image a {
+  background-position: 0 -121px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_table a {
+  background-position: 0 -144px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_paste a {
+  background-position: 0 -552px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_html a {
+  background-position: 0 -193px;
+}
+.wym_skin_djangoadmin .wym_buttons li.wym_tools_preview a {
+  background-position: 0 -408px;
+}
+.wym_skin_djangoadmin .wym_buttons a {
+  width: 20px;
+  height: 20px;
+  overflow: hidden;
+  padding: 2px;
+}
+.wym_skin_djangoadmin:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+.wym_skin_djangoadmin p,
+.wym_skin_djangoadmin h2,
+.wym_skin_djangoadmin h3,
+.wym_skin_djangoadmin ul,
+.wym_skin_djangoadmin li {
+  background: transparent url("");
+  margin: 0 !important;
+  padding: 0 !important;
+  border-width: 0 !important;
+  list-style: none !important;
+}
+.wym_skin_djangoadmin .wym_section h2,
+.wym_skin_djangoadmin .wym_section h3 {
+  padding: 1px 3px;
+  margin: 0;
+}
+.wym_skin_djangoadmin .wym_dropdown:hover ul,
+.wym_skin_djangoadmin .wym_dropdown.hover ul {
+  display: block;
+}
+.wym_dialog div.row {
+  margin-bottom: 5px;
+  display: inline-block;
+}
+.wym_dialog div.row input {
+  margin-right: 5px;
+}
+.wym_dialog div.row label {
+  float: left;
+  width: 150px;
+  display: block;
+  text-align: right;
+  margin-right: 10px;
+}
+.wym_dialog div.row:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+.wym_dialog div.row-indent {
+  padding-left: 160px;
+}
+a.wym_wymeditor_link {
+  display: none;
+  background: none;
+}

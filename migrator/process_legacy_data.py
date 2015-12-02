@@ -12,8 +12,9 @@ psycopg_import_error = None
 
 try:
     import psycopg2
-except ImportError as psycopg_import_error:
+except ImportError as exc:
     psycopg2 = None
+    psycopg_import_error = str(exc)
 
 
 def _add_to_target(target_map, object, key):
@@ -130,7 +131,7 @@ def main():
     if args.pgsql:
         log.info("Creating XML and geometry files")
         if not psycopg2:
-            raise ValueError("Psycopg2 is not available") from psycopg_import_error
+            raise ValueError("Psycopg2 is not available; can't import from PostgreSQL. (%s)" % psycopg_import_error)
         conn = psycopg2.connect(args.dsn)
         cur = conn.cursor()
         cur.execute("SET CLIENT_ENCODING TO 'utf8';")

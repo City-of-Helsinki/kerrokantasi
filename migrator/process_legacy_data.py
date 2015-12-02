@@ -8,6 +8,8 @@ from collections import defaultdict
 
 log = logging.getLogger("importer")
 
+psycopg_import_error = None
+
 try:
     import psycopg2
 except ImportError as psycopg_import_error:

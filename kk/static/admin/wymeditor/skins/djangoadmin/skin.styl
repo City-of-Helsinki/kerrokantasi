@@ -1,0 +1,165 @@
+font-size = 12px
+
+.wym_skin_djangoadmin
+  font-size font-size
+  border 1px solid gray
+  background #f2f2f2
+  padding 5px
+  &.wym_box
+    max-width 920px
+  .wym_area_left
+    display none
+  .wym_area_right
+    display block
+    width 150px
+    float right
+  .wym_area_main
+    margin-right 160px
+  h2, h3, li
+    font-size font-size
+  .wym_html
+    width 98%
+    textarea
+      width 100%
+      height 200px
+      border 1px solid gray
+      background white
+  .wym_iframe
+    width 98%
+    iframe
+      width 100%
+      height 500px
+      border 1px solid gray
+      background white
+  .wym_area_bottom
+    height 1%
+    clear both
+  .wym_section
+    margin-bottom 5px
+    padding-top 1px
+    padding-bottom 1px
+    a
+      padding 0 3px
+      display block
+      text-decoration none
+      color black
+      &:hover
+        background-color #f2f2f2
+    h2
+      display none
+      background #ddd
+      border solid gray
+      border-width 0 0 1px
+      span
+        color gray
+    ul
+      &:after
+        content "."
+        display block
+        height 0
+        clear both
+        visibility hidden
+  .wym_panel
+    padding 0
+    border solid gray
+    border-width 1px
+    background white
+    h2
+      display none
+    ul
+      margin 2px 0 5px !important
+  .wym_buttons
+    li
+      float left
+      a
+        background url(icons.png) no-repeat
+        text-indent -9999px
+        &:hover
+          background-color white
+      &.wym_tools_strong a
+          background-position 0 -382px
+      &.wym_tools_emphasis a
+          background-position 0 -22px
+      &.wym_tools_superscript a
+          background-position 0 -430px
+      &.wym_tools_subscript a
+          background-position 0 -454px
+      &.wym_tools_ordered_list a
+          background-position 0 -48px
+      &.wym_tools_unordered_list a
+          background-position 0 -72px
+      &.wym_tools_indent a
+          background-position 0 -574px
+      &.wym_tools_outdent a
+          background-position 0 -598px
+      &.wym_tools_undo a
+          background-position 0 -502px
+      &.wym_tools_redo a
+          background-position 0 -526px
+      &.wym_tools_link a
+          background-position 0 -96px
+      &.wym_tools_unlink a
+          background-position 0 -168px
+      &.wym_tools_image a
+          background-position 0 -121px
+      &.wym_tools_table a
+          background-position 0 -144px
+      &.wym_tools_paste a
+          background-position 0 -552px
+      &.wym_tools_html a
+          background-position 0 -193px
+      &.wym_tools_preview a
+          background-position 0 -408px
+    a
+      width 20px
+      height 20px
+      overflow hidden
+      padding 2px
+  &:after
+    content "."
+    display block
+    height 0
+    clear both
+    visibility hidden
+  p, h2, h3, ul, li
+    background transparent url()
+    margin 0 !important
+    padding 0 !important
+    border-width 0 !important
+    list-style none !important
+
+.wym_skin_djangoadmin .wym_section h2,
+.wym_skin_djangoadmin .wym_section h3
+  padding 1px 3px
+  margin 0
+
+.wym_skin_djangoadmin .wym_dropdown:hover ul,
+.wym_skin_djangoadmin .wym_dropdown.hover ul
+  display block
+
+.wym_dialog
+  div
+    &.row
+      margin-bottom 5px
+      display inline-block
+      input
+        margin-right 5px
+      label
+        float left
+        width 150px
+        display block
+        text-align right
+        margin-right 10px
+      &:after
+        content "."
+        display block
+        height 0
+        clear both
+        visibility hidden
+    &.row-indent
+      padding-left 160px
+
+a.wym_wymeditor_link
+    display none
+    background none
+

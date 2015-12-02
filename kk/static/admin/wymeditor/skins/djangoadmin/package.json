@@ -1,0 +1,13 @@
+{
+  "name": "wymeditor-djangoadmin-skin",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.js",
+    "watch": "node build.js -w"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "stylus": "^0.52.4"
+  }
+}

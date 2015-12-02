@@ -47,3 +47,4 @@ target/
 var/
 migrator/*.json
 migrator/*.xml
+node_modules

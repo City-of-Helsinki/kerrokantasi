@@ -101,6 +101,28 @@ def john_doe_api_client(john_doe):
 
 
 @pytest.fixture()
+def jane_doe():
+    """
+    Jane Doe is another average registered user.
+    """
+    user = get_user_model().objects.filter(username="jane_doe").first()
+    if not user:  # pragma: no branch
+        user = get_user_model().objects.create_user("jane_doe", "jane@example.com", password="password")
+    return user
+
+
+@pytest.fixture()
+def jane_doe_api_client(jane_doe):
+    """
+    Jane Doe is another average registered user; this is her API client.
+    """
+    api_client = APIClient()
+    api_client.login(username=jane_doe.username, password="password")
+    api_client.user = jane_doe
+    return api_client
+
+
+@pytest.fixture()
 def admin_api_client(admin_user):
     api_client = APIClient()
     api_client.login(username=admin_user.username, password="password")

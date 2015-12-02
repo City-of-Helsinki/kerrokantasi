@@ -254,3 +254,30 @@ def test_commenting_modes(api_client, john_doe_api_client, commenting):
     assert response.status_code == anon_status
     response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
     assert response.status_code == reg_status
+
+
+@pytest.mark.django_db
+def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client, random_hearing):
+    random_hearing.commenting = Commenting.OPEN
+    random_hearing.save()
+    # John posts an innocuous comment:
+    johns_message = "Hi! I'm John!"
+    response = john_doe_api_client.post('/v1/hearing/%s/comments/' % random_hearing.pk, data={
+        "content": johns_message
+    })
+    data = get_data_from_response(response, 201)
+    comment_id = data["id"]
+    # Now Jane (in the guise of Mallory) attempts a rogue edit:
+    response = jane_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
+        "content": "hOI! I'M TEMMIE"
+    })
+    # But her attempts are foiled!
+    data = get_data_from_response(response, 403)
+    assert HearingComment.objects.get(pk=comment_id).content == johns_message
+    # Jane, thinking she can bamboozle our authentication by logging out, tries again!
+    response = api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
+        "content": "I'm totally John"
+    })
+    # But still, no!
+    data = get_data_from_response(response, 403)
+    assert HearingComment.objects.get(pk=comment_id).content == johns_message

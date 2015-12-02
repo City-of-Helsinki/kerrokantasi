@@ -14,7 +14,6 @@ COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_by', 'crea
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
-
     class Meta:
         model = BaseComment
         fields = COMMENT_FIELDS
@@ -56,7 +55,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         queryset = super().get_queryset()
         return queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
 
-    def create(self, request, *args, **kwargs):
+    def _check_may_comment(self, request):
         parent = self.get_comment_parent()
         try:
             may_comment = parent.may_comment(request)
@@ -68,6 +67,11 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         if not may_comment:
             return response.Response({'status': 'Commenting not allowed'}, status=status.HTTP_403_FORBIDDEN)
 
+    def create(self, request, *args, **kwargs):
+        resp = self._check_may_comment(request)
+        if resp:
+            return resp
+
         # Use one serializer for creation,
         serializer = self.get_serializer(serializer_class=self.create_serializer_class, data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -78,6 +82,19 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         # and another for the response
         serializer = self.get_serializer(instance=comment)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        resp = self._check_may_comment(request)
+        if resp:
+            return resp
+
+        instance = self.get_object()
+        if self.request.user != instance.created_by:
+            return response.Response(
+                {'status': 'You may not edit a comment not owned by you'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super().update(request, *args, **kwargs)
 
     def perform_update(self, serializer):
         with transaction.atomic(), reversion.create_revision():

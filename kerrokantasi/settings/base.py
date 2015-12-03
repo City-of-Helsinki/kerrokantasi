@@ -23,7 +23,7 @@ INSTALLED_APPS = (
     'rest_framework_nested',
     'helusers',
     'kerrokantasi',  # User model is project-wide
-    'kk',  # Reusable participatory democracy app
+    'democracy',  # Reusable participatory democracy app
 )
 
 MIDDLEWARE_CLASSES = (

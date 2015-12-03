@@ -40,8 +40,8 @@ Run test against particular issue.
    * `kerrokantasi.xml` -- an XML dump of the original PG database
    * `kerrokantasi.geometries.json` -- a temporary JSON file of the GIS geometries in the original PG database
    * `kerrokantasi.json` -- a reformatted amalgamation of the XML and geometry files to be ingested by the
-     `kk_import_json` management command.
+     `democracy_import_json` management command.
 3. Copy the `images` directory from your Kuulemma filesystem's `kuulemma/static` directory
    to the `kerrokantasi` media directory (defaults to `kerrokantasi/var/media`).
-4. Run the `kk_import_json` management command with the path of the JSON file created in step 3.
+4. Run the `democracy_import_json` management command with the path of the JSON file created in step 3.
 5. Done.

@@ -10,8 +10,8 @@ install:
 - pip install coveralls -r requirements.txt
 
 script:
-- flake8 kk
-- py.test -vvv --cov kk kk/tests
+- flake8 democracy
+- py.test -vvv --cov democracy democracy/tests
 
 after_success:
   coveralls

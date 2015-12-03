@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib import admin
-from kk import urls_v1
+from democracy import urls_v1
 
 urlpatterns = [
     url(r'^v1/', include(urls_v1)),

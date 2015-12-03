@@ -1,7 +1,7 @@
-import reversion
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from enumfields.fields import EnumField
+from reversion import revisions
 
 from democracy.enums import SectionType
 from democracy.models.comment import BaseComment, recache_on_save
@@ -40,7 +40,7 @@ class SectionImage(BaseImage):
     section = models.ForeignKey(Section, related_name="images")
 
 
-@reversion.register
+@revisions.register
 @recache_on_save
 class SectionComment(BaseComment):
     parent_field = "section"

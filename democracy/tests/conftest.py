@@ -59,9 +59,9 @@ def default_hearing(john_doe):
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
-    hearing.comments.add(HearingComment(created_by=john_doe, content=default_comment_content))
-    hearing.comments.add(HearingComment(created_by=john_doe, content=red_comment_content))
-    hearing.comments.add(HearingComment(created_by=john_doe, content=green_comment_content))
+    HearingComment.objects.create(hearing=hearing, created_by=john_doe, content=default_comment_content)
+    HearingComment.objects.create(hearing=hearing, created_by=john_doe, content=red_comment_content)
+    HearingComment.objects.create(hearing=hearing, created_by=john_doe, content=green_comment_content)
 
     return hearing
 

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import reversion
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
+from reversion import revisions
 
 from democracy.models.comment import BaseComment
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
@@ -98,7 +98,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def perform_update(self, serializer):
-        with transaction.atomic(), reversion.create_revision():
+        with transaction.atomic(), revisions.create_revision():
             super().perform_update(serializer)
 
     @detail_route(methods=['post'])

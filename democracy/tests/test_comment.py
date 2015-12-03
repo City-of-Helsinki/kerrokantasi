@@ -1,9 +1,9 @@
 import datetime
 
 import pytest
-import reversion
 from django.utils.encoding import force_text
 from django.utils.timezone import now
+from reversion import revisions
 
 from democracy.enums import Commenting
 from democracy.models import Hearing, HearingComment, Section
@@ -213,14 +213,14 @@ def test_comment_edit_versioning(john_doe_api_client, random_hearing):
     comment_id = data["id"]
     comment = HearingComment.objects.get(pk=comment_id)
     assert comment.content.isupper()  # Oh my, all that screaming :(
-    assert not reversion.get_for_object(comment)  # No revisions
+    assert not revisions.get_for_object(comment)  # No revisions
     response = john_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
         "content": "Never mind, it's nice :)"
     })
     data = get_data_from_response(response, 200)
     comment = HearingComment.objects.get(pk=comment_id)
     assert not comment.content.isupper()  # Screaming is gone
-    assert len(reversion.get_for_object(comment)) == 1  # One old revision
+    assert len(revisions.get_for_object(comment)) == 1  # One old revision
 
 
 @pytest.mark.django_db

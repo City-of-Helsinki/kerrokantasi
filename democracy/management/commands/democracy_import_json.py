@@ -6,7 +6,7 @@ from django.core.management.base import BaseCommand
 from django.db.transaction import atomic
 
 from democracy.importing.json_importer import import_from_data
-from democracy.management.commands.utils import nuke
+from democracy.management.utils import nuke
 
 
 class Command(BaseCommand):

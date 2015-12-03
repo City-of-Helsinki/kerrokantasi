@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "description": "Kerro Kantasi participatory democracy backend",
   "scripts": {
-    "test": "py.test --cov kk kk/tests",
-    "fix": "autopep8 -ri --max-line-length=10000 kk && flake8 kk && isort -rc kk"
+    "test": "py.test --cov democracy democracy/tests",
+    "fix": "autopep8 -ri --max-line-length=10000 democracy && flake8 democracy && isort -rc democracy"
   },
   "repository": {
     "type": "git",

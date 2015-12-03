@@ -9,7 +9,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
-    'modeltranslation',
+    #'modeltranslation',  # - Not used at present.
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -23,7 +23,7 @@ INSTALLED_APPS = (
     'rest_framework_nested',
     'helusers',
     'kerrokantasi',  # User model is project-wide
-    'kk',  # Reusable participatory democracy app
+    'democracy',  # Reusable participatory democracy app
 )
 
 MIDDLEWARE_CLASSES = (

@@ -68,7 +68,7 @@ def import_images(target, datum):
     alt_images = datum.pop("images", ())
     images = sorted(
         [i for i in [main_image] + list(alt_images) if i],
-        key=lambda i: (i.get("position"), i.get("id"))
+        key=lambda i: (i.get("position", "0"), i.get("id"))
     )
     for index, image_datum in enumerate(images):
         import_image(target, image_datum, index)

@@ -103,7 +103,7 @@ def dump_geojson(conn, geometry_json_file):
     cur = conn.cursor()
     with open(geometry_json_file, "w", encoding="utf8") as outf:
         cur.execute("SELECT id, ST_AsGeoJSON(_area, 15, 1) FROM hearing;")
-        hearing_geometries = {row[0]: json.loads(row[1]) for row in cur}
+        hearing_geometries = {row[0]: json.loads(row[1] or "null") for row in cur}
         geometries = {
             "hearing": hearing_geometries
         }

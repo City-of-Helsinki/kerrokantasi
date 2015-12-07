@@ -43,6 +43,16 @@ class Hearing(Commentable, StringIdBaseModel):
             raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
         return super().may_comment(request)
 
+    @property
+    def preview_code(self):
+        import base64
+        import hashlib
+        return base64.urlsafe_b64encode(
+            hashlib.sha256(
+                "{}{}".format(self.pk, settings.SECRET_KEY).encode('utf-8')
+            ).digest()
+        ).decode('utf-8').replace('=', '')
+
 
 class HearingImage(BaseImage):
     parent_field = "hearing"

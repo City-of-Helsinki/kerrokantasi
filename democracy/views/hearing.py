@@ -1,4 +1,5 @@
 import django_filters
+from django.conf import settings
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField
@@ -99,8 +100,25 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         kwargs['context'] = self.get_serializer_context()
         return serializer_class(*args, **kwargs)
 
+    @staticmethod
+    def check_preview_code(id, code):
+        import base64
+        import hashlib
+        check = base64.urlsafe_b64encode(
+            hashlib.sha256(
+                "{}{}".format(id, settings.SECRET_KEY).encode('utf-8')
+            ).digest()
+        ).decode('utf-8').replace('=', '')
+        return check == code
+
     def get_queryset(self):
+        # If preview code is given check if code is valid and extend queryset to all Hearing Published and Unpublished
+        preview_code = self.request.query_params.get("preview")
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         queryset = super(HearingViewSet, self).get_queryset()
+        if preview_code and lookup_url_kwarg in self.kwargs:
+            if self.check_preview_code(self.kwargs[lookup_url_kwarg], preview_code):
+                queryset = Hearing.objects.with_unpublished()
         next_closing = self.request.query_params.get('next_closing', None)
         if next_closing is not None:
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]

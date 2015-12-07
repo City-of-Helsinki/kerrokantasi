@@ -14,3 +14,4 @@ pyjwt
 django-enumfields==0.7.4
 pytz==2015.7
 jsonfield==1.0.3
+django-nested-admin==2.1.8

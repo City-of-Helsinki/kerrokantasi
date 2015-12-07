@@ -1,8 +1,10 @@
 from django.contrib import admin
+from django.db.models import TextField
 from django.utils.translation import ugettext_lazy as _
 from nested_admin.nested import NestedAdmin, NestedStackedInline
 
 from democracy import models
+from democracy.admin.widgets import ShortTextAreaWidget
 
 
 # Inlines
@@ -12,12 +14,18 @@ class HearingImageInline(NestedStackedInline):
     model = models.HearingImage
     extra = 0
     exclude = ("public", "title")
+    formfield_overrides = {
+        TextField: {'widget': ShortTextAreaWidget}
+    }
 
 
 class SectionImageInline(NestedStackedInline):
     model = models.SectionImage
     extra = 0
     exclude = ("public", "title")
+    formfield_overrides = {
+        TextField: {'widget': ShortTextAreaWidget}
+    }
 
 
 class SectionInline(NestedStackedInline):
@@ -25,6 +33,9 @@ class SectionInline(NestedStackedInline):
     extra = 1
     inlines = [SectionImageInline]
     exclude = ("public", "commenting",)
+    formfield_overrides = {
+        TextField: {'widget': ShortTextAreaWidget}
+    }
 
 
 # Admins
@@ -43,6 +54,9 @@ class HearingAdmin(NestedAdmin):
             "fields": ("published", "open_at", "close_at", "force_closed", "commenting")
         }),
     )
+    formfield_overrides = {
+        TextField: {'widget': ShortTextAreaWidget}
+    }
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)

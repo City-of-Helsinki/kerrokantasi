@@ -11,6 +11,8 @@ from enumfields.fields import EnumIntegerField
 
 from democracy.enums import Commenting
 
+ORDERING_HELP = _("The ordering position for this object. Objects with smaller numbers appear first.")
+
 
 def generate_id():
     return get_random_string(32)

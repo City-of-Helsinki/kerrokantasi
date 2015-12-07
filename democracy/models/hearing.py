@@ -23,8 +23,8 @@ class Hearing(Commentable, StringIdBaseModel):
     abstract = models.TextField(verbose_name=_('abstract'), blank=True, default='')
     borough = models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200)
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
-    latitude = models.FloatField(verbose_name=_('latitude'), null=True)
-    longitude = models.FloatField(verbose_name=_('longitude'), null=True)
+    latitude = models.FloatField(verbose_name=_('latitude'), null=True, blank=True)
+    longitude = models.FloatField(verbose_name=_('longitude'), null=True, blank=True)
     geojson = JSONField(blank=True, null=True, verbose_name=_('GeoJSON object'), editable=False)
     labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
     followers = models.ManyToManyField(

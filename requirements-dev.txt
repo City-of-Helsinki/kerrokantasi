@@ -4,3 +4,4 @@ pytest_django==2.9.1
 flake8==2.5.0
 factory-boy==2.6.0
 pytest-cov==2.2.0
+transifex-client==0.11

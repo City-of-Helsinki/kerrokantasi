@@ -29,8 +29,14 @@ class Hearing(Commentable, StringIdBaseModel):
     labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
     followers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('users who follow this hearing'), related_name='followed_hearings', blank=True, editable=False
+        verbose_name=_('followers'),
+        help_text=_('users who follow this hearing'),
+        related_name='followed_hearings', blank=True, editable=False
     )
+
+    class Meta:
+        verbose_name = _('hearing')
+        verbose_name_plural = _('hearings')
 
     def __str__(self):
         return (self.title or self.id)
@@ -53,6 +59,10 @@ class HearingImage(BaseImage):
     parent_field = "hearing"
     hearing = models.ForeignKey(Hearing, related_name="images")
 
+    class Meta:
+        verbose_name = _('hearing image')
+        verbose_name_plural = _('hearing images')
+
 
 @revisions.register
 @recache_on_save
@@ -60,3 +70,7 @@ class HearingComment(BaseComment):
     parent_field = "hearing"
     parent_model = Hearing
     hearing = models.ForeignKey(Hearing, related_name="comments")
+
+    class Meta:
+        verbose_name = _('hearing comment')
+        verbose_name_plural = _('hearing comments')

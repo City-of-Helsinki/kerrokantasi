@@ -7,7 +7,7 @@ env:
 - DJANGO=Django>=1.9
 
 install:
-- pip install coveralls -r requirements.txt
+- pip install coveralls -r requirements-dev.txt
 
 script:
 - flake8 democracy

@@ -1,3 +1,5 @@
+from functools import partial
+
 from django.contrib import admin
 from django.db.models import TextField
 from django.utils.translation import ugettext_lazy as _
@@ -5,6 +7,7 @@ from nested_admin.nested import NestedAdmin, NestedStackedInline
 
 from democracy import models
 from democracy.admin.widgets import ShortTextAreaWidget
+from democracy.enums import SectionType
 
 
 # Inlines
@@ -36,6 +39,19 @@ class SectionInline(NestedStackedInline):
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
+
+    def formfield_for_dbfield(self, db_field, **kwargs):
+        obj = kwargs.pop("obj", None)
+        if not getattr(obj, "pk", None):
+            if db_field.name == "type":
+                kwargs["initial"] = SectionType.INTRODUCTION
+            elif db_field.name == "content":
+                kwargs["initial"] = _("Enter the introduction text for the hearing here.")
+        return super().formfield_for_dbfield(db_field, **kwargs)
+
+    def get_formset(self, request, obj=None, **kwargs):
+        kwargs["formfield_callback"] = partial(self.formfield_for_dbfield, request=request, obj=obj)
+        return super().get_formset(request, obj, **kwargs)
 
 
 # Admins

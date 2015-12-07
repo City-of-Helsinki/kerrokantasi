@@ -6,7 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from nested_admin.nested import NestedAdmin, NestedStackedInline
 
 from democracy import models
-from democracy.admin.widgets import ShortTextAreaWidget
+from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget, TinyMCE
 from democracy.enums import SectionType
 
 
@@ -47,6 +47,8 @@ class SectionInline(NestedStackedInline):
                 kwargs["initial"] = SectionType.INTRODUCTION
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
+        if db_field.name == "content":
+            kwargs["widget"] = TinyMCE
         return super().formfield_for_dbfield(db_field, **kwargs)
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -73,6 +75,11 @@ class HearingAdmin(NestedAdmin):
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
+
+    def formfield_for_manytomany(self, db_field, request=None, **kwargs):
+        if db_field.name == "labels":
+            kwargs["widget"] = Select2SelectMultiple
+        return super().formfield_for_manytomany(db_field, request, **kwargs)
 
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)

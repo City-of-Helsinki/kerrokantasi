@@ -4,13 +4,8 @@ djangorestframework==3.3.1
 django-reversion==1.10.0
 django-cors-headers==1.1.0
 django-filter==0.11.0
-pytest==2.8.3
-pytest_django==2.9.1
 pillow==3.0.0
 easy-thumbnails==2.2.1
-pytest-cov==2.2.0
-flake8==2.5.0
-factory-boy==2.6.0
 drf-nested-routers==0.11.1
 xlsxwriter==0.7.7
 git+https://github.com/City-of-Helsinki/django-helusers.git@405028e4c45a33e0aaf893fee5#egg=django-helusers

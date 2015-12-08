@@ -21,6 +21,8 @@ class Section(Commentable, StringIdBaseModel):
 
     class Meta:
         ordering = ["ordering"]
+        verbose_name = _('section')
+        verbose_name_plural = _('sections')
 
     def __str__(self):
         return "%s: %s" % (self.hearing, self.title)
@@ -39,6 +41,10 @@ class SectionImage(BaseImage):
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="images")
 
+    class Meta:
+        verbose_name = _('section image')
+        verbose_name_plural = _('section images')
+
 
 @revisions.register
 @recache_on_save
@@ -46,3 +52,7 @@ class SectionComment(BaseComment):
     parent_field = "section"
     parent_model = Section
     section = models.ForeignKey(Section, related_name="comments")
+
+    class Meta:
+        verbose_name = _('section comment')
+        verbose_name_plural = _('section comments')

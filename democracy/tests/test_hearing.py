@@ -265,6 +265,17 @@ def test_admin_can_see_unpublished(api_client, john_doe_api_client, admin_api_cl
 
 
 @pytest.mark.django_db
+def test_can_see_unpublished_with_preview_code(api_client):
+    hearings = create_hearings(1)
+    unpublished_hearing = hearings[0]
+    unpublished_hearing.published = False
+    unpublished_hearing.save()
+    get_data_from_response(api_client.get(get_detail_url(unpublished_hearing.id)), status_code=404)
+    preview_url = "{}?preview={}".format(get_detail_url(unpublished_hearing.id), unpublished_hearing.preview_code)
+    get_data_from_response(api_client.get(preview_url), status_code=200)
+
+
+@pytest.mark.django_db
 def test_hearing_geo(api_client, random_hearing):
     random_hearing.geojson = get_geojson()
     random_hearing.save()

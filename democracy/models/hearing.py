@@ -8,7 +8,7 @@ from jsonfield import JSONField
 from reversion import revisions
 
 from democracy.models.comment import recache_on_save
-
+from democracy.utils.hmac_hash import get_hmac_b64_encoded
 from .base import Commentable, StringIdBaseModel
 from .comment import BaseComment
 from .images import BaseImage
@@ -42,6 +42,10 @@ class Hearing(Commentable, StringIdBaseModel):
         if self.closed:
             raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
         return super().may_comment(request)
+
+    @property
+    def preview_code(self):
+        return get_hmac_b64_encoded(self.pk)
 
 
 class HearingImage(BaseImage):

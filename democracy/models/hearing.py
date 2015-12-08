@@ -9,6 +9,7 @@ from reversion import revisions
 
 from democracy.models.comment import recache_on_save
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
+
 from .base import Commentable, StringIdBaseModel
 from .comment import BaseComment
 from .images import BaseImage

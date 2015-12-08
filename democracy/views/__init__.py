@@ -1,4 +1,4 @@
-from .hearing import HearingViewSet, HearingImageViewSet
+from .hearing import HearingImageViewSet, HearingViewSet
 from .hearing_comment import HearingCommentViewSet
 from .section import SectionViewSet
 from .section_comment import SectionCommentViewSet

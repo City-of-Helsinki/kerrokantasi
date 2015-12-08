@@ -1,6 +1,6 @@
-from .hearing import Hearing, HearingImage, HearingComment
+from .hearing import Hearing, HearingComment, HearingImage
 from .label import Label
-from .section import Section, SectionImage, SectionComment
+from .section import Section, SectionComment, SectionImage
 
 __all__ = [
     "Hearing",

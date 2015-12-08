@@ -8,7 +8,7 @@ from jsonfield import JSONField
 from reversion import revisions
 
 from democracy.models.comment import recache_on_save
-
+from democracy.utils.hmac_hash import get_hmac_b64_encoded
 from .base import Commentable, StringIdBaseModel
 from .comment import BaseComment
 from .images import BaseImage
@@ -45,13 +45,7 @@ class Hearing(Commentable, StringIdBaseModel):
 
     @property
     def preview_code(self):
-        import base64
-        import hashlib
-        return base64.urlsafe_b64encode(
-            hashlib.sha256(
-                "{}{}".format(self.pk, settings.SECRET_KEY).encode('utf-8')
-            ).digest()
-        ).decode('utf-8').replace('=', '')
+        return get_hmac_b64_encoded(self.pk)
 
 
 class HearingImage(BaseImage):

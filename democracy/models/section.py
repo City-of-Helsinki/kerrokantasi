@@ -33,8 +33,9 @@ class Section(Commentable, StringIdBaseModel):
             self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
         return super(Section, self).save(*args, **kwargs)
 
-    def may_comment(self, request):
-        return super().may_comment(request) and self.hearing.may_comment(request)
+    def check_commenting(self, request):
+        super().check_commenting(request)
+        self.hearing.check_commenting(request)
 
 
 class SectionImage(BaseImage):

@@ -45,10 +45,10 @@ class Hearing(Commentable, StringIdBaseModel):
     def closed(self):
         return self.force_closed or not (self.open_at <= now() <= self.close_at)
 
-    def may_comment(self, request):
+    def check_commenting(self, request):
         if self.closed:
             raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
-        return super().may_comment(request)
+        super().check_commenting(request)
 
     @property
     def preview_code(self):

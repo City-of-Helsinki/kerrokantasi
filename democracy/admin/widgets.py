@@ -45,9 +45,9 @@ class ShortTextAreaWidget(AdminTextareaWidget):
 class Select2SelectMultiple(SelectMultiple):
     SCRIPT_TEMPLATE = dedent("""
     <script type="text/javascript">
-    addEvent(window, "load", function(e) {
-        output.append('$("#%(id)s").select2();
-    });
+    addEvent(window, "load", function(e) {{
+        $("#{id}").select2();
+    }});
     </script>
     """)
 
@@ -70,11 +70,11 @@ class Select2SelectMultiple(SelectMultiple):
 class TinyMCE(Textarea):
     SCRIPT_TEMPLATE = dedent("""
     <script type="text/javascript">
-    addEvent(window, "load", function(e) {
-        var config = %(config_json)s;
-        config.selector = "#" + document.querySelector("textarea[name=%(name)s]").id;
+    addEvent(window, "load", function(e) {{
+        var config = {config_json};
+        config.selector = "#" + document.querySelector("textarea[name={name}]").id;
         tinymce.init(config);
-    });
+    }});
     </script>
     """)
 

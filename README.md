@@ -20,16 +20,10 @@
 Install all required packages with pip command:
 
      pip install -r requirements.txt
+     
+## Compile translation .mo files (if i18n is required)
 
-# Testing
-
-Run all tests. Execute command in project root directory.
-
-     py.test
-
-Run test against particular issue.
-
-    py.test -k test_7 -v
+     python manage.py i18n:compile
 
 # Migration
 
@@ -45,3 +39,24 @@ Run test against particular issue.
    to the `kerrokantasi` media directory (defaults to `kerrokantasi/var/media`).
 4. Run the `democracy_import_json` management command with the path of the JSON file created in step 3.
 5. Done.
+
+# Development
+
+## Testing
+
+To run all tests, execute command in project root directory.
+
+     py.test
+
+Run test against particular issue.
+
+    py.test -k test_7 -v
+
+## Internationalization
+
+Translations are maintained on [Transifex][tx].
+
+* To pull new translations from Transifex, run `npm run i18n:pull`
+* As a translation maintainer, run `npm run i18n:extract && npm run i18n:push` to push new source files.
+
+[tx]: https://www.transifex.com/city-of-helsinki/kerrokantasi/dashboard/

@@ -8,6 +8,7 @@ from jsonfield import JSONField
 from reversion import revisions
 
 from democracy.models.comment import recache_on_save
+from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
 from .base import Commentable, StringIdBaseModel
 from .comment import BaseComment
@@ -22,14 +23,20 @@ class Hearing(Commentable, StringIdBaseModel):
     abstract = models.TextField(verbose_name=_('abstract'), blank=True, default='')
     borough = models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200)
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
-    latitude = models.FloatField(verbose_name=_('latitude'), null=True)
-    longitude = models.FloatField(verbose_name=_('longitude'), null=True)
+    latitude = models.FloatField(verbose_name=_('latitude'), null=True, blank=True)
+    longitude = models.FloatField(verbose_name=_('longitude'), null=True, blank=True)
     geojson = JSONField(blank=True, null=True, verbose_name=_('GeoJSON object'), editable=False)
     labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
     followers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('users who follow this hearing'), related_name='followed_hearings', blank=True, editable=False
+        verbose_name=_('followers'),
+        help_text=_('users who follow this hearing'),
+        related_name='followed_hearings', blank=True, editable=False
     )
+
+    class Meta:
+        verbose_name = _('hearing')
+        verbose_name_plural = _('hearings')
 
     def __str__(self):
         return (self.title or self.id)
@@ -38,15 +45,23 @@ class Hearing(Commentable, StringIdBaseModel):
     def closed(self):
         return self.force_closed or not (self.open_at <= now() <= self.close_at)
 
-    def may_comment(self, request):
+    def check_commenting(self, request):
         if self.closed:
             raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
-        return super().may_comment(request)
+        super().check_commenting(request)
+
+    @property
+    def preview_code(self):
+        return get_hmac_b64_encoded(self.pk)
 
 
 class HearingImage(BaseImage):
     parent_field = "hearing"
     hearing = models.ForeignKey(Hearing, related_name="images")
+
+    class Meta:
+        verbose_name = _('hearing image')
+        verbose_name_plural = _('hearing images')
 
 
 @revisions.register
@@ -55,3 +70,7 @@ class HearingComment(BaseComment):
     parent_field = "hearing"
     parent_model = Hearing
     hearing = models.ForeignKey(Hearing, related_name="comments")
+
+    class Meta:
+        verbose_name = _('hearing comment')
+        verbose_name_plural = _('hearing comments')

@@ -1,0 +1,194 @@
+# Translations template for PROJECT.
+# Copyright (C) 2015 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# 
+# Translators:
+# Aarni Koskela, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: kerrokantasi\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2015-12-07 15:02+0200\n"
+"PO-Revision-Date: 2015-12-07 13:08+0000\n"
+"Last-Translator: Aarni Koskela\n"
+"Language-Team: Finnish (http://www.transifex.com/city-of-helsinki/kerrokantasi/language/fi/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.1.1\n"
+"Language: fi\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, python-format
+msgid "%s does not allow anonymous commenting"
+msgstr "%s ei salli anonyymiä kommentointia"
+
+#, python-format
+msgid "%s does not allow commenting"
+msgstr "%s ei salli kommentointia"
+
+#, python-format
+msgid "%s is closed and does not allow comments anymore"
+msgstr "%s on suljettu eikä salli enää kommentointia"
+
+msgid "GeoJSON object"
+msgstr "GeoJSON-objekti"
+
+msgid "No commenting"
+msgstr "Ei kommentointia"
+
+msgid "Open commenting"
+msgstr "Avoin kommentointi"
+
+msgid "Participatory Democracy"
+msgstr "Osallistava demokratia"
+
+msgid "Registered users only"
+msgstr "Rekisteröityneet käyttäjät"
+
+msgid "You may leave this empty to automatically generate an ID"
+msgstr "Voit jättää tämän tyhjäksi generoidaksesi tunnisteen automaattisesti"
+
+msgid "abstract"
+msgstr "lyhennelmä"
+
+msgid "author name"
+msgstr "tekijän nimi"
+
+msgid "borough"
+msgstr "alue"
+
+msgid "caption"
+msgstr "kuvateksti"
+
+msgid "closing time"
+msgstr "sulkeutumisaika"
+
+msgid "commenting"
+msgstr "kommentointi"
+
+msgid "content"
+msgstr "sisältö"
+
+msgid "created by"
+msgstr "luoja"
+
+msgid "deleted"
+msgstr "poistettu"
+
+msgid "followers"
+msgstr "seuraajat"
+
+msgid "force hearing closed"
+msgstr "pakota suljetuksi"
+
+msgid "hearing"
+msgstr "kuuleminen"
+
+msgid "hearing comment"
+msgstr "kuulemiskommentti"
+
+msgid "hearing comments"
+msgstr "kuulemiskommentit"
+
+msgid "hearing image"
+msgstr "kuulemiskuva"
+
+msgid "hearing images"
+msgstr "kuulemiskuvat"
+
+msgid "hearings"
+msgstr "kuulemiset"
+
+msgid "height"
+msgstr "korkeus"
+
+msgid "identifier"
+msgstr "tunniste"
+
+msgid "image"
+msgstr "kuva"
+
+msgid "label"
+msgstr "nimeke"
+
+msgid "labels"
+msgstr "nimekkeet"
+
+msgid "last modified by"
+msgstr "viimeisin muokkaaja"
+
+msgid "latitude"
+msgstr "leveyspiiri"
+
+msgid "legacy vote count"
+msgstr "äänilukumäärä vanhassa järjestelmässä"
+
+msgid "longitude"
+msgstr "korkeuspiiri"
+
+msgid "number of comments"
+msgstr "kommenttien lukumäärä"
+
+msgid "number of votes given to this comment"
+msgstr "kommentin saamat äänet"
+
+msgid "number of votes imported from legacy system"
+msgstr "kommentin saamat äänet vanhassa järjestelmässä"
+
+msgid "opening time"
+msgstr "avautumisaika"
+
+msgid "ordering"
+msgstr "järjestysnumero"
+
+msgid "public"
+msgstr "julkinen"
+
+msgid "section"
+msgstr "osa"
+
+msgid "section comment"
+msgstr "osakommentti"
+
+msgid "section comments"
+msgstr "osakommentit"
+
+msgid "section image"
+msgstr "osakuva"
+
+msgid "section images"
+msgstr "osakuvat"
+
+msgid "sections"
+msgstr "osat"
+
+msgid "service map URL"
+msgstr "palvelukartta-URL"
+
+msgid "time of creation"
+msgstr "luontiaika"
+
+msgid "time of last modification"
+msgstr "viimeisin muokkausaika"
+
+msgid "title"
+msgstr "otsikko"
+
+msgid "type"
+msgstr "pi"
+
+msgid "users who follow this hearing"
+msgstr "kuulemista seuraavat käyttäjät"
+
+msgid "users who voted for this comment"
+msgstr "kuulemista äänestäneet käyttäjät"
+
+msgid "vote count"
+msgstr "äänilukumäärä"
+
+msgid "voters"
+msgstr "äänestäjät"
+
+msgid "width"
+msgstr "leveys"

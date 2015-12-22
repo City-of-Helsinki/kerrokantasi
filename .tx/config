@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+
+[kerrokantasi.djangopot-3]
+file_filter = democracy/locale/<lang>/LC_MESSAGES/django.po
+source_file = democracy/locale/django.pot
+source_lang = en
+trans.fi = democracy/locale/fi/LC_MESSAGES/django.po
+type = PO
+

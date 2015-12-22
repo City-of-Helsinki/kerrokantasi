@@ -11,6 +11,8 @@ from enumfields.fields import EnumIntegerField
 
 from democracy.enums import Commenting
 
+ORDERING_HELP = _("The ordering position for this object. Objects with smaller numbers appear first.")
+
 
 def generate_id():
     return get_random_string(32)
@@ -114,8 +116,8 @@ class Commentable(models.Model):
     """
     Mixin for models which can be commented.
     """
-    n_comments = models.IntegerField(verbose_name=_('Number of comments'), blank=True, default=0, editable=False)
-    commenting = EnumIntegerField(Commenting, default=Commenting.NONE)
+    n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
+    commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
 
     def recache_n_comments(self):
         new_n_comments = self.comments.count()
@@ -123,16 +125,21 @@ class Commentable(models.Model):
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))
 
-    def may_comment(self, request):
+    def check_commenting(self, request):
+        """
+        Check whether the given request (HTTP or DRF) is allowed to comment on this Commentable.
+
+        If commenting is not allowed, the function must raise a ValidationError.
+        It must never return a value other than None.
+        """
         is_authenticated = request.user.is_authenticated()
         if self.commenting == Commenting.NONE:
             raise ValidationError(_("%s does not allow commenting") % self, code="commenting_none")
         elif self.commenting == Commenting.REGISTERED:
             if not is_authenticated:
                 raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
-            return True
         elif self.commenting == Commenting.OPEN:
-            return True
+            return
         else:  # pragma: no cover
             raise NotImplementedError("Not implemented")
 

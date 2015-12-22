@@ -281,3 +281,30 @@ def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client,
     # But still, no!
     data = get_data_from_response(response, 403)
     assert HearingComment.objects.get(pk=comment_id).content == johns_message
+
+
+@pytest.mark.django_db
+def test_comment_editing_disallowed_after_closure(john_doe_api_client):
+    hearing = Hearing.objects.create(
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        commenting=Commenting.OPEN
+    )
+    # Post a comment:
+    response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
+    data = get_data_from_response(response, status_code=201)
+    comment_id = data["id"]
+    # Successfully edit the comment:
+    response = john_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (hearing.id, comment_id), data={
+        "content": "Hello"
+    })
+    data = get_data_from_response(response, status_code=200)
+    assert data["content"] == "Hello"
+    # Close the hearing:
+    hearing.close_at = hearing.open_at
+    hearing.save()
+    # Futilely attempt to edit the comment:
+    response = john_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (hearing.id, comment_id), data={
+        "content": "No"
+    })
+    assert response.status_code == 403

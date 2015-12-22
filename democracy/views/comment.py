@@ -59,14 +59,13 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     def _check_may_comment(self, request):
         parent = self.get_comment_parent()
         try:
-            may_comment = parent.may_comment(request)
+            # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
+            assert parent.check_commenting(request) is None
         except ValidationError as verr:
             return response.Response(
                 {'status': force_text(verr), 'code': verr.code},
                 status=status.HTTP_403_FORBIDDEN
             )
-        if not may_comment:
-            return response.Response({'status': 'Commenting not allowed'}, status=status.HTTP_403_FORBIDDEN)
 
     def create(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)

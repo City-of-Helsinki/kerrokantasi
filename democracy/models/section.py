@@ -14,7 +14,7 @@ from .hearing import Hearing
 class Section(Commentable, StringIdBaseModel):
     hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
-    type = EnumField(verbose_name=_('type'), enum=SectionType, default=SectionType.PLAIN)
+    type = EnumField(verbose_name=_('type'), enum=SectionType, default=SectionType.PLAIN, max_length=64)
     title = models.CharField(verbose_name=_('title'), max_length=255, blank=True)
     abstract = models.TextField(verbose_name=_('abstract'), blank=True)
     content = models.TextField(verbose_name=_('content'), blank=True)

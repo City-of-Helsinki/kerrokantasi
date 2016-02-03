@@ -9,9 +9,9 @@ from .base import BaseModel
 class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
-    title = models.CharField(verbose_name=_('title'), blank=True, max_length=80)
+    title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'))
-    author_name = models.CharField(verbose_name=_('author name'), max_length=40, blank=True, null=True, editable=False)
+    author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True, editable=False)
     n_votes = models.IntegerField(
         verbose_name=_('vote count'),
         help_text=_('number of votes given to this comment'),

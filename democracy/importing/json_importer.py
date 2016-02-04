@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.utils.timezone import make_aware
 
 from democracy.enums import SectionType
-from democracy.models import Hearing
+from democracy.models import Hearing, Section
 from democracy.models.comment import BaseComment
 from democracy.models.images import BaseImage
 
@@ -94,7 +94,7 @@ def import_image(target, datum, position):
     return image
 
 
-def import_section(hearing, section_datum, section_type):
+def import_section(hearing, section_datum, section_type, force=False):
     # Offset ensures that scenario sections are placed below other sections.
     # The 2 offset ensures the introduction section (position 1) remains first.
     offset = (1000 if section_type == SectionType.SCENARIO else 2)
@@ -108,7 +108,19 @@ def import_section(hearing, section_datum, section_type):
         "content": (section_datum.pop("body") or ""),
     }
     if s_args.get("title"):  # pragma: no branch  # sane ids if possible
-        s_args["pk"] = "%s-%s" % (hearing.pk, slugify(s_args["title"]))
+        pk = "%s-%s" % (hearing.pk, slugify(s_args["title"]))
+        if len(pk) > 32:
+            log.warning("Truncating section pk %s to %s", pk, pk[:32])
+            pk = pk[:32]
+        old_section = Section.objects.filter(pk=pk).first()
+        if old_section:
+            if settings.DEBUG or force:
+                log.info("Section %s already exists, importing new entry with mutated pk", pk)
+                pk = "%s_%s" % (pk[:26], get_random_string(5))
+            else:
+                log.info("Section %s already exists, skipping", pk)
+                return
+        s_args["pk"] = pk
     section = hearing.sections.create(**s_args)
     import_comments(section, section_datum.pop("comments", ()))
     import_images(section, section_datum)
@@ -153,9 +165,9 @@ def import_hearing(hearing_datum, force=False):
     import_images(hearing, hearing_datum)
 
     for section_datum in sorted(hearing_datum.pop("sections", ()), key=itemgetter("position")):
-        import_section(hearing, section_datum, SectionType.PLAIN)
+        import_section(hearing, section_datum, SectionType.PLAIN, force)
     for alt_datum in sorted(hearing_datum.pop("alternatives", ()), key=itemgetter("position")):
-        import_section(hearing, alt_datum, SectionType.SCENARIO)
+        import_section(hearing, alt_datum, SectionType.SCENARIO, force)
 
     # Compact section ordering...
     for index, section in enumerate(hearing.sections.order_by("ordering"), 1):

@@ -46,7 +46,7 @@ class Select2SelectMultiple(SelectMultiple):
     SCRIPT_TEMPLATE = dedent("""
     <script type="text/javascript">
     addEvent(window, "load", function(e) {{
-        $("#{id}").select2();
+        $("#{id}").select2({{ width: '21em'}});
     }});
     </script>
     """)

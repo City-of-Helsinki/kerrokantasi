@@ -84,9 +84,10 @@ class HearingAdmin(NestedAdmin):
     list_display = ("id", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)
     search_fields = ("id", "title")
+    readonly_fields = ("preview_url",)
     fieldsets = (
         (None, {
-            "fields": ("title", "abstract", "labels", "id")
+            "fields": ("title", "abstract", "labels", "id", "preview_url")
         }),
         (_("Availability"), {
             "fields": ("published", "open_at", "close_at", "force_closed", "commenting")
@@ -96,6 +97,10 @@ class HearingAdmin(NestedAdmin):
         TextField: {'widget': ShortTextAreaWidget}
     }
     form = FixedModelForm
+
+    def preview_url(self, obj):
+        return obj.preview_url
+    preview_url.short_description = _('Preview URL')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == "labels":

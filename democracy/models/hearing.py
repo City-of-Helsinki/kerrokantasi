@@ -1,9 +1,12 @@
+from urllib.parse import urljoin
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
+from django.utils.html import format_html
 from jsonfield import JSONField
 from reversion import revisions
 
@@ -52,7 +55,18 @@ class Hearing(Commentable, StringIdBaseModel):
 
     @property
     def preview_code(self):
+        if not self.pk:
+            return None
         return get_hmac_b64_encoded(self.pk)
+
+    @property
+    def preview_url(self):
+        if not (self.preview_code and hasattr(settings, 'UI_BASE_URL')):
+            return ''
+        url = urljoin(settings.UI_BASE_URL, '/hearing/%s/?preview=%s' % (self.pk, self.preview_code))
+        return format_html(
+            '<a href="%s">%s</a>' % (url, url)
+        )
 
 
 class HearingImage(BaseImage):

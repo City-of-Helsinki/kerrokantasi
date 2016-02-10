@@ -105,3 +105,6 @@ JWT_AUTH = {
     'JWT_SECRET_KEY': 'kerrokantasi',
     'JWT_AUDIENCE': 'kerrokantasi'
 }
+
+
+UI_BASE_URL = 'http://localhost:8086'

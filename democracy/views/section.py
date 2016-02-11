@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 
 from democracy.enums import Commenting, SectionType
-from democracy.models import Section, SectionImage
+from democracy.models import Section, SectionImage, Hearing
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 
@@ -43,4 +43,8 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     model = Section
 
     def get_queryset(self):
-        return super(SectionViewSet, self).get_queryset().filter(hearing_id=self.kwargs["hearing_pk"])
+        hearing = Hearing.objects.get(id=self.kwargs['hearing_pk'])
+        queryset = super().get_queryset().filter(hearing=hearing)
+        if not hearing.closed:
+            queryset = queryset.exclude(type=SectionType.CLOSURE_INFO)
+        return queryset

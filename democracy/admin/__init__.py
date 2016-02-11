@@ -10,6 +10,7 @@ from nested_admin.nested import NestedAdmin, NestedStackedInline
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget, TinyMCE
 from democracy.enums import SectionType
+from democracy.models.utils import copy_hearing
 
 
 # Taken from https://github.com/asyncee/django-easy-select2/blob/master/easy_select2/forms.py
@@ -97,6 +98,12 @@ class HearingAdmin(NestedAdmin):
         TextField: {'widget': ShortTextAreaWidget}
     }
     form = FixedModelForm
+    actions = ("copy_as_draft",)
+
+    def copy_as_draft(self, request, queryset):
+        for hearing in queryset:
+            copy_hearing(hearing, published=False)
+            self.message_user(request, _('Copied Hearing "%s" as a draft.' % hearing.title))
 
     def preview_url(self, obj):
         return obj.preview_url

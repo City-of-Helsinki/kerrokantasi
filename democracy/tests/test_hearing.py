@@ -8,6 +8,7 @@ from democracy.models import Hearing, HearingComment, HearingImage, Label, Secti
 from democracy.tests.utils import (
     assert_datetime_fuzzy_equal, get_data_from_response, get_geojson, get_hearing_detail_url
 )
+from democracy.models.utils import copy_hearing
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint
@@ -283,3 +284,39 @@ def test_hearing_geo(api_client, random_hearing):
     assert data["geojson"] == random_hearing.geojson
     map_data = get_data_from_response(api_client.get(list_endpoint + "map/"))
     assert map_data[0]["geojson"] == random_hearing.geojson
+
+
+@pytest.mark.django_db
+def test_hearing_copy(default_hearing, random_label):
+    default_hearing.labels.add(random_label)
+    new_hearing = copy_hearing(default_hearing, published=False, title='overridden title')
+    assert Hearing.objects.count() == 2
+
+    # check that num of sections and images has doubled
+    assert Section.objects.count() == 6  # 3 sections per hearing
+    assert SectionImage.objects.count() == 18  # 3 section images per section
+    assert HearingImage.objects.count() == 6  # 3 hearing images per hearing
+
+    # check that num of labels hasn't changed
+    assert Label.objects.count() == 1
+
+    # check hearing model fields
+    for field_name in ('open_at', 'close_at', 'force_closed', 'abstract', 'borough',
+                       'servicemap_url', 'latitude', 'longitude', 'geojson'):
+        assert getattr(new_hearing, field_name) == getattr(default_hearing, field_name)
+
+    # check overridden fields
+    assert new_hearing.published is False
+    assert new_hearing.title == 'overridden title'
+
+    # check num of new sections and section images and verify new section abstracts
+    assert new_hearing.sections.count() == 3
+    for i, new_section in enumerate(new_hearing.sections.all().order_by('abstract'), 1):
+        new_section.images.count() == 3
+        assert new_section.abstract == 'Section %d abstract' % i
+
+    assert new_hearing.images.count() == 3
+    assert random_label in new_hearing.labels.all()
+
+    # there should be no comments for the new hearing
+    assert new_hearing.comments.count() == 0

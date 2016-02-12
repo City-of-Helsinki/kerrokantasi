@@ -9,6 +9,7 @@ from democracy.tests.utils import (
     assert_datetime_fuzzy_equal, get_data_from_response, get_geojson, get_hearing_detail_url
 )
 from democracy.models.utils import copy_hearing
+from democracy.enums import SectionType
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint
@@ -288,13 +289,17 @@ def test_hearing_geo(api_client, random_hearing):
 
 @pytest.mark.django_db
 def test_hearing_copy(default_hearing, random_label):
+    Section.objects.create(
+        type=SectionType.CLOSURE_INFO,
+        hearing=default_hearing
+    )
     default_hearing.labels.add(random_label)
     new_hearing = copy_hearing(default_hearing, published=False, title='overridden title')
     assert Hearing.objects.count() == 2
 
     # check that num of sections and images has doubled
-    assert Section.objects.count() == 6  # 3 sections per hearing
-    assert SectionImage.objects.count() == 18  # 3 section images per section
+    assert Section.objects.count() == 7  # 3 sections per hearing + 1 old closure info section
+    assert SectionImage.objects.count() == 18  # 3 section images per non closure section
     assert HearingImage.objects.count() == 6  # 3 hearing images per hearing
 
     # check that num of labels hasn't changed
@@ -320,3 +325,6 @@ def test_hearing_copy(default_hearing, random_label):
 
     # there should be no comments for the new hearing
     assert new_hearing.comments.count() == 0
+
+    # closure info section should not have been copied
+    assert not new_hearing.sections.filter(type=SectionType.CLOSURE_INFO).exists()

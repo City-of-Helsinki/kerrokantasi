@@ -1,6 +1,8 @@
 from copy import copy
 from django.db import transaction
 
+from democracy.enums import SectionType
+
 
 @transaction.atomic
 def copy_hearing(old_hearing, **kwargs):
@@ -11,7 +13,8 @@ def copy_hearing(old_hearing, **kwargs):
 
     Copy strategy:
       * All Hearing model field values will be copied
-      * New identical Sections will be created
+      * New identical Sections will be created, except
+        for closure info type
       * New identical HearingImages will be created
       * The same labels will be set for the new Hearing
 
@@ -30,7 +33,7 @@ def copy_hearing(old_hearing, **kwargs):
     new_hearing.labels = old_hearing.labels.all()
 
     # create new sections and section images
-    for section in old_hearing.sections.all():
+    for section in old_hearing.sections.exclude(type=SectionType.CLOSURE_INFO):
         old_images = section.images.all()
         section.pk = None
         section.hearing = new_hearing

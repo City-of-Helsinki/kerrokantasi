@@ -19,3 +19,4 @@ class SectionType(Enum):
     PLAIN = "plain"
     SCENARIO = "scenario"
     AREA = "area"
+    CLOSURE_INFO = "closure info"

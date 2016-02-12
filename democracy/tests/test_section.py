@@ -1,12 +1,24 @@
+import datetime
 import pytest
 from django.utils.encoding import force_text
+from django.utils.timezone import now
 
 from democracy.enums import SectionType
 from democracy.models import Section
-from democracy.tests.utils import get_data_from_response, get_hearing_detail_url
+from democracy.models.section import CLOSURE_INFO_ORDERING
+from democracy.tests.utils import get_data_from_response, get_hearing_detail_url, assert_id_in_results
+
 
 hearing_endpoint = '/v1/hearing/'
 hearing_list_endpoint = hearing_endpoint
+
+
+@pytest.fixture()
+def closure_info_section(default_hearing):
+    return Section.objects.create(
+        type=SectionType.CLOSURE_INFO,
+        hearing=default_hearing
+    )
 
 
 @pytest.mark.django_db
@@ -203,3 +215,53 @@ def test_section_stringification(random_hearing):
     stringified = force_text(section)
     assert section.title in stringified
     assert random_hearing.title in stringified
+
+
+@pytest.mark.django_db
+def test_closure_info_ordering(closure_info_section):
+
+    # check new section
+    assert closure_info_section.ordering == CLOSURE_INFO_ORDERING
+
+    # check changing type from closure info
+    closure_info_section.type = SectionType.PLAIN
+    closure_info_section.save()
+    assert closure_info_section.ordering != CLOSURE_INFO_ORDERING
+
+    # check changing type to closure info
+    closure_info_section.type = SectionType.CLOSURE_INFO
+    closure_info_section.save()
+    assert closure_info_section.ordering == CLOSURE_INFO_ORDERING
+
+
+@pytest.mark.django_db
+def test_closure_info_visibility(api_client, closure_info_section):
+    hearing = closure_info_section.hearing
+
+    # hearing closed, closure info section should be in results
+    hearing.close_at = now() - datetime.timedelta(days=1)
+    hearing.save()
+
+    # check sections field in the hearing
+    response = api_client.get(get_hearing_detail_url(hearing.id))
+    data = get_data_from_response(response)
+    assert_id_in_results(closure_info_section.id, data['sections'])
+
+    # check sections endpoint
+    response = api_client.get(get_hearing_detail_url(hearing.id, 'sections'))
+    data = get_data_from_response(response)
+    assert_id_in_results(closure_info_section.id, data)
+
+    # hearing open, closure info section should not be in results
+    hearing.close_at = now() + datetime.timedelta(days=1)
+    hearing.save()
+
+    # check sections field in the hearing
+    response = api_client.get(get_hearing_detail_url(hearing.id))
+    data = get_data_from_response(response)
+    assert_id_in_results(closure_info_section.id, data['sections'], False)
+
+    # check sections endpoint
+    response = api_client.get(get_hearing_detail_url(hearing.id, 'sections'))
+    data = get_data_from_response(response)
+    assert_id_in_results(closure_info_section.id, data, False)

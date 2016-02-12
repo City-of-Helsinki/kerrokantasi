@@ -80,3 +80,8 @@ def get_geojson():
             "coordinates": [-104.99404, 39.75621]
         }
     }
+
+
+def assert_id_in_results(id, results, expected=True):
+    included = id in [value['id'] for value in results]
+    assert included is expected

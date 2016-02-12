@@ -11,6 +11,9 @@ from .base import ORDERING_HELP, Commentable, StringIdBaseModel
 from .hearing import Hearing
 
 
+CLOSURE_INFO_ORDERING = -10000
+
+
 class Section(Commentable, StringIdBaseModel):
     hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
@@ -28,9 +31,14 @@ class Section(Commentable, StringIdBaseModel):
         return "%s: %s" % (self.hearing, self.title)
 
     def save(self, *args, **kwargs):
-        if not self.pk and self.ordering == 1 and self.hearing_id:
-            # Automatically derive next ordering on initial save, if possible
-            self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
+        if self.hearing_id:
+            # Closure info should be the first
+            if self.type == SectionType.CLOSURE_INFO:
+                self.ordering = CLOSURE_INFO_ORDERING
+            elif (not self.pk and self.ordering == 1) or self.ordering == CLOSURE_INFO_ORDERING:
+                # This is a new section or changing type from closure info,
+                # automatically derive next ordering, if possible
+                self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
         return super(Section, self).save(*args, **kwargs)
 
     def check_commenting(self, request):

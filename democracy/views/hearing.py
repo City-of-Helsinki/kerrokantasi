@@ -5,7 +5,7 @@ from rest_framework.fields import JSONField
 from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 
-from democracy.enums import Commenting
+from democracy.enums import Commenting, SectionType
 from democracy.models import Hearing, HearingImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
@@ -43,10 +43,18 @@ class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewS
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = HearingImageSerializer.get_field_serializer(many=True, read_only=True)
-    sections = SectionFieldSerializer(many=True, read_only=True)
+    sections = serializers.SerializerMethodField()
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
+
+    def get_sections(self, hearing):
+        queryset = hearing.sections.all()
+        if not hearing.closed:
+            queryset = queryset.exclude(type=SectionType.CLOSURE_INFO)
+        serializer = SectionFieldSerializer(many=True, read_only=True)
+        serializer.bind('sections', self)  # this is needed to get context in the serializer
+        return serializer.to_representation(queryset)
 
     class Meta:
         model = Hearing

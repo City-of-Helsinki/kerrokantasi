@@ -22,6 +22,8 @@ INSTALLED_APPS = (
     'corsheaders',
     'easy_thumbnails',
     'rest_framework_nested',
+    'djgeojson',
+    'leaflet',
     'helusers',
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app

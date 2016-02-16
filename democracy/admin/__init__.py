@@ -6,6 +6,8 @@ from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
 from django import forms
 from nested_admin.nested import NestedAdmin, NestedStackedInline
+from leaflet.admin import LeafletGeoAdmin
+from djgeojson.fields import GeoJSONFormField
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget, TinyMCE
@@ -20,6 +22,8 @@ class FixedModelForm(forms.ModelForm):
     message that is enforced in select multiple fields.
     See https://github.com/asyncee/django-easy-select2/issues/2
     and https://code.djangoproject.com/ticket/9321
+
+    Removes also help_texts of GeoJSONFormFields as those will have maps.
     """
 
     def __init__(self, *args, **kwargs):
@@ -28,7 +32,10 @@ class FixedModelForm(forms.ModelForm):
         msg = force_text(_('Hold down "Control", or "Command" on a Mac, to select more than one.'))
 
         for name, field in self.fields.items():
-            field.help_text = field.help_text.replace(msg, '')
+            if isinstance(field, GeoJSONFormField):
+                field.help_text = ''
+            else:
+                field.help_text = field.help_text.replace(msg, '')
 
 
 # Inlines
@@ -80,7 +87,15 @@ class SectionInline(NestedStackedInline):
 # Admins
 
 
-class HearingAdmin(NestedAdmin):
+class HearingGeoAdmin(LeafletGeoAdmin):
+    settings_overrides = {
+        'DEFAULT_CENTER': (60.192059, 24.945831),  # Helsinki
+        'DEFAULT_ZOOM': 11,
+    }
+
+
+class HearingAdmin(NestedAdmin, HearingGeoAdmin):
+
     inlines = [HearingImageInline, SectionInline]
     list_display = ("id", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)
@@ -93,6 +108,9 @@ class HearingAdmin(NestedAdmin):
         (_("Availability"), {
             "fields": ("published", "open_at", "close_at", "force_closed", "commenting")
         }),
+        (_("Area"), {
+            "fields": ("geojson",)
+        })
     )
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}

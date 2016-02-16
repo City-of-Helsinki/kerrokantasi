@@ -17,3 +17,4 @@ pytz==2015.7
 jsonfield==1.0.3
 # TODO get this from PyPI once available
 git+https://github.com/theatlantic/django-nested-admin.git@v2.1.11#egg=django-nested-admin
+django-geojson==2.9.0

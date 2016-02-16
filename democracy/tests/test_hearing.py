@@ -117,7 +117,7 @@ def test_8_get_detail_check_properties(api_client, default_hearing):
     data = get_data_from_response(response)
     assert set(data.keys()) >= {
         'abstract', 'borough', 'close_at', 'closed', 'created_at', 'id', 'images', 'labels',
-        'latitude', 'longitude', 'n_comments', 'open_at', 'sections', 'servicemap_url',
+        'n_comments', 'open_at', 'sections', 'servicemap_url',
         'title'
     }
 
@@ -211,20 +211,6 @@ def test_8_get_detail_labels(api_client):
 
 
 @pytest.mark.django_db
-def test_7_get_detail_location(api_client):
-    hearing = Hearing(latitude=60.19276, longitude=24.93300)
-    hearing.save()
-
-    response = api_client.get(get_detail_url(hearing.id))
-
-    data = get_data_from_response(response)
-
-    assert 'results' not in data
-    assert abs(data['latitude'] - hearing.latitude) < 0.1
-    assert abs(data['longitude'] - hearing.longitude) < 0.1
-
-
-@pytest.mark.django_db
 def test_7_get_detail_servicemap(api_client):
     hearing = Hearing(
         servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki'
@@ -307,7 +293,7 @@ def test_hearing_copy(default_hearing, random_label):
 
     # check hearing model fields
     for field_name in ('open_at', 'close_at', 'force_closed', 'abstract', 'borough',
-                       'servicemap_url', 'latitude', 'longitude', 'geojson'):
+                       'servicemap_url', 'geojson'):
         assert getattr(new_hearing, field_name) == getattr(default_hearing, field_name)
 
     # check overridden fields

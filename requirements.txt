@@ -15,7 +15,6 @@ pyjwt
 django-enumfields==0.7.4
 pytz==2015.7
 jsonfield==1.0.3
-# TODO get this from PyPI once available
-git+https://github.com/theatlantic/django-nested-admin.git@v2.1.11#egg=django-nested-admin
+django-nested-admin==2.1.12
 django-geojson==2.9.0
 django-leaflet==0.18.0

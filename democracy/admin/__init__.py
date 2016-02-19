@@ -71,13 +71,17 @@ class SectionInline(NestedStackedInline):
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         obj = kwargs.pop("obj", None)
+        if db_field.name == "content":
+            kwargs["widget"] = CKEditorWidget
+            # Some initial value is needed for every section to workaround a bug in nested inlines
+            # that causes an integrity error to be raised when a section image is added but the parent
+            # section isn't saved.
+            kwargs["initial"] = _("Enter text here.")
         if not getattr(obj, "pk", None):
             if db_field.name == "type":
                 kwargs["initial"] = SectionType.INTRODUCTION
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
-        if db_field.name == "content":
-            kwargs["widget"] = CKEditorWidget
         return super().formfield_for_dbfield(db_field, **kwargs)
 
     def get_formset(self, request, obj=None, **kwargs):

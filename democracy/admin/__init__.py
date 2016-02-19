@@ -8,9 +8,10 @@ from django import forms
 from nested_admin.nested import NestedAdmin, NestedStackedInline
 from leaflet.admin import LeafletGeoAdmin
 from djgeojson.fields import GeoJSONFormField
+from ckeditor.widgets import CKEditorWidget
 
 from democracy import models
-from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget, TinyMCE
+from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
 from democracy.enums import SectionType
 from democracy.models.utils import copy_hearing
 
@@ -76,7 +77,7 @@ class SectionInline(NestedStackedInline):
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
         if db_field.name == "content":
-            kwargs["widget"] = TinyMCE
+            kwargs["widget"] = CKEditorWidget
         return super().formfield_for_dbfield(db_field, **kwargs)
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -95,6 +96,8 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 
 
 class HearingAdmin(NestedAdmin, HearingGeoAdmin):
+    class Media:
+        js = ("admin/ckeditor-nested-inline-fix.js",)
 
     inlines = [HearingImageInline, SectionInline]
     list_display = ("id", "published", "title", "open_at", "close_at", "force_closed")

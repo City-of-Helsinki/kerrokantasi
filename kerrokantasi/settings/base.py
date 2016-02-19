@@ -24,6 +24,7 @@ INSTALLED_APPS = (
     'rest_framework_nested',
     'djgeojson',
     'leaflet',
+    'ckeditor',
     'helusers',
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app

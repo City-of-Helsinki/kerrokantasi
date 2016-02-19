@@ -64,7 +64,7 @@ class SectionInline(NestedStackedInline):
     model = models.Section
     extra = 1
     inlines = [SectionImageInline]
-    exclude = ("public", "commenting",)
+    exclude = ("public", "commenting", "id",)
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }

@@ -8,9 +8,10 @@ from django import forms
 from nested_admin.nested import NestedAdmin, NestedStackedInline
 from leaflet.admin import LeafletGeoAdmin
 from djgeojson.fields import GeoJSONFormField
+from ckeditor.widgets import CKEditorWidget
 
 from democracy import models
-from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget, TinyMCE
+from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
 from democracy.enums import SectionType
 from democracy.models.utils import copy_hearing
 
@@ -63,20 +64,24 @@ class SectionInline(NestedStackedInline):
     model = models.Section
     extra = 1
     inlines = [SectionImageInline]
-    exclude = ("public", "commenting",)
+    exclude = ("public", "commenting", "id",)
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         obj = kwargs.pop("obj", None)
+        if db_field.name == "content":
+            kwargs["widget"] = CKEditorWidget
+            # Some initial value is needed for every section to workaround a bug in nested inlines
+            # that causes an integrity error to be raised when a section image is added but the parent
+            # section isn't saved.
+            kwargs["initial"] = _("Enter text here.")
         if not getattr(obj, "pk", None):
             if db_field.name == "type":
                 kwargs["initial"] = SectionType.INTRODUCTION
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
-        if db_field.name == "content":
-            kwargs["widget"] = TinyMCE
         return super().formfield_for_dbfield(db_field, **kwargs)
 
     def get_formset(self, request, obj=None, **kwargs):
@@ -95,6 +100,8 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 
 
 class HearingAdmin(NestedAdmin, HearingGeoAdmin):
+    class Media:
+        js = ("admin/ckeditor-nested-inline-fix.js",)
 
     inlines = [HearingImageInline, SectionInline]
     list_display = ("id", "published", "title", "open_at", "close_at", "force_closed")

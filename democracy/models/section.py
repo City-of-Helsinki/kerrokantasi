@@ -21,6 +21,8 @@ class Section(Commentable, StringIdBaseModel):
     title = models.CharField(verbose_name=_('title'), max_length=255, blank=True)
     abstract = models.TextField(verbose_name=_('abstract'), blank=True)
     content = models.TextField(verbose_name=_('content'), blank=True)
+    plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
+    plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
 
     class Meta:
         ordering = ["ordering"]

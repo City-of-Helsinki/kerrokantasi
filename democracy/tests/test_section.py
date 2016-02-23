@@ -7,7 +7,7 @@ from democracy.enums import SectionType
 from democracy.models import Section
 from democracy.models.section import CLOSURE_INFO_ORDERING
 from democracy.tests.utils import get_data_from_response, get_hearing_detail_url, assert_id_in_results
-
+from democracy.views.section import SectionSerializer
 
 hearing_endpoint = '/v1/hearing/'
 hearing_list_endpoint = hearing_endpoint
@@ -128,11 +128,11 @@ def test_45_get_hearing_with_one_section_check_fields(api_client, default_hearin
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
-    assert 'id' in data['sections'][0]
-    assert 'title' in data['sections'][0]
-    assert 'abstract' in data['sections'][0]
-    assert 'content' in data['sections'][0]
-    assert 'type' in data['sections'][0]
+    section = data['sections'][0]
+    assert all(
+        key in section
+        for key in SectionSerializer.Meta.fields
+    )
 
 
 @pytest.mark.django_db

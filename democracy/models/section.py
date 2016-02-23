@@ -6,6 +6,7 @@ from reversion import revisions
 from democracy.enums import SectionType
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.images import BaseImage
+from democracy.plugins import get_implementation
 
 from .base import ORDERING_HELP, Commentable, StringIdBaseModel
 from .hearing import Hearing
@@ -46,6 +47,10 @@ class Section(Commentable, StringIdBaseModel):
     def check_commenting(self, request):
         super().check_commenting(request)
         self.hearing.check_commenting(request)
+
+    @property
+    def plugin_implementation(self):
+        return get_implementation(self.plugin_identifier)
 
 
 class SectionImage(BaseImage):

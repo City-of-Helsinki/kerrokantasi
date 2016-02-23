@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.test.utils import override_settings
 from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text
 from django.utils.timezone import now
@@ -315,15 +316,32 @@ def test_comment_editing_disallowed_after_closure(john_doe_api_client):
 
 
 @pytest.mark.django_db
-def test_add_plugin_data_to_comment(api_client, default_hearing):
-    section = default_hearing.sections.first()
-    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    comment_data = get_comment_data(
-        plugin_identifier="foo.barplugin",
-        plugin_data=get_random_string()
-    )
-    response = api_client.post(url, data=comment_data)
-    assert response.status_code == 201
-    created_comment = SectionComment.objects.last()
-    assert created_comment.plugin_identifier == comment_data["plugin_identifier"]
-    assert created_comment.plugin_data == comment_data["plugin_data"]
+@pytest.mark.parametrize("case", ("plug-valid", "plug-invalid", "noplug"))
+def test_add_plugin_data_to_comment(api_client, default_hearing, case):
+    with override_settings(
+        DEMOCRACY_PLUGINS={
+            "test_plugin": "democracy.tests.plug.TestPlugin"
+        }
+    ):
+        section = default_hearing.sections.first()
+        if case.startswith("plug"):
+            section.plugin_identifier = "test_plugin"
+        section.save()
+        url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+        comment_data = get_comment_data(
+            plugin_data=("foo6" if case == "plug-valid" else "invalid555")
+        )
+        response = api_client.post(url, data=comment_data)
+        if case == "plug-valid":
+            assert response.status_code == 201
+            created_comment = SectionComment.objects.last()
+            assert created_comment.plugin_identifier == section.plugin_identifier
+            assert created_comment.plugin_data == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
+        elif case == "plug-invalid":
+            data = get_data_from_response(response, status_code=400)
+            assert data == {"plugin_data": ["The data must contain a 6."]}
+        elif case == "noplug":
+            data = get_data_from_response(response, status_code=400)
+            assert "no plugin data is allowed" in data["plugin_data"][0]
+        else:
+            raise NotImplementedError("...")

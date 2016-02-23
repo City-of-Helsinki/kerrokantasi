@@ -110,4 +110,4 @@ JWT_AUTH = {
 }
 
 
-UI_BASE_URL = 'http://localhost:8086'
+DEMOCRACY_UI_BASE_URL = 'http://localhost:8086'

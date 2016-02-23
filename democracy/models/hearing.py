@@ -60,9 +60,9 @@ class Hearing(Commentable, StringIdBaseModel):
 
     @property
     def preview_url(self):
-        if not (self.preview_code and hasattr(settings, 'UI_BASE_URL')):
+        if not (self.preview_code and hasattr(settings, 'DEMOCRACY_UI_BASE_URL')):
             return ''
-        url = urljoin(settings.UI_BASE_URL, '/hearing/%s/?preview=%s' % (self.pk, self.preview_code))
+        url = urljoin(settings.DEMOCRACY_UI_BASE_URL, '/hearing/%s/?preview=%s' % (self.pk, self.preview_code))
         return format_html(
             '<a href="%s">%s</a>' % (url, url)
         )

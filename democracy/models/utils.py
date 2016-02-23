@@ -1,4 +1,5 @@
 from copy import copy
+
 from django.db import transaction
 
 from democracy.enums import SectionType

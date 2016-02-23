@@ -1,23 +1,25 @@
 from functools import partial
 
+from ckeditor.widgets import CKEditorWidget
+from django import forms
+from django.conf import settings
 from django.contrib import admin
 from django.db.models import TextField
-from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import force_text
-from django import forms
-from nested_admin.nested import NestedAdmin, NestedStackedInline
-from leaflet.admin import LeafletGeoAdmin
+from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
-from ckeditor.widgets import CKEditorWidget
+from leaflet.admin import LeafletGeoAdmin
+from nested_admin.nested import NestedAdmin, NestedStackedInline
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
 from democracy.enums import SectionType
 from democracy.models.utils import copy_hearing
+from democracy.plugins import get_implementation
 
 
-# Taken from https://github.com/asyncee/django-easy-select2/blob/master/easy_select2/forms.py
 class FixedModelForm(forms.ModelForm):
+    # Taken from https://github.com/asyncee/django-easy-select2/blob/master/easy_select2/forms.py
     """
     Simple child of ModelForm that removes the 'Hold down "Control" ...'
     message that is enforced in select multiple fields.
@@ -82,7 +84,28 @@ class SectionInline(NestedStackedInline):
                 kwargs["initial"] = SectionType.INTRODUCTION
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
-        return super().formfield_for_dbfield(db_field, **kwargs)
+        field = super().formfield_for_dbfield(db_field, **kwargs)
+        if db_field.name == "plugin_identifier":
+            widget = self._get_plugin_selection_widget(hearing=obj)
+            field.label = _("Plugin")
+            field.widget = widget
+        return field
+
+    def _get_plugin_selection_widget(self, hearing):
+        choices = [("", "------")]
+        plugins = getattr(settings, "DEMOCRACY_PLUGINS")
+        if hearing and hearing.pk:
+            current_plugin_identifiers = set(hearing.sections.values_list("plugin_identifier", flat=True))
+        else:
+            current_plugin_identifiers = set()
+        for plugin_identifier in sorted(current_plugin_identifiers):
+            if plugin_identifier and plugin_identifier not in plugins:
+                # The plugin has been unregistered or something?
+                choices.append((plugin_identifier, plugin_identifier))
+        for idfr, classpath in sorted(plugins.items()):
+            choices.append((idfr, get_implementation(idfr).display_name or idfr))
+        widget = forms.Select(choices=choices)
+        return widget
 
     def get_formset(self, request, obj=None, **kwargs):
         kwargs["formfield_callback"] = partial(self.formfield_for_dbfield, request=request, obj=obj)
@@ -100,6 +123,7 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 
 
 class HearingAdmin(NestedAdmin, HearingGeoAdmin):
+
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)
 

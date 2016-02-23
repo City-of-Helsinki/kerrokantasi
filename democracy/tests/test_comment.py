@@ -1,33 +1,38 @@
 import datetime
 
 import pytest
+from django.test.utils import override_settings
+from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from reversion import revisions
 
 from democracy.enums import Commenting
 from democracy.models import Hearing, HearingComment, Section
+from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content, green_comment_content, red_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
 from democracy.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
 
-comment_data = {
-    'content': default_comment_content,
-    'section': None
-}
+
+def get_comment_data(**extra):
+    return dict({
+        'content': default_comment_content,
+        'section': None
+    }, **extra)
 
 
 @pytest.mark.django_db
 def test_55_add_comment_without_authentication(api_client, default_hearing):
     # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-    response = api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=comment_data)
+    response = api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=get_comment_data())
     assert response.status_code == 201
 
 
 @pytest.mark.django_db
 def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearing):
     # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-    response = john_doe_api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=comment_data)
+    response = john_doe_api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=get_comment_data())
     data = get_data_from_response(response, status_code=201)
     assert data['created_by']['username'] == john_doe.username
     assert data['author_name'] == john_doe.username
@@ -129,7 +134,7 @@ def test_56_add_comment_to_section_without_authentication(api_client, default_he
     section = default_hearing.sections.first()
     # post data to section endpoint /v1/hearing/<hearingID>/sections/<sectionID>/comments/
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    response = api_client.post(url, data=comment_data)
+    response = api_client.post(url, data=get_comment_data())
     assert response.status_code == 201
 
 
@@ -157,7 +162,7 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
 
     # set section explicitly
-    comment_data['section'] = section.pk
+    comment_data = get_comment_data(section=section.pk)
     response = john_doe_api_client.post(url, data=comment_data)
 
     data = get_data_from_response(response, status_code=201)
@@ -180,7 +185,7 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client):
     section = Section.objects.create(title='Section to comment', hearing=hearing, commenting=Commenting.OPEN)
     url = get_hearing_detail_url(hearing.id, 'sections/%s/comments' % section.id)
 
-    comment_data['section'] = section.pk
+    comment_data = get_comment_data(section=section.pk)
     response = api_client.post(url, data=comment_data)
     assert response.status_code == 201, ("response was %s" % response.content)
 
@@ -250,9 +255,9 @@ def test_commenting_modes(api_client, john_doe_api_client, commenting):
         commenting=commenting
     )
     anon_status, reg_status = comment_status_spec[commenting]
-    response = api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
+    response = api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=get_comment_data())
     assert response.status_code == anon_status
-    response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
+    response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=get_comment_data())
     assert response.status_code == reg_status
 
 
@@ -291,7 +296,7 @@ def test_comment_editing_disallowed_after_closure(john_doe_api_client):
         commenting=Commenting.OPEN
     )
     # Post a comment:
-    response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=comment_data)
+    response = john_doe_api_client.post(get_hearing_detail_url(hearing.id, 'comments'), data=get_comment_data())
     data = get_data_from_response(response, status_code=201)
     comment_id = data["id"]
     # Successfully edit the comment:
@@ -308,3 +313,35 @@ def test_comment_editing_disallowed_after_closure(john_doe_api_client):
         "content": "No"
     })
     assert response.status_code == 403
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("case", ("plug-valid", "plug-invalid", "noplug"))
+def test_add_plugin_data_to_comment(api_client, default_hearing, case):
+    with override_settings(
+        DEMOCRACY_PLUGINS={
+            "test_plugin": "democracy.tests.plug.TestPlugin"
+        }
+    ):
+        section = default_hearing.sections.first()
+        if case.startswith("plug"):
+            section.plugin_identifier = "test_plugin"
+        section.save()
+        url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+        comment_data = get_comment_data(
+            plugin_data=("foo6" if case == "plug-valid" else "invalid555")
+        )
+        response = api_client.post(url, data=comment_data)
+        if case == "plug-valid":
+            assert response.status_code == 201
+            created_comment = SectionComment.objects.last()
+            assert created_comment.plugin_identifier == section.plugin_identifier
+            assert created_comment.plugin_data == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
+        elif case == "plug-invalid":
+            data = get_data_from_response(response, status_code=400)
+            assert data == {"plugin_data": ["The data must contain a 6."]}
+        elif case == "noplug":
+            data = get_data_from_response(response, status_code=400)
+            assert "no plugin data is allowed" in data["plugin_data"][0]
+        else:
+            raise NotImplementedError("...")

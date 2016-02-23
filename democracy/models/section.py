@@ -6,10 +6,10 @@ from reversion import revisions
 from democracy.enums import SectionType
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.images import BaseImage
+from democracy.plugins import get_implementation
 
 from .base import ORDERING_HELP, Commentable, StringIdBaseModel
 from .hearing import Hearing
-
 
 CLOSURE_INFO_ORDERING = -10000
 
@@ -21,6 +21,8 @@ class Section(Commentable, StringIdBaseModel):
     title = models.CharField(verbose_name=_('title'), max_length=255, blank=True)
     abstract = models.TextField(verbose_name=_('abstract'), blank=True)
     content = models.TextField(verbose_name=_('content'), blank=True)
+    plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
+    plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
 
     class Meta:
         ordering = ["ordering"]
@@ -44,6 +46,10 @@ class Section(Commentable, StringIdBaseModel):
     def check_commenting(self, request):
         super().check_commenting(request)
         self.hearing.check_commenting(request)
+
+    @property
+    def plugin_implementation(self):
+        return get_implementation(self.plugin_identifier)
 
 
 class SectionImage(BaseImage):

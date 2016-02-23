@@ -5,6 +5,15 @@ from __future__ import unicode_literals
 import democracy.enums
 from django.db import migrations
 import enumfields.fields
+from enumfields import Enum
+
+
+class SectionType(Enum):
+    INTRODUCTION = "introduction"
+    PLAIN = "plain"
+    SCENARIO = "scenario"
+    AREA = "area"
+    CLOSURE_INFO = "closure info"
 
 
 class Migration(migrations.Migration):
@@ -17,6 +26,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='section',
             name='type',
-            field=enumfields.fields.EnumField(default='plain', enum=democracy.enums.SectionType, max_length=64, verbose_name='type'),
+            field=enumfields.fields.EnumField(default='plain', enum=SectionType, max_length=64, verbose_name='type'),
         ),
     ]

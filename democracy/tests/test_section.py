@@ -4,8 +4,8 @@ import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
-from democracy.enums import SectionType
-from democracy.models import Section
+from democracy.enums import InitialSectionType
+from democracy.models import Section, SectionType
 from democracy.models.section import CLOSURE_INFO_ORDERING
 from democracy.tests.utils import assert_id_in_results, get_data_from_response, get_hearing_detail_url
 from democracy.views.section import SectionSerializer
@@ -17,9 +17,14 @@ hearing_list_endpoint = hearing_endpoint
 @pytest.fixture()
 def closure_info_section(default_hearing):
     return Section.objects.create(
-        type=SectionType.CLOSURE_INFO,
+        type=SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO),
         hearing=default_hearing
     )
+
+
+@pytest.fixture()
+def new_section_type():
+    return SectionType.objects.create(name_singular='new section type', name_plural='new section types')
 
 
 @pytest.mark.django_db
@@ -31,7 +36,7 @@ def create_sections(hearing, n):
             abstract='Test section abstract %s' % str(i + 1),
             content='Test section content %s' % str(i + 1),
             hearing=hearing,
-            type=SectionType.PLAIN
+            type=SectionType.objects.get(identifier=InitialSectionType.PART)
         )
         section.save()
         sections.append(section)
@@ -163,7 +168,9 @@ def test_45_get_section_type(api_client, default_hearing):
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
-    assert SectionType(data['sections'][0]['type']) == SectionType.PLAIN
+    assert data['sections'][0]['type'] == InitialSectionType.PART
+    assert data['sections'][0]['type_name_singular'] == 'osa-alue'
+    assert data['sections'][0]['type_name_plural'] == 'osa-alueet'
 
 
 @pytest.mark.django_db
@@ -225,12 +232,12 @@ def test_closure_info_ordering(closure_info_section):
     assert closure_info_section.ordering == CLOSURE_INFO_ORDERING
 
     # check changing type from closure info
-    closure_info_section.type = SectionType.PLAIN
+    closure_info_section.type = SectionType.objects.get(identifier=InitialSectionType.PART)
     closure_info_section.save()
     assert closure_info_section.ordering != CLOSURE_INFO_ORDERING
 
     # check changing type to closure info
-    closure_info_section.type = SectionType.CLOSURE_INFO
+    closure_info_section.type = SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO)
     closure_info_section.save()
     assert closure_info_section.ordering == CLOSURE_INFO_ORDERING
 
@@ -266,3 +273,47 @@ def test_closure_info_visibility(api_client, closure_info_section):
     response = api_client.get(get_hearing_detail_url(hearing.id, 'sections'))
     data = get_data_from_response(response)
     assert_id_in_results(closure_info_section.id, data, False)
+
+
+@pytest.mark.django_db
+def test_initial_section_types_exist():
+    for section_type_id in ('introduction', 'part', 'scenario', 'closure-info'):
+        assert SectionType.objects.filter(identifier=section_type_id).exists()
+
+
+@pytest.mark.django_db
+def test_new_section_type(new_section_type):
+    assert SectionType.objects.filter(identifier='new-section-type').exists()
+
+    # test duplicate name
+    another_new_section_type = SectionType.objects.create(name_singular='new section type', name_plural='foos')
+    assert another_new_section_type.identifier != 'new-section-type'
+    assert SectionType.objects.filter(id=another_new_section_type.id).exists()
+    assert SectionType.objects.filter(identifier='new-section-type').exists()
+    assert SectionType.objects.filter(name_singular='new section type').count() == 2
+
+
+@pytest.mark.django_db
+def test_section_type_filtering(new_section_type):
+    assert SectionType.objects.count() == 5
+    assert SectionType.objects.initial().count() == 4
+    assert SectionType.objects.exclude_initial().count() == 1
+
+
+@pytest.mark.django_db
+def test_initial_section_type_cannot_be_edited():
+    closure_info = SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO)
+    closure_info.name_singular = 'edited name'
+    with pytest.raises(Exception) as excinfo:
+        closure_info.save()
+    assert excinfo.value.__str__() == 'Initial section types cannot be edited.'
+    closure_info.refresh_from_db()
+    assert closure_info.name_singular != 'edited name'
+
+
+@pytest.mark.django_db
+def test_added_section_type_can_be_edited(new_section_type):
+    new_section_type.name_singular = 'edited name'
+    new_section_type.save()
+    new_section_type.refresh_from_db()
+    assert new_section_type.name_singular == 'edited name'

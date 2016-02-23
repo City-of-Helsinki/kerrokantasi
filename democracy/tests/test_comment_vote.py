@@ -1,6 +1,7 @@
 import pytest
 
-from democracy.models import HearingComment, Section, SectionComment
+from democracy.enums import InitialSectionType
+from democracy.models import HearingComment, Section, SectionComment, SectionType
 from democracy.tests.test_images import get_hearing_detail_url
 
 
@@ -12,7 +13,11 @@ comment_data = {
 
 
 def add_default_section_and_comment(hearing):
-    section = Section.objects.create(title='Section title', hearing=hearing)
+    section = Section.objects.create(
+        title='Section title',
+        hearing=hearing,
+        type=SectionType.objects.get(identifier=InitialSectionType.PART)
+    )
     comment = SectionComment.objects.create(content='Comment text', section=section)
     return [section, comment]
 

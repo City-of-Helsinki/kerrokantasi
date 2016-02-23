@@ -9,6 +9,15 @@ import django.db.models.deletion
 import django.utils.timezone
 import enumfields.fields
 import jsonfield.fields
+from enumfields import Enum
+
+
+class SectionType(Enum):
+    INTRODUCTION = "introduction"
+    PLAIN = "plain"
+    SCENARIO = "scenario"
+    AREA = "area"
+    CLOSURE_INFO = "closure info"
 
 
 class Migration(migrations.Migration):
@@ -120,7 +129,7 @@ class Migration(migrations.Migration):
                 ('n_comments', models.IntegerField(blank=True, default=0, editable=False, verbose_name='Number of comments')),
                 ('commenting', enumfields.fields.EnumIntegerField(default=0, enum=democracy.enums.Commenting)),
                 ('ordering', models.IntegerField(db_index=True, default=0, verbose_name='ordering')),
-                ('type', enumfields.fields.EnumField(default='plain', enum=democracy.enums.SectionType, max_length=10, verbose_name='type')),
+                ('type', enumfields.fields.EnumField(default='plain', enum=SectionType, max_length=10, verbose_name='type')),
                 ('title', models.CharField(blank=True, max_length=255, verbose_name='title')),
                 ('abstract', models.TextField(blank=True, verbose_name='abstract')),
                 ('content', models.TextField(blank=True, verbose_name='content')),

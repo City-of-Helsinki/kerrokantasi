@@ -1,23 +1,49 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from enumfields.fields import EnumField
 from reversion import revisions
+from autoslug import AutoSlugField
 
-from democracy.enums import SectionType
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.images import BaseImage
 from democracy.plugins import get_implementation
 
-from .base import ORDERING_HELP, Commentable, StringIdBaseModel
+from democracy.enums import InitialSectionType
+from .base import ORDERING_HELP, Commentable, StringIdBaseModel, BaseModel, BaseModelManager
 from .hearing import Hearing
 
 CLOSURE_INFO_ORDERING = -10000
+
+INITIAL_SECTION_TYPE_IDS = set(value for key, value in InitialSectionType.__dict__.items() if key[:1] != '_')
+
+
+class SectionTypeQuerySet(models.QuerySet):
+    def initial(self):
+        return self.filter(identifier__in=INITIAL_SECTION_TYPE_IDS)
+
+    def exclude_initial(self):
+        return self.exclude(identifier__in=INITIAL_SECTION_TYPE_IDS)
+
+
+class SectionType(BaseModel):
+    identifier = AutoSlugField(populate_from='name_singular', unique=True)
+    name_singular = models.CharField(max_length=64)
+    name_plural = models.CharField(max_length=64)
+    objects = BaseModelManager.from_queryset(SectionTypeQuerySet)()
+
+    def __str__(self):
+        return self.name_singular
+
+    def save(self, *args, **kwargs):
+        # prevent initial type editing
+        if self.identifier in INITIAL_SECTION_TYPE_IDS:
+            raise Exception("Initial section types cannot be edited.")
+        return super().save(*args, **kwargs)
 
 
 class Section(Commentable, StringIdBaseModel):
     hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
-    type = EnumField(verbose_name=_('type'), enum=SectionType, default=SectionType.PLAIN, max_length=64)
+    type = models.ForeignKey(SectionType, related_name='sections', on_delete=models.PROTECT)
     title = models.CharField(verbose_name=_('title'), max_length=255, blank=True)
     abstract = models.TextField(verbose_name=_('abstract'), blank=True)
     content = models.TextField(verbose_name=_('content'), blank=True)
@@ -35,7 +61,7 @@ class Section(Commentable, StringIdBaseModel):
     def save(self, *args, **kwargs):
         if self.hearing_id:
             # Closure info should be the first
-            if self.type == SectionType.CLOSURE_INFO:
+            if self.type == SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO):
                 self.ordering = CLOSURE_INFO_ORDERING
             elif (not self.pk and self.ordering == 1) or self.ordering == CLOSURE_INFO_ORDERING:
                 # This is a new section or changing type from closure info,

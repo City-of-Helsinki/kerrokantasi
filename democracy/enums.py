@@ -14,9 +14,8 @@ class Commenting(Enum):
         OPEN = _("Open commenting")
 
 
-class SectionType(Enum):
+class InitialSectionType:
     INTRODUCTION = "introduction"
-    PLAIN = "plain"
+    PART = "part"
     SCENARIO = "scenario"
-    AREA = "area"
-    CLOSURE_INFO = "closure info"
+    CLOSURE_INFO = "closure-info"

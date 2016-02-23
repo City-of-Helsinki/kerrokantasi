@@ -2,7 +2,8 @@ from copy import copy
 
 from django.db import transaction
 
-from democracy.enums import SectionType
+from democracy.enums import InitialSectionType
+from democracy.models import SectionType
 
 
 @transaction.atomic
@@ -34,7 +35,8 @@ def copy_hearing(old_hearing, **kwargs):
     new_hearing.labels = old_hearing.labels.all()
 
     # create new sections and section images
-    for section in old_hearing.sections.exclude(type=SectionType.CLOSURE_INFO):
+    closure_info = SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO)
+    for section in old_hearing.sections.exclude(type=closure_info):
         old_images = section.images.all()
         section.pk = None
         section.hearing = new_hearing

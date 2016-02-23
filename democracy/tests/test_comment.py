@@ -2,13 +2,12 @@ import datetime
 
 import pytest
 from django.test.utils import override_settings
-from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from reversion import revisions
 
-from democracy.enums import Commenting
-from democracy.models import Hearing, HearingComment, Section
+from democracy.enums import Commenting, InitialSectionType
+from democracy.models import Hearing, HearingComment, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content, green_comment_content, red_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
@@ -182,7 +181,12 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client):
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
     )
-    section = Section.objects.create(title='Section to comment', hearing=hearing, commenting=Commenting.OPEN)
+    section = Section.objects.create(
+        title='Section to comment',
+        hearing=hearing,
+        commenting=Commenting.OPEN,
+        type=SectionType.objects.get(identifier=InitialSectionType.PART)
+    )
     url = get_hearing_detail_url(hearing.id, 'sections/%s/comments' % section.id)
 
     comment_data = get_comment_data(section=section.pk)

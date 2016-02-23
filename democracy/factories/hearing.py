@@ -6,9 +6,9 @@ import factory
 import factory.fuzzy
 from django.utils.timezone import now
 
-from democracy.enums import Commenting, SectionType
+from democracy.enums import Commenting
 from democracy.factories.comment import BaseCommentFactory
-from democracy.models import Hearing, HearingComment, Label, Section, SectionComment
+from democracy.models import Hearing, HearingComment, Label, Section, SectionComment, SectionType
 
 LOG = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ class SectionFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     abstract = factory.Faker("paragraph")
     content = factory.Faker("text")
-    type = factory.fuzzy.FuzzyChoice(choices=SectionType)
+    type = factory.fuzzy.FuzzyChoice(choices=SectionType.objects.all())
     commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
 
     @factory.post_generation

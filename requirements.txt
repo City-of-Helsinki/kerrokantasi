@@ -19,3 +19,4 @@ django-nested-admin==2.1.12
 django-geojson==2.9.0
 django-leaflet==0.18.0
 django-ckeditor==5.0.3
+django-autoslug==1.9.3

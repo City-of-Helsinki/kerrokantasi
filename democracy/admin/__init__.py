@@ -66,7 +66,7 @@ class SectionInline(NestedStackedInline):
     model = models.Section
     extra = 1
     inlines = [SectionImageInline]
-    exclude = ("public", "commenting", "id",)
+    exclude = ("public", "commenting",)
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
@@ -89,6 +89,8 @@ class SectionInline(NestedStackedInline):
             widget = self._get_plugin_selection_widget(hearing=obj)
             field.label = _("Plugin")
             field.widget = widget
+        if db_field.name == "id" and not (obj and obj.pk):
+            field.widget = forms.HiddenInput()
         return field
 
     def _get_plugin_selection_widget(self, hearing):

@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
@@ -6,7 +7,7 @@ from django.utils.timezone import now
 from democracy.enums import SectionType
 from democracy.models import Section
 from democracy.models.section import CLOSURE_INFO_ORDERING
-from democracy.tests.utils import get_data_from_response, get_hearing_detail_url, assert_id_in_results
+from democracy.tests.utils import assert_id_in_results, get_data_from_response, get_hearing_detail_url
 from democracy.views.section import SectionSerializer
 
 hearing_endpoint = '/v1/hearing/'

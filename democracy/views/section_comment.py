@@ -7,6 +7,7 @@ from rest_framework.settings import api_settings
 from democracy.models import SectionComment
 from democracy.models.section import Section
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet
+
 from .base import CreatedBySerializer
 
 

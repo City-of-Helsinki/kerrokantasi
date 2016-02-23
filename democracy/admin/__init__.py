@@ -123,6 +123,7 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 
 
 class HearingAdmin(NestedAdmin, HearingGeoAdmin):
+
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)
 

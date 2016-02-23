@@ -4,12 +4,12 @@ import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
+from democracy.enums import SectionType
 from democracy.models import Hearing, HearingComment, HearingImage, Label, Section, SectionComment, SectionImage
+from democracy.models.utils import copy_hearing
 from democracy.tests.utils import (
     assert_datetime_fuzzy_equal, get_data_from_response, get_geojson, get_hearing_detail_url
 )
-from democracy.models.utils import copy_hearing
-from democracy.enums import SectionType
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint

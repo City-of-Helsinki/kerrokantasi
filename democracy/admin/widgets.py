@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
+from textwrap import dedent
+
 from django import forms
 from django.contrib.admin.templatetags.admin_static import static
 from django.contrib.admin.widgets import AdminTextareaWidget
 from django.forms.widgets import SelectMultiple
 from django.utils.safestring import mark_safe
-from textwrap import dedent
 
 
 class ShortTextAreaWidget(AdminTextareaWidget):
+
     def __init__(self, attrs=None):
         final_attrs = {'rows': '3'}
         if attrs is not None:

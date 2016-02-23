@@ -1,7 +1,7 @@
 from rest_framework import serializers, viewsets
 
 from democracy.enums import Commenting, SectionType
-from democracy.models import Section, SectionImage, Hearing
+from democracy.models import Hearing, Section, SectionImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 

@@ -4,9 +4,9 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
-from django.utils.html import format_html
 from djgeojson.fields import GeometryField
 from reversion import revisions
 

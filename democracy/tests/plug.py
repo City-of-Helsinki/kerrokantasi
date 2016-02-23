@@ -10,4 +10,3 @@ class TestPlugin(Plugin):
         if "6" not in data:
             raise ValidationError("The data must contain a 6.")
         return data[::-1]
-

@@ -11,7 +11,6 @@ from democracy.plugins import get_implementation
 from .base import ORDERING_HELP, Commentable, StringIdBaseModel
 from .hearing import Hearing
 
-
 CLOSURE_INFO_ORDERING = -10000
 
 

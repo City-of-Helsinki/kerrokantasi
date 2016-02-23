@@ -111,3 +111,4 @@ JWT_AUTH = {
 
 
 DEMOCRACY_UI_BASE_URL = 'http://localhost:8086'
+DEMOCRACY_PLUGINS = {}

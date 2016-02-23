@@ -13,7 +13,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'content']
+        fields = ['section', 'content', 'plugin_identifier', 'plugin_data']
 
 
 class SectionCommentSerializer(CreatedBySerializer, serializers.ModelSerializer):

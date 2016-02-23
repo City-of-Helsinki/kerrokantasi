@@ -1,15 +1,18 @@
 import datetime
 
 import pytest
+from django.utils.crypto import get_random_string
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from reversion import revisions
 
 from democracy.enums import Commenting
 from democracy.models import Hearing, HearingComment, Section
+from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content, green_comment_content, red_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
 from democracy.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
+
 
 def get_comment_data(**extra):
     return dict({
@@ -309,3 +312,18 @@ def test_comment_editing_disallowed_after_closure(john_doe_api_client):
         "content": "No"
     })
     assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_add_plugin_data_to_comment(api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    comment_data = get_comment_data(
+        plugin_identifier="foo.barplugin",
+        plugin_data=get_random_string()
+    )
+    response = api_client.post(url, data=comment_data)
+    assert response.status_code == 201
+    created_comment = SectionComment.objects.last()
+    assert created_comment.plugin_identifier == comment_data["plugin_identifier"]
+    assert created_comment.plugin_data == comment_data["plugin_data"]

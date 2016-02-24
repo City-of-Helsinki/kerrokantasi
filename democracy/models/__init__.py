@@ -1,6 +1,6 @@
 from .hearing import Hearing, HearingComment, HearingImage
 from .label import Label
-from .section import Section, SectionComment, SectionImage
+from .section import Section, SectionComment, SectionImage, SectionType
 
 __all__ = [
     "Hearing",
@@ -10,4 +10,5 @@ __all__ = [
     "Section",
     "SectionComment",
     "SectionImage",
+    "SectionType",
 ]

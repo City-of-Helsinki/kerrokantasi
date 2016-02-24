@@ -5,7 +5,7 @@ from copy import deepcopy
 import pytest
 from django.utils.crypto import get_random_string
 
-from democracy.enums import SectionType
+from democracy.enums import InitialSectionType
 from democracy.importing.json_importer import import_from_data, parse_aware_datetime
 from democracy.models import Hearing
 from democracy.tests.utils import assert_datetime_fuzzy_equal, get_geojson
@@ -116,7 +116,7 @@ def test_json_importer():
     assert_datetime_fuzzy_equal(hearing.modified_at, parse_aware_datetime(hearing_data["updated_at"]))
     assert_datetime_fuzzy_equal(hearing.created_at, parse_aware_datetime(hearing_data["created_at"]))
     assert hearing.title == 'ikwnydbg hjl riffyjsbrq shxv nkl'
-    assert hearing.sections.filter(type=SectionType.SCENARIO).count() == 2
-    assert hearing.sections.filter(type=SectionType.PLAIN).count() == 1
+    assert hearing.sections.filter(type__identifier=InitialSectionType.SCENARIO).count() == 2
+    assert hearing.sections.filter(type__identifier=InitialSectionType.PART).count() == 1
     assert hearing.comments.count() == 2
     # TODO: This test could probably be better

@@ -13,7 +13,7 @@ from nested_admin.nested import NestedAdmin, NestedStackedInline
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
-from democracy.enums import SectionType
+from democracy.enums import InitialSectionType
 from democracy.models.utils import copy_hearing
 from democracy.plugins import get_implementation
 
@@ -81,7 +81,7 @@ class SectionInline(NestedStackedInline):
             kwargs["initial"] = _("Enter text here.")
         if not getattr(obj, "pk", None):
             if db_field.name == "type":
-                kwargs["initial"] = SectionType.INTRODUCTION
+                kwargs["initial"] = models.SectionType.objects.get(identifier=InitialSectionType.INTRODUCTION)
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
         field = super().formfield_for_dbfield(db_field, **kwargs)
@@ -176,8 +176,16 @@ class LabelAdmin(admin.ModelAdmin):
     exclude = ("public",)
 
 
+class SectionTypeAdmin(admin.ModelAdmin):
+    fields = ("name_singular", "name_plural")
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).exclude_initial()
+
+
 # Wire it up!
 
 
 admin.site.register(models.Label, LabelAdmin)
 admin.site.register(models.Hearing, HearingAdmin)
+admin.site.register(models.SectionType, SectionTypeAdmin)

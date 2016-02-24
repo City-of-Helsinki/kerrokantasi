@@ -5,9 +5,9 @@ from django.contrib.auth import get_user_model
 from django.utils.timezone import now
 from rest_framework.test import APIClient
 
-from democracy.enums import Commenting, SectionType
+from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import Hearing, HearingComment, Label, Section
+from democracy.models import Hearing, HearingComment, Label, Section, SectionType
 from democracy.tests.utils import assert_ascending_sequence, create_default_images
 
 
@@ -46,10 +46,11 @@ def default_hearing(john_doe):
     )
     create_default_images(hearing)
     for x in range(1, 4):
+        section_type = (InitialSectionType.INTRODUCTION if x == 1 else InitialSectionType.SCENARIO)
         section = Section.objects.create(
             abstract='Section %d abstract' % x,
             hearing=hearing,
-            type=(SectionType.INTRODUCTION if x == 1 else SectionType.SCENARIO),
+            type=SectionType.objects.get(identifier=section_type),
             commenting=Commenting.OPEN
         )
         create_default_images(section)

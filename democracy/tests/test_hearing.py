@@ -4,8 +4,10 @@ import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
-from democracy.enums import SectionType
-from democracy.models import Hearing, HearingComment, HearingImage, Label, Section, SectionComment, SectionImage
+from democracy.enums import InitialSectionType
+from democracy.models import (
+    Hearing, HearingComment, HearingImage, Label, Section, SectionComment, SectionImage, SectionType
+)
 from democracy.models.utils import copy_hearing
 from democracy.tests.utils import (
     assert_datetime_fuzzy_equal, get_data_from_response, get_geojson, get_hearing_detail_url
@@ -233,6 +235,16 @@ def test_24_get_report(api_client, default_hearing):
 
 
 @pytest.mark.django_db
+def test_get_hearing_check_section_type(api_client, default_hearing):
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
+    data = get_data_from_response(response)
+    introduction = data['sections'][0]
+    assert introduction['type'] == InitialSectionType.INTRODUCTION
+    assert introduction['type_name_singular'] == 'johdanto'
+    assert introduction['type_name_plural'] == 'johdannot'
+
+
+@pytest.mark.django_db
 def test_hearing_stringification(random_hearing):
     assert force_text(random_hearing) == random_hearing.title
 
@@ -276,7 +288,7 @@ def test_hearing_geo(api_client, random_hearing):
 @pytest.mark.django_db
 def test_hearing_copy(default_hearing, random_label):
     Section.objects.create(
-        type=SectionType.CLOSURE_INFO,
+        type=SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO),
         hearing=default_hearing
     )
     default_hearing.labels.add(random_label)
@@ -313,4 +325,4 @@ def test_hearing_copy(default_hearing, random_label):
     assert new_hearing.comments.count() == 0
 
     # closure info section should not have been copied
-    assert not new_hearing.sections.filter(type=SectionType.CLOSURE_INFO).exists()
+    assert not new_hearing.sections.filter(type__identifier=InitialSectionType.CLOSURE_INFO).exists()

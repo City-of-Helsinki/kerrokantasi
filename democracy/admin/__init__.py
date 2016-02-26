@@ -111,6 +111,8 @@ class SectionInline(NestedStackedInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         kwargs["formfield_callback"] = partial(self.formfield_for_dbfield, request=request, obj=obj)
+        if getattr(obj, "pk", None):
+            kwargs['extra'] = 0
         return super().get_formset(request, obj, **kwargs)
 
 

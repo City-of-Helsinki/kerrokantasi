@@ -312,17 +312,20 @@ def test_hearing_copy(default_hearing, random_label):
     assert new_hearing.published is False
     assert new_hearing.title == 'overridden title'
 
-    # check num of new sections and section images and verify new section abstracts
     assert new_hearing.sections.count() == 3
     for i, new_section in enumerate(new_hearing.sections.all().order_by('abstract'), 1):
+        # each section should have 3 images, the correct abstract and no comments
         new_section.images.count() == 3
         assert new_section.abstract == 'Section %d abstract' % i
+        assert new_section.comments.count() == 0
+        assert new_section.n_comments == 0
 
     assert new_hearing.images.count() == 3
     assert random_label in new_hearing.labels.all()
 
     # there should be no comments for the new hearing
     assert new_hearing.comments.count() == 0
+    assert new_hearing.n_comments == 0
 
     # closure info section should not have been copied
     assert not new_hearing.sections.filter(type__identifier=InitialSectionType.CLOSURE_INFO).exists()

@@ -20,6 +20,11 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
         model = SectionComment
         fields = ['section', 'content', 'plugin_data']
 
+    def to_internal_value(self, data):
+        if data.get("plugin_data") is None:
+            data["plugin_data"] = ""
+        return super(SectionCommentCreateSerializer, self).to_internal_value(data)
+
     def validate(self, attrs):
         if attrs.get("plugin_data"):
             section = Section.objects.get(pk=self.context["comment_parent"])

@@ -13,7 +13,7 @@ class HearingCommentCreateSerializer(BaseCommentSerializer):
 
     class Meta:
         model = HearingComment
-        fields = ['content', 'hearing']
+        fields = ['content', 'hearing', 'authorization_code']
 
 
 class HearingCommentViewSet(BaseCommentViewSet):

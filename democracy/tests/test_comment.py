@@ -147,15 +147,6 @@ def test_56_add_comment_to_section_without_data(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_invalid_key(api_client, default_hearing):
-    section = default_hearing.sections.first()
-    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    response = api_client.post(url, data={'invalidKey': 'Yes it is'})
-    # expect bad request, we have invalid key in payload
-    assert response.status_code == 400
-
-
-@pytest.mark.django_db
 def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
@@ -333,6 +324,7 @@ def test_add_plugin_data_to_comment(api_client, default_hearing, case):
         section.save()
         url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
         comment_data = get_comment_data(
+            content="",
             plugin_data=("foo6" if case == "plug-valid" else "invalid555")
         )
         response = api_client.post(url, data=comment_data)

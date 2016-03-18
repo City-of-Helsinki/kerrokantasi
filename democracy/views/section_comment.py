@@ -39,6 +39,8 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
                 detail.setdefault("plugin_data", []).extend(detail.pop(api_settings.NON_FIELD_ERRORS_KEY, ()))
                 raise ValidationError(detail=detail)
             attrs["plugin_identifier"] = section.plugin_identifier
+        if not (attrs.get("plugin_data") or attrs.get("content")):
+            raise ValidationError("Either content or plugin data must be supplied.")
         return attrs
 
 

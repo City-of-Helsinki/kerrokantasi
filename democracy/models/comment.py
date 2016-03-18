@@ -10,7 +10,7 @@ class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
-    content = models.TextField(verbose_name=_('content'))
+    content = models.TextField(verbose_name=_('content'), blank=True)
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True, editable=False)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
@@ -54,6 +54,8 @@ class BaseComment(BaseModel):
         return getattr(self, "%s_id" % self.parent_field, None)
 
     def save(self, *args, **kwargs):
+        if not (self.plugin_data or self.content):
+            raise ValueError("Comments must have either plugin data or textual content")
         if not self.author_name:
             self.author_name = (str(self.created_by) if self.created_by_id else None)
         return super(BaseComment, self).save(*args, **kwargs)

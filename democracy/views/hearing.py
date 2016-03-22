@@ -13,6 +13,7 @@ from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 from democracy.views.hearing_comment import HearingCommentSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer
+from democracy.views.utils import IOErrorIgnoringManyRelatedField
 
 from .hearing_report import HearingReport
 
@@ -42,7 +43,10 @@ class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewS
 
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
-    images = HearingImageSerializer.get_field_serializer(many=True, read_only=True)
+    images = HearingImageSerializer.get_field_serializer(
+        many=True, read_only=True,
+        many_field_class=IOErrorIgnoringManyRelatedField
+    )
     sections = serializers.SerializerMethodField()
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)

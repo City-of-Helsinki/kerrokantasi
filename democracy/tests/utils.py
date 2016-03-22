@@ -85,3 +85,8 @@ def get_geojson():
 def assert_id_in_results(id, results, expected=True):
     included = id in [value['id'] for value in results]
     assert included is expected
+
+
+def assert_common_keys_equal(dict1, dict2):
+    for key in set(dict1) & set(dict2):
+        assert dict1[key] == dict2[key]

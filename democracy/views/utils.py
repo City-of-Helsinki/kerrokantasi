@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import lru_cache
 
+from django.db.models.query import QuerySet
 from rest_framework import serializers
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS
 
@@ -35,3 +36,26 @@ class AbstractSerializerMixin(object):
     def get_field_serializer(cls, **kwargs):
         many_field_class = kwargs.pop("many_field_class", ManyRelatedField)
         return cls.get_field_serializer_class(many_field_class=many_field_class)(**kwargs)
+
+
+class IOErrorIgnoringManyRelatedField(ManyRelatedField):
+    """
+    A ManyRelatedField that ignores IOErrors occurring during iterating the children.
+
+    This is mainly useful for images that are referenced in the database but do not exist
+    on the server (where constructing them requires accessing them to populate the width
+    and height fields).
+    """
+    def to_representation(self, iterable):
+        out = []
+        if isinstance(iterable, QuerySet):
+            iterable = iterable.iterator()
+        while True:
+            try:
+                value = next(iterable)
+                out.append(self.child_relation.to_representation(value))
+            except StopIteration:
+                break
+            except IOError:
+                continue
+        return out

@@ -11,7 +11,7 @@ from democracy.models import Hearing, HearingComment, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content, green_comment_content, red_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
-from democracy.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response
+from democracy.tests.utils import assert_datetime_fuzzy_equal, get_data_from_response, assert_common_keys_equal
 
 
 def get_comment_data(**extra):
@@ -159,6 +159,7 @@ def test_56_add_comment_to_section_invalid_key(api_client, default_hearing):
 def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
     # set section explicitly
     comment_data = get_comment_data(section=section.pk)
@@ -170,6 +171,18 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
 
     assert 'content' in data
     assert data['content'] == default_comment_content
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+    assert len(new_comment_list) == len(old_comment_list) + 1
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    assert_common_keys_equal(new_comment, comment_data)
+    assert_common_keys_equal(new_comment["created_by"], {
+        "first_name": john_doe_api_client.user.first_name,
+        "last_name": john_doe_api_client.user.last_name,
+        "username": john_doe_api_client.user.username,
+    })
+
 
 
 @pytest.mark.django_db

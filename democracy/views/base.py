@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
 from rest_framework import serializers
 
@@ -7,6 +8,9 @@ from democracy.views.utils import AbstractSerializerMixin
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = get_user_model()
 
     def to_representation(self, user):
         return {

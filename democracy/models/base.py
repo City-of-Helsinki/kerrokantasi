@@ -3,7 +3,7 @@ from functools import lru_cache
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import ManyToOneRel
+from django.db.models import ManyToOneRel, Sum
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
@@ -121,9 +121,16 @@ class Commentable(models.Model):
 
     def recache_n_comments(self):
         new_n_comments = self.comments.count()
+        # if commentable has sections, include them in the total comment count
+        if hasattr(self, 'sections'):
+            if self.sections.all():
+                new_n_comments += self.sections.all().aggregate(Sum('n_comments'))['n_comments__sum']
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))
+        # if commentable has a parent hearing, recache the hearing comment count
+        if hasattr(self, 'hearing'):
+            self.hearing.recache_n_comments()
 
     def check_commenting(self, request):
         """

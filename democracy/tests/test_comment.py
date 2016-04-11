@@ -109,7 +109,7 @@ def test_54_get_hearing_with_comments_check_amount_of_comments(api_client, defau
     data = get_data_from_response(response)
     assert 'comments' in data
     assert len(data['comments']) == 3
-    assert data['n_comments'] == 3
+    assert data['n_comments'] == 12
 
 
 @pytest.mark.django_db
@@ -208,11 +208,11 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client):
 
 @pytest.mark.django_db
 def test_n_comments_updates(admin_user, default_hearing):
-    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 3
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 12
     comment = default_hearing.comments.create(created_by=admin_user, content="Hello")
-    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 4
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 13
     comment.soft_delete()
-    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 3
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 12
 
 
 @pytest.mark.django_db

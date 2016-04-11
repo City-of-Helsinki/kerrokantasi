@@ -13,6 +13,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("input_file", type=argparse.FileType("r", encoding="utf8"), nargs=1)
+        parser.add_argument("--hearing", nargs=1)
+        parser.add_argument("--force", action="store_true")
+        parser.add_argument("--patch", action="store_true")
         parser.add_argument("--nuke", dest="nuke", action="store_true")
 
     def handle(self, input_file, **options):
@@ -25,9 +28,16 @@ class Command(BaseCommand):
             3: logging.DEBUG,
         }
         logging.basicConfig(level=verbosity_to_level[options["verbosity"]])
-        self.do_import(input_file[0])
+        self.do_import(input_file[0],
+                       hearing=options.pop("hearing")[0],
+                       force=options.pop("force", False),
+                       patch=options.pop("patch", False))
 
     @atomic
-    def do_import(self, filename):
+    def do_import(self, filename, hearing=False, force=False, patch=False):
         json_data = json.load(filename)
-        import_from_data(json_data)
+        if hearing:
+            # picks the hearing corresponding to given slug
+            hearing_data = next(value for key, value in json_data['hearings'].items() if value['slug'] == hearing)
+            json_data = {'hearings': {'1': hearing_data}}
+        import_from_data(json_data, force=force, patch=patch)

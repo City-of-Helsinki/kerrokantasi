@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import django_filters
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import force_text
-from rest_framework import permissions, response, serializers, status, viewsets
+from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 from reversion import revisions
 
@@ -28,6 +29,14 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         fields = COMMENT_FIELDS
 
 
+class BaseCommentFilter(django_filters.FilterSet):
+    authorization_code = django_filters.CharFilter()
+
+    class Meta:
+        model = BaseComment
+        fields = ['authorization_code', ]
+
+
 class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """
     Base viewset for comments.
@@ -35,6 +44,8 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = None
     create_serializer_class = None
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = BaseCommentFilter
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()

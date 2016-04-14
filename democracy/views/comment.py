@@ -10,10 +10,18 @@ from democracy.models.comment import BaseComment
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin
 
-COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_by', 'created_at', 'plugin_data']
+COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_by', 'created_at']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
+
+    def to_representation(self, instance):
+        r = super().to_representation(instance)
+        request = self.context.get('request', None)
+        if request:
+            if request.GET.get('include', None) == 'plugin_data':
+                r['plugin_data'] = instance.plugin_data
+        return r
 
     class Meta:
         model = BaseComment

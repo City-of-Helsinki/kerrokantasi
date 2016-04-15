@@ -40,6 +40,24 @@ def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearin
 
 
 @pytest.mark.django_db
+def test_add_auth_code_to_comment(api_client, default_hearing):
+    comment_data = get_comment_data(authorization_code="foo6")
+    response = api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), comment_data)
+    response_data = get_data_from_response(response, status_code=201)
+    assert comment_data["authorization_code"] ==\
+           Hearing.objects.get(pk=default_hearing.pk).comments.get(id=response_data["id"]).authorization_code
+
+
+@pytest.mark.django_db
+def test_list_comments_with_auth_code(api_client, default_hearing):
+    comment_data = get_comment_data(authorization_code="foo6")
+    url = get_hearing_detail_url(default_hearing.id, 'comments')
+    api_client.post(url, comment_data)
+    data = get_data_from_response(api_client.get(url, {"authorization_code": "foo6"}))
+    assert len(data) == 1
+
+
+@pytest.mark.django_db
 def test_54_list_all_comments_added_to_hearing_check_amount(api_client, default_hearing):
     # list all comments
     response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
@@ -354,3 +372,47 @@ def test_add_plugin_data_to_comment(api_client, default_hearing, case):
             assert "no plugin data is allowed" in data["plugin_data"][0]
         else:
             raise NotImplementedError("...")
+
+
+@pytest.mark.django_db
+def test_do_not_get_plugin_data_for_comment(api_client, default_hearing):
+    with override_settings(
+        DEMOCRACY_PLUGINS={
+            "test_plugin": "democracy.tests.plug.TestPlugin"
+        }
+    ):
+        section = default_hearing.sections.first()
+        section.plugin_identifier = "test_plugin"
+        section.save()
+        url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+        comment_data = get_comment_data(
+            content="",
+            plugin_data="foo6"
+        )
+        response = api_client.post(url, data=comment_data)
+        response_data = get_data_from_response(response, status_code=201)
+        comment_list = get_data_from_response(api_client.get(url))
+        created_comment = [c for c in comment_list if c["id"] == response_data["id"]][0]
+        assert "plugin_data" not in created_comment
+
+
+@pytest.mark.django_db
+def test_get_plugin_data_for_comment(api_client, default_hearing):
+    with override_settings(
+        DEMOCRACY_PLUGINS={
+            "test_plugin": "democracy.tests.plug.TestPlugin"
+        }
+    ):
+        section = default_hearing.sections.first()
+        section.plugin_identifier = "test_plugin"
+        section.save()
+        url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+        comment_data = get_comment_data(
+            content="",
+            plugin_data="foo6"
+        )
+        response = api_client.post(url, data=comment_data)
+        response_data = get_data_from_response(response, status_code=201)
+        comment_list = get_data_from_response(api_client.get(url, {"include": "plugin_data"}))
+        created_comment = [c for c in comment_list if c["id"] == response_data["id"]][0]
+        assert created_comment["plugin_data"] == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data

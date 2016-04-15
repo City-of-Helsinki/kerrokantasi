@@ -6,9 +6,7 @@ from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment
 from democracy.models.section import Section
-from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet
-
-from .base import CreatedBySerializer
+from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 
 
 class SectionCommentCreateSerializer(serializers.ModelSerializer):
@@ -44,7 +42,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class SectionCommentSerializer(CreatedBySerializer, serializers.ModelSerializer):
+class SectionCommentSerializer(BaseCommentSerializer):
     """
     Serializer for comment added to section.
     """

@@ -48,6 +48,10 @@ class HearingSerializer(serializers.ModelSerializer):
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
+    organization = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name'
+    )
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -65,7 +69,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'images', 'sections', 'images',
-            'closed', 'comments', 'geojson', 'slug'
+            'closed', 'comments', 'geojson', 'organization', 'slug'
         ]
 
 

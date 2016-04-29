@@ -121,7 +121,7 @@ def test_8_get_detail_check_properties(api_client, default_hearing):
     assert set(data.keys()) >= {
         'abstract', 'borough', 'close_at', 'closed', 'created_at', 'id', 'images', 'labels',
         'n_comments', 'open_at', 'sections', 'servicemap_url',
-        'title'
+        'title', 'organization'
     }
 
 
@@ -211,6 +211,18 @@ def test_8_get_detail_labels(api_client):
     assert 'results' not in data
     assert len(data['labels']) is 3
     assert label_one.label in data['labels']
+
+
+@pytest.mark.django_db
+def test_8_get_detail_organization(api_client, default_hearing, default_organization):
+    default_hearing.organization = default_organization
+    default_hearing.save()
+    response = api_client.get(get_detail_url(default_hearing.id))
+
+    data = get_data_from_response(response)
+
+    assert 'results' not in data
+    assert data['organization'] == default_organization.name
 
 
 @pytest.mark.django_db

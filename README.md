@@ -1,6 +1,7 @@
 
 # Requirements
 
+ - PostgreSQL with PostGIS extension
  - Python 3.4
  - Django 1.9
  - django-modeltranslation (http://django-modeltranslation.readthedocs.org)

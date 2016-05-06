@@ -4,7 +4,7 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.utils import IOErrorIgnoringManyRelatedField
+from democracy.views.utils import PublicFilteredImageField
 
 
 class SectionImageSerializer(BaseImageSerializer):
@@ -17,9 +17,7 @@ class SectionSerializer(serializers.ModelSerializer):
     """
     Serializer for section instance.
     """
-    images = SectionImageSerializer.get_field_serializer(
-        many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
-    )
+    images = PublicFilteredImageField(serializer_class=SectionImageSerializer)
     type = serializers.SlugRelatedField(slug_field='identifier', read_only=True)
     type_name_singular = serializers.SlugRelatedField(source='type', slug_field='name_singular', read_only=True)
     type_name_plural = serializers.SlugRelatedField(source='type', slug_field='name_plural', read_only=True)

@@ -66,7 +66,7 @@ class SectionInline(NestedStackedInline):
     model = models.Section
     extra = 1
     inlines = [SectionImageInline]
-    exclude = ("public", "commenting",)
+    exclude = ("public", )
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
@@ -166,12 +166,6 @@ class HearingAdmin(NestedAdmin, HearingGeoAdmin):
         if db_field.name == "labels":
             kwargs["widget"] = Select2SelectMultiple
         return super().formfield_for_manytomany(db_field, request, **kwargs)
-
-    def save_related(self, request, form, formsets, change):
-        super().save_related(request, form, formsets, change)
-        hearing = form.instance
-        assert isinstance(hearing, models.Hearing)
-        hearing.sections.update(commenting=hearing.commenting)
 
 
 class LabelAdmin(admin.ModelAdmin):

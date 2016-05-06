@@ -1,4 +1,5 @@
 import django_filters
+from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField
@@ -116,6 +117,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super(HearingViewSet, self).get_queryset()
+        queryset = queryset.filter(open_at__lte=now())
         next_closing = self.request.query_params.get('next_closing', None)
         if next_closing is not None:
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]

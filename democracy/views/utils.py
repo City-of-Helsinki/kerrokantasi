@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from functools import lru_cache
 
+from django.core.exceptions import ImproperlyConfigured
 from django.db.models.query import QuerySet
 from rest_framework import serializers
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS
@@ -59,3 +60,27 @@ class IOErrorIgnoringManyRelatedField(ManyRelatedField):
             except IOError:
                 continue
         return out
+
+
+class PublicFilteredImageField(serializers.Field):
+
+    def __init__(self, *args, **kwargs):
+        self.serializer_class = kwargs.pop('serializer_class', None)
+        if not self.serializer_class:
+            raise ImproperlyConfigured('Keyword argument serializer_class required')
+        super().__init__(*args, **kwargs)
+
+    def to_representation(self, images):
+        request = self.context.get('request')
+
+        if request and request.user and request.user.is_authenticated() and request.user.is_superuser:
+            images = images.with_unpublished()
+        else:
+            images = images.public()
+
+        serializer = self.serializer_class.get_field_serializer(
+            many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
+        )
+        serializer.bind(self.source, self)  # this is needed to get context in the serializer
+
+        return serializer.to_representation(images)

@@ -1,4 +1,5 @@
 import django_filters
+from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField
@@ -13,7 +14,7 @@ from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 from democracy.views.hearing_comment import HearingCommentSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer
-from democracy.views.utils import IOErrorIgnoringManyRelatedField
+from democracy.views.utils import PublicFilteredImageField
 
 from .hearing_report import HearingReport
 
@@ -30,7 +31,7 @@ class HearingImageSerializer(BaseImageSerializer):
 
     class Meta:
         model = HearingImage
-        fields = ['title', 'url', 'width', 'height', 'caption']
+        fields = ['title', 'url', 'width', 'height', 'caption', 'published']
 
 
 class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
@@ -43,10 +44,7 @@ class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewS
 
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
-    images = HearingImageSerializer.get_field_serializer(
-        many=True, read_only=True,
-        many_field_class=IOErrorIgnoringManyRelatedField
-    )
+    images = PublicFilteredImageField(serializer_class=HearingImageSerializer)
     sections = serializers.SerializerMethodField()
     comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)
@@ -116,6 +114,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         queryset = super(HearingViewSet, self).get_queryset()
+        queryset = queryset.filter(open_at__lte=now())
         next_closing = self.request.query_params.get('next_closing', None)
         if next_closing is not None:
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]

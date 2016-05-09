@@ -329,3 +329,17 @@ def test_hearing_copy(default_hearing, random_label):
 
     # closure info section should not have been copied
     assert not new_hearing.sections.filter(type__identifier=InitialSectionType.CLOSURE_INFO).exists()
+
+
+@pytest.mark.django_db
+def test_hearing_open_at_filtering(api_client, default_hearing):
+    default_hearing.open_at = now() + datetime.timedelta(hours=1)
+    default_hearing.save(update_fields=('open_at',))
+
+    response = api_client.get(list_endpoint)
+    data = get_data_from_response(response)
+    ids = [hearing['id'] for hearing in data]
+    assert default_hearing.id not in ids
+
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
+    assert response.status_code == 404

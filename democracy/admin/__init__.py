@@ -5,6 +5,8 @@ from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.db.models import TextField
+from django.contrib.admin.utils import model_ngettext
+from django.core.exceptions import PermissionDenied
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
@@ -151,7 +153,7 @@ class HearingAdmin(NestedAdmin, HearingGeoAdmin):
         TextField: {'widget': ShortTextAreaWidget}
     }
     form = FixedModelForm
-    actions = ("copy_as_draft",)
+    actions = ("copy_as_draft", "delete_selected")
 
     def copy_as_draft(self, request, queryset):
         for hearing in queryset:
@@ -166,6 +168,19 @@ class HearingAdmin(NestedAdmin, HearingGeoAdmin):
         if db_field.name == "labels":
             kwargs["widget"] = Select2SelectMultiple
         return super().formfield_for_manytomany(db_field, request, **kwargs)
+
+    def delete_selected(self, request, queryset):
+        if not self.has_delete_permission(request):
+            raise PermissionDenied
+
+        hearing_count = queryset.count()
+        if hearing_count:
+            for hearing in queryset:
+                hearing.soft_delete()
+            self.message_user(request, _('Successfully deleted %(count)d %(items)s.') % {
+                'count': hearing_count, 'items': model_ngettext(self.opts, hearing_count)
+            })
+    delete_selected.short_description = _('Delete selected %(verbose_name_plural)s')
 
 
 class LabelAdmin(admin.ModelAdmin):

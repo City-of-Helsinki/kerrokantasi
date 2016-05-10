@@ -17,3 +17,6 @@ def test_hearing_delete_action(admin_client, default_hearing):
 
     default_hearing = Hearing.objects.everything().get(pk=default_hearing.pk)
     assert default_hearing.deleted is True
+
+
+# TODO test section / section image inline soft delete somehow? it seems a bit complicated

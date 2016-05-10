@@ -182,6 +182,17 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
             })
     delete_selected.short_description = _('Delete selected %(verbose_name_plural)s')
 
+    def save_formset(self, request, form, formset, change):
+        objects = formset.save(commit=False)
+
+        for obj in formset.deleted_objects:
+            obj.soft_delete()
+
+        for obj in objects:
+            obj.save()
+
+        formset.save_m2m()
+
 
 class LabelAdmin(admin.ModelAdmin):
     exclude = ("public",)

@@ -11,7 +11,7 @@ from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
 from leaflet.admin import LeafletGeoAdmin
-from nested_admin.nested import NestedAdmin, NestedStackedInline
+from nested_admin.nested import NestedModelAdmin, NestedStackedInline
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
@@ -128,7 +128,7 @@ class HearingGeoAdmin(LeafletGeoAdmin):
     }
 
 
-class HearingAdmin(NestedAdmin, HearingGeoAdmin):
+class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
 
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)

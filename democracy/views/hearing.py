@@ -66,7 +66,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'images', 'sections', 'images',
-            'closed', 'comments', 'geojson'
+            'closed', 'comments', 'geojson', 'slug'
         ]
 
 
@@ -87,7 +87,7 @@ class HearingMapSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hearing
         fields = [
-            'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson'
+            'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug'
         ]
 
 

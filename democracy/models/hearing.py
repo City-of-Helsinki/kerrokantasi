@@ -9,6 +9,7 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
 from reversion import revisions
+from autoslug import AutoSlugField
 
 from democracy.models.comment import recache_on_save
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
@@ -35,6 +36,7 @@ class Hearing(Commentable, StringIdBaseModel):
         help_text=_('users who follow this hearing'),
         related_name='followed_hearings', blank=True, editable=False
     )
+    slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True)
 
     class Meta:
         verbose_name = _('hearing')

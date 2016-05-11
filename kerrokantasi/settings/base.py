@@ -114,3 +114,17 @@ DEMOCRACY_UI_BASE_URL = 'http://localhost:8086'
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin"  # TODO: Create an actual class for this once we know the data format
 }
+
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'stylesSet': [
+            {
+                "name": 'Lead',
+                "element": 'p',
+                "attributes": {'class': 'lead'},
+            },
+        ],
+        'contentsCss': ['%sckeditor/ckeditor/contents.css' % STATIC_URL, '.lead { font-weight: bold;}']
+    },
+}

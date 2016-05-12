@@ -1,15 +1,15 @@
 import django_filters
+from django.db.models import Q
 from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField
-from rest_framework.generics import get_object_or_404
+from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, HearingImage
 from democracy.utils.drf_enum_field import EnumField
-from democracy.utils.hmac_hash import get_hmac_b64_encoded
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 from democracy.views.hearing_comment import HearingCommentSerializer
 from democracy.views.label import LabelSerializer
@@ -112,29 +112,41 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         kwargs['context'] = self.get_serializer_context()
         return serializer_class(*args, **kwargs)
 
-    def get_queryset(self):
-        queryset = super(HearingViewSet, self).get_queryset()
+    def common_queryset_filtering(self, queryset):
+        """
+        Apply common time filters etc to the queryset.
+
+        Used by both get_queryset() and get_object().
+        """
         queryset = queryset.filter(open_at__lte=now())
         next_closing = self.request.query_params.get('next_closing', None)
         if next_closing is not None:
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
         return queryset.order_by('-created_at')
 
+    def get_queryset(self):
+        queryset = super(HearingViewSet, self).get_queryset()
+        return self.common_queryset_filtering(queryset)
+
     def get_object(self):
-        # If preview code is given check if code is valid and extend queryset to all Hearings Published and Unpublished
-        preview_code = self.request.query_params.get("preview")
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        if preview_code and lookup_url_kwarg in self.kwargs:
-            # A preview code is provided and there is a object lookup
-            if preview_code == get_hmac_b64_encoded(self.kwargs[lookup_url_kwarg]):
-                # preview code match object
-                queryset = Hearing.objects.with_unpublished()
-                filter_kwargs = {self.lookup_field: self.kwargs[lookup_url_kwarg]}
-                obj = get_object_or_404(queryset, **filter_kwargs)
-                # May raise a permission denied
-                self.check_object_permissions(self.request, obj)
-                return obj
-        return super().get_object()
+        id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
+
+        try:
+            queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
+            obj = queryset.get(Q(pk=id_or_slug) | Q(slug=id_or_slug))
+        except Hearing.DoesNotExist:
+            raise NotFound()
+
+        user = self.request.user
+        is_superuser = user and user.is_authenticated() and user.is_superuser
+
+        if not obj.published and not is_superuser:
+            preview_code = self.request.query_params.get('preview')
+            if not preview_code or preview_code != obj.preview_code:
+                raise NotFound()
+
+        self.check_object_permissions(self.request, obj)
+        return obj
 
     @detail_route(methods=['post'])
     def follow(self, request, pk=None):

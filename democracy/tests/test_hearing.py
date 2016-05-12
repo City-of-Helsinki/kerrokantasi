@@ -371,3 +371,19 @@ def test_slug():
     hearing.save()
     hearing.refresh_from_db()
     assert hearing.slug == 'slug-3'
+
+
+@pytest.mark.django_db
+def test_access_hearing_using_slug(api_client, default_hearing):
+    default_hearing.slug = 'new-slug'
+    default_hearing.save()
+
+    endpoint = list_endpoint + 'new-slug/'
+    data = get_data_from_response(api_client.get(endpoint))
+    assert data['id'] == default_hearing.id
+
+    endpoint += 'sections/'
+    get_data_from_response(api_client.get(endpoint))
+
+    endpoint += '%s/' % default_hearing.sections.all()[0].id
+    get_data_from_response(api_client.get(endpoint))

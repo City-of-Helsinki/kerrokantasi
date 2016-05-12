@@ -1,4 +1,3 @@
-from django.db.models import Q
 from rest_framework import serializers, viewsets
 
 from democracy.enums import Commenting, InitialSectionType
@@ -48,7 +47,7 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         id_or_slug = self.kwargs['hearing_pk']
-        hearing = Hearing.objects.get(Q(pk=id_or_slug) | Q(slug=id_or_slug))
+        hearing = Hearing.objects.get_by_id_or_slug(id_or_slug)
         queryset = super().get_queryset().filter(hearing=hearing)
         if not hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)

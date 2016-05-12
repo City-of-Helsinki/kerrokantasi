@@ -1,5 +1,4 @@
 import django_filters
-from django.db.models import Q
 from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -133,7 +132,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
         try:
             queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
-            obj = queryset.get(Q(pk=id_or_slug) | Q(slug=id_or_slug))
+            obj = queryset.get_by_id_or_slug(id_or_slug)
         except Hearing.DoesNotExist:
             raise NotFound()
 

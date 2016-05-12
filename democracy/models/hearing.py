@@ -20,6 +20,14 @@ from .comment import BaseComment
 from .images import BaseImage
 
 
+class HearingQueryset(models.QuerySet):
+    def get_by_id_or_slug(self, id_or_slug):
+        return self.get(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
+
+    def filter_by_id_or_slug(self, id_or_slug):
+        return self.filter(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
+
+
 class Hearing(Commentable, StringIdBaseModel):
     open_at = models.DateTimeField(verbose_name=_('opening time'), default=timezone.now)
     close_at = models.DateTimeField(verbose_name=_('closing time'), default=timezone.now)
@@ -40,7 +48,7 @@ class Hearing(Commentable, StringIdBaseModel):
     slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True,
                          help_text=_('You may leave this empty to automatically generate a slug'))
 
-    objects = BaseModelManager()
+    objects = BaseModelManager.from_queryset(HearingQueryset)()
     original_manager = models.Manager()
 
     class Meta:

@@ -134,13 +134,13 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
         js = ("admin/ckeditor-nested-inline-fix.js",)
 
     inlines = [HearingImageInline, SectionInline]
-    list_display = ("id", "published", "title", "open_at", "close_at", "force_closed")
+    list_display = ("slug", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)
-    search_fields = ("id", "title")
+    search_fields = ("slug", "title")
     readonly_fields = ("preview_url",)
     fieldsets = (
         (None, {
-            "fields": ("title", "abstract", "labels", "id", "preview_url")
+            "fields": ("title", "abstract", "labels", "slug", "preview_url")
         }),
         (_("Availability"), {
             "fields": ("published", "open_at", "close_at", "force_closed", "commenting")
@@ -154,6 +154,7 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
     }
     form = FixedModelForm
     actions = ("copy_as_draft", "delete_selected")
+    ordering = ("slug",)
 
     def copy_as_draft(self, request, queryset):
         for hearing in queryset:

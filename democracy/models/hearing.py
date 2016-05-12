@@ -37,7 +37,8 @@ class Hearing(Commentable, StringIdBaseModel):
         help_text=_('users who follow this hearing'),
         related_name='followed_hearings', blank=True, editable=False
     )
-    slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True)
+    slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True,
+                         help_text=_('You may leave this empty to automatically generate a slug'))
 
     objects = BaseModelManager()
     original_manager = models.Manager()

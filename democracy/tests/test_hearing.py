@@ -37,6 +37,7 @@ def create_hearings(n):
     for i in range(n):
         hearings.append(
             Hearing.objects.create(
+                title='Test purpose created hearing title %s' % (i + 1),
                 abstract='Test purpose created hearing %s' % (i + 1),
                 created_at=now() - datetime.timedelta(seconds=1 + (n - i))
             )
@@ -343,3 +344,30 @@ def test_hearing_open_at_filtering(api_client, default_hearing):
 
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_slug():
+    hearings = create_hearings(3)
+    hearing = hearings[0]
+
+    slug = hearing.slug
+    assert slug == 'test-purpose-created-hearing-title-1'
+
+    # test that saving won't autopopulate the slug
+    hearing.title = 'foo'
+    hearing.save()
+    hearing.refresh_from_db()
+    assert hearing.slug == slug
+
+    hearings[1].slug = 'slug'
+    hearings[1].save()
+    hearings[2].slug = 'slug'  # this becomes slug-2
+    hearings[2].deleted = True
+    hearings[2].save()
+
+    # slug collision with 2 hearings, one of those is also deleted
+    hearing.slug = 'slug'
+    hearing.save()
+    hearing.refresh_from_db()
+    assert hearing.slug == 'slug-3'

@@ -108,8 +108,7 @@ class StringIdBaseModel(BaseModel):
         verbose_name=_('identifier'),
         primary_key=True,
         max_length=32,
-        blank=True,
-        help_text=_('You may leave this empty to automatically generate an ID')
+        editable=False
     )
 
     class Meta:

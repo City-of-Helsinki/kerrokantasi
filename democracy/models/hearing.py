@@ -9,13 +9,23 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
 from reversion import revisions
+from autoslug import AutoSlugField
+from autoslug.utils import generate_unique_slug
 
 from democracy.models.comment import recache_on_save
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
-from .base import Commentable, StringIdBaseModel
+from .base import BaseModelManager, Commentable, StringIdBaseModel
 from .comment import BaseComment
 from .images import BaseImage
+
+
+class HearingQueryset(models.QuerySet):
+    def get_by_id_or_slug(self, id_or_slug):
+        return self.get(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
+
+    def filter_by_id_or_slug(self, id_or_slug):
+        return self.filter(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
 
 
 class Hearing(Commentable, StringIdBaseModel):
@@ -35,6 +45,11 @@ class Hearing(Commentable, StringIdBaseModel):
         help_text=_('users who follow this hearing'),
         related_name='followed_hearings', blank=True, editable=False
     )
+    slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True,
+                         help_text=_('You may leave this empty to automatically generate a slug'))
+
+    objects = BaseModelManager.from_queryset(HearingQueryset)()
+    original_manager = models.Manager()
 
     class Meta:
         verbose_name = _('hearing')
@@ -66,6 +81,15 @@ class Hearing(Commentable, StringIdBaseModel):
         return format_html(
             '<a href="%s">%s</a>' % (url, url)
         )
+
+    def save(self, *args, **kwargs):
+        slug_field = self._meta.get_field('slug')
+
+        # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
+        # uses our default manager, which can lead to a slug collision between this and a deleted hearing
+        self.slug = generate_unique_slug(slug_field, self, self.slug, Hearing.original_manager)
+
+        super().save(*args, **kwargs)
 
 
 class HearingImage(BaseImage):

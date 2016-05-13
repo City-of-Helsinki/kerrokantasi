@@ -21,17 +21,24 @@ def get_comment_data(**extra):
     }, **extra)
 
 
+@pytest.fixture(params=['id', 'slug'])
+def lookup_field(request):
+    return request.param
+
+
 @pytest.mark.django_db
-def test_55_add_comment_without_authentication(api_client, default_hearing):
-    # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-    response = api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=get_comment_data())
+def test_55_add_comment_without_authentication(api_client, default_hearing, lookup_field):
+    # post data to hearing endpoint /v1/hearings/<hearing ID or slug>/comments/
+    response = api_client.post(get_hearing_detail_url(getattr(default_hearing, lookup_field), 'comments'),
+                               data=get_comment_data())
     assert response.status_code == 201
 
 
 @pytest.mark.django_db
-def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearing):
-    # post data to hearing ednpoint /v1/hearings/<hearingID>/comments/
-    response = john_doe_api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), data=get_comment_data())
+def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearing, lookup_field):
+    # post data to hearing endpoint /v1/hearings/<hearing ID or slug>/comments/
+    response = john_doe_api_client.post(get_hearing_detail_url(getattr(default_hearing, lookup_field), 'comments'),
+                                        data=get_comment_data())
     data = get_data_from_response(response, status_code=201)
     assert data['created_by']['username'] == john_doe.username
     assert data['author_name'] == john_doe.username
@@ -40,27 +47,27 @@ def test_55_add_comment_to_hearing(john_doe, john_doe_api_client, default_hearin
 
 
 @pytest.mark.django_db
-def test_add_auth_code_to_comment(api_client, default_hearing):
+def test_add_auth_code_to_comment(api_client, default_hearing, lookup_field):
     comment_data = get_comment_data(authorization_code="foo6")
-    response = api_client.post(get_hearing_detail_url(default_hearing.id, 'comments'), comment_data)
+    response = api_client.post(get_hearing_detail_url(getattr(default_hearing, lookup_field), 'comments'), comment_data)
     response_data = get_data_from_response(response, status_code=201)
     assert comment_data["authorization_code"] ==\
            Hearing.objects.get(pk=default_hearing.pk).comments.get(id=response_data["id"]).authorization_code
 
 
 @pytest.mark.django_db
-def test_list_comments_with_auth_code(api_client, default_hearing):
+def test_list_comments_with_auth_code(api_client, default_hearing, lookup_field):
     comment_data = get_comment_data(authorization_code="foo6")
-    url = get_hearing_detail_url(default_hearing.id, 'comments')
+    url = get_hearing_detail_url(getattr(default_hearing, lookup_field), 'comments')
     api_client.post(url, comment_data)
     data = get_data_from_response(api_client.get(url, {"authorization_code": "foo6"}))
     assert len(data) == 1
 
 
 @pytest.mark.django_db
-def test_54_list_all_comments_added_to_hearing_check_amount(api_client, default_hearing):
+def test_54_list_all_comments_added_to_hearing_check_amount(api_client, default_hearing, lookup_field):
     # list all comments
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'comments'))
+    response = api_client.get(get_hearing_detail_url(getattr(default_hearing, lookup_field), 'comments'))
 
     data = get_data_from_response(response)
     assert len(data) == 3
@@ -122,8 +129,8 @@ def test_54_list_all_comments_added_to_hearing_check_created_at(api_client, defa
 
 
 @pytest.mark.django_db
-def test_54_get_hearing_with_comments_check_amount_of_comments(api_client, default_hearing):
-    response = api_client.get(get_hearing_detail_url(default_hearing.id))
+def test_54_get_hearing_with_comments_check_amount_of_comments(api_client, default_hearing, lookup_field):
+    response = api_client.get(get_hearing_detail_url(getattr(default_hearing, lookup_field)))
     data = get_data_from_response(response)
     assert 'comments' in data
     assert len(data['comments']) == 3
@@ -147,10 +154,10 @@ def test_54_get_hearing_with_comments_check_comment_properties(api_client, defau
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_authentication(api_client, default_hearing):
+def test_56_add_comment_to_section_without_authentication(api_client, default_hearing, lookup_field):
     section = default_hearing.sections.first()
-    # post data to section endpoint /v1/hearing/<hearingID>/sections/<sectionID>/comments/
-    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    # post data to section endpoint /v1/hearing/<hearing ID or slug>/sections/<sectionID>/comments/
+    url = get_hearing_detail_url(getattr(default_hearing, lookup_field), 'sections/%s/comments' % section.id)
     response = api_client.post(url, data=get_comment_data())
     assert response.status_code == 201
 
@@ -165,9 +172,9 @@ def test_56_add_comment_to_section_without_data(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section(john_doe_api_client, default_hearing):
+def test_56_add_comment_to_section(john_doe_api_client, default_hearing, lookup_field):
     section = default_hearing.sections.first()
-    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    url = get_hearing_detail_url(getattr(default_hearing, lookup_field), 'sections/%s/comments' % section.id)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
     # set section explicitly
@@ -234,10 +241,10 @@ def test_n_comments_updates(admin_user, default_hearing):
 
 
 @pytest.mark.django_db
-def test_comment_edit_versioning(john_doe_api_client, random_hearing):
+def test_comment_edit_versioning(john_doe_api_client, random_hearing, lookup_field):
     random_hearing.commenting = Commenting.OPEN
     random_hearing.save()
-    response = john_doe_api_client.post('/v1/hearing/%s/comments/' % random_hearing.pk, data={
+    response = john_doe_api_client.post('/v1/hearing/%s/comments/' % getattr(random_hearing, lookup_field), data={
         "content": "THIS SERVICE SUCKS"
     })
     data = get_data_from_response(response, 201)
@@ -245,7 +252,8 @@ def test_comment_edit_versioning(john_doe_api_client, random_hearing):
     comment = HearingComment.objects.get(pk=comment_id)
     assert comment.content.isupper()  # Oh my, all that screaming :(
     assert not revisions.get_for_object(comment)  # No revisions
-    response = john_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
+    response = john_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (getattr(random_hearing, lookup_field),
+                                                                          comment_id), data={
         "content": "Never mind, it's nice :)"
     })
     data = get_data_from_response(response, 200)
@@ -288,25 +296,27 @@ def test_commenting_modes(api_client, john_doe_api_client, commenting):
 
 
 @pytest.mark.django_db
-def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client, random_hearing):
+def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client, random_hearing, lookup_field):
     random_hearing.commenting = Commenting.OPEN
     random_hearing.save()
     # John posts an innocuous comment:
     johns_message = "Hi! I'm John!"
-    response = john_doe_api_client.post('/v1/hearing/%s/comments/' % random_hearing.pk, data={
+    response = john_doe_api_client.post('/v1/hearing/%s/comments/' % getattr(random_hearing, lookup_field), data={
         "content": johns_message
     })
     data = get_data_from_response(response, 201)
     comment_id = data["id"]
     # Now Jane (in the guise of Mallory) attempts a rogue edit:
-    response = jane_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
+    response = jane_doe_api_client.patch('/v1/hearing/%s/comments/%s/' % (getattr(random_hearing, lookup_field),
+                                                                          comment_id), data={
         "content": "hOI! I'M TEMMIE"
     })
     # But her attempts are foiled!
     data = get_data_from_response(response, 403)
     assert HearingComment.objects.get(pk=comment_id).content == johns_message
     # Jane, thinking she can bamboozle our authentication by logging out, tries again!
-    response = api_client.patch('/v1/hearing/%s/comments/%s/' % (random_hearing.pk, comment_id), data={
+    response = api_client.patch('/v1/hearing/%s/comments/%s/' % (getattr(random_hearing, lookup_field), comment_id),
+                                data={
         "content": "I'm totally John"
     })
     # But still, no!

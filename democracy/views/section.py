@@ -46,7 +46,8 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     model = Section
 
     def get_queryset(self):
-        hearing = Hearing.objects.get(id=self.kwargs['hearing_pk'])
+        id_or_slug = self.kwargs['hearing_pk']
+        hearing = Hearing.objects.get_by_id_or_slug(id_or_slug)
         queryset = super().get_queryset().filter(hearing=hearing)
         if not hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)

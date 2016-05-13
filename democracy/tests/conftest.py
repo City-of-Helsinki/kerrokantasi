@@ -43,6 +43,7 @@ def default_hearing(john_doe):
         commenting=Commenting.OPEN,
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
+        slug='default-hearing-slug'
     )
     create_default_images(hearing)
     for x in range(1, 4):

@@ -1,6 +1,5 @@
 from functools import partial
 
-from ckeditor.widgets import CKEditorWidget
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -9,6 +8,7 @@ from django.contrib.admin.utils import model_ngettext
 from django.core.exceptions import PermissionDenied
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from djgeojson.fields import GeoJSONFormField
 from leaflet.admin import LeafletGeoAdmin
 from nested_admin.nested import NestedModelAdmin, NestedStackedInline
@@ -76,7 +76,7 @@ class SectionInline(NestedStackedInline):
     def formfield_for_dbfield(self, db_field, **kwargs):
         obj = kwargs.pop("obj", None)
         if db_field.name == "content":
-            kwargs["widget"] = CKEditorWidget
+            kwargs["widget"] = CKEditorUploadingWidget
             # Some initial value is needed for every section to workaround a bug in nested inlines
             # that causes an integrity error to be raised when a section image is added but the parent
             # section isn't saved.

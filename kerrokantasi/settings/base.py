@@ -25,6 +25,7 @@ INSTALLED_APPS = (
     'djgeojson',
     'leaflet',
     'ckeditor',
+    'ckeditor_uploader',
     'helusers',
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app
@@ -128,3 +129,5 @@ CKEDITOR_CONFIGS = {
         'contentsCss': ['%sckeditor/ckeditor/contents.css' % STATIC_URL, '.lead { font-weight: bold;}']
     },
 }
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'

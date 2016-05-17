@@ -131,7 +131,7 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
 
     class Media:
-        js = ("admin/ckeditor-nested-inline-fix.js",)
+        js = ("admin/ckeditor-nested-inline-fix.js", "admin/hide-plugin-fields.js")
 
     inlines = [HearingImageInline, SectionInline]
     list_display = ("slug", "published", "title", "open_at", "close_at", "force_closed")

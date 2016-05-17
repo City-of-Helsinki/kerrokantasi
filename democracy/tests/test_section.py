@@ -317,3 +317,21 @@ def test_added_section_type_can_be_edited(new_section_type):
     new_section_type.save()
     new_section_type.refresh_from_db()
     assert new_section_type.name_singular == 'edited name'
+
+
+@pytest.mark.django_db
+def test_introduction_cannot_have_plugin_fields(default_hearing):
+    introduction = Section.objects.create(
+        type=SectionType.objects.get(identifier='introduction'),
+        hearing=default_hearing,
+        plugin_identifier='this should be nullified',
+        plugin_data='this also'
+    )
+    assert introduction.plugin_identifier == ''
+    assert introduction.plugin_data == ''
+
+    introduction.plugin_identifier = 'this should be nullified also when editing'
+    introduction.plugin_data = 'this also'
+    introduction.save()
+    assert introduction.plugin_identifier == ''
+    assert introduction.plugin_data == ''

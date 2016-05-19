@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import Hearing, HearingComment, Label, Section, SectionType
+from democracy.models import Hearing, HearingComment, Label, Section, SectionType, Organization
 from democracy.tests.utils import assert_ascending_sequence, create_default_images
 
 
@@ -28,6 +28,11 @@ def pytest_configure():
         'django.contrib.auth.hashers.SHA1PasswordHasher',
         'django.contrib.auth.hashers.CryptPasswordHasher',
     )
+
+
+@pytest.fixture()
+def default_organization():
+    return Organization.objects.create(name='The department for squirrel welfare')
 
 
 @pytest.fixture()

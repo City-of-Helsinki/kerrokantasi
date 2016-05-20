@@ -1,12 +1,12 @@
 import pytest
 
-from democracy.tests.test_hearing import list_endpoint
 from democracy.tests.utils import IMAGES, get_data_from_response, get_hearing_detail_url
 
 
-def check_entity_images(entity):
-    assert 'images' in entity
-    image_list = entity['images']
+def check_entity_images(entity, images_field=True):
+    if images_field:
+        assert 'images' in entity
+    image_list = entity['images'] if images_field else entity
     assert len(image_list) == 3
     assert all([im['url'].startswith("http") for im in image_list])
     assert set(im['title'] for im in image_list) == set(IMAGES.values())
@@ -53,7 +53,7 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     image.published = False
     image.save(update_fields=('published',))
 
-    # /v1/hearing/<id>/ images field
+    # /v1/hearing/<id>/ section images field
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     image_set_1 = get_data_from_response(response)['sections'][0]['images']
 
@@ -61,5 +61,17 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
     image_set_2 = get_data_from_response(response)[0]['images']
 
-    for image_set in (image_set_1, image_set_2):
+    response = api_client.get('/v1/image/?section=%s' % default_hearing.sections.first().id)
+    image_set_3 = get_data_from_response(response)['results']
+
+    for image_set in (image_set_1, image_set_2, image_set_3):
         assert (IMAGES['ORIGINAL'] in [image['title'] for image in image_set]) is expected
+
+
+@pytest.mark.django_db
+def test_get_images_root_endpoint(api_client, default_hearing):
+    data = get_data_from_response(api_client.get('/v1/image/'))
+    assert len(data['results']) == 9
+
+    data = get_data_from_response(api_client.get('/v1/image/?section=%s' % default_hearing.sections.first().id))
+    check_entity_images(data['results'], False)

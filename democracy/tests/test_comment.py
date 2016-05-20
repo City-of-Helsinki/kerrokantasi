@@ -318,7 +318,7 @@ def test_get_plugin_data_for_comment(api_client, default_hearing):
 
 @pytest.mark.parametrize('data', [{'section': 'nonexistingsection'}, None])
 @pytest.mark.django_db
-def test_post_to_root_endpoint_invalid_section(api_client, default_hearing, data, get_comments_url_and_data):
+def test_post_to_root_endpoint_invalid_section(api_client, default_hearing, data):
     url = '/v1/comment/'
 
     response = api_client.post(url, data=data)

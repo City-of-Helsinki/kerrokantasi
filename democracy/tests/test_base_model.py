@@ -1,7 +1,7 @@
 import pytest
 
-from democracy.factories.hearing import HearingCommentFactory, HearingFactory
-from democracy.models import Hearing, HearingComment
+from democracy.factories.hearing import HearingFactory
+from democracy.models import Hearing
 
 
 @pytest.mark.django_db
@@ -12,14 +12,6 @@ def test_manager_exclude_deleted():
         Hearing.objects.first().soft_delete()
     assert Hearing.objects.count() == 7
     assert Hearing.objects.deleted().count() == 3
-    obj = Hearing.objects.first()
-    orig_nb_comments = obj.comments.count()
-    for _ in range(10):
-        HearingCommentFactory(hearing=obj)
-    for _ in range(3):
-        obj.comments.first().soft_delete()
-    assert obj.comments.count() == (7 + orig_nb_comments)
-    assert obj.comments.deleted().count() == 3
 
 
 @pytest.mark.django_db

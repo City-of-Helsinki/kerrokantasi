@@ -118,5 +118,4 @@ def test_json_importer():
     assert hearing.title == 'ikwnydbg hjl riffyjsbrq shxv nkl'
     assert hearing.sections.filter(type__identifier=InitialSectionType.SCENARIO).count() == 2
     assert hearing.sections.filter(type__identifier=InitialSectionType.PART).count() == 1
-    assert hearing.comments.count() == 2
     # TODO: This test could probably be better

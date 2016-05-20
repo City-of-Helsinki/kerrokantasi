@@ -3,20 +3,19 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models import Sum
 from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
-from reversion import revisions
 from autoslug import AutoSlugField
 from autoslug.utils import generate_unique_slug
 
-from democracy.models.comment import recache_on_save
+from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
 from .base import BaseModelManager, Commentable, StringIdBaseModel
-from .comment import BaseComment
 from .images import BaseImage
 from .organization import Organization
 
@@ -96,6 +95,15 @@ class Hearing(Commentable, StringIdBaseModel):
 
         super().save(*args, **kwargs)
 
+    def recache_n_comments(self):
+        new_n_comments = (self.sections.all().aggregate(Sum('n_comments')).get('n_comments__sum') or 0)
+        if new_n_comments != self.n_comments:
+            self.n_comments = new_n_comments
+            self.save(update_fields=("n_comments",))
+
+    def get_intro_section(self):
+        return self.sections.get(type__identifier=InitialSectionType.INTRODUCTION)
+
 
 class HearingImage(BaseImage):
     parent_field = "hearing"
@@ -104,15 +112,3 @@ class HearingImage(BaseImage):
     class Meta:
         verbose_name = _('hearing image')
         verbose_name_plural = _('hearing images')
-
-
-@revisions.register
-@recache_on_save
-class HearingComment(BaseComment):
-    parent_field = "hearing"
-    parent_model = Hearing
-    hearing = models.ForeignKey(Hearing, related_name="comments")
-
-    class Meta:
-        verbose_name = _('hearing comment')
-        verbose_name_plural = _('hearing comments')

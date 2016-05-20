@@ -10,7 +10,6 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, HearingImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.hearing_comment import HearingCommentSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer
 from democracy.views.utils import PublicFilteredImageField
@@ -45,7 +44,6 @@ class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     images = PublicFilteredImageField(serializer_class=HearingImageSerializer)
     sections = serializers.SerializerMethodField()
-    comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
     organization = serializers.SlugRelatedField(
@@ -69,7 +67,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'images', 'sections', 'images',
-            'closed', 'comments', 'geojson', 'organization', 'slug'
+            'closed', 'geojson', 'organization', 'slug'
         ]
 
 
@@ -77,8 +75,7 @@ class HearingListSerializer(HearingSerializer):
 
     def get_fields(self):
         fields = super(HearingListSerializer, self).get_fields()
-        # Elide comments, section and geo data when listing hearings; one can get to them via detail routes
-        fields.pop("comments")
+        # Elide section and geo data when listing hearings; one can get to them via detail routes
         fields.pop("sections")
         fields.pop("geojson")
         return fields

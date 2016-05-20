@@ -9,7 +9,6 @@ class ForeignKeyListSerializer(serializers.ReadOnlyField):
 
 
 class UserDataSerializer(serializers.ModelSerializer):
-    voted_hearing_comments = ForeignKeyListSerializer(source='voted_democracy_hearingcomment')
     voted_section_comments = ForeignKeyListSerializer(source='voted_democracy_sectioncomment')
     followed_hearings = ForeignKeyListSerializer()
 
@@ -18,8 +17,7 @@ class UserDataSerializer(serializers.ModelSerializer):
         fields = [
             'uuid',
             'username', 'first_name', 'last_name',
-            'voted_hearing_comments', 'voted_section_comments',
-            'followed_hearings'
+            'voted_section_comments', 'followed_hearings'
         ]
 
 

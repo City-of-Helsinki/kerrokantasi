@@ -7,12 +7,11 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, HearingImage
+from democracy.models import Hearing
 from democracy.utils.drf_enum_field import EnumField
-from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
+from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer
-from democracy.views.utils import PublicFilteredImageField
 
 from .hearing_report import HearingReport
 
@@ -25,24 +24,8 @@ class HearingFilter(django_filters.FilterSet):
         fields = ['next_closing', ]
 
 
-class HearingImageSerializer(BaseImageSerializer):
-
-    class Meta:
-        model = HearingImage
-        fields = ['title', 'url', 'width', 'height', 'caption', 'published']
-
-
-class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
-    model = HearingImage
-    serializer_class = HearingImageSerializer
-
-    def get_queryset(self):
-        return super(HearingImageViewSet, self).get_queryset().filter(hearing_id=self.kwargs["hearing_pk"])
-
-
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
-    images = PublicFilteredImageField(serializer_class=HearingImageSerializer)
     sections = serializers.SerializerMethodField()
     commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
@@ -66,7 +49,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'images', 'sections', 'images',
+            'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug'
         ]
 

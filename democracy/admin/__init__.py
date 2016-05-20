@@ -46,15 +46,6 @@ class FixedModelForm(forms.ModelForm):
 # Inlines
 
 
-class HearingImageInline(NestedStackedInline):
-    model = models.HearingImage
-    extra = 0
-    exclude = ("public", "title")
-    formfield_overrides = {
-        TextField: {'widget': ShortTextAreaWidget}
-    }
-
-
 class SectionImageInline(NestedStackedInline):
     model = models.SectionImage
     extra = 0
@@ -133,7 +124,7 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)
 
-    inlines = [HearingImageInline, SectionInline]
+    inlines = [SectionInline]
     list_display = ("slug", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)
     search_fields = ("slug", "title")

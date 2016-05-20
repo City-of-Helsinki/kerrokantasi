@@ -16,7 +16,6 @@ from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
 from .base import BaseModelManager, Commentable, StringIdBaseModel
-from .images import BaseImage
 from .organization import Organization
 
 
@@ -103,12 +102,3 @@ class Hearing(Commentable, StringIdBaseModel):
 
     def get_intro_section(self):
         return self.sections.get(type__identifier=InitialSectionType.INTRODUCTION)
-
-
-class HearingImage(BaseImage):
-    parent_field = "hearing"
-    hearing = models.ForeignKey(Hearing, related_name="images")
-
-    class Meta:
-        verbose_name = _('hearing image')
-        verbose_name_plural = _('hearing images')

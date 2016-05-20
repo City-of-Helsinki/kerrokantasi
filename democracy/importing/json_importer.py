@@ -182,7 +182,7 @@ def import_hearing(hearing_datum, force=False, patch=False):
         content=(hearing_datum.pop("body") or ""),
     )
     import_comments(intro_section, hearing_datum.pop("comments", ()), patch)
-    import_images(hearing, hearing_datum, patch)
+    import_images(intro_section, hearing_datum, patch)
     import_sections(hearing, hearing_datum, force, patch)
 
     # Compact section ordering...

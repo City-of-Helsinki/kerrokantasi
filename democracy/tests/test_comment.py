@@ -25,34 +25,57 @@ def get_intro_comments_url(hearing, lookup_field='id'):
     return '/v1/hearing/%s/sections/%s/comments/' % (getattr(hearing, lookup_field), hearing.get_intro_section().id)
 
 
+@pytest.fixture(params=['nested_by_id', 'nested_by_slug', 'root'])
+def get_comments_url_and_data(request):
+    """
+    A fixture to test three different comment endpoints:
+    - /v1/hearing/<hearing id>/sections/<section id>/comments/
+    - /v1/hearing/<hearing slug>/sections/<section id>/comments/
+    - /v1/comments/?section=<section id>
+
+    Returns the URL and comment data which contains also section ID in case
+    the current endpoint is the root endpoint.
+    """
+    nested_url = '/v1/hearing/%s/sections/%s/comments/'
+    return {
+        'nested_by_id': lambda hearing, section: (nested_url % (hearing.id, section.id), get_comment_data()),
+        'nested_by_slug': lambda hearing, section: (nested_url % (hearing.id, section.id), get_comment_data()),
+        'root': lambda hearing, section: ('/v1/comment/?section=%s' % section.id, get_comment_data(section=section.id))
+    }[request.param]
+
+
 @pytest.fixture(params=['id', 'slug'])
 def lookup_field(request):
     return request.param
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_authentication(api_client, default_hearing, lookup_field):
+def test_56_add_comment_to_section_without_authentication(api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
-    # post data to section endpoint /v1/hearing/<hearing ID or slug>/sections/<sectionID>/comments/
-    url = get_hearing_detail_url(getattr(default_hearing, lookup_field), 'sections/%s/comments' % section.id)
-    response = api_client.post(url, data=get_comment_data())
+    url, data = get_comments_url_and_data(default_hearing, section)
+    response = api_client.post(url, data=data)
     assert response.status_code == 201
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_data(api_client, default_hearing):
+def test_56_add_comment_to_section_without_data(api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
-    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
-    response = api_client.post(url, data=None)
-    # expect bad request, we didn't set any data
+    url, data = get_comments_url_and_data(default_hearing, section)
+    post_data = {'section': data['section']} if 'section' in data else None
+    response = api_client.post(url, data=post_data)
+    # expect bad request, we didn't set any data except section if this request was for the root level endpoint
     assert response.status_code == 400
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section(john_doe_api_client, default_hearing, lookup_field):
+def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
-    url = get_hearing_detail_url(getattr(default_hearing, lookup_field), 'sections/%s/comments' % section.id)
+    url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
 
     # set section explicitly
     comment_data = get_comment_data(section=section.pk)
@@ -67,6 +90,11 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, lookup_
 
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
     assert len(new_comment_list) == len(old_comment_list) + 1
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
     assert_common_keys_equal(new_comment, comment_data)
@@ -79,7 +107,7 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, lookup_
 
 
 @pytest.mark.django_db
-def test_56_get_hearing_with_section_check_n_comments_property(api_client):
+def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_comments_url_and_data):
     hearing = Hearing.objects.create(
         title='Test Hearing',
         abstract='Hearing to test section comments',
@@ -93,10 +121,9 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client):
         commenting=Commenting.OPEN,
         type=SectionType.objects.get(identifier=InitialSectionType.PART)
     )
-    url = get_hearing_detail_url(hearing.id, 'sections/%s/comments' % section.id)
+    url, data = get_comments_url_and_data(hearing, section)
 
-    comment_data = get_comment_data(section=section.pk)
-    response = api_client.post(url, data=comment_data)
+    response = api_client.post(url, data=data)
     assert response.status_code == 201, ("response was %s" % response.content)
 
     # get hearing and check sections's n_comments property
@@ -287,3 +314,20 @@ def test_get_plugin_data_for_comment(api_client, default_hearing):
         comment_list = get_data_from_response(api_client.get(url, {"include": "plugin_data"}))
         created_comment = [c for c in comment_list if c["id"] == response_data["id"]][0]
         assert created_comment["plugin_data"] == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
+
+
+@pytest.mark.parametrize('data', [{'section': 'nonexistingsection'}, None])
+@pytest.mark.django_db
+def test_post_to_root_endpoint_invalid_section(api_client, default_hearing, data, get_comments_url_and_data):
+    url = '/v1/comment/'
+
+    response = api_client.post(url, data=data)
+    assert response.status_code == 400
+    assert 'section' in response.data
+
+    comment = default_hearing.sections.first().comments.first()
+    url = '%s%s/' % (url, comment.id)
+
+    response = api_client.put(url, data)
+    assert response.status_code == 400
+    assert 'section' in response.data

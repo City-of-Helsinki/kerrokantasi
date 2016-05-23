@@ -331,3 +331,24 @@ def test_post_to_root_endpoint_invalid_section(api_client, default_hearing, data
     response = api_client.put(url, data)
     assert response.status_code == 400
     assert 'section' in response.data
+
+
+@pytest.mark.django_db
+def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
+    url = '/v1/comment/'
+    section = default_hearing.sections.first()
+    for i, comment in enumerate(section.comments.all()):
+        comment.authorization_code = 'auth_code_%s' % i
+        comment.save(update_fields=('authorization_code',))
+
+    response = api_client.get('%s?authorization_code=%s' % (url, section.comments.first().authorization_code))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 1
+
+    response = api_client.get('%s?section=%s' % (url, section.id))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 3
+
+    response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 9

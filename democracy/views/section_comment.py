@@ -1,3 +1,4 @@
+import django_filters
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
@@ -59,18 +60,34 @@ class SectionCommentViewSet(BaseCommentViewSet):
     create_serializer_class = SectionCommentCreateSerializer
 
 
+class RootSectionCommentSerializer(SectionCommentSerializer):
+    """
+    Serializer for root level comment endpoint /v1/comment/
+    """
+    hearing = serializers.SerializerMethodField()
+
+    class Meta(SectionCommentSerializer.Meta):
+        fields = SectionCommentSerializer.Meta.fields + ['hearing']
+
+    def get_hearing(self, section_comment):
+        return section_comment.section.hearing.id
+
+
 class CommentPagination(LimitOffsetPagination):
     default_limit = 50
 
 
 class CommentFilter(filters.FilterSet):
+    hearing = django_filters.CharFilter(name='section__hearing__id')
+
     class Meta:
         model = SectionComment
-        fields = ['section']
+        fields = ['authorization_code', 'section', 'hearing']
 
 
-# root level (Section)Comment endpoint
+# root level SectionComment endpoint
 class CommentViewSet(SectionCommentViewSet):
+    serializer_class = RootSectionCommentSerializer
     pagination_class = CommentPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = CommentFilter

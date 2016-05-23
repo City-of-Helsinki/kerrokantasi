@@ -1,3 +1,4 @@
+import django_filters
 from rest_framework import filters, serializers, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -59,8 +60,13 @@ class RootSectionImageSerializer(SectionImageSerializer):
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """
+    hearing = serializers.SerializerMethodField()
+
     class Meta(SectionImageSerializer.Meta):
-        fields = SectionImageSerializer.Meta.fields + ['section']
+        fields = SectionImageSerializer.Meta.fields + ['section', 'hearing']
+
+    def get_hearing(self, section_image):
+        return section_image.section.hearing.id
 
 
 class ImagePagination(LimitOffsetPagination):
@@ -68,9 +74,12 @@ class ImagePagination(LimitOffsetPagination):
 
 
 class ImageFilter(filters.FilterSet):
+    hearing = django_filters.CharFilter(name='section__hearing__id')
+    section_type = django_filters.CharFilter(name='section__type__identifier')
+
     class Meta:
         model = SectionImage
-        fields = ['section']
+        fields = ['section', 'hearing', 'section_type']
 
 
 # root level SectionImage endpoint

@@ -1,6 +1,6 @@
 import pytest
 
-from democracy.tests.utils import IMAGES, get_data_from_response, get_hearing_detail_url
+from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url
 
 
 def check_entity_images(entity, images_field=True):
@@ -75,3 +75,25 @@ def test_get_images_root_endpoint(api_client, default_hearing):
 
     data = get_data_from_response(api_client.get('/v1/image/?section=%s' % default_hearing.sections.first().id))
     check_entity_images(data['results'], False)
+
+
+@pytest.mark.django_db
+def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
+
+    # random hearing has always atleast one section that is not an introduction, add images to it
+    create_default_images(random_hearing.sections.exclude(type__identifier='introduction').first())
+
+    url = '/v1/image/'
+    section = default_hearing.sections.first()
+
+    response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 9
+
+    response = api_client.get('%s?section=%s' % (url, section.id))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 3
+
+    response = api_client.get('%s?section_type=%s' % (url, 'introduction'))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 3

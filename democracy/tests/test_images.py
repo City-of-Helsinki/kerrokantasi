@@ -49,19 +49,30 @@ def test_38_get_hearing_check_section_with_images(api_client, default_hearing):
 def test_unpublished_section_images_excluded(client, expected, request, default_hearing):
     api_client = request.getfuncargvalue(client)
 
-    image = default_hearing.sections.first().images.get(title=IMAGES['ORIGINAL'])
+    image = default_hearing.get_intro_section().images.first()
     image.published = False
     image.save(update_fields=('published',))
 
-    # /v1/hearing/<id>/ section images field
+    image = default_hearing.sections.all()[2].images.get(title=IMAGES['ORIGINAL'])
+    image.published = False
+    image.save(update_fields=('published',))
+
+    # /v1/hearing/<id>/ main image field
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
-    image_set_1 = get_data_from_response(response)['sections'][0]['images']
+    main_image = get_data_from_response(response)['main_image']
+    if expected:
+        assert main_image['title'] == default_hearing.get_intro_section().images.first().title
+    else:
+        assert main_image is None
+
+    # /v1/hearing/<id>/ section images field
+    image_set_1 = get_data_from_response(response)['sections'][2]['images']
 
     # /v1/hearing/<id>/section/ images field
     response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
-    image_set_2 = get_data_from_response(response)[0]['images']
+    image_set_2 = get_data_from_response(response)[2]['images']
 
-    response = api_client.get('/v1/image/?section=%s' % default_hearing.sections.first().id)
+    response = api_client.get('/v1/image/?section=%s' % default_hearing.sections.all()[2].id)
     image_set_3 = get_data_from_response(response)['results']
 
     for image_set in (image_set_1, image_set_2, image_set_3):

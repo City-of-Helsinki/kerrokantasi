@@ -11,7 +11,7 @@ from democracy.models import Hearing
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
-from democracy.views.section import SectionFieldSerializer
+from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
 
@@ -33,6 +33,7 @@ class HearingSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field='name'
     )
+    main_image = serializers.SerializerMethodField()
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -43,6 +44,24 @@ class HearingSerializer(serializers.ModelSerializer):
         serializer.bind('sections', self)  # this is needed to get context in the serializer
         return serializer.to_representation(queryset)
 
+    def get_main_image(self, hearing):
+        intro_section = hearing.get_intro_section()
+        if not intro_section:
+            return None
+
+        intro_images = intro_section.images.all()
+        if not intro_images:
+            return None
+
+        user = self.context['request'].user
+        is_superuser = user and user.is_authenticated() and user.is_superuser
+
+        main_image = intro_images.first()
+        if main_image.published or is_superuser:
+            return SectionImageSerializer(context=self.context, instance=main_image).data
+        else:
+            return None
+
     class Meta:
         model = Hearing
         fields = [
@@ -50,7 +69,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'sections',
-            'closed', 'geojson', 'organization', 'slug'
+            'closed', 'geojson', 'organization', 'slug', 'main_image'
         ]
 
 

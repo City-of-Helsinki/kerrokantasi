@@ -1,7 +1,7 @@
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import models
 from django.db.models import Sum
 from django.utils import timezone
@@ -101,4 +101,7 @@ class Hearing(Commentable, StringIdBaseModel):
             self.save(update_fields=("n_comments",))
 
     def get_intro_section(self):
-        return self.sections.get(type__identifier=InitialSectionType.INTRODUCTION)
+        try:
+            return self.sections.get(type__identifier=InitialSectionType.INTRODUCTION)
+        except ObjectDoesNotExist:
+            return None

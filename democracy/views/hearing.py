@@ -7,7 +7,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing
+from democracy.models import Hearing, SectionImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
@@ -45,19 +45,15 @@ class HearingSerializer(serializers.ModelSerializer):
         return serializer.to_representation(queryset)
 
     def get_main_image(self, hearing):
-        intro_section = hearing.get_intro_section()
-        if not intro_section:
+        main_image = SectionImage.objects.filter(
+            section__hearing=hearing,
+            section__type__identifier='introduction'
+        ).first()
+
+        if not main_image:
             return None
 
-        intro_images = intro_section.images.all()
-        if not intro_images:
-            return None
-
-        user = self.context['request'].user
-        is_superuser = user and user.is_authenticated() and user.is_superuser
-
-        main_image = intro_images.first()
-        if main_image.published or is_superuser:
+        if main_image.published or self.context['request'].user.is_superuser:
             return SectionImageSerializer(context=self.context, instance=main_image).data
         else:
             return None

@@ -60,13 +60,10 @@ class RootSectionImageSerializer(SectionImageSerializer):
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """
-    hearing = serializers.SerializerMethodField()
+    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
 
     class Meta(SectionImageSerializer.Meta):
         fields = SectionImageSerializer.Meta.fields + ['section', 'hearing']
-
-    def get_hearing(self, section_image):
-        return section_image.section.hearing.id
 
 
 class ImagePagination(LimitOffsetPagination):

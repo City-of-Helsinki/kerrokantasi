@@ -64,13 +64,10 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
     """
     Serializer for root level comment endpoint /v1/comment/
     """
-    hearing = serializers.SerializerMethodField()
+    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
 
     class Meta(SectionCommentSerializer.Meta):
         fields = SectionCommentSerializer.Meta.fields + ['hearing']
-
-    def get_hearing(self, section_comment):
-        return section_comment.section.hearing.id
 
 
 class CommentPagination(LimitOffsetPagination):

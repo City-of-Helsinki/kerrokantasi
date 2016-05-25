@@ -2,7 +2,7 @@ import argparse
 import json
 import logging
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db.transaction import atomic
 
 from democracy.importing.json_importer import import_from_data
@@ -28,16 +28,22 @@ class Command(BaseCommand):
             3: logging.DEBUG,
         }
         logging.basicConfig(level=verbosity_to_level[options["verbosity"]])
+        hearing = options.pop("hearing")
+        if hearing:
+            hearing = hearing[0]
         self.do_import(input_file[0],
-                       hearing=options.pop("hearing")[0],
+                       hearing=hearing,
                        force=options.pop("force", False),
                        patch=options.pop("patch", False))
 
     @atomic
-    def do_import(self, filename, hearing=False, force=False, patch=False):
+    def do_import(self, filename, hearing=None, force=False, patch=False):
         json_data = json.load(filename)
         if hearing:
             # picks the hearing corresponding to given slug
-            hearing_data = next(value for key, value in json_data['hearings'].items() if value['slug'] == hearing)
+            try:
+                hearing_data = next(value for key, value in json_data['hearings'].items() if value['slug'] == hearing)
+            except StopIteration:
+                raise CommandError('Hearing "%s" does not exist' % hearing)
             json_data = {'hearings': {'1': hearing_data}}
         import_from_data(json_data, force=force, patch=patch)

@@ -126,7 +126,18 @@ CKEDITOR_CONFIGS = {
                 "attributes": {'class': 'lead'},
             },
         ],
-        'contentsCss': ['%sckeditor/ckeditor/contents.css' % STATIC_URL, '.lead { font-weight: bold;}']
+        'contentsCss': ['%sckeditor/ckeditor/contents.css' % STATIC_URL, '.lead { font-weight: bold;}'],
+        'extraAllowedContent': 'video [*]{*}(*);source [*]{*}(*);',
+        'extraPlugins': 'video',
+        'toolbar': [
+            ['Styles', 'Format'],
+            ['Bold', 'Italic', 'Underline', 'StrikeThrough', 'Undo', 'Redo'],
+            ['Link', 'Unlink', 'Anchor'],
+            ['Image', 'Video', 'Flash', 'Table', 'HorizontalRule'],
+            ['TextColor', 'BGColor'],
+            ['Smiley', 'SpecialChar'],
+            ['Source']
+        ]
     },
 }
 CKEDITOR_UPLOAD_PATH = 'uploads/'

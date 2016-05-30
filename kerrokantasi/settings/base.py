@@ -117,28 +117,6 @@ DEMOCRACY_PLUGINS = {
 }
 
 
-CKEDITOR_CONFIGS = {
-    'default': {
-        'stylesSet': [
-            {
-                "name": 'Lead',
-                "element": 'p',
-                "attributes": {'class': 'lead'},
-            },
-        ],
-        'contentsCss': ['%sckeditor/ckeditor/contents.css' % STATIC_URL, '.lead { font-weight: bold;}'],
-        'extraAllowedContent': 'video [*]{*}(*);source [*]{*}(*);',
-        'extraPlugins': 'video',
-        'toolbar': [
-            ['Styles', 'Format'],
-            ['Bold', 'Italic', 'Underline', 'StrikeThrough', 'Undo', 'Redo'],
-            ['Link', 'Unlink', 'Anchor'],
-            ['Image', 'Video', 'Flash', 'Table', 'HorizontalRule'],
-            ['TextColor', 'BGColor'],
-            ['Smiley', 'SpecialChar'],
-            ['Source']
-        ]
-    },
-}
+# CKEDITOR_CONFIGS is in __init__.py
 CKEDITOR_UPLOAD_PATH = 'uploads/'
 CKEDITOR_IMAGE_BACKEND = 'pillow'

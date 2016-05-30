@@ -110,7 +110,6 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
 def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_comments_url_and_data):
     hearing = Hearing.objects.create(
         title='Test Hearing',
-        abstract='Hearing to test section comments',
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
     )

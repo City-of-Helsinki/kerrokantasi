@@ -37,7 +37,6 @@ class HearingFactory(factory.django.DjangoModelFactory):
         end_dt=now() + timedelta(days=150),
     ).fuzz())
     title = factory.Faker("sentence")
-    abstract = factory.Faker("text")
     borough = factory.Faker("city")
 
     @factory.post_generation

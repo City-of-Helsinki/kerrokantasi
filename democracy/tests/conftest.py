@@ -44,7 +44,6 @@ def default_hearing(john_doe):
     """
     hearing = Hearing.objects.create(
         title='Default test hearing One',
-        abstract='Default test hearing One',
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
         slug='default-hearing-slug'

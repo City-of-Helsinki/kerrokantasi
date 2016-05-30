@@ -32,7 +32,6 @@ class Hearing(StringIdBaseModel):
     close_at = models.DateTimeField(verbose_name=_('closing time'), default=timezone.now)
     force_closed = models.BooleanField(verbose_name=_('force hearing closed'), default=False)
     title = models.CharField(verbose_name=_('title'), max_length=255)
-    abstract = models.TextField(verbose_name=_('abstract'), blank=True, default='')
     borough = models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200)
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
     geojson = GeometryField(blank=True, null=True, verbose_name=_('area'))

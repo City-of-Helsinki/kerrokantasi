@@ -1,4 +1,5 @@
 import django_filters
+from django.db.models import Prefetch
 from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -7,7 +8,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, SectionImage
+from democracy.models import Hearing, Section, SectionImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
@@ -33,6 +34,12 @@ class HearingSerializer(serializers.ModelSerializer):
         slug_field='name'
     )
     main_image = serializers.SerializerMethodField()
+    abstract = serializers.SerializerMethodField()
+
+    def get_abstract(self, hearing):
+        prefetched_intros = getattr(hearing, 'intro_section_list', [])
+        intro_section = prefetched_intros[0] if prefetched_intros else hearing.get_intro_section()
+        return intro_section.abstract if intro_section else ''
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -121,7 +128,13 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return queryset.order_by('-created_at')
 
     def get_queryset(self):
-        queryset = super(HearingViewSet, self).get_queryset()
+        queryset = super(HearingViewSet, self).get_queryset().prefetch_related(
+            Prefetch(
+                'sections',
+                queryset=Section.objects.filter(type__identifier='introduction'),
+                to_attr='intro_section_list'
+            )
+        )
         return self.common_queryset_filtering(queryset)
 
     def get_object(self):
@@ -129,6 +142,13 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
         try:
             queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    'sections',
+                    queryset=Section.objects.filter(type__identifier='introduction'),
+                    to_attr='intro_section_list'
+                )
+            )
             obj = queryset.get_by_id_or_slug(id_or_slug)
         except Hearing.DoesNotExist:
             raise NotFound()

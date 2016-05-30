@@ -36,7 +36,6 @@ def create_hearings(n):
         hearings.append(
             Hearing.objects.create(
                 title='Test purpose created hearing title %s' % (i + 1),
-                abstract='Test purpose created hearing %s' % (i + 1),
                 created_at=now() - datetime.timedelta(seconds=1 + (n - i))
             )
         )
@@ -61,13 +60,13 @@ def test_list_all_hearings_check_number_of_objects(api_client):
 
 
 @pytest.mark.django_db
-def test_list_all_hearings_check_abstract(api_client):
+def test_list_all_hearings_check_title(api_client):
     hearings = create_hearings(3)
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
-    assert data[0]['abstract'] == hearings[2].abstract
-    assert data[1]['abstract'] == hearings[1].abstract
-    assert data[2]['abstract'] == hearings[0].abstract
+    assert data[0]['title'] == hearings[2].title
+    assert data[1]['title'] == hearings[1].title
+    assert data[2]['title'] == hearings[0].title
 
 
 @pytest.mark.django_db
@@ -80,35 +79,35 @@ def test_list_top_5_hearings_check_number_of_objects(api_client):
 
 
 @pytest.mark.django_db
-def test_list_top_5_hearings_check_abstract(api_client):
+def test_list_top_5_hearings_check_title(api_client):
     create_hearings(10)
     response = api_client.get(list_endpoint, data={"limit": 5})
 
     data = get_data_from_response(response)
     objects = data['results']
     # We expect data to be returned in this, particular order
-    assert '10' in objects[0]['abstract']
-    assert '9' in objects[1]['abstract']
-    assert '8' in objects[2]['abstract']
-    assert '7' in objects[3]['abstract']
-    assert '6' in objects[4]['abstract']
+    assert '10' in objects[0]['title']
+    assert '9' in objects[1]['title']
+    assert '8' in objects[2]['title']
+    assert '7' in objects[3]['title']
+    assert '6' in objects[4]['title']
 
 
 @pytest.mark.django_db
 def test_get_next_closing_hearings(api_client):
     create_hearings(0)  # Clear out old hearings
-    closed_hearing_1 = Hearing.objects.create(abstract='Gone', close_at=now() - datetime.timedelta(days=1))
-    closed_hearing_2 = Hearing.objects.create(abstract='Gone too', close_at=now() - datetime.timedelta(days=2))
-    future_hearing_1 = Hearing.objects.create(abstract='Next up', close_at=now() + datetime.timedelta(days=1))
-    future_hearing_2 = Hearing.objects.create(abstract='Next up', close_at=now() + datetime.timedelta(days=5))
+    closed_hearing_1 = Hearing.objects.create(title='Gone', close_at=now() - datetime.timedelta(days=1))
+    closed_hearing_2 = Hearing.objects.create(title='Gone too', close_at=now() - datetime.timedelta(days=2))
+    future_hearing_1 = Hearing.objects.create(title='Next up', close_at=now() + datetime.timedelta(days=1))
+    future_hearing_2 = Hearing.objects.create(title='Next up', close_at=now() + datetime.timedelta(days=5))
     response = api_client.get(list_endpoint, {"next_closing": now().isoformat()})
     data = get_data_from_response(response)
     assert len(data) == 1
-    assert data[0]['abstract'] == future_hearing_1.abstract
+    assert data[0]['title'] == future_hearing_1.title
     response = api_client.get(list_endpoint, {"next_closing": future_hearing_1.close_at.isoformat()})
     data = get_data_from_response(response)
     assert len(data) == 1
-    assert data[0]['abstract'] == future_hearing_2.abstract
+    assert data[0]['title'] == future_hearing_2.title
 
 
 @pytest.mark.django_db
@@ -121,19 +120,6 @@ def test_8_get_detail_check_properties(api_client, default_hearing):
         'n_comments', 'open_at', 'sections', 'servicemap_url',
         'title', 'organization'
     }
-
-
-@pytest.mark.django_db
-def test_8_get_detail_abstract(api_client):
-    hearing = Hearing(abstract='Lorem Ipsum Abstract')
-    hearing.save()
-
-    response = api_client.get(get_detail_url(hearing.id))
-
-    data = get_data_from_response(response)
-
-    assert 'results' not in data
-    assert data['abstract'] == hearing.abstract
 
 
 @pytest.mark.django_db
@@ -314,7 +300,7 @@ def test_hearing_copy(default_hearing, random_label):
     assert Label.objects.count() == 1
 
     # check hearing model fields
-    for field_name in ('open_at', 'close_at', 'force_closed', 'abstract', 'borough',
+    for field_name in ('open_at', 'close_at', 'force_closed', 'borough',
                        'servicemap_url', 'geojson'):
         assert getattr(new_hearing, field_name) == getattr(default_hearing, field_name)
 
@@ -394,3 +380,18 @@ def test_access_hearing_using_slug(api_client, default_hearing):
 
     endpoint += '%s/' % default_hearing.sections.all()[0].id
     get_data_from_response(api_client.get(endpoint))
+
+
+@pytest.mark.django_db
+def test_abstract_is_populated_from_intro_abstract(api_client, default_hearing):
+    intro_section = default_hearing.get_intro_section()
+    intro_section.abstract = 'very abstract'
+    intro_section.save(update_fields=('abstract',))
+
+    response = api_client.get(list_endpoint)
+    data = get_data_from_response(response)
+    assert data[0]['abstract'] == 'very abstract'
+
+    response = api_client.get(get_hearing_detail_url(default_hearing.id))
+    data = get_data_from_response(response)
+    assert data['abstract'] == 'very abstract'

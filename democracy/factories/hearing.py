@@ -39,7 +39,6 @@ class HearingFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     abstract = factory.Faker("text")
     borough = factory.Faker("city")
-    commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
 
     @factory.post_generation
     def post(obj, create, extracted, **kwargs):

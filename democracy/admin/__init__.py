@@ -134,7 +134,7 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
             "fields": ("title", "abstract", "labels", "slug", "preview_url")
         }),
         (_("Availability"), {
-            "fields": ("published", "open_at", "close_at", "force_closed", "commenting")
+            "fields": ("published", "open_at", "close_at", "force_closed")
         }),
         (_("Area"), {
             "fields": ("geojson",)

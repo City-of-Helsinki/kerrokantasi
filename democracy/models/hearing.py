@@ -27,7 +27,7 @@ class HearingQueryset(models.QuerySet):
         return self.filter(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
 
 
-class Hearing(Commentable, StringIdBaseModel):
+class Hearing(StringIdBaseModel):
     open_at = models.DateTimeField(verbose_name=_('opening time'), default=timezone.now)
     close_at = models.DateTimeField(verbose_name=_('closing time'), default=timezone.now)
     force_closed = models.BooleanField(verbose_name=_('force hearing closed'), default=False)
@@ -50,6 +50,7 @@ class Hearing(Commentable, StringIdBaseModel):
     )
     slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True,
                          help_text=_('You may leave this empty to automatically generate a slug'))
+    n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
 
     objects = BaseModelManager.from_queryset(HearingQueryset)()
     original_manager = models.Manager()
@@ -68,7 +69,6 @@ class Hearing(Commentable, StringIdBaseModel):
     def check_commenting(self, request):
         if self.closed:
             raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
-        super().check_commenting(request)
 
     @property
     def preview_code(self):

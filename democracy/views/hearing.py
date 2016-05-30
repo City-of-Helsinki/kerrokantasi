@@ -27,7 +27,6 @@ class HearingFilter(django_filters.FilterSet):
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
-    commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
     organization = serializers.SlugRelatedField(
         read_only=True,
@@ -62,8 +61,7 @@ class HearingSerializer(serializers.ModelSerializer):
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
-            'commenting', 'published',
-            'labels', 'open_at', 'close_at', 'created_at',
+            'published', 'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug', 'main_image'
         ]

@@ -111,7 +111,6 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
     hearing = Hearing.objects.create(
         title='Test Hearing',
         abstract='Hearing to test section comments',
-        commenting=Commenting.OPEN,
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
     )
@@ -180,8 +179,9 @@ comment_status_spec = {
 @pytest.mark.django_db
 @pytest.mark.parametrize("commenting", comment_status_spec.keys())
 def test_commenting_modes(api_client, john_doe_api_client, default_hearing, commenting):
-    default_hearing.commenting = commenting
-    default_hearing.save(update_fields=('commenting',))
+    intro_section = default_hearing.get_intro_section()
+    intro_section.commenting = commenting
+    intro_section.save(update_fields=('commenting',))
 
     anon_status, reg_status = comment_status_spec[commenting]
     url = get_intro_comments_url(default_hearing)

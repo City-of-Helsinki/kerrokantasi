@@ -67,6 +67,11 @@ class Section(Commentable, StringIdBaseModel):
                 # This is a new section or changing type from closure info,
                 # automatically derive next ordering, if possible
                 self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
+
+        if self.type == SectionType.objects.get(identifier='introduction'):
+            self.plugin_identifier = ''
+            self.plugin_data = ''
+
         return super(Section, self).save(*args, **kwargs)
 
     def check_commenting(self, request):

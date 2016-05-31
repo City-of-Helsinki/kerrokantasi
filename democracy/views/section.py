@@ -85,3 +85,33 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = RootSectionImageSerializer
     pagination_class = ImagePagination
     filter_class = ImageFilter
+
+
+class RootSectionSerializer(SectionSerializer):
+    """
+    Serializer for root level section endpoint.
+    """
+
+    class Meta(SectionSerializer.Meta):
+        fields = SectionSerializer.Meta.fields + ['hearing']
+
+
+class SectionFilter(filters.FilterSet):
+    hearing = django_filters.CharFilter(name='hearing_id')
+    type = django_filters.CharFilter(name='type__identifier')
+
+    class Meta:
+        model = Section
+        fields = ['hearing', 'type']
+
+
+class SectionPagination(LimitOffsetPagination):
+    default_limit = 50
+
+
+# root level Section endpoint
+class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+    serializer_class = RootSectionSerializer
+    model = Section
+    pagination_class = SectionPagination
+    filter_class = SectionFilter

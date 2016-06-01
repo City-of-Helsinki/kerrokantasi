@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.query import QuerySet
+from django.utils.timezone import now
 from rest_framework import serializers
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS
 
@@ -84,3 +85,15 @@ class PublicFilteredImageField(serializers.Field):
         serializer.bind(self.source, self)  # this is needed to get context in the serializer
 
         return serializer.to_representation(images)
+
+
+def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
+    filters = {
+        '%s__deleted' % hearing_lookup: False,
+        '%s__open_at__lte' % hearing_lookup: now()
+    }
+
+    if not request.user.is_superuser:
+        filters['%s__published' % hearing_lookup] = True
+
+    return queryset.filter(**filters)

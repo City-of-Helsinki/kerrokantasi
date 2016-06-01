@@ -352,3 +352,18 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 9
+
+
+@pytest.mark.parametrize('hearing_update', [
+    ('deleted', True),
+    ('published', False),
+    ('open_at', now() + datetime.timedelta(days=1))
+])
+@pytest.mark.django_db
+def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
+    setattr(default_hearing, hearing_update[0], hearing_update[1])
+    default_hearing.save()
+
+    response = api_client.get('/v1/comment/')
+    response_data = get_data_from_response(response)['results']
+    assert len(response_data) == 0

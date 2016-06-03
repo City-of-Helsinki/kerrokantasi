@@ -9,6 +9,7 @@ from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
+from democracy.views.utils import filter_by_hearing_visible
 
 
 class SectionCommentCreateSerializer(serializers.ModelSerializer):
@@ -120,6 +121,7 @@ class CommentViewSet(SectionCommentViewSet):
         parent_id = self.get_comment_parent_id()
         if parent_id:
             queryset.filter(**{queryset.model.parent_field: parent_id})
+        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
         return queryset
 
     def _check_may_comment(self, request):

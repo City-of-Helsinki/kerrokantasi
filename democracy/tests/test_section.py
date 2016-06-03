@@ -27,6 +27,19 @@ def new_section_type():
     return SectionType.objects.create(name_singular='new section type', name_plural='new section types')
 
 
+@pytest.fixture(params=['nested', 'root'])
+def get_sections_url(request):
+    """
+    A fixture that returns URL for two different section endpoints:
+    - /v1/hearing/<hearing id>/sections/
+    - /v1/section/?hearing=<hearing id>
+    """
+    return {
+        'nested': lambda hearing: '/v1/hearing/%s/sections/' % hearing.id,
+        'root': lambda hearing: '/v1/section/?hearing=%s' % hearing.id
+    }[request.param]
+
+
 @pytest.mark.django_db
 def create_sections(hearing, n):
     Section.objects.all().delete()
@@ -43,53 +56,60 @@ def create_sections(hearing, n):
     return sections
 
 
+def get_results_from_response(response):
+    data = get_data_from_response(response)
+    if 'results' in data:
+        return data['results']
+    return data
+
+
 @pytest.mark.django_db
-def test_45_get_one_section_check_amount(api_client, default_hearing):
+def test_45_get_one_section_check_amount(api_client, default_hearing, get_sections_url):
     create_sections(default_hearing, 1)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_sections_url(default_hearing))
 
-    data = get_data_from_response(response)
+    data = get_results_from_response(response)
     assert len(data) == 1
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_abstract(api_client, default_hearing):
+def test_45_get_one_section_check_abstract(api_client, default_hearing, get_sections_url):
     sections = create_sections(default_hearing, 1)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_sections_url(default_hearing))
 
-    data = get_data_from_response(response)
+    data = get_results_from_response(response)
     assert data[0]['abstract'] == sections[0].abstract
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_content(api_client, default_hearing):
+def test_45_get_one_section_check_content(api_client, default_hearing, get_sections_url):
     sections = create_sections(default_hearing, 1)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_sections_url(default_hearing))
 
-    data = get_data_from_response(response)
+    data = get_results_from_response(response)
     assert data[0]['content'] == sections[0].content
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_amount(api_client, default_hearing):
+def test_45_get_many_sections_check_amount(api_client, default_hearing, get_sections_url):
     create_sections(default_hearing, 3)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_sections_url(default_hearing))
 
-    data = get_data_from_response(response)
+    data = get_results_from_response(response)
     assert len(data) == 3
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_abstract(api_client, default_hearing):
+def test_45_get_many_sections_check_abstract(api_client, default_hearing, get_sections_url):
     sections = create_sections(default_hearing, 3)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_sections_url(default_hearing))
 
-    data = get_data_from_response(response)
+    data = get_results_from_response(response)
     abstracts = [s['abstract'] for s in data]
 
     # ensure we have 3 abstracts
@@ -101,12 +121,12 @@ def test_45_get_many_sections_check_abstract(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_content(api_client, default_hearing):
+def test_45_get_many_sections_check_content(api_client, default_hearing, get_sections_url):
     sections = create_sections(default_hearing, 3)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, 'sections'))
+    response = api_client.get(get_sections_url(default_hearing))
 
-    data = get_data_from_response(response)
+    data = get_results_from_response(response)
     contents = [s['content'] for s in data]
 
     # ensure we have 3 contents
@@ -243,7 +263,7 @@ def test_closure_info_ordering(closure_info_section):
 
 
 @pytest.mark.django_db
-def test_closure_info_visibility(api_client, closure_info_section):
+def test_closure_info_visibility(api_client, closure_info_section, get_sections_url):
     hearing = closure_info_section.hearing
 
     # hearing closed, closure info section should be in results
@@ -255,9 +275,9 @@ def test_closure_info_visibility(api_client, closure_info_section):
     data = get_data_from_response(response)
     assert_id_in_results(closure_info_section.id, data['sections'])
 
-    # check sections endpoint
-    response = api_client.get(get_hearing_detail_url(hearing.id, 'sections'))
-    data = get_data_from_response(response)
+    # check nested and root level sections endpoint
+    response = api_client.get(get_sections_url(hearing))
+    data = get_results_from_response(response)
     assert_id_in_results(closure_info_section.id, data)
 
     # hearing open, closure info section should not be in results
@@ -269,9 +289,9 @@ def test_closure_info_visibility(api_client, closure_info_section):
     data = get_data_from_response(response)
     assert_id_in_results(closure_info_section.id, data['sections'], False)
 
-    # check sections endpoint
-    response = api_client.get(get_hearing_detail_url(hearing.id, 'sections'))
-    data = get_data_from_response(response)
+    # check nested and root level sections endpoint
+    response = api_client.get(get_sections_url(hearing))
+    data = get_results_from_response(response)
     assert_id_in_results(closure_info_section.id, data, False)
 
 
@@ -317,3 +337,31 @@ def test_added_section_type_can_be_edited(new_section_type):
     new_section_type.save()
     new_section_type.refresh_from_db()
     assert new_section_type.name_singular == 'edited name'
+
+
+@pytest.mark.django_db
+def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
+    url = '/v1/section/'
+
+    response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 3
+
+    response = api_client.get('%s?hearing=%s&type=%s' % (url, default_hearing.id, 'introduction'))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 1
+
+
+@pytest.mark.parametrize('hearing_update', [
+    ('deleted', True),
+    ('published', False),
+    ('open_at', now() + datetime.timedelta(days=1))
+])
+@pytest.mark.django_db
+def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
+    setattr(default_hearing, hearing_update[0], hearing_update[1])
+    default_hearing.save()
+
+    response = api_client.get('/v1/image/')
+    response_data = get_results_from_response(response)
+    assert len(response_data) == 0

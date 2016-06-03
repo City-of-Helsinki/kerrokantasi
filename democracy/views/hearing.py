@@ -1,4 +1,5 @@
 import django_filters
+from django.db.models import Prefetch
 from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
@@ -6,9 +7,8 @@ from rest_framework.fields import JSONField
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, SectionImage
-from democracy.utils.drf_enum_field import EnumField
+from democracy.enums import InitialSectionType
+from democracy.models import Hearing, Section, SectionImage
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
@@ -27,13 +27,18 @@ class HearingFilter(django_filters.FilterSet):
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
-    commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
     organization = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name'
     )
     main_image = serializers.SerializerMethodField()
+    abstract = serializers.SerializerMethodField()
+
+    def get_abstract(self, hearing):
+        prefetched_intros = getattr(hearing, 'intro_section_list', [])
+        intro_section = prefetched_intros[0] if prefetched_intros else hearing.get_intro_section()
+        return intro_section.abstract if intro_section else ''
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -62,8 +67,7 @@ class HearingSerializer(serializers.ModelSerializer):
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
-            'commenting', 'published',
-            'labels', 'open_at', 'close_at', 'created_at',
+            'published', 'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug', 'main_image'
         ]
@@ -123,7 +127,13 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return queryset.order_by('-created_at')
 
     def get_queryset(self):
-        queryset = super(HearingViewSet, self).get_queryset()
+        queryset = super(HearingViewSet, self).get_queryset().prefetch_related(
+            Prefetch(
+                'sections',
+                queryset=Section.objects.filter(type__identifier='introduction'),
+                to_attr='intro_section_list'
+            )
+        )
         return self.common_queryset_filtering(queryset)
 
     def get_object(self):
@@ -131,6 +141,13 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
         try:
             queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
+            queryset = queryset.prefetch_related(
+                Prefetch(
+                    'sections',
+                    queryset=Section.objects.filter(type__identifier='introduction'),
+                    to_attr='intro_section_list'
+                )
+            )
             obj = queryset.get_by_id_or_slug(id_or_slug)
         except Hearing.DoesNotExist:
             raise NotFound()

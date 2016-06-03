@@ -110,8 +110,6 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
 def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_comments_url_and_data):
     hearing = Hearing.objects.create(
         title='Test Hearing',
-        abstract='Hearing to test section comments',
-        commenting=Commenting.OPEN,
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
     )
@@ -180,8 +178,9 @@ comment_status_spec = {
 @pytest.mark.django_db
 @pytest.mark.parametrize("commenting", comment_status_spec.keys())
 def test_commenting_modes(api_client, john_doe_api_client, default_hearing, commenting):
-    default_hearing.commenting = commenting
-    default_hearing.save(update_fields=('commenting',))
+    intro_section = default_hearing.get_intro_section()
+    intro_section.commenting = commenting
+    intro_section.save(update_fields=('commenting',))
 
     anon_status, reg_status = comment_status_spec[commenting]
     url = get_intro_comments_url(default_hearing)
@@ -352,3 +351,18 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 9
+
+
+@pytest.mark.parametrize('hearing_update', [
+    ('deleted', True),
+    ('published', False),
+    ('open_at', now() + datetime.timedelta(days=1))
+])
+@pytest.mark.django_db
+def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
+    setattr(default_hearing, hearing_update[0], hearing_update[1])
+    default_hearing.save()
+
+    response = api_client.get('/v1/comment/')
+    response_data = get_data_from_response(response)['results']
+    assert len(response_data) == 0

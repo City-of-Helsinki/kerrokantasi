@@ -1,4 +1,6 @@
 import django_filters
+from django.db.models import Q
+from django.utils.timezone import now
 from rest_framework import filters, serializers, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -6,7 +8,7 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.utils import PublicFilteredImageField
+from democracy.views.utils import filter_by_hearing_visible, PublicFilteredImageField
 
 
 class SectionImageSerializer(BaseImageSerializer):
@@ -85,3 +87,47 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = RootSectionImageSerializer
     pagination_class = ImagePagination
     filter_class = ImageFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+
+
+class RootSectionSerializer(SectionSerializer):
+    """
+    Serializer for root level section endpoint.
+    """
+
+    class Meta(SectionSerializer.Meta):
+        fields = SectionSerializer.Meta.fields + ['hearing']
+
+
+class SectionFilter(filters.FilterSet):
+    hearing = django_filters.CharFilter(name='hearing_id')
+    type = django_filters.CharFilter(name='type__identifier')
+
+    class Meta:
+        model = Section
+        fields = ['hearing', 'type']
+
+
+class SectionPagination(LimitOffsetPagination):
+    default_limit = 50
+
+
+# root level Section endpoint
+class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+    serializer_class = RootSectionSerializer
+    model = Section
+    pagination_class = SectionPagination
+    filter_class = SectionFilter
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = filter_by_hearing_visible(queryset, self.request)
+
+        n = now()
+        open_hearings = Q(hearing__force_closed=False) & Q(hearing__open_at__lte=n) & Q(hearing__close_at__gt=n)
+        queryset = queryset.exclude(open_hearings, type__identifier=InitialSectionType.CLOSURE_INFO)
+
+        return queryset

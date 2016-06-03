@@ -21,8 +21,8 @@ def get_comment_data(**extra):
     }, **extra)
 
 
-def get_intro_comments_url(hearing, lookup_field='id'):
-    return '/v1/hearing/%s/sections/%s/comments/' % (getattr(hearing, lookup_field), hearing.get_intro_section().id)
+def get_main_comments_url(hearing, lookup_field='id'):
+    return '/v1/hearing/%s/sections/%s/comments/' % (getattr(hearing, lookup_field), hearing.get_main_section().id)
 
 
 @pytest.fixture(params=['nested_by_id', 'nested_by_slug', 'root'])
@@ -136,7 +136,7 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
 @pytest.mark.django_db
 def test_n_comments_updates(admin_user, default_hearing):
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 9
-    comment = default_hearing.get_intro_section().comments.create(created_by=admin_user, content="Hello")
+    comment = default_hearing.get_main_section().comments.create(created_by=admin_user, content="Hello")
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 10
     comment.soft_delete()
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 9
@@ -144,7 +144,7 @@ def test_n_comments_updates(admin_user, default_hearing):
 
 @pytest.mark.django_db
 def test_comment_edit_versioning(john_doe_api_client, default_hearing, lookup_field):
-    url = get_intro_comments_url(default_hearing, lookup_field)
+    url = get_main_comments_url(default_hearing, lookup_field)
     response = john_doe_api_client.post(url, data={"content": "THIS SERVICE SUCKS"})
     data = get_data_from_response(response, 201)
     comment_id = data["id"]
@@ -178,12 +178,12 @@ comment_status_spec = {
 @pytest.mark.django_db
 @pytest.mark.parametrize("commenting", comment_status_spec.keys())
 def test_commenting_modes(api_client, john_doe_api_client, default_hearing, commenting):
-    intro_section = default_hearing.get_intro_section()
-    intro_section.commenting = commenting
-    intro_section.save(update_fields=('commenting',))
+    main_section = default_hearing.get_main_section()
+    main_section.commenting = commenting
+    main_section.save(update_fields=('commenting',))
 
     anon_status, reg_status = comment_status_spec[commenting]
-    url = get_intro_comments_url(default_hearing)
+    url = get_main_comments_url(default_hearing)
     response = api_client.post(url, data=get_comment_data())
     assert response.status_code == anon_status
     response = john_doe_api_client.post(url, data=get_comment_data())
@@ -192,7 +192,7 @@ def test_commenting_modes(api_client, john_doe_api_client, default_hearing, comm
 
 @pytest.mark.django_db
 def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client, default_hearing, lookup_field):
-    url = get_intro_comments_url(default_hearing, lookup_field)
+    url = get_main_comments_url(default_hearing, lookup_field)
 
     # John posts an innocuous comment:
     johns_message = "Hi! I'm John!"
@@ -218,7 +218,7 @@ def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client,
 @pytest.mark.django_db
 def test_comment_editing_disallowed_after_closure(john_doe_api_client, default_hearing):
     # Post a comment:
-    url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, default_hearing.get_intro_section().id)
+    url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, default_hearing.get_main_section().id)
     response = john_doe_api_client.post(url, data=get_comment_data())
     data = get_data_from_response(response, status_code=201)
     comment_id = data["id"]

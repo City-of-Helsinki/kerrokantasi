@@ -36,9 +36,9 @@ class HearingSerializer(serializers.ModelSerializer):
     abstract = serializers.SerializerMethodField()
 
     def get_abstract(self, hearing):
-        prefetched_intros = getattr(hearing, 'intro_section_list', [])
-        intro_section = prefetched_intros[0] if prefetched_intros else hearing.get_intro_section()
-        return intro_section.abstract if intro_section else ''
+        prefetched_mains = getattr(hearing, 'main_section_list', [])
+        main_section = prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
+        return main_section.abstract if main_section else ''
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -52,7 +52,7 @@ class HearingSerializer(serializers.ModelSerializer):
     def get_main_image(self, hearing):
         main_image = SectionImage.objects.filter(
             section__hearing=hearing,
-            section__type__identifier='introduction'
+            section__type__identifier='main'
         ).first()
 
         if not main_image:
@@ -130,8 +130,8 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         queryset = super(HearingViewSet, self).get_queryset().prefetch_related(
             Prefetch(
                 'sections',
-                queryset=Section.objects.filter(type__identifier='introduction'),
-                to_attr='intro_section_list'
+                queryset=Section.objects.filter(type__identifier='main'),
+                to_attr='main_section_list'
             )
         )
         return self.common_queryset_filtering(queryset)
@@ -144,8 +144,8 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
             queryset = queryset.prefetch_related(
                 Prefetch(
                     'sections',
-                    queryset=Section.objects.filter(type__identifier='introduction'),
-                    to_attr='intro_section_list'
+                    queryset=Section.objects.filter(type__identifier='main'),
+                    to_attr='main_section_list'
                 )
             )
             obj = queryset.get_by_id_or_slug(id_or_slug)

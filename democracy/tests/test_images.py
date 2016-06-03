@@ -51,7 +51,7 @@ def test_38_get_hearing_check_section_with_images(api_client, default_hearing):
 def test_unpublished_section_images_excluded(client, expected, request, default_hearing):
     api_client = request.getfuncargvalue(client)
 
-    image = default_hearing.get_intro_section().images.first()
+    image = default_hearing.get_main_section().images.first()
     image.published = False
     image.save(update_fields=('published',))
 
@@ -63,7 +63,7 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     main_image = get_data_from_response(response)['main_image']
     if expected:
-        assert main_image['title'] == default_hearing.get_intro_section().images.first().title
+        assert main_image['title'] == default_hearing.get_main_section().images.first().title
     else:
         assert main_image is None
 
@@ -93,8 +93,8 @@ def test_get_images_root_endpoint(api_client, default_hearing):
 @pytest.mark.django_db
 def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
 
-    # random hearing has always atleast one section that is not an introduction, add images to it
-    create_default_images(random_hearing.sections.exclude(type__identifier='introduction').first())
+    # random hearing has always atleast one section that is not the main, add images to it
+    create_default_images(random_hearing.sections.exclude(type__identifier='main').first())
 
     url = '/v1/image/'
     section = default_hearing.sections.first()
@@ -107,7 +107,7 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 3
 
-    response = api_client.get('%s?section_type=%s' % (url, 'introduction'))
+    response = api_client.get('%s?section_type=%s' % (url, 'main'))
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 3
 

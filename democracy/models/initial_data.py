@@ -3,9 +3,9 @@ from democracy.enums import InitialSectionType
 
 INITIAL_SECTION_TYPE_DATA = [
     {
-        'identifier': InitialSectionType.INTRODUCTION,
-        'name_singular': 'johdanto',
-        'name_plural': 'johdannot',
+        'identifier': InitialSectionType.MAIN,
+        'name_singular': 'pääosio',
+        'name_plural': 'pääosiot',
     },
     {
         'identifier': InitialSectionType.CLOSURE_INFO,

@@ -15,7 +15,7 @@ class Commenting(Enum):
 
 
 class InitialSectionType:
-    INTRODUCTION = "introduction"
+    MAIN = "main"
     PART = "part"
     SCENARIO = "scenario"
     CLOSURE_INFO = "closure-info"

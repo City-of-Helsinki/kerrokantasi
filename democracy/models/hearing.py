@@ -99,8 +99,8 @@ class Hearing(StringIdBaseModel):
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))
 
-    def get_intro_section(self):
+    def get_main_section(self):
         try:
-            return self.sections.get(type__identifier=InitialSectionType.INTRODUCTION)
+            return self.sections.get(type__identifier=InitialSectionType.MAIN)
         except ObjectDoesNotExist:
             return None

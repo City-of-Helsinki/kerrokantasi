@@ -7,11 +7,47 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
-from democracy.models.initial_data import create_initial_section_types
+
+
+class InitialSectionType:
+    INTRODUCTION = "introduction"
+    PART = "part"
+    SCENARIO = "scenario"
+    CLOSURE_INFO = "closure-info"
+
+
+INITIAL_SECTION_TYPE_DATA = [
+    {
+        'identifier': InitialSectionType.INTRODUCTION,
+        'name_singular': 'johdanto',
+        'name_plural': 'johdannot',
+    },
+    {
+        'identifier': InitialSectionType.CLOSURE_INFO,
+        'name_singular': 'sulkeutumistiedote',
+        'name_plural': 'sulkeutumistiedotteet',
+    },
+    {
+        'identifier': InitialSectionType.SCENARIO,
+        'name_singular': 'vaihtoehto',
+        'name_plural': 'vaihtoehdot',
+    },
+    {
+        'identifier': InitialSectionType.PART,
+        'name_singular': 'osa-alue',
+        'name_plural': 'osa-alueet',
+    },
+]
+
+
+def create_initial_section_types(section_type_model):
+    for section in INITIAL_SECTION_TYPE_DATA:
+        section_type_model.objects.update_or_create(identifier=section['identifier'], defaults=section)
 
 
 def add_initial_section_types(apps, schema_editor):
     create_initial_section_types(apps.get_model('democracy', 'SectionType'))
+
 
 class Migration(migrations.Migration):
 

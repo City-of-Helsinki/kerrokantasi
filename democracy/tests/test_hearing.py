@@ -235,10 +235,10 @@ def test_24_get_report(api_client, default_hearing):
 def test_get_hearing_check_section_type(api_client, default_hearing):
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     data = get_data_from_response(response)
-    introduction = data['sections'][0]
-    assert introduction['type'] == InitialSectionType.INTRODUCTION
-    assert introduction['type_name_singular'] == 'johdanto'
-    assert introduction['type_name_plural'] == 'johdannot'
+    main = data['sections'][0]
+    assert main['type'] == InitialSectionType.MAIN
+    assert main['type_name_singular'] == 'pääosio'
+    assert main['type_name_plural'] == 'pääosiot'
 
 
 @pytest.mark.django_db
@@ -383,10 +383,10 @@ def test_access_hearing_using_slug(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_abstract_is_populated_from_intro_abstract(api_client, default_hearing):
-    intro_section = default_hearing.get_intro_section()
-    intro_section.abstract = 'very abstract'
-    intro_section.save(update_fields=('abstract',))
+def test_abstract_is_populated_from_main_abstract(api_client, default_hearing):
+    main_section = default_hearing.get_main_section()
+    main_section.abstract = 'very abstract'
+    main_section.save(update_fields=('abstract',))
 
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)

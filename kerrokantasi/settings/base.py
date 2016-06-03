@@ -6,10 +6,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '52k^*)c*bz9t0lzsf_$a+jl3zcy6re!gnw77__)y(#v91-p%tp'
 DEBUG = True
 
+SITE_ID = 1
+
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
+    'helusers',
     #'modeltranslation',  # - Not used at present.
+    'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -26,7 +30,12 @@ INSTALLED_APPS = (
     'leaflet',
     'ckeditor',
     'ckeditor_uploader',
-    'helusers',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'helusers.providers.helsinki',
+
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app
 )
@@ -76,7 +85,22 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
+
+# Authentication
 AUTH_USER_MODEL = 'kerrokantasi.User'
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+SOCIALACCOUNT_PROVIDERS = {
+    'helsinki': {
+        'VERIFIED_EMAIL': True
+    }
+}
+LOGIN_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_ON_GET = True
+SOCIALACCOUNT_ADAPTER = 'helusers.providers.helsinki.provider.SocialAccountAdapter'
+
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, "var", "static")
 MEDIA_URL = '/media/'

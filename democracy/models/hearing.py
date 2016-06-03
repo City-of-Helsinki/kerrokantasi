@@ -15,7 +15,7 @@ from autoslug.utils import generate_unique_slug
 from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
-from .base import BaseModelManager, Commentable, StringIdBaseModel
+from .base import BaseModelManager, StringIdBaseModel
 from .organization import Organization
 
 

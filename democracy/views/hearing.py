@@ -7,9 +7,8 @@ from rest_framework.fields import JSONField
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
-from democracy.enums import Commenting, InitialSectionType
+from democracy.enums import InitialSectionType
 from democracy.models import Hearing, Section, SectionImage
-from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer, SectionImageSerializer

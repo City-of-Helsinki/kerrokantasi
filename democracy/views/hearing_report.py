@@ -87,10 +87,6 @@ class HearingReport(object):
 
         comments_count = 0
 
-        for comment in self.json['comments']:
-            self.add_comment_row('Hearing', self.json['title'], comment)
-            comments_count += 1
-
         sections = [s for s in self.json['sections']]
         for s in sections:
             comments = [SectionCommentSerializer(c).data for c in SectionComment.objects.filter(section=s['id'])]

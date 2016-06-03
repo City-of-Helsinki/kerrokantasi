@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import Hearing, HearingComment, Label, Section, SectionType, Organization
+from democracy.models import Hearing, Label, Section, SectionType, Organization
 from democracy.tests.utils import assert_ascending_sequence, create_default_images
 
 
@@ -50,7 +50,6 @@ def default_hearing(john_doe):
         close_at=now() + datetime.timedelta(days=1),
         slug='default-hearing-slug'
     )
-    create_default_images(hearing)
     for x in range(1, 4):
         section_type = (InitialSectionType.INTRODUCTION if x == 1 else InitialSectionType.SCENARIO)
         section = Section.objects.create(
@@ -65,10 +64,6 @@ def default_hearing(john_doe):
         section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
-
-    HearingComment.objects.create(hearing=hearing, created_by=john_doe, content=default_comment_content)
-    HearingComment.objects.create(hearing=hearing, created_by=john_doe, content=red_comment_content)
-    HearingComment.objects.create(hearing=hearing, created_by=john_doe, content=green_comment_content)
 
     return hearing
 

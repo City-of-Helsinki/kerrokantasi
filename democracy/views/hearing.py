@@ -7,13 +7,11 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, HearingImage
+from democracy.models import Hearing, SectionImage
 from democracy.utils.drf_enum_field import EnumField
-from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.hearing_comment import HearingCommentSerializer
+from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
-from democracy.views.section import SectionFieldSerializer
-from democracy.views.utils import PublicFilteredImageField
+from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
 
@@ -26,32 +24,16 @@ class HearingFilter(django_filters.FilterSet):
         fields = ['next_closing', ]
 
 
-class HearingImageSerializer(BaseImageSerializer):
-
-    class Meta:
-        model = HearingImage
-        fields = ['title', 'url', 'width', 'height', 'caption', 'published']
-
-
-class HearingImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
-    model = HearingImage
-    serializer_class = HearingImageSerializer
-
-    def get_queryset(self):
-        return super(HearingImageViewSet, self).get_queryset().filter(hearing_id=self.kwargs["hearing_pk"])
-
-
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelSerializer(many=True, read_only=True)
-    images = PublicFilteredImageField(serializer_class=HearingImageSerializer)
     sections = serializers.SerializerMethodField()
-    comments = HearingCommentSerializer.get_field_serializer(many=True, read_only=True)
     commenting = EnumField(enum_type=Commenting)
     geojson = JSONField()
     organization = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name'
     )
+    main_image = serializers.SerializerMethodField()
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -62,14 +44,28 @@ class HearingSerializer(serializers.ModelSerializer):
         serializer.bind('sections', self)  # this is needed to get context in the serializer
         return serializer.to_representation(queryset)
 
+    def get_main_image(self, hearing):
+        main_image = SectionImage.objects.filter(
+            section__hearing=hearing,
+            section__type__identifier='introduction'
+        ).first()
+
+        if not main_image:
+            return None
+
+        if main_image.published or self.context['request'].user.is_superuser:
+            return SectionImageSerializer(context=self.context, instance=main_image).data
+        else:
+            return None
+
     class Meta:
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'commenting', 'published',
             'labels', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'images', 'sections', 'images',
-            'closed', 'comments', 'geojson', 'organization', 'slug'
+            'servicemap_url', 'sections',
+            'closed', 'geojson', 'organization', 'slug', 'main_image'
         ]
 
 
@@ -77,8 +73,7 @@ class HearingListSerializer(HearingSerializer):
 
     def get_fields(self):
         fields = super(HearingListSerializer, self).get_fields()
-        # Elide comments, section and geo data when listing hearings; one can get to them via detail routes
-        fields.pop("comments")
+        # Elide section and geo data when listing hearings; one can get to them via detail routes
         fields.pop("sections")
         fields.pop("geojson")
         return fields

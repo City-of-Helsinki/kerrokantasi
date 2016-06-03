@@ -1,13 +1,12 @@
-from .hearing import HearingImageViewSet, HearingViewSet
-from .hearing_comment import HearingCommentViewSet
-from .section import SectionViewSet
-from .section_comment import SectionCommentViewSet
+from .hearing import HearingViewSet
+from .section import ImageViewSet, SectionViewSet
+from .section_comment import SectionCommentViewSet, CommentViewSet
 from .user import UserDataViewSet
 
 __all__ = [
-    "HearingCommentViewSet",
-    "HearingImageViewSet",
+    "CommentViewSet",
     "HearingViewSet",
+    "ImageViewSet",
     "SectionCommentViewSet",
     "SectionViewSet",
     "UserDataViewSet"

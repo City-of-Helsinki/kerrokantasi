@@ -175,14 +175,14 @@ def import_hearing(hearing_datum, force=False, patch=False):
     )
     assert not hearing.geojson or isinstance(hearing.geojson, dict)
     hearing.save(no_modified_at_update=True)
-    hearing.sections.create(
+    intro_section = hearing.sections.create(
         type=SectionType.objects.get(identifier=InitialSectionType.INTRODUCTION),
         title="",
         abstract=(hearing_datum.pop("lead") or ""),
         content=(hearing_datum.pop("body") or ""),
     )
-    import_comments(hearing, hearing_datum.pop("comments", ()), patch)
-    import_images(hearing, hearing_datum, patch)
+    import_comments(intro_section, hearing_datum.pop("comments", ()), patch)
+    import_images(intro_section, hearing_datum, patch)
     import_sections(hearing, hearing_datum, force, patch)
 
     # Compact section ordering...

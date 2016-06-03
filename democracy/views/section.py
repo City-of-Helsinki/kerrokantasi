@@ -1,4 +1,6 @@
-from rest_framework import serializers, viewsets
+import django_filters
+from rest_framework import filters, serializers, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage
@@ -52,3 +54,34 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         if not hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
         return queryset
+
+
+class RootSectionImageSerializer(SectionImageSerializer):
+    """
+    Serializer for root level SectionImage endpoint /v1/image/
+    """
+    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+
+    class Meta(SectionImageSerializer.Meta):
+        fields = SectionImageSerializer.Meta.fields + ['section', 'hearing']
+
+
+class ImagePagination(LimitOffsetPagination):
+    default_limit = 50
+
+
+class ImageFilter(filters.FilterSet):
+    hearing = django_filters.CharFilter(name='section__hearing__id')
+    section_type = django_filters.CharFilter(name='section__type__identifier')
+
+    class Meta:
+        model = SectionImage
+        fields = ['section', 'hearing', 'section_type']
+
+
+# root level SectionImage endpoint
+class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+    model = SectionImage
+    serializer_class = RootSectionImageSerializer
+    pagination_class = ImagePagination
+    filter_class = ImageFilter

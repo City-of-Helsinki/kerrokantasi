@@ -17,7 +17,6 @@ def copy_hearing(old_hearing, **kwargs):
       * All Hearing model field values will be copied
       * New identical Sections will be created, except
         for closure info type
-      * New identical HearingImages will be created
       * The same labels will be set for the new Hearing
 
     :param old_hearing: Hearing to be copied
@@ -47,11 +46,5 @@ def copy_hearing(old_hearing, **kwargs):
             image.pk = None
             image.section = section
             image.save()
-
-    # create new hearing images
-    for image in old_hearing.images.all():
-        image.pk = None
-        image.hearing = new_hearing
-        image.save()
 
     return new_hearing

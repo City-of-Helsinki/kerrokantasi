@@ -1,11 +1,13 @@
+import django_filters
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework import serializers
+from django.utils.translation import ugettext as _
+from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.serializers import get_validation_error_detail
 from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment
-from democracy.models.section import Section
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 
 
@@ -25,7 +27,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs.get("plugin_data"):
-            section = Section.objects.get(pk=self.context["comment_parent"])
+            section = attrs["section"]
             try:
                 if not section.plugin_identifier:
                     raise ValidationError("The section %s has no plugin; no plugin data is allowed." % section)
@@ -56,3 +58,74 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer
+
+
+class RootSectionCommentSerializer(SectionCommentSerializer):
+    """
+    Serializer for root level comment endpoint /v1/comment/
+    """
+    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+
+    class Meta(SectionCommentSerializer.Meta):
+        fields = SectionCommentSerializer.Meta.fields + ['hearing']
+
+
+class CommentPagination(LimitOffsetPagination):
+    default_limit = 50
+
+
+class CommentFilter(filters.FilterSet):
+    hearing = django_filters.CharFilter(name='section__hearing__id')
+
+    class Meta:
+        model = SectionComment
+        fields = ['authorization_code', 'section', 'hearing']
+
+
+# root level SectionComment endpoint
+class CommentViewSet(SectionCommentViewSet):
+    serializer_class = RootSectionCommentSerializer
+    pagination_class = CommentPagination
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_class = CommentFilter
+
+    def get_serializer(self, *args, **kwargs):
+        serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()
+        return serializer_class(*args, **kwargs)
+
+    def get_comment_parent_id(self):
+        parent_field = self.get_serializer_class().Meta.model.parent_field
+        try:
+            return self.request.data[parent_field]
+        except KeyError:
+            return None
+
+    def get_comment_parent(self):
+        """
+        :rtype: Commentable
+        """
+        parent_id = self.get_comment_parent_id()
+        if parent_id:
+            parent_model = self.get_queryset().model.parent_model
+            try:
+                return parent_model.objects.get(pk=parent_id)
+            except parent_model.DoesNotExist:
+                raise ValidationError({self.get_serializer_class().Meta.model.parent_field: [
+                    _('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)
+                ]})
+        return None
+
+    def get_queryset(self):
+        queryset = super(BaseCommentViewSet, self).get_queryset()
+        parent_id = self.get_comment_parent_id()
+        if parent_id:
+            queryset.filter(**{queryset.model.parent_field: parent_id})
+        return queryset
+
+    def _check_may_comment(self, request):
+        parent = self.get_comment_parent()
+        if not parent:
+            raise ValidationError({self.get_serializer_class().Meta.model.parent_field: [
+                _('This field is required.')
+            ]})
+        return super(SectionCommentViewSet, self)._check_may_comment(request)

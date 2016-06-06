@@ -266,6 +266,7 @@ def test_can_see_unpublished_with_preview_code(api_client):
     hearings = create_hearings(1)
     unpublished_hearing = hearings[0]
     unpublished_hearing.published = False
+    unpublished_hearing.open = now() - datetime.timedelta(hours=1)
     unpublished_hearing.save()
     get_data_from_response(api_client.get(get_detail_url(unpublished_hearing.id)), status_code=404)
     preview_url = "{}?preview={}".format(get_detail_url(unpublished_hearing.id), unpublished_hearing.preview_code)
@@ -325,18 +326,26 @@ def test_hearing_copy(default_hearing, random_label):
     assert not new_hearing.sections.filter(type__identifier=InitialSectionType.CLOSURE_INFO).exists()
 
 
+@pytest.mark.parametrize('client, expected', [
+    ('api_client', False),
+    ('jane_doe_api_client', False),
+    ('admin_api_client', True)
+])
 @pytest.mark.django_db
-def test_hearing_open_at_filtering(api_client, default_hearing):
+def test_hearing_open_at_filtering(default_hearing, request, client, expected):
+    api_client = request.getfuncargvalue(client)
+
     default_hearing.open_at = now() + datetime.timedelta(hours=1)
     default_hearing.save(update_fields=('open_at',))
 
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
     ids = [hearing['id'] for hearing in data]
-    assert default_hearing.id not in ids
+    assert bool(default_hearing.id in ids) == expected
 
+    expected_code = (200 if expected else 404)
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
-    assert response.status_code == 404
+    assert response.status_code == expected_code
 
 
 @pytest.mark.django_db

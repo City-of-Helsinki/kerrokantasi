@@ -11,14 +11,14 @@ def forwards(apps, schema_editor):
     """
     Convert Hearing comments to introduction Section comments
     """
-    hearing_comments = apps.get_model('democracy', 'HearingComment').objects.all()
+    hearing_comments = apps.get_model('democracy', 'HearingComment').objects.filter(hearing__deleted=False)
     section_comment_model = apps.get_model('democracy', 'SectionComment')
 
     for hearing_comment in hearing_comments:
         data = {field: getattr(hearing_comment, field) for field in ('content', 'author_name', 'n_votes', 'created_by',
                                                                      'created_at', 'modified_at', 'modified_by')}
 
-        section = hearing_comment.hearing.sections.filter(type__identifier='introduction').first()
+        section = hearing_comment.hearing.sections.filter(type__identifier='introduction', deleted=False).first()
         if not section:
             raise CommandError("Hearing '%s' has HearingComment(s) but not an introduction section for those." %
                                hearing_comment.hearing_id)

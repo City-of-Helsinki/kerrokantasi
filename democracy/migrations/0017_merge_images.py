@@ -10,7 +10,7 @@ def forwards(apps, schema_editor):
     """
     Convert Hearing images to introduction Section images
     """
-    hearing_images = apps.get_model('democracy', 'HearingImage').objects.all()
+    hearing_images = apps.get_model('democracy', 'HearingImage').objects.filter(hearing__deleted=False)
     section_image_model = apps.get_model('democracy', 'SectionImage')
 
     for hearing_image in hearing_images:
@@ -18,7 +18,7 @@ def forwards(apps, schema_editor):
                                                                    'ordering', 'created_by', 'created_at',
                                                                    'modified_at', 'modified_by')}
 
-        section = hearing_image.hearing.sections.filter(type__identifier='introduction').first()
+        section = hearing_image.hearing.sections.filter(type__identifier='introduction', deleted=False).first()
         if not section:
             raise CommandError("Hearing '%s' has HearingImage(s) but not an introduction section for those." %
                                hearing_image.hearing_id)

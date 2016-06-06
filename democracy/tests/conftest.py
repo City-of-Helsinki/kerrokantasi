@@ -38,7 +38,7 @@ def default_organization():
 @pytest.fixture()
 def default_hearing(john_doe):
     """
-    Fixture for a "default" hearing with three sections (one introduction, two sections).
+    Fixture for a "default" hearing with three sections (one main, two other sections).
     All objects will have the 3 default images attached.
     All objects will allow open commenting.
     """
@@ -49,7 +49,7 @@ def default_hearing(john_doe):
         slug='default-hearing-slug'
     )
     for x in range(1, 4):
-        section_type = (InitialSectionType.INTRODUCTION if x == 1 else InitialSectionType.SCENARIO)
+        section_type = (InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO)
         section = Section.objects.create(
             abstract='Section %d abstract' % x,
             hearing=hearing,

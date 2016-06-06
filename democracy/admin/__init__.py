@@ -74,7 +74,7 @@ class SectionInline(NestedStackedInline):
             kwargs["initial"] = _("Enter text here.")
         if not getattr(obj, "pk", None):
             if db_field.name == "type":
-                kwargs["initial"] = models.SectionType.objects.get(identifier=InitialSectionType.INTRODUCTION)
+                kwargs["initial"] = models.SectionType.objects.get(identifier=InitialSectionType.MAIN)
             elif db_field.name == "content":
                 kwargs["initial"] = _("Enter the introduction text for the hearing here.")
         field = super().formfield_for_dbfield(db_field, **kwargs)

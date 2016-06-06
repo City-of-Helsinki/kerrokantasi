@@ -297,7 +297,7 @@ def test_closure_info_visibility(api_client, closure_info_section, get_sections_
 
 @pytest.mark.django_db
 def test_initial_section_types_exist():
-    for section_type_id in ('introduction', 'part', 'scenario', 'closure-info'):
+    for section_type_id in ('main', 'part', 'scenario', 'closure-info'):
         assert SectionType.objects.filter(identifier=section_type_id).exists()
 
 
@@ -347,7 +347,7 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 3
 
-    response = api_client.get('%s?hearing=%s&type=%s' % (url, default_hearing.id, 'introduction'))
+    response = api_client.get('%s?hearing=%s&type=%s' % (url, default_hearing.id, 'main'))
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 1
 

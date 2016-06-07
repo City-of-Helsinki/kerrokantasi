@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.db.models import TextField
 from django.contrib.admin.utils import model_ngettext
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.encoding import force_text
 from django.utils.translation import ugettext_lazy as _
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
@@ -55,6 +55,33 @@ class SectionImageInline(NestedStackedInline):
     }
 
 
+class SectionInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+
+        # validate that there is exactly one main and no more than one closure info sections
+        mains = 0
+        closure_infos = 0
+        for form in self.forms:
+            if not hasattr(form, 'cleaned_data') or form.cleaned_data.get('DELETE'):
+                continue
+
+            section_type = form.cleaned_data.get('type')
+            if not section_type:
+                continue
+
+            if section_type.identifier == InitialSectionType.MAIN:
+                mains += 1
+            elif section_type.identifier == InitialSectionType.CLOSURE_INFO:
+                closure_infos += 1
+
+        if mains != 1:
+            raise ValidationError(_('There must be exactly one main section.'))
+
+        if closure_infos > 1:
+            raise ValidationError(_('There cannot be more than one closure info section.'))
+
+
 class SectionInline(NestedStackedInline):
     model = models.Section
     extra = 1
@@ -63,6 +90,7 @@ class SectionInline(NestedStackedInline):
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
+    formset = SectionInlineFormSet
 
     def formfield_for_dbfield(self, db_field, **kwargs):
         obj = kwargs.pop("obj", None)

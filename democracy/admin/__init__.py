@@ -49,7 +49,7 @@ class FixedModelForm(forms.ModelForm):
 class SectionImageInline(NestedStackedInline):
     model = models.SectionImage
     extra = 0
-    exclude = ("public", "title")
+    exclude = ("title",)
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
@@ -86,7 +86,7 @@ class SectionInline(NestedStackedInline):
     model = models.Section
     extra = 1
     inlines = [SectionImageInline]
-    exclude = ("public", )
+    exclude = ("published",)
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget}
     }
@@ -215,7 +215,7 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
 
 
 class LabelAdmin(admin.ModelAdmin):
-    exclude = ("public",)
+    exclude = ("published",)
 
 
 class SectionTypeAdmin(admin.ModelAdmin):

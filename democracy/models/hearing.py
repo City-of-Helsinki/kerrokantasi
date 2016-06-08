@@ -16,7 +16,7 @@ from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
 from .base import BaseModelManager, StringIdBaseModel
-from .organization import Organization
+from .organization import ContactPerson, Organization
 
 
 class HearingQueryset(models.QuerySet):
@@ -50,6 +50,7 @@ class Hearing(StringIdBaseModel):
     slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True,
                          help_text=_('You may leave this empty to automatically generate a slug'))
     n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
+    contact_persons = models.ManyToManyField(ContactPerson, verbose_name=_('contact persons'), related_name='hearings')
 
     objects = BaseModelManager.from_queryset(HearingQueryset)()
     original_manager = models.Manager()

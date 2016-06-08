@@ -166,6 +166,9 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
         }),
         (_("Area"), {
             "fields": ("geojson",)
+        }),
+        (_("Contact info"), {
+            "fields": ("contact_persons",)
         })
     )
     formfield_overrides = {

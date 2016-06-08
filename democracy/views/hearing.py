@@ -8,12 +8,20 @@ from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from democracy.enums import InitialSectionType
-from democracy.models import Hearing, Section, SectionImage
+from democracy.models import ContactPerson, Hearing, Section, SectionImage
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
+
+
+class ContactPersonSerializer(serializers.ModelSerializer):
+    organization = serializers.SlugRelatedField('name', read_only=True)
+
+    class Meta:
+        model = ContactPerson
+        fields = ('name', 'title', 'phone', 'email', 'organization')
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -34,6 +42,7 @@ class HearingSerializer(serializers.ModelSerializer):
     )
     main_image = serializers.SerializerMethodField()
     abstract = serializers.SerializerMethodField()
+    contact_persons = ContactPersonSerializer(many=True, read_only=True)
 
     def get_abstract(self, hearing):
         prefetched_mains = getattr(hearing, 'main_section_list', [])
@@ -69,7 +78,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'published', 'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'sections',
-            'closed', 'geojson', 'organization', 'slug', 'main_image'
+            'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons'
         ]
 
 

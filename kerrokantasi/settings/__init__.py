@@ -24,6 +24,7 @@ settings['CKEDITOR_CONFIGS'] = {
             ['Styles', 'Format'],
             ['Bold', 'Italic', 'Underline', 'StrikeThrough', 'Undo', 'Redo'],
             ['Link', 'Unlink', 'Anchor'],
+            ['BulletedList', 'NumberedList'],
             ['Image', 'Video', 'Flash', 'Table', 'HorizontalRule'],
             ['TextColor', 'BGColor'],
             ['Smiley', 'SpecialChar'],

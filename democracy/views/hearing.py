@@ -120,7 +120,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
         Used by both get_queryset() and get_object().
         """
-        queryset = queryset.filter(open_at__lte=now())
         next_closing = self.request.query_params.get('next_closing', None)
         if next_closing is not None:
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
@@ -134,31 +133,40 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
                 to_attr='main_section_list'
             )
         )
+
+        # unless the user is a superuser, only show open hearings in the hearing list
+        if not self.request.user.is_superuser:
+            queryset = queryset.filter(open_at__lte=now())
+
         return self.common_queryset_filtering(queryset)
 
     def get_object(self):
         id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
 
-        try:
-            queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
-            queryset = queryset.prefetch_related(
-                Prefetch(
-                    'sections',
-                    queryset=Section.objects.filter(type__identifier='main'),
-                    to_attr='main_section_list'
-                )
+        queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
+        queryset = queryset.prefetch_related(
+            Prefetch(
+                'sections',
+                queryset=Section.objects.filter(type__identifier='main'),
+                to_attr='main_section_list'
             )
+        )
+
+        try:
             obj = queryset.get_by_id_or_slug(id_or_slug)
         except Hearing.DoesNotExist:
             raise NotFound()
 
-        user = self.request.user
-        is_superuser = user and user.is_authenticated() and user.is_superuser
-
+        is_superuser = self.request.user.is_superuser
+        preview_code = None
         if not obj.published and not is_superuser:
             preview_code = self.request.query_params.get('preview')
             if not preview_code or preview_code != obj.preview_code:
                 raise NotFound()
+
+        # require preview_code or superuser status to show a not yet opened hearing
+        if not (preview_code or is_superuser or obj.open_at <= now()):
+            raise NotFound()
 
         self.check_object_permissions(self.request, obj)
         return obj

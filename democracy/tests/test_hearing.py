@@ -210,6 +210,19 @@ def test_8_get_detail_organization(api_client, default_hearing, default_organiza
 
 
 @pytest.mark.django_db
+def test_get_detail_contact_person(api_client, default_hearing, default_organization, contact_person):
+    response = api_client.get(get_detail_url(default_hearing.id))
+    data = get_data_from_response(response)
+
+    cp = data['contact_persons'][0]
+    assert cp['name'] == contact_person.name
+    assert cp['title'] == contact_person.title
+    assert cp['phone'] == contact_person.phone
+    assert cp['email'] == contact_person.email
+    assert cp['organization'] == default_organization.name
+
+
+@pytest.mark.django_db
 def test_7_get_detail_servicemap(api_client):
     hearing = Hearing(
         servicemap_url='http://servicemap.hel.fi/embed/?bbox=60.19276,24.93300,60.19571,24.94513&city=helsinki'

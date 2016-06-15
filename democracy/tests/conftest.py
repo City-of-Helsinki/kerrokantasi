@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import Hearing, Label, Section, SectionType, Organization
+from democracy.models import ContactPerson, Hearing, Label, Section, SectionType, Organization
 from democracy.tests.utils import assert_ascending_sequence, create_default_images
 
 
@@ -36,7 +36,18 @@ def default_organization():
 
 
 @pytest.fixture()
-def default_hearing(john_doe):
+def contact_person(default_organization):
+    return ContactPerson.objects.create(
+        name='John Contact',
+        title='Chief',
+        phone='555-555',
+        email='john@contact.eu',
+        organization=default_organization
+    )
+
+
+@pytest.fixture()
+def default_hearing(john_doe, contact_person):
     """
     Fixture for a "default" hearing with three sections (one main, two other sections).
     All objects will have the 3 default images attached.
@@ -62,6 +73,8 @@ def default_hearing(john_doe):
         section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
+
+    hearing.contact_persons.add(contact_person)
 
     return hearing
 

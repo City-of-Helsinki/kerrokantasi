@@ -166,6 +166,9 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
         }),
         (_("Area"), {
             "fields": ("geojson",)
+        }),
+        (_("Contact info"), {
+            "fields": ("contact_persons",)
         })
     )
     formfield_overrides = {
@@ -225,9 +228,20 @@ class SectionTypeAdmin(admin.ModelAdmin):
         return super().get_queryset(request).exclude_initial()
 
 
+class OrganizationAdmin(admin.ModelAdmin):
+    exclude = ('published',)
+
+
+class ContactPersonAdmin(admin.ModelAdmin):
+    list_display = ('name', 'title', 'organization', 'phone', 'email')
+    exclude = ('published',)
+
+
 # Wire it up!
 
 
 admin.site.register(models.Label, LabelAdmin)
 admin.site.register(models.Hearing, HearingAdmin)
 admin.site.register(models.SectionType, SectionTypeAdmin)
+admin.site.register(models.Organization, OrganizationAdmin)
+admin.site.register(models.ContactPerson, ContactPersonAdmin)

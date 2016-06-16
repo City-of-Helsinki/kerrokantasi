@@ -48,7 +48,7 @@ def test_list_all_hearings_no_objects(api_client):
     response = api_client.get(list_endpoint)
 
     data = get_data_from_response(response)
-    assert len(data) == 0
+    assert len(data['results']) == 0
 
 
 @pytest.mark.django_db
@@ -56,7 +56,7 @@ def test_list_all_hearings_check_number_of_objects(api_client):
     response = api_client.get(list_endpoint)
 
     data = get_data_from_response(response)
-    assert len(data) == Hearing.objects.count()
+    assert len(data['results']) == Hearing.objects.count()
 
 
 @pytest.mark.django_db
@@ -64,9 +64,9 @@ def test_list_all_hearings_check_title(api_client):
     hearings = create_hearings(3)
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
-    assert data[0]['title'] == hearings[2].title
-    assert data[1]['title'] == hearings[1].title
-    assert data[2]['title'] == hearings[0].title
+    assert data['results'][0]['title'] == hearings[2].title
+    assert data['results'][1]['title'] == hearings[1].title
+    assert data['results'][2]['title'] == hearings[0].title
 
 
 @pytest.mark.django_db
@@ -102,12 +102,12 @@ def test_get_next_closing_hearings(api_client):
     future_hearing_2 = Hearing.objects.create(title='Next up', close_at=now() + datetime.timedelta(days=5))
     response = api_client.get(list_endpoint, {"next_closing": now().isoformat()})
     data = get_data_from_response(response)
-    assert len(data) == 1
-    assert data[0]['title'] == future_hearing_1.title
+    assert len(data['results']) == 1
+    assert data['results'][0]['title'] == future_hearing_1.title
     response = api_client.get(list_endpoint, {"next_closing": future_hearing_1.close_at.isoformat()})
     data = get_data_from_response(response)
-    assert len(data) == 1
-    assert data[0]['title'] == future_hearing_2.title
+    assert len(data['results']) == 1
+    assert data['results'][0]['title'] == future_hearing_2.title
 
 
 @pytest.mark.django_db
@@ -266,12 +266,12 @@ def test_admin_can_see_unpublished(api_client, john_doe_api_client, admin_api_cl
     unpublished_hearing.published = False
     unpublished_hearing.save()
     data = get_data_from_response(api_client.get(list_endpoint))
-    assert len(data) == 2  # Can't see it as anon
+    assert len(data['results']) == 2  # Can't see it as anon
     data = get_data_from_response(john_doe_api_client.get(list_endpoint))
-    assert len(data) == 2  # Can't see it as registered
+    assert len(data['results']) == 2  # Can't see it as registered
     data = get_data_from_response(admin_api_client.get(list_endpoint))
-    assert len(data) == 3  # Can see it as admin
-    assert len([1 for h in data if not h["published"]]) == 1  # Only one unpublished, yeah?
+    assert len(data['results']) == 3  # Can see it as admin
+    assert len([1 for h in data['results'] if not h["published"]]) == 1  # Only one unpublished, yeah?
 
 
 @pytest.mark.django_db
@@ -293,7 +293,7 @@ def test_hearing_geo(api_client, random_hearing):
     data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id)))
     assert data["geojson"] == random_hearing.geojson
     map_data = get_data_from_response(api_client.get(list_endpoint + "map/"))
-    assert map_data[0]["geojson"] == random_hearing.geojson
+    assert map_data['results'][0]["geojson"] == random_hearing.geojson
 
 
 @pytest.mark.django_db
@@ -353,7 +353,7 @@ def test_hearing_open_at_filtering(default_hearing, request, client, expected):
 
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
-    ids = [hearing['id'] for hearing in data]
+    ids = [hearing['id'] for hearing in data['results']]
     assert bool(default_hearing.id in ids) == expected
 
     expected_code = (200 if expected else 404)
@@ -412,7 +412,7 @@ def test_abstract_is_populated_from_main_abstract(api_client, default_hearing):
 
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
-    assert data[0]['abstract'] == 'very abstract'
+    assert data['results'][0]['abstract'] == 'very abstract'
 
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     data = get_data_from_response(response)

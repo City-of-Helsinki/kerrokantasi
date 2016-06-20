@@ -96,6 +96,11 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         kwargs = {}
         if self.request.user.is_authenticated():
+            if 'author_name' in request.data:
+                return response.Response(
+                    {'status': 'Authenticated users cannot set author name.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
             kwargs['created_by'] = self.request.user
         comment = serializer.save(**kwargs)
         # and another for the response
@@ -113,6 +118,12 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 {'status': 'You may not edit a comment not owned by you'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        if request.user.is_authenticated() and 'author_name' in request.data:
+            if request.data['author_name'] != instance.author_name:
+                return response.Response(
+                    {'status': 'Authenticated users cannot set author name.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
         return super().update(request, *args, **kwargs)
 
     def perform_update(self, serializer):

@@ -417,3 +417,20 @@ def test_abstract_is_populated_from_main_abstract(api_client, default_hearing):
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     data = get_data_from_response(response)
     assert data['abstract'] == 'very abstract'
+
+
+@pytest.mark.parametrize('updates, filters, expected_count', [
+    ({'open_at': now()-datetime.timedelta(days=1)}, {'open_at_lte': now()}, 1),
+    ({'open_at': now()-datetime.timedelta(days=1)}, {'open_at_gt': now()}, 0),
+    ({'open_at': now()+datetime.timedelta(days=1)}, {'open_at_lte': now()}, 0),
+    ({'open_at': now()+datetime.timedelta(days=1)}, {'open_at_gt': now()}, 1),
+    ({'published': True}, {'published': False}, 0),
+    ({'published': False}, {'published': False}, 1),
+])
+@pytest.mark.django_db
+def test_hearing_filters(admin_api_client, default_hearing, updates, filters, expected_count):
+    Hearing.objects.filter(id=default_hearing.id).update(**updates)
+
+    response = admin_api_client.get(list_endpoint, filters)
+    data = get_data_from_response(response)
+    assert data['count'] == expected_count

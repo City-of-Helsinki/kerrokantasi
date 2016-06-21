@@ -26,11 +26,12 @@ class ContactPersonSerializer(serializers.ModelSerializer):
 
 
 class HearingFilter(django_filters.FilterSet):
-    next_closing = django_filters.DateTimeFilter(name='close_at', lookup_type='gt')
+    open_at_lte = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='lte')
+    open_at_gt = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='gt')
 
     class Meta:
         model = Hearing
-        fields = ['next_closing', ]
+        fields = ['published', 'open_at_lte', 'open_at_gt']
 
 
 class HearingSerializer(serializers.ModelSerializer):
@@ -119,7 +120,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
 
     # ordering_fields = ('created_at',)
     # ordering = ('-created_at',)
-    # filter_class = HearingFilter
+    filter_class = HearingFilter
 
     def get_serializer(self, *args, **kwargs):
         if kwargs.get("many"):  # List serialization?

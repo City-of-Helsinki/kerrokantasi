@@ -31,10 +31,7 @@ def parse_aware_datetime(value):
     return make_aware(dt, timezone=source_timezone)
 
 
-def import_comments(target, comments_data, patch=False):
-    if patch:
-        for comment in target.comments.all():
-            comment.soft_delete()
+def import_comments(target, comments_data):
     CommentModel = BaseComment.find_subclass(target)
     assert issubclass(CommentModel, BaseComment)
     for datum in sorted(comments_data, key=itemgetter("id")):
@@ -63,10 +60,7 @@ def import_comment(CommentModel, datum, target):
     return CommentModel.objects.create(**c_args)
 
 
-def import_images(target, datum, patch=False):
-    if patch:
-        for image in target.images.all():
-            image.soft_delete()
+def import_images(target, datum):
     main_image = datum.pop("main_image", None)
     main_image_id = datum.pop("main_image_id", None)
     if main_image:
@@ -132,10 +126,7 @@ def import_section(hearing, section_datum, section_type, force=False):
     import_images(section, section_datum)
 
 
-def import_sections(hearing, hearing_datum, force=False, patch=False):
-    if patch:
-        for section in hearing.sections.all():
-            section.soft_delete()
+def import_sections(hearing, hearing_datum, force=False):
     for section_datum in sorted(hearing_datum.pop("sections", ()), key=itemgetter("position")):
         import_section(hearing, section_datum, InitialSectionType.PART, force)
     for alt_datum in sorted(hearing_datum.pop("alternatives", ()), key=itemgetter("position")):
@@ -175,24 +166,33 @@ def import_hearing(hearing_datum, force=False, patch=False):
     )
     assert not hearing.geojson or isinstance(hearing.geojson, dict)
     hearing.save(no_modified_at_update=True)
+    # if patching, soft delete old data to prevent duplicates
+    if patch:
+        clean_hearing_for_patching(hearing)
     main_section = hearing.sections.create(
         type=SectionType.objects.get(identifier=InitialSectionType.MAIN),
         title="",
         abstract=(hearing_datum.pop("lead") or ""),
         content=(hearing_datum.pop("body") or ""),
     )
-    import_comments(main_section, hearing_datum.pop("comments", ()), patch)
-    import_images(main_section, hearing_datum, patch)
-    import_sections(hearing, hearing_datum, force, patch)
-
-    # Compact section ordering...
-    for index, section in enumerate(hearing.sections.order_by("ordering"), 1):
-        section.ordering = index
-        section.save(update_fields=("ordering",))
-
+    import_comments(main_section, hearing_datum.pop("comments", ()))
+    import_images(main_section, hearing_datum)
+    import_sections(hearing, hearing_datum, force)
+    compact_section_ordering(hearing)
     if hearing_datum.keys():  # pragma: no cover
         log.warn("These keys were not handled while importing %s: %s", hearing, hearing_datum.keys())
     return hearing
+
+
+def clean_hearing_for_patching(hearing):
+    for section in hearing.sections.all():
+        section.soft_delete()
+
+
+def compact_section_ordering(hearing):
+    for index, section in enumerate(hearing.sections.order_by("ordering"), 1):
+        section.ordering = index
+        section.save(update_fields=("ordering",))
 
 
 def import_from_data(data, force=False, patch=False):

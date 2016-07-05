@@ -98,12 +98,7 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     assert len(new_comment_list) == len(old_comment_list) + 1
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
     assert_common_keys_equal(new_comment, comment_data)
-    assert_common_keys_equal(new_comment["created_by"], {
-        "first_name": john_doe_api_client.user.first_name,
-        "last_name": john_doe_api_client.user.last_name,
-        "username": john_doe_api_client.user.username,
-    })
-
+    assert new_comment["is_registered"] == True
 
 
 @pytest.mark.django_db

@@ -19,7 +19,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'content', 'plugin_data', 'authorization_code']
+        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name']
 
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:

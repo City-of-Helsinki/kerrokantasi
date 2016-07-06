@@ -11,10 +11,11 @@ from democracy.models.comment import BaseComment
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin
 
-COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_by', 'created_at']
+COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
+    is_registered = serializers.SerializerMethodField()
 
     def to_representation(self, instance):
         r = super().to_representation(instance)
@@ -23,6 +24,9 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
             if request.GET.get('include', None) == 'plugin_data':
                 r['plugin_data'] = instance.plugin_data
         return r
+
+    def get_is_registered(self, obj):
+        return obj.created_by_id is not None
 
     class Meta:
         model = BaseComment
@@ -96,6 +100,11 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         kwargs = {}
         if self.request.user.is_authenticated():
+            if 'author_name' in request.data:
+                return response.Response(
+                    {'status': 'Authenticated users cannot set author name.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
             kwargs['created_by'] = self.request.user
         comment = serializer.save(**kwargs)
         # and another for the response
@@ -113,6 +122,12 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 {'status': 'You may not edit a comment not owned by you'},
                 status=status.HTTP_403_FORBIDDEN
             )
+        if request.user.is_authenticated() and 'author_name' in request.data:
+            if request.data['author_name'] != instance.author_name:
+                return response.Response(
+                    {'status': 'Authenticated users cannot set author name.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
         return super().update(request, *args, **kwargs)
 
     def perform_update(self, serializer):

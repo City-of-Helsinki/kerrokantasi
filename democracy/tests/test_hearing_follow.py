@@ -16,7 +16,7 @@ def get_hearing_unfollow_url(hearing_id):
 @pytest.mark.django_db
 def test_10_hearing_follow_without_authentication(api_client, default_hearing):
     response = api_client.post(get_hearing_follow_url(default_hearing.id))
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 @pytest.mark.django_db
@@ -37,7 +37,7 @@ def test_10_hearing_follow_again(john_doe_api_client, default_hearing):
 @pytest.mark.django_db
 def test_hearing_unfollow(api_client, john_doe_api_client, default_hearing):
     response = api_client.post(get_hearing_unfollow_url(default_hearing.id))
-    assert response.status_code == 403
+    assert response.status_code == 401
     response = john_doe_api_client.post(get_hearing_follow_url(default_hearing.id))
     assert response.status_code == 201
     response = john_doe_api_client.post(get_hearing_unfollow_url(default_hearing.id))

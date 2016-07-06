@@ -108,7 +108,7 @@ def john_doe_api_client(john_doe):
     John Doe is your average registered user; this is his API client.
     """
     api_client = APIClient()
-    api_client.login(username=john_doe.username, password="password")
+    api_client.force_authenticate(user=john_doe)
     api_client.user = john_doe
     return api_client
 
@@ -130,7 +130,7 @@ def jane_doe_api_client(jane_doe):
     Jane Doe is another average registered user; this is her API client.
     """
     api_client = APIClient()
-    api_client.login(username=jane_doe.username, password="password")
+    api_client.force_authenticate(user=jane_doe)
     api_client.user = jane_doe
     return api_client
 
@@ -138,7 +138,7 @@ def jane_doe_api_client(jane_doe):
 @pytest.fixture()
 def admin_api_client(admin_user):
     api_client = APIClient()
-    api_client.login(username=admin_user.username, password="password")
+    api_client.force_authenticate(user=admin_user)
     api_client.user = admin_user
     return api_client
 

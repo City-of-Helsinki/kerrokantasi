@@ -11,13 +11,15 @@ class ForeignKeyListSerializer(serializers.ReadOnlyField):
 class UserDataSerializer(serializers.ModelSerializer):
     voted_section_comments = ForeignKeyListSerializer(source='voted_democracy_sectioncomment')
     followed_hearings = ForeignKeyListSerializer()
+    admin_organizations = serializers.SlugRelatedField('name', many=True, read_only=True)
 
     class Meta:
         model = get_user_model()
         fields = [
             'uuid',
             'username', 'first_name', 'last_name',
-            'voted_section_comments', 'followed_hearings'
+            'voted_section_comments', 'followed_hearings',
+            'admin_organizations'
         ]
 
 

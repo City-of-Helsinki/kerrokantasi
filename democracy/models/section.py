@@ -97,3 +97,4 @@ class SectionComment(BaseComment):
     class Meta:
         verbose_name = _('section comment')
         verbose_name_plural = _('section comments')
+        ordering = ('-created_at',)

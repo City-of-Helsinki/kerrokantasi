@@ -253,7 +253,7 @@ def test_add_plugin_data_to_comment(api_client, default_hearing, case):
         response = api_client.post(url, data=comment_data)
         if case == "plug-valid":
             assert response.status_code == 201
-            created_comment = SectionComment.objects.last()
+            created_comment = SectionComment.objects.first()
             assert created_comment.plugin_identifier == section.plugin_identifier
             assert created_comment.plugin_data == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
         elif case == "plug-invalid":
@@ -379,7 +379,7 @@ def test_only_unauthenticated_can_set_author_name(client, can_set_author_name, r
 
     if can_set_author_name:
         assert response.status_code == 201
-        assert SectionComment.objects.last().author_name == 'CRAZYJOE994'
+        assert SectionComment.objects.first().author_name == 'CRAZYJOE994'
     else:
         assert response.status_code == 403
         assert 'Authenticated users cannot set author name.' in response.data['status']

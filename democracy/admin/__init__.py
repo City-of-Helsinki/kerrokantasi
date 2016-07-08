@@ -159,7 +159,7 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
     readonly_fields = ("preview_url",)
     fieldsets = (
         (None, {
-            "fields": ("title", "labels", "slug", "preview_url")
+            "fields": ("title", "labels", "slug", "preview_url", "organization")
         }),
         (_("Availability"), {
             "fields": ("published", "open_at", "close_at", "force_closed")

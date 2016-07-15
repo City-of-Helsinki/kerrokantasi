@@ -3,7 +3,9 @@ from functools import partial
 from django import forms
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models import TextField
+from django.contrib.gis.db.models import ManyToManyField
 from django.contrib.admin.utils import model_ngettext
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.encoding import force_text
@@ -229,7 +231,10 @@ class SectionTypeAdmin(admin.ModelAdmin):
 
 
 class OrganizationAdmin(admin.ModelAdmin):
-    exclude = ('published',)
+    formfield_overrides = {
+        ManyToManyField: {'widget': FilteredSelectMultiple("ylläpitäjät", is_stacked=False)},
+    }
+    exclude = ('published', )
 
 
 class ContactPersonAdmin(admin.ModelAdmin):

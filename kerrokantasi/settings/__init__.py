@@ -19,13 +19,13 @@ settings['CKEDITOR_CONFIGS'] = {
         ],
         'contentsCss': ['%sckeditor/ckeditor/contents.css' % settings['STATIC_URL'], '.lead { font-weight: bold;}'],
         'extraAllowedContent': 'video [*]{*}(*);source [*]{*}(*);',
-        'extraPlugins': 'video',
+        'extraPlugins': 'video,dialog,fakeobjects,iframe',
         'toolbar': [
             ['Styles', 'Format'],
             ['Bold', 'Italic', 'Underline', 'StrikeThrough', 'Undo', 'Redo'],
             ['Link', 'Unlink', 'Anchor'],
             ['BulletedList', 'NumberedList'],
-            ['Image', 'Video', 'Flash', 'Table', 'HorizontalRule'],
+            ['Image', 'Video', 'Iframe', 'Flash', 'Table', 'HorizontalRule'],
             ['TextColor', 'BGColor'],
             ['Smiley', 'SpecialChar'],
             ['Source']

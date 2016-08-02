@@ -55,8 +55,8 @@ class BaseComment(BaseModel):
     def save(self, *args, **kwargs):
         if not (self.plugin_data or self.content):
             raise ValueError("Comments must have either plugin data or textual content")
-        if not self.author_name:
-            self.author_name = (str(self.created_by) if self.created_by_id else None)
+        if not self.author_name and self.created_by_id:
+            self.author_name = (self.created_by.get_display_name() or None)
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):

@@ -99,6 +99,34 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
     assert_common_keys_equal(new_comment, comment_data)
     assert new_comment["is_registered"] == True
+    assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
+def test_add_comment_to_section_user_has_name(john_doe_api_client, john_doe, default_hearing,
+                                              get_comments_url_and_data):
+    john_doe.first_name = 'John'
+    john_doe.last_name = 'Doe'
+    john_doe.save()
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk)
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    assert new_comment["author_name"] == 'John Doe'
 
 
 @pytest.mark.django_db

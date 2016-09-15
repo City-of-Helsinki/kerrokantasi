@@ -98,3 +98,12 @@ class SectionComment(BaseComment):
         verbose_name = _('section comment')
         verbose_name_plural = _('section comments')
         ordering = ('-created_at',)
+
+
+class CommentImage(BaseImage):
+    parent_field = "sectioncomment"
+    comment = models.ForeignKey(SectionComment, related_name="images")
+
+    class Meta:
+        verbose_name = _('comment image')
+        verbose_name_plural = _('comment images')

@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+import json
 from django.test.utils import override_settings
 from django.utils.encoding import force_text
 from django.utils.timezone import now
@@ -11,12 +12,13 @@ from democracy.models import Hearing, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
-from democracy.tests.utils import get_data_from_response, assert_common_keys_equal
+from democracy.tests.utils import get_data_from_response, assert_common_keys_equal, get_geojson
 
 
 def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
+        'geometry': json.dumps(get_geojson()),
         'section': None
     }, **extra)
 

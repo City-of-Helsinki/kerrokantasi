@@ -2,7 +2,9 @@ from django.conf import settings
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
+from djgeojson.fields import GeometryField
 
+from democracy.models.images import BaseImage
 from .base import BaseModel
 
 
@@ -11,6 +13,7 @@ class BaseComment(BaseModel):
     parent_model = None  # Required for factories and API
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'), blank=True)
+    geojson = GeometryField(blank=True, null=True, verbose_name=_('location'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)

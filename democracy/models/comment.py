@@ -18,6 +18,7 @@ class BaseComment(BaseModel):
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
+    label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True)
     n_votes = models.IntegerField(
         verbose_name=_('vote count'),
         help_text=_('number of votes given to this comment'),

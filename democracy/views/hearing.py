@@ -10,8 +10,8 @@ from rest_framework.response import Response
 from democracy.enums import InitialSectionType
 from democracy.models import ContactPerson, Hearing, Section, SectionImage
 from democracy.views.base import AdminsSeeUnpublishedMixin
-from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.label import LabelFieldSerializer
 from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
@@ -35,7 +35,7 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingSerializer(serializers.ModelSerializer):
-    labels = LabelSerializer(many=True, read_only=True)
+    labels = LabelFieldSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = JSONField()
     organization = serializers.SlugRelatedField(

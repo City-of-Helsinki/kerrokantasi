@@ -2,8 +2,8 @@ from django.conf.urls import include, url
 from rest_framework_nested import routers
 
 from democracy.views import (
-    CommentViewSet, HearingViewSet, ImageViewSet, RootSectionViewSet, SectionCommentViewSet, SectionViewSet,
-    UserDataViewSet
+    CommentViewSet, HearingViewSet, ImageViewSet, LabelViewSet, RootSectionViewSet, SectionCommentViewSet,
+    SectionViewSet, UserDataViewSet
 )
 
 router = routers.DefaultRouter()
@@ -12,6 +12,7 @@ router.register(r'users', UserDataViewSet, base_name='users')
 router.register(r'comment', CommentViewSet, base_name='comment')
 router.register(r'image', ImageViewSet, base_name='image')
 router.register(r'section', RootSectionViewSet, base_name='section')
+router.register(r'label', LabelViewSet, base_name='label')
 
 hearing_comments_router = routers.NestedSimpleRouter(router, r'hearing', lookup='comment_parent')
 

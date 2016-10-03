@@ -3,12 +3,12 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.serializers import get_validation_error_detail
 from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
+from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import filter_by_hearing_visible
 
 
@@ -71,10 +71,6 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
         fields = SectionCommentSerializer.Meta.fields + ['hearing']
 
 
-class CommentPagination(LimitOffsetPagination):
-    default_limit = 50
-
-
 class CommentFilter(filters.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
 
@@ -86,7 +82,7 @@ class CommentFilter(filters.FilterSet):
 # root level SectionComment endpoint
 class CommentViewSet(SectionCommentViewSet):
     serializer_class = RootSectionCommentSerializer
-    pagination_class = CommentPagination
+    pagination_class = DefaultLimitPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = CommentFilter
 

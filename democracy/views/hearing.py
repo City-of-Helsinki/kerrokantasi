@@ -34,6 +34,20 @@ class HearingFilter(django_filters.FilterSet):
         fields = ['published', 'open_at_lte', 'open_at_gt']
 
 
+class HearingCreateUpdateSerializer(serializers.ModelSerializer):
+    geojson = JSONField(required=False, allow_null=True)
+
+    class Meta:
+        model = Hearing
+        fields = [
+            'title', 'id', 'borough',
+            'published', 'open_at', 'close_at',
+            'servicemap_url',
+            'closed', 'geojson', 'organization', 'slug',
+            #'sections', 'labels', 'contact_persons',
+        ]
+
+
 class HearingSerializer(serializers.ModelSerializer):
     labels = LabelFieldSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
@@ -112,27 +126,27 @@ class HearingMapSerializer(serializers.ModelSerializer):
         ]
 
 
-class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """
     API endpoint for hearings.
     """
     model = Hearing
-    serializer_class = HearingSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
+    serializer_class = HearingListSerializer
 
     # ordering_fields = ('created_at',)
     # ordering = ('-created_at',)
     filter_class = HearingFilter
 
-    def get_serializer(self, *args, **kwargs):
-        if kwargs.get("many"):  # List serialization?
-            serializer_class = HearingListSerializer
-        else:
-            serializer_class = HearingSerializer
-        kwargs['context'] = self.get_serializer_context()
-        return serializer_class(*args, **kwargs)
+    def get_serializer_class(self, *args, **kwargs):
+        if self.action == 'list':
+            return HearingListSerializer
+        if self.action in ('create', 'update', 'partial_update'):
+            return HearingCreateUpdateSerializer
+
+        return HearingSerializer
 
     def common_queryset_filtering(self, queryset):
         """

@@ -4,7 +4,7 @@ from django.utils.timezone import now
 from rest_framework import filters, serializers, viewsets
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, Section, SectionImage
+from democracy.models import Hearing, Section, SectionImage, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
@@ -45,6 +45,24 @@ class SectionFieldSerializer(serializers.RelatedField):
 
     def to_representation(self, section):
         return SectionSerializer(section, context=self.context).data
+
+
+class SectionCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for section create/update.
+    """
+    id = serializers.CharField(required=False)
+    type = serializers.SlugRelatedField(slug_field='identifier', queryset=SectionType.objects.all())
+    commenting = EnumField(enum_type=Commenting)
+
+    class Meta:
+        model = Section
+        fields = [
+            'id', 'type', 'commenting', 'published',
+            'title', 'abstract', 'content',
+            'plugin_identifier', 'plugin_data',
+            #'images',
+        ]
 
 
 class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):

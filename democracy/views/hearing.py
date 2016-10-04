@@ -1,10 +1,11 @@
 import django_filters
+from django.db import transaction
 from django.db.models import Prefetch
 from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from democracy.enums import InitialSectionType
@@ -12,7 +13,7 @@ from democracy.models import ContactPerson, Hearing, Section, SectionImage
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.label import LabelFieldSerializer
-from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
+from democracy.views.section import SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
 
@@ -36,16 +37,82 @@ class HearingFilter(django_filters.FilterSet):
 
 class HearingCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = JSONField(required=False, allow_null=True)
+    sections = SectionCreateUpdateSerializer(many=True)
 
     class Meta:
         model = Hearing
         fields = [
             'title', 'id', 'borough',
             'published', 'open_at', 'close_at',
-            'servicemap_url',
+            'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug',
-            #'sections', 'labels', 'contact_persons',
+            #'labels', 'contact_persons',
         ]
+
+    @transaction.atomic()
+    def create(self, validated_data):
+        sections_data = validated_data.pop('sections')
+        hearing = super().create(validated_data)
+
+        for section_data in sections_data:
+            section_data.pop('id', None)
+            Section.objects.create(hearing=hearing, **section_data)
+
+        return hearing
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        """
+        Handle Hearing update and it's sections create/update/delete.
+
+        Sections are matched by their ids:
+          * If an id isn't given or it doesn't exist, create a new section (ignoring given id).
+          * If a section with given id exists, update it.
+          * Old sections whose ids aren't matched are (soft) deleted.
+        """
+        sections_data = validated_data.pop('sections')
+        new_section_ids = set()
+
+        hearing = super().update(instance, validated_data)
+
+        for section_data in sections_data:
+            section_data['hearing'] = hearing
+            section_data.setdefault('deleted', False)
+            pk = section_data.pop('id', None)
+
+            try:
+                section = hearing.sections.everything().get(id=pk) if pk else None
+            except Section.DoesNotExist:
+                section = None
+
+            if section:
+                for key, value in section_data.items():
+                    setattr(section, key, value)
+                section.save(update_fields=section_data.keys())
+            else:
+                section = Section.objects.create(**section_data)
+
+            new_section_ids.add(section.id)
+
+        for section in hearing.sections.exclude(id__in=new_section_ids):
+            section.soft_delete()
+
+        return hearing
+
+    def validate_sections(self, data):
+        for section_data in data:
+            pk = section_data.get('id')
+
+            # check that possibly given section id either doesn't exist
+            # or belongs to a section of the current hearing
+            if pk and self.instance:
+                try:
+                    section = Section.objects.everything().get(id=pk)
+                    if section.hearing_id != self.instance.id:
+                        raise ValidationError('ID %s already exists in another Hearing' % pk)
+                except Section.DoesNotExist:
+                    pass
+        return data
 
 
 class HearingSerializer(serializers.ModelSerializer):

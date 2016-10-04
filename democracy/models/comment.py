@@ -4,7 +4,6 @@ from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
 
-from democracy.models.images import BaseImage
 from .base import BaseModel
 
 

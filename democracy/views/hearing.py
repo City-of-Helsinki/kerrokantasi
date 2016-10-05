@@ -10,20 +10,13 @@ from rest_framework.response import Response
 
 from democracy.enums import InitialSectionType
 from democracy.models import ContactPerson, Hearing, Section, SectionImage
-from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.base import AdminsSeeUnpublishedMixin
+from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelFieldSerializer
 from democracy.views.section import SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
-
-
-class ContactPersonSerializer(serializers.ModelSerializer):
-    organization = serializers.SlugRelatedField('name', read_only=True)
-
-    class Meta:
-        model = ContactPerson
-        fields = ('name', 'title', 'phone', 'email', 'organization')
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -35,9 +28,29 @@ class HearingFilter(django_filters.FilterSet):
         fields = ['published', 'open_at_lte', 'open_at_gt']
 
 
+class ContactPersonRelatedSerializer(serializers.Serializer):
+    """
+    Validator for incoming ContactPerson data.
+    """
+    id = serializers.CharField(required=True)
+
+
+class ContactPersonRelatedField(serializers.PrimaryKeyRelatedField):
+    """
+    Allow selecting ContactPersons by giving their ID in format {"id": <id>}
+    """
+    def to_representation(self, value):
+        return ContactPersonSerializer(instance=value).data
+
+    def to_internal_value(self, data):
+        ContactPersonRelatedSerializer(data=data).is_valid(raise_exception=True)
+        return super().to_internal_value(data['id'])
+
+
 class HearingCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = JSONField(required=False, allow_null=True)
     sections = SectionCreateUpdateSerializer(many=True)
+    contact_persons = ContactPersonRelatedField(queryset=ContactPerson.objects.all(), many=True)
 
     class Meta:
         model = Hearing
@@ -46,7 +59,8 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
             'published', 'open_at', 'close_at',
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug',
-            #'labels', 'contact_persons',
+            'contact_persons',
+            #'labels',
         ]
 
     @transaction.atomic()

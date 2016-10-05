@@ -5,13 +5,13 @@ from rest_framework import filters, permissions, response, serializers, status, 
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField
 from rest_framework.exceptions import NotFound
-from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.response import Response
 
 from democracy.enums import InitialSectionType
 from democracy.models import ContactPerson, Hearing, Section, SectionImage
 from democracy.views.base import AdminsSeeUnpublishedMixin
-from democracy.views.label import LabelSerializer
+from democracy.pagination import DefaultLimitPagination
+from democracy.views.label import LabelFieldSerializer
 from democracy.views.section import SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
@@ -35,7 +35,7 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingSerializer(serializers.ModelSerializer):
-    labels = LabelSerializer(many=True, read_only=True)
+    labels = LabelFieldSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = JSONField()
     organization = serializers.SlugRelatedField(
@@ -104,10 +104,6 @@ class HearingMapSerializer(serializers.ModelSerializer):
         ]
 
 
-class HearingPagination(LimitOffsetPagination):
-    default_limit = 50
-
-
 class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     """
     API endpoint for hearings.
@@ -116,7 +112,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = HearingSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    pagination_class = HearingPagination
+    pagination_class = DefaultLimitPagination
 
     # ordering_fields = ('created_at',)
     # ordering = ('-created_at',)

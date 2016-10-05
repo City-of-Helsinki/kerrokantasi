@@ -1,3 +1,4 @@
+from collections import defaultdict
 import django_filters
 from django.db import transaction
 from django.db.models import Prefetch
@@ -133,7 +134,10 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         return hearing
 
     def validate_sections(self, data):
+        num_of_sections = defaultdict(int)
+
         for section_data in data:
+            num_of_sections[section_data['type'].identifier] += 1
             pk = section_data.get('id')
 
             # check that possibly given section id either doesn't exist
@@ -145,6 +149,13 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
                         raise ValidationError('ID %s already exists in another Hearing' % pk)
                 except Section.DoesNotExist:
                     pass
+
+        if num_of_sections[InitialSectionType.MAIN] != 1:
+            raise ValidationError('A hearing must have exactly one main section')
+
+        if num_of_sections[InitialSectionType.CLOSURE_INFO] > 1:
+            raise ValidationError('A hearing cannot have more than one closure info sections')
+
         return data
 
 

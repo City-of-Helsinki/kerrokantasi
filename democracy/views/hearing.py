@@ -9,11 +9,11 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Section, SectionImage
+from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
-from democracy.views.label import LabelFieldSerializer
+from democracy.views.label import LabelSerializer
 from democracy.views.section import SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer
 
 from .hearing_report import HearingReport
@@ -47,10 +47,30 @@ class ContactPersonRelatedField(serializers.PrimaryKeyRelatedField):
         return super().to_internal_value(data['id'])
 
 
+class LabelRelatedSerializer(serializers.Serializer):
+    """
+    Validator for incoming Label data.
+    """
+    id = serializers.IntegerField(required=True)
+
+
+class LabelField(serializers.PrimaryKeyRelatedField):
+    """
+    Allow selecting Labels by giving their ID in format {"id": <id>}
+    """
+    def to_representation(self, value):
+        return LabelSerializer(instance=value).data
+
+    def to_internal_value(self, data):
+        LabelRelatedSerializer(data=data).is_valid(raise_exception=True)
+        return super().to_internal_value(data['id'])
+
+
 class HearingCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = JSONField(required=False, allow_null=True)
     sections = SectionCreateUpdateSerializer(many=True)
     contact_persons = ContactPersonRelatedField(queryset=ContactPerson.objects.all(), many=True)
+    labels = LabelField(queryset=Label.objects.all(), many=True)
 
     class Meta:
         model = Hearing
@@ -59,8 +79,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
             'published', 'open_at', 'close_at',
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug',
-            'contact_persons',
-            #'labels',
+            'contact_persons', 'labels',
         ]
 
     @transaction.atomic()
@@ -130,7 +149,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class HearingSerializer(serializers.ModelSerializer):
-    labels = LabelFieldSerializer(many=True, read_only=True)
+    labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = JSONField()
     organization = serializers.SlugRelatedField(

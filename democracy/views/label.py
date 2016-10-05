@@ -4,13 +4,6 @@ from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination
 
 
-class LabelFieldSerializer(serializers.RelatedField):
-    # Serializer for labels. Get label names instead of IDs.
-
-    def to_representation(self, value):
-        return value.label
-
-
 class LabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Label

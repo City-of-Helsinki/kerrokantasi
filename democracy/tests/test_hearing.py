@@ -210,7 +210,7 @@ def test_8_get_detail_labels(api_client):
 
     assert 'results' not in data
     assert len(data['labels']) is 3
-    assert label_one.label in data['labels']
+    assert {'id': label_one.id, 'label': label_one.label} in data['labels']
 
 
 @pytest.mark.django_db

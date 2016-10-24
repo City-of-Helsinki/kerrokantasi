@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import JSONField
 from rest_framework.serializers import get_validation_error_detail
 from rest_framework.settings import api_settings
 
@@ -10,7 +11,7 @@ from democracy.models import SectionComment, Label
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField
+from democracy.views.utils import filter_by_hearing_visible, GeoJSONField, NestedPKRelatedField
 
 
 class SectionCommentCreateSerializer(serializers.ModelSerializer):
@@ -24,10 +25,11 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
         allow_null=True,
         expanded=True,
     )
+    geojson = GeoJSONField(required=False, allow_null=True)
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name', 'label']
+        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name', 'label', 'geojson']
 
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
@@ -58,6 +60,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     Serializer for comment added to section.
     """
     label = LabelSerializer(read_only=True)
+    geojson = JSONField(required=False, allow_null=True)
 
     class Meta:
         model = SectionComment

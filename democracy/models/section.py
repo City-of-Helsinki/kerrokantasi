@@ -73,6 +73,10 @@ class Section(Commentable, StringIdBaseModel):
         super().check_commenting(request)
         self.hearing.check_commenting(request)
 
+    def check_voting(self, request):
+        super().check_voting(request)
+        self.hearing.check_voting(request)
+
     @property
     def plugin_implementation(self):
         return get_implementation(self.plugin_identifier)

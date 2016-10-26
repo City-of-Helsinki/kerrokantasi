@@ -121,6 +121,7 @@ class Commentable(models.Model):
     """
     n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
     commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
+    voting = EnumIntegerField(Commenting, verbose_name=_('voting'), default=Commenting.REGISTERED)
 
     def recache_n_comments(self):
         new_n_comments = self.comments.count()
@@ -145,6 +146,24 @@ class Commentable(models.Model):
             if not is_authenticated:
                 raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
         elif self.commenting == Commenting.OPEN:
+            return
+        else:  # pragma: no cover
+            raise NotImplementedError("Not implemented")
+
+    def check_voting(self, request):
+        """
+        Check whether the given request (HTTP or DRF) is allowed to vote on this Commentable.
+
+        If voting is not allowed, the function must raise a ValidationError.
+        It must never return a value other than None.
+        """
+        is_authenticated = request.user.is_authenticated()
+        if self.voting == Commenting.NONE:
+            raise ValidationError(_("%s does not allow voting") % self, code="voting_none")
+        elif self.voting == Commenting.REGISTERED:
+            if not is_authenticated:
+                raise ValidationError(_("%s does not allow anonymous voting") % self, code="voting_registered")
+        elif self.voting == Commenting.OPEN:
             return
         else:  # pragma: no cover
             raise NotImplementedError("Not implemented")

@@ -91,6 +91,17 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+    def _check_may_vote(self, request):
+        parent = self.get_comment_parent()
+        try:
+            # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
+            assert parent.check_voting(request) is None
+        except ValidationError as verr:
+            return response.Response(
+                {'status': force_text(verr), 'code': verr.code},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
     def create(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)
         if resp:
@@ -137,16 +148,19 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     @detail_route(methods=['post'])
     def vote(self, request, **kwargs):
-        # Return 403 if user is not authenticated
-        if not request.user.is_authenticated():
-            return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
-
+        resp = self._check_may_vote(request)
+        if resp:
+            return resp
         comment = self.get_object()
 
-        # Check if user voted already. If yes, return 400.
+        if not request.user.is_authenticated():
+            # If the check went through, anonymous voting is allowed
+            comment.n_unregistered_votes += 1
+            comment.recache_n_votes()
+            return response.Response({'status': 'Vote has been counted'}, status=status.HTTP_200_OK)
+        # Check if user voted already. If yes, return 304.
         if comment.__class__.objects.filter(id=comment.id, voters=request.user).exists():
             return response.Response({'status': 'Already voted'}, status=status.HTTP_304_NOT_MODIFIED)
-
         # add voter
         comment.voters.add(request.user)
         # update number of votes

@@ -1,6 +1,6 @@
 import pytest
 
-from democracy.enums import InitialSectionType
+from democracy.enums import InitialSectionType, Commenting
 from democracy.models import Section, SectionComment, SectionType
 from democracy.tests.test_images import get_hearing_detail_url
 
@@ -37,6 +37,15 @@ def test_31_section_comment_vote_without_authentication(api_client, default_hear
     section, comment = add_default_section_and_comment(default_hearing)
     response = api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
     assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_anonymous_vote_section_comment_vote_without_authentication(api_client, default_hearing):
+    section, comment = add_default_section_and_comment(default_hearing)
+    section.voting = Commenting.OPEN
+    section.save()
+    response = api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
+    assert response.status_code == 200
 
 
 @pytest.mark.django_db

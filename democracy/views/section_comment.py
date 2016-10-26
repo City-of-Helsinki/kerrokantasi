@@ -6,20 +6,28 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import get_validation_error_detail
 from rest_framework.settings import api_settings
 
-from democracy.models import SectionComment
+from democracy.models import SectionComment, Label
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
+from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.utils import filter_by_hearing_visible
+from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField
 
 
 class SectionCommentCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for comments creation.
     """
+    label = NestedPKRelatedField(
+        queryset=Label.objects.all(),
+        serializer=LabelSerializer,
+        required=False,
+        allow_null=True,
+        expanded=True,
+    )
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name']
+        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name', 'label']
 
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
@@ -49,6 +57,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     """
     Serializer for comment added to section.
     """
+    label = LabelSerializer(read_only=True)
 
     class Meta:
         model = SectionComment

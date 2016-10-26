@@ -4,8 +4,10 @@ from functools import lru_cache
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.query import QuerySet
 from django.utils.timezone import now
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS
+from rest_framework.exceptions import ValidationError
+from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
 
 
 class AbstractFieldSerializer(serializers.RelatedField):
@@ -97,3 +99,47 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
         filters['%s__published' % hearing_lookup] = True
 
     return queryset.filter(**filters)
+
+
+class NestedPKRelatedField(PrimaryKeyRelatedField):
+    """
+    Support of showing and saving of expanded nesting or just a resource ID.
+
+    The keyword argument 'expanded' defines whether the nested object is expanded or not.
+    Default serializing is expanded=false.
+    """
+
+    invalid_format_error = _('Incorrect format. Expected dictionary, received %(data)s.')
+    missing_id_error = _('The primary key is missing. Expected {"id": id, ...}, received %(data)s.')
+
+    def __init__(self, *args, **kwargs):
+        self.related_serializer = kwargs.pop('serializer', None)
+        self.expanded = bool(kwargs.pop('expanded', False))
+        super(NestedPKRelatedField, self).__init__(*args, **kwargs)
+
+    def use_pk_only_optimization(self):
+        return not self.expanded
+
+    def to_representation(self, obj):
+        if self.expanded:
+            return self.related_serializer(obj, context=self.context).data
+        id = super(NestedPKRelatedField, self).to_representation(obj)
+        if id is None:
+            return None
+        return {
+            'id': id,
+        }
+
+    def to_internal_value(self, value):
+        if not isinstance(value, dict):
+            raise ValidationError(self.invalid_format_error % {'data': type(value).__name__})
+        if 'id' not in value:
+            raise ValidationError(self.missing_id_error % {'data': value})
+
+        id = value['id']
+        if not id:
+            if self.required:
+                raise ValidationError(self.missing_id_error % {'data': value})
+            return None
+
+        return super().to_internal_value(id)

@@ -8,7 +8,7 @@ from django.utils.timezone import now
 from reversion import revisions
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, Section, SectionType
+from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
@@ -102,6 +102,80 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     assert_common_keys_equal(new_comment, comment_data)
     assert new_comment["is_registered"] == True
     assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
+def test_56_add_comment_with_label_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    label_one = Label(id=1, label='The Label')
+    label_one.save()
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, label={'id': 1})
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    assert 'label' in data
+    assert data["label"] == {'id': 1, 'label': 'The Label'}
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    comment_data = get_comment_data(section=section.pk, label={'label': 'The Label', 'id': 1})
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    assert len(new_comment_list) == len(old_comment_list) + 1
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    assert_common_keys_equal(new_comment, comment_data)
+    assert new_comment["is_registered"] == True
+    assert new_comment["label"] == {'id': 1, 'label': 'The Label'}
+    assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
+def test_56_add_comment_with_inexistant_label(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, label={'id': 1})
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert data['label'][0] == 'Invalid pk "1" - object does not exist.'
+
+
+@pytest.mark.django_db
+def test_56_add_comment_with_no_label_id(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    label_one = Label(id=1, label='The Label')
+    label_one.save()
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, label={'pk': 1})
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert data['label'][0] == 'The primary key is missing. Expected {"id": id, ...}, received %(data)s.' % {'data':{'pk': 1}}
 
 
 @pytest.mark.django_db

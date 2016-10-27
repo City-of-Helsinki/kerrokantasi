@@ -98,10 +98,6 @@ class CommentViewSet(SectionCommentViewSet):
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = CommentFilter
 
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()
-        return serializer_class(*args, **kwargs)
-
     def get_comment_parent_id(self):
         parent_field = self.get_serializer_class().Meta.model.parent_field
         try:

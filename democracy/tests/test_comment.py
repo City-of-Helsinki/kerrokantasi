@@ -18,7 +18,7 @@ from democracy.tests.utils import get_data_from_response, assert_common_keys_equ
 def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
-        'geometry': json.dumps(get_geojson()),
+        'geojson': get_geojson(),
         'section': None
     }, **extra)
 
@@ -90,6 +90,9 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     assert 'content' in data
     assert data['content'] == default_comment_content
 
+    assert 'geojson' in data
+    assert data['geojson'] == get_geojson()
+
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
@@ -102,6 +105,42 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     assert_common_keys_equal(new_comment, comment_data)
     assert new_comment["is_registered"] == True
     assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
+def test_56_add_comment_to_section_with_invalid_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section and invalid geojson explicitly
+    comment_data = get_comment_data(section=section.pk, geojson={'geometry': {'hello': 'world'}})
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+
+    data = get_data_from_response(response, status_code=400)
+    assert data["geojson"][0] == 'Invalid geojson format: {\'geometry\': {\'hello\': \'world\'}}'
+
+
+@pytest.mark.django_db
+def test_56_add_comment_to_section_with_no_geometry_in_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section and invalid geojson explicitly
+    comment_data = get_comment_data(section=section.pk, geojson={'hello': 'world'})
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+
+    data = get_data_from_response(response, status_code=400)
+    assert data["geojson"][0] == 'Invalid geojson format. "geometry" field is required. Got {\'hello\': \'world\'}'
 
 
 @pytest.mark.django_db

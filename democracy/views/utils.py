@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 from functools import lru_cache
+import json
 
+from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.gdal.error import GDALException
 from django.core.exceptions import ImproperlyConfigured
 from django.db.models.query import QuerySet
 from django.utils.timezone import now
@@ -143,3 +146,18 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
             return None
 
         return super().to_internal_value(id)
+
+
+class GeoJSONField(serializers.JSONField):
+
+    def to_internal_value(self, data):
+        if not data:
+            return None
+        if "geometry" not in data:
+            raise ValidationError('Invalid geojson format. "geometry" field is required. Got %(data)s' % {'data': data})
+
+        try:
+            GEOSGeometry(json.dumps(data["geometry"]))
+        except GDALException:
+            raise ValidationError('Invalid geojson format: %(data)s' % {'data': data})
+        return super(GeoJSONField, self).to_internal_value(data)

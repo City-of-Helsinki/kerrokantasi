@@ -54,7 +54,7 @@ def import_comment(CommentModel, datum, target):
             datum.pop("body", "") or "",
         )).strip(),
         "published": not hidden,
-        "n_legacy_votes": like_count,
+        "n_unregistered_votes": like_count,
         "n_votes": like_count
     }
     return CommentModel.objects.create(**c_args)

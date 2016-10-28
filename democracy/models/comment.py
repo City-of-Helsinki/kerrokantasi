@@ -24,9 +24,9 @@ class BaseComment(BaseModel):
         default=0,
         editable=False
     )
-    n_legacy_votes = models.IntegerField(
-        verbose_name=_('legacy vote count'),
-        help_text=_('number of votes imported from legacy system'),
+    n_unregistered_votes = models.IntegerField(
+        verbose_name=_('unregistered vote count'),
+        help_text=_('number of unregistered votes'),
         default=0,
         editable=False
     )
@@ -63,7 +63,7 @@ class BaseComment(BaseModel):
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):
-        n_votes = self.voters.all().count() + self.n_legacy_votes
+        n_votes = self.voters.all().count() + self.n_unregistered_votes
         if n_votes != self.n_votes:
             self.n_votes = n_votes
             self.save(update_fields=("n_votes", ))

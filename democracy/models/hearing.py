@@ -70,6 +70,10 @@ class Hearing(StringIdBaseModel):
         if self.closed:
             raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
 
+    def check_voting(self, request):
+        if self.closed:
+            raise ValidationError(_("%s is closed and does not allow voting anymore") % self, code="hearing_closed")
+
     @property
     def preview_code(self):
         if not self.pk:

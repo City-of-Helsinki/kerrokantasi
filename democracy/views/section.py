@@ -32,7 +32,8 @@ class SectionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'type', 'commenting', 'published',
             'title', 'abstract', 'content', 'created_at', 'created_by', 'images', 'n_comments',
-            'plugin_identifier', 'plugin_data', 'type_name_singular', 'type_name_plural'
+            'type_name_singular', 'type_name_plural',
+            'plugin_identifier', 'plugin_data', 'plugin_iframe_url', 'plugin_fullscreen',
         ]
 
 

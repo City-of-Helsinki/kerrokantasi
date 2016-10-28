@@ -115,7 +115,8 @@ DEMOCRACY_UI_BASE_URL = 'http://localhost:8086'
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
     "mapdon-ksv": "democracy.plugins.Plugin",
-    "mapdon-ksv-visualize": "democracy.plugins.Plugin"
+    "mapdon-ksv-visualize": "democracy.plugins.Plugin",
+    "map-questionnaire": "democracy.plugins.Plugin",
 }
 
 

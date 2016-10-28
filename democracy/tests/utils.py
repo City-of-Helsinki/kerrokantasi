@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
+import base64
 import json
 import os
+from io import BytesIO
 
 from django.utils.dateparse import parse_datetime
+from PIL import Image
 
 from democracy.models.images import BaseImage
 
@@ -13,6 +16,13 @@ IMAGES = {
 }
 
 IMAGE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "images")
+
+
+def image_to_base64(filename):
+    buffered = BytesIO()
+    image = Image.open(os.path.join(IMAGE_SOURCE_PATH, filename))
+    image.save(buffered, format="JPEG")
+    return 'data:image/jpg;base64,%s' % base64.b64encode(buffered.getvalue()).decode('ascii')
 
 
 def create_image(instance, filename):

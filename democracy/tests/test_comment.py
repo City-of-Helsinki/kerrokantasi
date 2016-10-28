@@ -1,7 +1,7 @@
 import datetime
+from copy import deepcopy
 
 import pytest
-import json
 from django.test.utils import override_settings
 from django.utils.encoding import force_text
 from django.utils.timezone import now
@@ -12,7 +12,13 @@ from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content
 from democracy.tests.test_images import get_hearing_detail_url
-from democracy.tests.utils import get_data_from_response, assert_common_keys_equal, get_geojson
+from democracy.tests.utils import IMAGES, assert_common_keys_equal, get_data_from_response, get_geojson, image_to_base64
+
+test_image = {
+    'caption': 'Test',
+    'title': 'Test title',
+    'image': image_to_base64(IMAGES['ORIGINAL']),
+}
 
 
 def get_comment_data(**extra):
@@ -148,6 +154,7 @@ def test_56_add_comment_with_label_to_section(john_doe_api_client, default_heari
 
     label_one = Label(id=1, label='The Label')
     label_one.save()
+
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -167,6 +174,7 @@ def test_56_add_comment_with_label_to_section(john_doe_api_client, default_heari
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
     comment_data = get_comment_data(section=section.pk, label={'label': 'The Label', 'id': 1})
+
     # If pagination is used the actual data is in "results"
     if 'results' in new_comment_list:
         new_comment_list = new_comment_list['results']
@@ -215,6 +223,82 @@ def test_56_add_comment_with_no_label_id(john_doe_api_client, default_hearing, g
     response = john_doe_api_client.post(url, data=comment_data, format='json')
     data = get_data_from_response(response, status_code=400)
     assert data['label'][0] == 'The primary key is missing. Expected {"id": id, ...}, received %(data)s.' % {'data':{'pk': 1}}
+
+
+@pytest.mark.django_db
+def test_56_add_comment_with_images_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, images=[test_image])
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    assert 'images' in data
+    assert data['images'][0]['url'].startswith('http://testserver/media/images/')
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    # Replace the images with the list of URL returned by the creation
+    response_data = deepcopy(comment_data)
+    response_data['images'][0].pop('image')
+    response_data['images'][0].update({
+        'url': data['images'][0]['url'],
+        'height': 635,
+        'width': 952,
+    })
+
+    assert len(new_comment_list) == len(old_comment_list) + 1
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    assert_common_keys_equal(new_comment, response_data)
+    assert new_comment["is_registered"] == True
+    assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
+def test_56_add_comment_with_invalid_content_as_images(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    invalid_image = deepcopy(test_image)
+    invalid_image.update({"image": "not a b64 image"})
+    comment_data = get_comment_data(section=section.pk, images=[invalid_image])
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert data['images'][0]['image'][0] == 'Invalid content. Expected "data:image"'
+
+    invalid_image.update({"image": "data:image/jpg;base64,not a b64 image"})
+    comment_data = get_comment_data(section=section.pk, images=[invalid_image])
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    error = data['images'][0]['image'][0]
+    assert error == 'Upload a valid image. The file you uploaded was either not an image or a corrupted image.'
+
+
+@pytest.mark.django_db
+def test_56_add_comment_with_image_too_big(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    comment_data = get_comment_data(section=section.pk, images=[test_image])
+    # 10 bytes max
+    with override_settings(MAX_IMAGE_SIZE=10):
+        response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert data['images'][0]['image'][0] == 'Image size should be smaller than 10 bytes.'
 
 
 @pytest.mark.django_db

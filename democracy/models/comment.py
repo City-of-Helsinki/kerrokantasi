@@ -56,8 +56,8 @@ class BaseComment(BaseModel):
         return getattr(self, "%s_id" % self.parent_field, None)
 
     def save(self, *args, **kwargs):
-        if not (self.plugin_data or self.content):
-            raise ValueError("Comments must have either plugin data or textual content")
+        if not (self.plugin_data or self.content or self.label):
+            raise ValueError("Comments must have either plugin data, textual content or label")
         if not self.author_name and self.created_by_id:
             self.author_name = (self.created_by.get_display_name() or None)
         return super(BaseComment, self).save(*args, **kwargs)

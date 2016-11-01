@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import base64
 from functools import lru_cache
 import json
 
+from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib.gis.gdal.error import GDALException
 from django.core.exceptions import ImproperlyConfigured
+from django.core.files.base import ContentFile
 from django.db.models.query import QuerySet
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
@@ -161,3 +164,28 @@ class GeoJSONField(serializers.JSONField):
         except GDALException:
             raise ValidationError('Invalid geojson format: %(data)s' % {'data': data})
         return super(GeoJSONField, self).to_internal_value(data)
+
+
+class Base64ImageField(serializers.ImageField):
+
+    def to_internal_value(self, data):
+        if not data:
+            raise ValidationError(_('"image" field is required.'))
+
+        if isinstance(data, str) and data.startswith('data:image'):
+            # base64 encoded image - decode
+            try:
+                format, imgstr = data.split(';base64,')
+            except ValueError:
+                raise ValidationError(_('Not a valid base64 image.'))
+
+            ext = format.split('/')[-1]  # guess file extension
+
+            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+
+            # Do not limit image size if there is no settings for that
+            if data.size <= getattr(settings, 'MAX_IMAGE_SIZE', data.size):
+                return super(Base64ImageField, self).to_internal_value(data)
+            else:
+                raise ValidationError(_('Image size should be smaller than {} bytes.'.format(settings.MAX_IMAGE_SIZE)))
+        raise ValidationError(_('Invalid content. Expected "data:image"'))

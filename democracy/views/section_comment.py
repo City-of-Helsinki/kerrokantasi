@@ -1,5 +1,6 @@
 import django_filters
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
@@ -8,9 +9,12 @@ from rest_framework.serializers import get_validation_error_detail
 from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment, Label
+from democracy.models.section import CommentImage
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
+from democracy.views.section import SectionImageSerializer
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.comment_image import CommentImageCreateSerializer
 from democracy.views.utils import filter_by_hearing_visible, GeoJSONField, NestedPKRelatedField
 
 
@@ -26,10 +30,12 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
         expanded=True,
     )
     geojson = GeoJSONField(required=False, allow_null=True)
+    images = CommentImageCreateSerializer(required=False, many=True)
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name', 'label', 'geojson']
+        fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name',
+                  'label', 'images', 'geojson']
 
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
@@ -54,6 +60,14 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
             raise ValidationError("Either content, plugin data or label must be supplied.")
         return attrs
 
+    @atomic
+    def create(self, validated_data):
+        images = validated_data.pop('images', [])
+        comment = SectionComment.objects.create(**validated_data)
+        for image in images:
+            CommentImage.objects.get_or_create(comment=comment, **image)
+        return comment
+
 
 class SectionCommentSerializer(BaseCommentSerializer):
     """
@@ -61,6 +75,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     """
     label = LabelSerializer(read_only=True)
     geojson = JSONField(required=False, allow_null=True)
+    images = SectionImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = SectionComment
@@ -97,10 +112,6 @@ class CommentViewSet(SectionCommentViewSet):
     pagination_class = DefaultLimitPagination
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = CommentFilter
-
-    def get_serializer(self, *args, **kwargs):
-        serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()
-        return serializer_class(*args, **kwargs)
 
     def get_comment_parent_id(self):
         parent_field = self.get_serializer_class().Meta.model.parent_field

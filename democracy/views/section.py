@@ -26,11 +26,12 @@ class SectionSerializer(serializers.ModelSerializer):
     type_name_singular = serializers.SlugRelatedField(source='type', slug_field='name_singular', read_only=True)
     type_name_plural = serializers.SlugRelatedField(source='type', slug_field='name_plural', read_only=True)
     commenting = EnumField(enum_type=Commenting)
+    voting = EnumField(enum_type=Commenting)
 
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting', 'published',
+            'id', 'type', 'commenting', 'voting', 'published',
             'title', 'abstract', 'content', 'created_at', 'created_by', 'images', 'n_comments',
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_iframe_url', 'plugin_fullscreen',

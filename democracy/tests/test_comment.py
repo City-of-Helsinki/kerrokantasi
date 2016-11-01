@@ -322,6 +322,29 @@ def test_56_add_comment_with_images_to_section(john_doe_api_client, default_hear
 
 
 @pytest.mark.django_db
+def test_56_add_comment_with_empty_image_field_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section explicitly
+    # allow null images field
+    comment_data = get_comment_data(section=section.pk, images=None)
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    # allow empty images array
+    comment_data = get_comment_data(section=section.pk, images=[])
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+
+@pytest.mark.django_db
 def test_56_add_comment_with_invalid_content_as_images(john_doe_api_client, default_hearing, get_comments_url_and_data):
 
     section = default_hearing.sections.first()

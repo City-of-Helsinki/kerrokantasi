@@ -40,6 +40,8 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
             data["plugin_data"] = ""
+        if data.get("images") is None:
+            data["images"] = []
         return super(SectionCommentCreateSerializer, self).to_internal_value(data)
 
     def validate(self, attrs):

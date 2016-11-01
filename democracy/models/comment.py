@@ -66,7 +66,7 @@ class BaseComment(BaseModel):
         n_votes = self.voters.all().count() + self.n_unregistered_votes
         if n_votes != self.n_votes:
             self.n_votes = n_votes
-            self.save(update_fields=("n_votes", ))
+            self.save(update_fields=("n_votes", "n_unregistered_votes"))
 
     def recache_parent_n_comments(self):
         if self.parent_id:  # pragma: no branch

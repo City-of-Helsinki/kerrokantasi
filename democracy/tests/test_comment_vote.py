@@ -58,6 +58,11 @@ def test_anonymous_vote_section_comment_vote_add_vote_check_amount_of_votes(api_
 
     comment = SectionComment.objects.get(id=comment.id)
     assert comment.n_votes == 1
+    response = api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
+    assert response.status_code == 200
+
+    comment = SectionComment.objects.get(id=comment.id)
+    assert comment.n_votes == 2
 
 
 @pytest.mark.django_db

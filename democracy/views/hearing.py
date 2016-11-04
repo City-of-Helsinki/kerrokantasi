@@ -45,10 +45,14 @@ class HearingSerializer(serializers.ModelSerializer):
     main_image = serializers.SerializerMethodField()
     abstract = serializers.SerializerMethodField()
     contact_persons = ContactPersonSerializer(many=True, read_only=True)
+    default_to_fullscreen = serializers.SerializerMethodField()
+
+    def _get_main_section(self, hearing):
+        prefetched_mains = getattr(hearing, 'main_section_list', [])
+        return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
 
     def get_abstract(self, hearing):
-        prefetched_mains = getattr(hearing, 'main_section_list', [])
-        main_section = prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
+        main_section = self._get_main_section(hearing)
         return main_section.abstract if main_section else ''
 
     def get_sections(self, hearing):
@@ -74,13 +78,17 @@ class HearingSerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def get_default_to_fullscreen(self, hearing):
+        main_section = self._get_main_section(hearing)
+        return main_section.plugin_fullscreen if main_section else False
+
     class Meta:
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'published', 'labels', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'sections',
-            'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons'
+            'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
 
 

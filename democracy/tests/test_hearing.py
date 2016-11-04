@@ -93,6 +93,22 @@ def test_list_top_5_hearings_check_title(api_client):
     assert '6' in objects[4]['title']
 
 
+@pytest.mark.parametrize('plugin_fullscreen', [
+    True,
+    False,
+])
+@pytest.mark.django_db
+def test_list_hearings_check_default_to_fullscreen(api_client, default_hearing, plugin_fullscreen):
+    main_section = default_hearing.get_main_section()
+    main_section.plugin_fullscreen = plugin_fullscreen
+    main_section.save()
+
+    response = api_client.get(list_endpoint)
+    data = get_data_from_response(response)
+    hearing = data['results'][0]
+    assert hearing['default_to_fullscreen'] == plugin_fullscreen
+
+
 @pytest.mark.django_db
 def test_get_next_closing_hearings(api_client):
     create_hearings(0)  # Clear out old hearings

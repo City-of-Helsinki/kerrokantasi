@@ -15,7 +15,8 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelSerializer
-from democracy.views.section import SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer
+from democracy.views.section import (SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer,
+                                     SectionSerializer)
 
 from .hearing_report import HearingReport
 
@@ -69,7 +70,11 @@ class LabelField(serializers.PrimaryKeyRelatedField):
 
 class HearingCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = JSONField(required=False, allow_null=True)
-    sections = SectionCreateUpdateSerializer(many=True)
+
+    # this field is used only for incoming data validation, outgoing data is added manually
+    # in to_representation()
+    sections = serializers.ListField(child=serializers.DictField(), write_only=True)
+
     contact_persons = ContactPersonRelatedField(queryset=ContactPerson.objects.all(), many=True)
     labels = LabelField(queryset=Label.objects.all(), many=True)
 
@@ -106,29 +111,35 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         """
         sections_data = validated_data.pop('sections')
         new_section_ids = set()
-
         hearing = super().update(instance, validated_data)
 
-        for section_data in sections_data:
-            section_data['hearing'] = hearing
-            section_data.setdefault('deleted', False)
+        for index, section_data in enumerate(sections_data):
+            section_data['ordering'] = index
             pk = section_data.pop('id', None)
 
             try:
-                section = hearing.sections.everything().get(id=pk) if pk else None
+                section = hearing.sections.get(id=pk) if pk else None
             except Section.DoesNotExist:
                 section = None
 
             if section:
-                for key, value in section_data.items():
-                    setattr(section, key, value)
-                section.save(update_fields=section_data.keys())
+                serializer = SectionCreateUpdateSerializer(instance=section, data=section_data)
             else:
-                section = Section.objects.create(**section_data)
+                serializer = SectionCreateUpdateSerializer(data=section_data)
 
+            try:
+                serializer.is_valid(raise_exception=True)
+            except ValidationError as e:
+                errors = [{} for _ in range(len(sections_data))]
+                errors[index] = e.detail
+                raise ValidationError({'sections': errors})
+
+            section = serializer.save(hearing=hearing)
             new_section_ids.add(section.id)
 
         for section in hearing.sections.exclude(id__in=new_section_ids):
+            for image in section.images.all():
+                image.soft_delete()
             section.soft_delete()
 
         return hearing
@@ -137,18 +148,11 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         num_of_sections = defaultdict(int)
 
         for section_data in data:
-            num_of_sections[section_data['type'].identifier] += 1
+            num_of_sections[section_data['type']] += 1
             pk = section_data.get('id')
 
-            # check that possibly given section id either doesn't exist
-            # or belongs to a section of the current hearing
-            if pk and self.instance:
-                try:
-                    section = Section.objects.everything().get(id=pk)
-                    if section.hearing_id != self.instance.id:
-                        raise ValidationError('ID %s already exists in another Hearing' % pk)
-                except Section.DoesNotExist:
-                    pass
+            if pk and self.instance and not self.instance.sections.filter(pk=pk).exists():
+                raise ValidationError('The Hearing does not have a section with ID %s' % pk)
 
         if num_of_sections[InitialSectionType.MAIN] != 1:
             raise ValidationError('A hearing must have exactly one main section')
@@ -156,6 +160,15 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         if num_of_sections[InitialSectionType.CLOSURE_INFO] > 1:
             raise ValidationError('A hearing cannot have more than one closure info sections')
 
+        return data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['sections'] = SectionSerializer(
+            instance=instance.sections.all(),
+            many=True,
+            context=self.context
+        ).data
         return data
 
 

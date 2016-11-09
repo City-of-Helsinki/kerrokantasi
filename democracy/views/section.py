@@ -1,20 +1,37 @@
 import django_filters
 from django.db.models import Q
+from django.db import transaction
 from django.utils.timezone import now
 from rest_framework import filters, serializers, viewsets
+from rest_framework.exceptions import ValidationError
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.utils import filter_by_hearing_visible, PublicFilteredImageField
+from democracy.views.utils import Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField
 
 
 class SectionImageSerializer(BaseImageSerializer):
     class Meta:
         model = SectionImage
-        fields = ['title', 'url', 'width', 'height', 'caption']
+        fields = ['id', 'title', 'url', 'width', 'height', 'caption']
+
+
+class SectionImageCreateUpdateSerializer(BaseImageSerializer):
+    image = Base64ImageField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # image content isn't mandatory on updates
+        if self.instance:
+            self.fields['image'].required = False
+
+    class Meta:
+        model = SectionImage
+        fields = ['title', 'url', 'width', 'height', 'caption', 'image']
 
 
 class SectionSerializer(serializers.ModelSerializer):
@@ -55,14 +72,76 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer):
     type = serializers.SlugRelatedField(slug_field='identifier', queryset=SectionType.objects.all())
     commenting = EnumField(enum_type=Commenting)
 
+    # this field is used only for incoming data validation, outgoing data is added manually
+    # in to_representation()
+    images = serializers.ListField(child=serializers.DictField(), write_only=True)
+
     class Meta:
         model = Section
         fields = [
             'id', 'type', 'commenting', 'published',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
-            #'images',
+            'images',
         ]
+
+    @transaction.atomic()
+    def create(self, validated_data):
+        images_data = validated_data.pop('images', [])
+        section = super().create(validated_data)
+        self._handle_images(section, images_data)
+        return section
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        images_data = validated_data.pop('images', [])
+        section = super().update(instance, validated_data)
+        self._handle_images(section, images_data)
+        return section
+
+    def validate_images(self, data):
+        for index, image_data in enumerate(data):
+            pk = image_data.get('id')
+            image_data['ordering'] = index
+            serializer_params = {'data': image_data}
+
+            if pk:
+                try:
+                    image = self.instance.images.get(pk=pk)
+                except SectionImage.DoesNotExist:
+                    raise ValidationError('The Section does not have an image with ID %s' % pk)
+
+                serializer_params['instance'] = image
+
+            serializer = SectionImageCreateUpdateSerializer(**serializer_params)
+            serializer.is_valid(raise_exception=True)
+
+            # save serializer in data so it can be used when handling the images
+            image_data['serializer'] = serializer
+
+        return data
+
+    def _handle_images(self, section, data):
+        new_image_ids = set()
+
+        for image_data in data:
+            serializer = image_data.pop('serializer')
+            image = serializer.save(section=section)
+            new_image_ids.add(image.id)
+
+        for image in section.images.exclude(id__in=new_image_ids):
+            image.soft_delete()
+
+        return section
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['images'] = SectionImageSerializer(
+            instance.images.all(),
+            many=True,
+            context=self.context,
+        ).data
+        return data
 
 
 class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):

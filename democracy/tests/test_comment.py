@@ -316,6 +316,7 @@ def test_56_add_comment_with_images_to_section(john_doe_api_client, default_hear
 
     assert len(new_comment_list) == len(old_comment_list) + 1
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    new_comment['images'][0].pop('id')
     assert_common_keys_equal(new_comment, response_data)
     assert new_comment["is_registered"] == True
     assert new_comment["author_name"] is None

@@ -19,6 +19,7 @@ from democracy.views.section import (SectionCreateUpdateSerializer, SectionField
                                      SectionSerializer)
 
 from .hearing_report import HearingReport
+from .utils import NestedPKRelatedField
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -30,44 +31,6 @@ class HearingFilter(django_filters.FilterSet):
         fields = ['published', 'open_at_lte', 'open_at_gt']
 
 
-class ContactPersonRelatedSerializer(serializers.Serializer):
-    """
-    Validator for incoming ContactPerson data.
-    """
-    id = serializers.CharField(required=True)
-
-
-class ContactPersonRelatedField(serializers.PrimaryKeyRelatedField):
-    """
-    Allow selecting ContactPersons by giving their ID in format {"id": <id>}
-    """
-    def to_representation(self, value):
-        return ContactPersonSerializer(instance=value).data
-
-    def to_internal_value(self, data):
-        ContactPersonRelatedSerializer(data=data).is_valid(raise_exception=True)
-        return super().to_internal_value(data['id'])
-
-
-class LabelRelatedSerializer(serializers.Serializer):
-    """
-    Validator for incoming Label data.
-    """
-    id = serializers.IntegerField(required=True)
-
-
-class LabelField(serializers.PrimaryKeyRelatedField):
-    """
-    Allow selecting Labels by giving their ID in format {"id": <id>}
-    """
-    def to_representation(self, value):
-        return LabelSerializer(instance=value).data
-
-    def to_internal_value(self, data):
-        LabelRelatedSerializer(data=data).is_valid(raise_exception=True)
-        return super().to_internal_value(data['id'])
-
-
 class HearingCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = JSONField(required=False, allow_null=True)
 
@@ -75,8 +38,9 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
     # in to_representation()
     sections = serializers.ListField(child=serializers.DictField(), write_only=True)
 
-    contact_persons = ContactPersonRelatedField(queryset=ContactPerson.objects.all(), many=True)
-    labels = LabelField(queryset=Label.objects.all(), many=True)
+    contact_persons = NestedPKRelatedField(queryset=ContactPerson.objects.all(), many=True, expanded=True,
+                                           serializer=ContactPersonSerializer)
+    labels = NestedPKRelatedField(queryset=Label.objects.all(), many=True, expanded=True, serializer=LabelSerializer)
 
     class Meta:
         model = Hearing

@@ -80,6 +80,12 @@ def default_hearing(john_doe, contact_person):
 
 
 @pytest.fixture()
+def default_label():
+    label = Label.objects.create(label='The Label')
+    return label
+
+
+@pytest.fixture()
 def random_hearing():
     if not Label.objects.exists():
         LabelFactory()

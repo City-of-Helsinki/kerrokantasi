@@ -10,7 +10,7 @@ from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.response import Response
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage
+from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
@@ -52,15 +52,57 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
             'contact_persons', 'labels',
         ]
 
+    def _create_or_update_sections(self, hearing, sections_data, force_create=False):
+        """
+        Create or update sections of a hearing
+
+        :param hearing: The hearing
+        :type hearing: democracy.models.Hearing
+
+        :param sections_data: The list of serialized sections to create or update
+        :type sections_data: list of dictionaries
+
+        :param force_create: Boolean to force the creation of new sections despite
+                             the presences of section ID.
+        :type force_create: Boolean
+
+        :return: The set of the newly created/updated sections
+        :rtype: Set of democracy.models.Section
+        """
+        sections = set()
+        for index, section_data in enumerate(sections_data):
+            section_data['ordering'] = index
+            pk = section_data.pop('id', None)
+
+            serializer_params = {
+                'data': section_data,
+            }
+
+            if pk and not force_create:
+                try:
+                    section = hearing.sections.get(id=pk)
+                    serializer_params['instance'] = section
+                except Section.DoesNotExist:
+                    pass
+
+            serializer = SectionCreateUpdateSerializer(**serializer_params)
+
+            try:
+                serializer.is_valid(raise_exception=True)
+            except ValidationError as e:
+                errors = [{} for _ in range(len(sections_data))]
+                errors[index] = e.detail
+                raise ValidationError({'sections': errors})
+
+            section = serializer.save(hearing=hearing)
+            sections.add(section)
+        return sections
+
     @transaction.atomic()
     def create(self, validated_data):
         sections_data = validated_data.pop('sections')
         hearing = super().create(validated_data)
-
-        for section_data in sections_data:
-            section_data.pop('id', None)
-            Section.objects.create(hearing=hearing, **section_data)
-
+        self._create_or_update_sections(hearing, sections_data, force_create=True)
         return hearing
 
     @transaction.atomic()
@@ -74,33 +116,10 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
           * Old sections whose ids aren't matched are (soft) deleted.
         """
         sections_data = validated_data.pop('sections')
-        new_section_ids = set()
+
         hearing = super().update(instance, validated_data)
-
-        for index, section_data in enumerate(sections_data):
-            section_data['ordering'] = index
-            pk = section_data.pop('id', None)
-
-            try:
-                section = hearing.sections.get(id=pk) if pk else None
-            except Section.DoesNotExist:
-                section = None
-
-            if section:
-                serializer = SectionCreateUpdateSerializer(instance=section, data=section_data)
-            else:
-                serializer = SectionCreateUpdateSerializer(data=section_data)
-
-            try:
-                serializer.is_valid(raise_exception=True)
-            except ValidationError as e:
-                errors = [{} for _ in range(len(sections_data))]
-                errors[index] = e.detail
-                raise ValidationError({'sections': errors})
-
-            section = serializer.save(hearing=hearing)
-            new_section_ids.add(section.id)
-
+        sections = self._create_or_update_sections(hearing, sections_data)
+        new_section_ids = set([section.id for section in sections])
         for section in hearing.sections.exclude(id__in=new_section_ids):
             for image in section.images.all():
                 image.soft_delete()

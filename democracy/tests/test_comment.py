@@ -11,8 +11,9 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content
-from democracy.tests.test_images import get_hearing_detail_url
-from democracy.tests.utils import IMAGES, assert_common_keys_equal, get_data_from_response, get_geojson, image_to_base64
+from democracy.tests.utils import (
+    IMAGES, assert_common_keys_equal, get_data_from_response, get_geojson, get_hearing_detail_url, image_to_base64
+)
 
 test_image = {
     'caption': 'Test',

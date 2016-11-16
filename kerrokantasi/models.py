@@ -9,4 +9,4 @@ class User(AbstractUser):
         return '{0} {1}'.format(self.first_name, self.last_name).strip()
 
     def get_default_organization(self):
-        return self.admin_organizations.order_by('created_time').first()
+        return self.admin_organizations.order_by('created_at').first()

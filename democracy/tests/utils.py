@@ -25,6 +25,14 @@ def image_to_base64(filename):
     return 'data:image/jpg;base64,%s' % base64.b64encode(buffered.getvalue()).decode('ascii')
 
 
+def image_test_json():
+    return {
+        'caption': 'Test',
+        'title': 'Test title',
+        'image': image_to_base64(IMAGES['ORIGINAL']),
+    }
+
+
 def create_image(instance, filename):
     image_class = BaseImage.find_subclass(parent_model=instance)
     image_field = image_class._meta.get_field("image")

@@ -109,3 +109,15 @@ class Hearing(StringIdBaseModel):
             return self.sections.get(type__identifier=InitialSectionType.MAIN)
         except ObjectDoesNotExist:
             return None
+
+    def is_visible_for(self, user):
+        if self.published and self.open_at < now():
+            return True
+        if not user.is_authenticated():
+            return False
+        if user.is_superuser:
+            return True
+        user_organization = user.get_default_organization()
+        if not (user_organization and self.organization):
+            return False
+        return user_organization == self.organization

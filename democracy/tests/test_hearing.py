@@ -831,3 +831,27 @@ def test_GET_unpublished_hearing(unpublished_hearing_json, john_smith_api_client
     assert list_data['count'] == 1
     assert list_data['results'][0]['id'] == data['id']
     assert_hearing_equals(data_created, data, john_smith_api_client.user)
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['close_at'] = datetime.datetime.now() + datetime.timedelta(days=1)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert data['closed'] == False
+    before = datetime.datetime.now() - datetime.timedelta(days=1)
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data['id']), data={'close_at': before}, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['closed'] == True
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing_update_section(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data['id']), data={'sections': [{
+        'id': '3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE',
+        'title': 'New title',
+    }]}, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'Sections cannot be updated by PATCHing the Hearing' in data['sections']

@@ -56,6 +56,10 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
             'contact_persons', 'labels',
         ]
 
+    def __init__(self, *args, **kwargs):
+        super(HearingCreateUpdateSerializer, self).__init__(*args, **kwargs)
+        self.partial = kwargs.get('partial', False)
+
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """
         Create or update sections of a hearing
@@ -123,6 +127,9 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         if instance.organization != self.context['request'].user.get_default_organization():
             raise PermissionDenied('User cannot update hearings from different organizations.')
 
+        if self.partial:
+            return super().update(instance, validated_data)
+
         sections_data = validated_data.pop('sections')
         hearing = super().update(instance, validated_data)
         sections = self._create_or_update_sections(hearing, sections_data)
@@ -135,6 +142,9 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         return hearing
 
     def validate_sections(self, data):
+        if self.partial:
+            raise ValidationError('Sections cannot be updated by PATCHing the Hearing')
+
         num_of_sections = defaultdict(int)
 
         for section_data in data:
@@ -363,8 +373,8 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                                      status=status.HTTP_403_FORBIDDEN)
         return super().create(request)
 
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, partial=False):
         if not request.user or not request.user.get_default_organization():
             return response.Response({'status': 'User without organization cannot PUT hearings.'},
                                      status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, pk=pk)
+        return super().update(request, pk=pk, partial=partial)

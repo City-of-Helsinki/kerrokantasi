@@ -118,6 +118,12 @@ def _update_hearing_data(data):
     data['sections'][1]['images'][0]['caption'] = 'New image caption'
 
 
+@pytest.fixture
+def unpublished_hearing_json(valid_hearing_json):
+    valid_hearing_json.update({'published': False})
+    return valid_hearing_json
+
+
 def get_detail_url(id):
     return '%s%s/' % (endpoint, id)
 
@@ -756,3 +762,72 @@ def test_PUT_hearing_two_closure_sections(valid_hearing_json, john_smith_api_cli
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
     data = get_data_from_response(response, status_code=400)
     assert 'A hearing cannot have more than one closure info sections' in data['sections']
+
+
+# Test that an anonymous user cannot GET an unpublished hearing
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_anon_user(unpublished_hearing_json, john_smith_api_client, api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a regular user cannot GET an unpublished hearing
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_regular_user(unpublished_hearing_json, john_smith_api_client, john_doe_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = john_doe_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = john_doe_api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a user cannot GET an unpublished hearing from another organization
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_other_org(unpublished_hearing_json, john_smith_api_client, john_doe_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.filter(id=data['id']).first()
+    hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
+    hearing.save()
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = john_smith_api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a user cannot GET unpublished hearing without organization
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_no_organization(unpublished_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.filter(id=data['id']).first()
+    hearing.organization = None
+    hearing.save()
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = john_smith_api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a user can GET unpublished hearing from his organization
+@pytest.mark.django_db
+def test_GET_unpublished_hearing(unpublished_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data_created = get_data_from_response(response, status_code=201)
+    assert data_created['published'] == False
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data_created['id']), format='json')
+    data = get_data_from_response(response, status_code=200)
+    response = john_smith_api_client.get(endpoint, format='json')
+    list_data = get_data_from_response(response, status_code=200)
+    assert list_data['count'] == 1
+    assert list_data['results'][0]['id'] == data['id']
+    assert_hearing_equals(data_created, data, john_smith_api_client.user)

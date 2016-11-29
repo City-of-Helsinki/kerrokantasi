@@ -18,7 +18,7 @@ from democracy.views.section import (SectionCreateUpdateSerializer, SectionField
                                      SectionSerializer)
 
 from .hearing_report import HearingReport
-from .utils import NestedPKRelatedField
+from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
 
 class HearingFilter(django_filters.FilterSet):
@@ -274,18 +274,14 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return queryset.order_by('-created_at')
 
     def get_queryset(self):
-        queryset = super(HearingViewSet, self).get_queryset().prefetch_related(
+        queryset = filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request,
+                                             hearing_lookup='').prefetch_related(
             Prefetch(
                 'sections',
                 queryset=Section.objects.filter(type__identifier='main'),
                 to_attr='main_section_list'
             )
         )
-
-        # unless the user is a superuser, only show open hearings in the hearing list
-        if not self.request.user.is_superuser:
-            queryset = queryset.filter(open_at__lte=now())
-
         return self.common_queryset_filtering(queryset)
 
     def get_object(self):
@@ -305,15 +301,16 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         except Hearing.DoesNotExist:
             raise NotFound()
 
-        is_superuser = self.request.user.is_superuser
+        user = self.request.user
+
         preview_code = None
-        if not obj.published and not is_superuser:
+        if not obj.is_visible_for(user):
             preview_code = self.request.query_params.get('preview')
             if not preview_code or preview_code != obj.preview_code:
                 raise NotFound()
 
         # require preview_code or superuser status to show a not yet opened hearing
-        if not (preview_code or is_superuser or obj.open_at <= now()):
+        if not (preview_code or obj.is_visible_for(user)):
             raise NotFound()
 
         self.check_object_permissions(self.request, obj)

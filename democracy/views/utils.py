@@ -97,13 +97,25 @@ class PublicFilteredImageField(serializers.Field):
 
 
 def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
-    filters = {
-        '%s__deleted' % hearing_lookup: False,
-        '%s__open_at__lte' % hearing_lookup: now()
-    }
+    if hearing_lookup:
+        hearing_lookup = '%s__' % hearing_lookup
 
-    if not request.user.is_superuser:
-        filters['%s__published' % hearing_lookup] = True
+    filters = {
+        '%sdeleted' % hearing_lookup: False,
+    }
+    user = request.user
+
+    if user.is_superuser:
+        return queryset.filter(**filters)
+
+    if user.is_authenticated():
+        organization = user.get_default_organization()
+        if organization:
+            filters['%sorganization' % hearing_lookup] = organization
+            return queryset.filter(**filters)
+
+    filters['%spublished' % hearing_lookup] = True
+    filters['%sopen_at__lte' % hearing_lookup] = now()
 
     return queryset.filter(**filters)
 

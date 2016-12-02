@@ -2,7 +2,6 @@ from collections import defaultdict
 import django_filters
 from django.db import transaction
 from django.db.models import Prefetch
-from django.utils.timezone import now
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.fields import JSONField

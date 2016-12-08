@@ -11,6 +11,8 @@ from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
 from autoslug import AutoSlugField
 from autoslug.utils import generate_unique_slug
+from parler.models import TranslatedFields, TranslatableModel
+from parler.managers import TranslatableQuerySet
 
 from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
@@ -19,7 +21,7 @@ from .base import BaseModelManager, StringIdBaseModel
 from .organization import ContactPerson, Organization
 
 
-class HearingQueryset(models.QuerySet):
+class HearingQueryset(TranslatableQuerySet):
     def get_by_id_or_slug(self, id_or_slug):
         return self.get(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
 
@@ -27,12 +29,14 @@ class HearingQueryset(models.QuerySet):
         return self.filter(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
 
 
-class Hearing(StringIdBaseModel):
+class Hearing(StringIdBaseModel, TranslatableModel):
     open_at = models.DateTimeField(verbose_name=_('opening time'), default=timezone.now)
     close_at = models.DateTimeField(verbose_name=_('closing time'), default=timezone.now)
     force_closed = models.BooleanField(verbose_name=_('force hearing closed'), default=False)
-    title = models.CharField(verbose_name=_('title'), max_length=255)
-    borough = models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200)
+    translations = TranslatedFields(
+        title=models.CharField(verbose_name=_('title'), max_length=255),
+        borough=models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200),
+    )
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
     geojson = GeometryField(blank=True, null=True, verbose_name=_('area'))
     organization = models.ForeignKey(

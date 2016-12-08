@@ -6,8 +6,6 @@ from .base import ORDERING_HELP, BaseModel
 
 
 class BaseImage(BaseModel):
-    title = models.CharField(verbose_name=_('title'), max_length=255, blank=True, default='')
-    caption = models.TextField(verbose_name=_('caption'), blank=True, default='')
     height = models.IntegerField(verbose_name=_('height'), default=0, editable=False)
     width = models.IntegerField(verbose_name=_('width'), default=0, editable=False)
     image = ImageField(verbose_name=_('image'), upload_to='images/%Y/%m', width_field='width', height_field='height')
@@ -15,4 +13,4 @@ class BaseImage(BaseModel):
 
     class Meta:
         abstract = True
-        ordering = ("ordering", "title")
+        ordering = ("ordering")

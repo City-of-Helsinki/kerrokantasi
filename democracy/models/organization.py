@@ -2,6 +2,7 @@ from .base import StringIdBaseModel
 from django.db import models
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
+from parler.models import TranslatedFields, TranslatableModel
 
 
 class Organization(StringIdBaseModel):
@@ -18,10 +19,12 @@ class Organization(StringIdBaseModel):
         return self.name
 
 
-class ContactPerson(StringIdBaseModel):
+class ContactPerson(StringIdBaseModel, TranslatableModel):
     organization = models.ForeignKey(Organization, verbose_name=_('organization'), related_name='contact_persons',
                                      blank=True, null=True)
-    title = models.CharField(verbose_name=_('title'), max_length=255)
+    translations = TranslatedFields(
+        title=models.CharField(verbose_name=_('title'), max_length=255),
+    )
     name = models.CharField(verbose_name=_('name'), max_length=50)
     phone = models.CharField(verbose_name=_('phone'), max_length=50)
     email = models.EmailField(verbose_name=_('email'))

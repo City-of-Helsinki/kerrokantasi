@@ -2,6 +2,8 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from reversion import revisions
 from autoslug import AutoSlugField
+from parler.models import TranslatedFields, TranslatableModel
+from parler.managers import TranslatableQuerySet, TranslatableManager
 
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.images import BaseImage
@@ -40,17 +42,20 @@ class SectionType(BaseModel):
         return super().save(*args, **kwargs)
 
 
-class Section(Commentable, StringIdBaseModel):
+class Section(Commentable, StringIdBaseModel, TranslatableModel):
     hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
     type = models.ForeignKey(SectionType, related_name='sections', on_delete=models.PROTECT)
-    title = models.CharField(verbose_name=_('title'), max_length=255, blank=True)
-    abstract = models.TextField(verbose_name=_('abstract'), blank=True)
-    content = models.TextField(verbose_name=_('content'), blank=True)
+    translations = TranslatedFields(
+        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True),
+        abstract=models.TextField(verbose_name=_('abstract'), blank=True),
+        content=models.TextField(verbose_name=_('content'), blank=True),
+    )
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
     plugin_iframe_url = models.URLField(verbose_name=_('plugin iframe url'), blank=True)
     plugin_fullscreen = models.BooleanField(default=False)
+    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         ordering = ["ordering"]
@@ -84,13 +89,25 @@ class Section(Commentable, StringIdBaseModel):
         return get_implementation(self.plugin_identifier)
 
 
-class SectionImage(BaseImage):
+class SectionImageManager(TranslatableManager, BaseModelManager):
+
+    def get_queryset(self):
+        return super(SectionImageManager, self).get_queryset().order_by('pk')
+
+
+class SectionImage(BaseImage, TranslatableModel):
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="images")
+    translations = TranslatedFields(
+        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
+        caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
+    )
+    objects = SectionImageManager()
 
     class Meta:
         verbose_name = _('section image')
         verbose_name_plural = _('section images')
+        ordering = ("ordering", "translations__title")
 
 
 @revisions.register
@@ -99,6 +116,8 @@ class SectionComment(BaseComment):
     parent_field = "section"
     parent_model = Section
     section = models.ForeignKey(Section, related_name="comments")
+    title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
+    content = models.TextField(verbose_name=_('content'), blank=True)
 
     class Meta:
         verbose_name = _('section comment')
@@ -107,9 +126,12 @@ class SectionComment(BaseComment):
 
 
 class CommentImage(BaseImage):
+    title = models.CharField(verbose_name=_('title'), max_length=255, blank=True, default='')
+    caption = models.TextField(verbose_name=_('caption'), blank=True, default='')
     parent_field = "sectioncomment"
     comment = models.ForeignKey(SectionComment, related_name="images")
 
     class Meta:
         verbose_name = _('comment image')
         verbose_name_plural = _('comment images')
+        ordering = ("ordering", "title")

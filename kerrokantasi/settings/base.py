@@ -83,7 +83,7 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "var", "media")
 LANGUAGES = (
     ('fi', gettext('Finnish')),
-    ('se', gettext('Swedish')),
+    ('sv', gettext('Swedish')),
     ('en', gettext('English')),
 )
 CORS_ALLOW_CREDENTIALS = True

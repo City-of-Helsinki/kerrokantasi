@@ -9,7 +9,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
-    #'modeltranslation',  # - Not used at present.
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,6 +28,7 @@ INSTALLED_APPS = (
     'helusers',
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app
+    'parler',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -71,7 +71,7 @@ DATABASES = {
 }
 
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
@@ -86,7 +86,6 @@ LANGUAGES = (
     ('se', gettext('Swedish')),
     ('en', gettext('English')),
 )
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'fi'
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/[a-z-]*/?v1/.*$'
@@ -117,6 +116,19 @@ DEMOCRACY_PLUGINS = {
     "mapdon-ksv": "democracy.plugins.Plugin",
     "mapdon-ksv-visualize": "democracy.plugins.Plugin",
     "map-questionnaire": "democracy.plugins.Plugin",
+}
+
+PARLER_DEFAULT_LANGUAGE_CODE = 'en'
+PARLER_LANGUAGES = {
+    None: (
+        {'code': 'en', },
+        {'code': 'fi', },
+        {'code': 'sv', },
+    ),
+    'default': {
+        'hide_untranslated': False,
+        'fallbacks': ['fi', 'en', 'sv'],
+    }
 }
 
 

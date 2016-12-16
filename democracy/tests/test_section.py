@@ -5,7 +5,7 @@ from django.utils.encoding import force_text
 from django.utils.timezone import now
 
 from democracy.enums import InitialSectionType
-from democracy.models import Section, SectionType
+from democracy.models import Organization, Section, SectionType
 from democracy.models.section import CLOSURE_INFO_ORDERING
 from democracy.tests.utils import assert_id_in_results, get_data_from_response, get_hearing_detail_url
 from democracy.views.section import SectionSerializer
@@ -365,3 +365,45 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
     response = api_client.get('/v1/image/')
     response_data = get_results_from_response(response)
     assert len(response_data) == 0
+
+
+@pytest.mark.django_db
+def test_hearing_visibility_anon(api_client, default_hearing):
+    default_hearing.published = False
+    default_hearing.save()
+
+    response = api_client.get('/v1/image/')
+    response_data = get_results_from_response(response)
+    assert len(response_data) == 0
+
+
+@pytest.mark.django_db
+def test_hearing_visibility_no_org(john_doe_api_client, default_hearing):
+    default_hearing.published = False
+    default_hearing.save()
+
+    response = john_doe_api_client.get('/v1/image/')
+    response_data = get_results_from_response(response)
+    assert len(response_data) == 0
+
+
+@pytest.mark.django_db
+def test_hearing_visibility_different_org(john_smith_api_client, default_hearing):
+    default_hearing.published = False
+    default_hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
+    default_hearing.save()
+
+    response = john_smith_api_client.get('/v1/image/')
+    response_data = get_results_from_response(response)
+    assert len(response_data) == 0
+
+
+@pytest.mark.django_db
+def test_hearing_visibility(john_smith_api_client, default_hearing):
+    default_hearing.published = False
+    default_hearing.organization = john_smith_api_client.user.get_default_organization()
+    default_hearing.save()
+
+    response = john_smith_api_client.get('/v1/image/')
+    response_data = get_results_from_response(response)
+    assert len(response_data) > 1

@@ -80,6 +80,12 @@ def default_hearing(john_doe, contact_person):
 
 
 @pytest.fixture()
+def default_label():
+    label = Label.objects.create(label='The Label')
+    return label
+
+
+@pytest.fixture()
 def random_hearing():
     if not Label.objects.exists():
         LabelFactory()
@@ -132,6 +138,29 @@ def jane_doe_api_client(jane_doe):
     api_client = APIClient()
     api_client.force_authenticate(user=jane_doe)
     api_client.user = jane_doe
+    return api_client
+
+
+@pytest.fixture()
+def john_smith(default_organization):
+    """
+    John Smith is registered user working for an organization.
+    """
+    user = get_user_model().objects.filter(username="john_smith").first()
+    if not user:  # pragma: no branch
+        user = get_user_model().objects.create_user("john_smith", "john_smith@example.com", password="password")
+        user.admin_organizations.add(default_organization)
+    return user
+
+
+@pytest.fixture()
+def john_smith_api_client(john_smith):
+    """
+    John Smith is a registered user working for an organization; this is his API client.
+    """
+    api_client = APIClient()
+    api_client.force_authenticate(user=john_smith)
+    api_client.user = john_smith
     return api_client
 
 

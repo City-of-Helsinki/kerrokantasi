@@ -9,6 +9,7 @@ from django.contrib.gis.gdal.error import GDALException
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.db.models.query import QuerySet
+from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
@@ -96,13 +97,25 @@ class PublicFilteredImageField(serializers.Field):
 
 
 def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
-    filters = {
-        '%s__deleted' % hearing_lookup: False,
-        '%s__open_at__lte' % hearing_lookup: now()
-    }
+    if hearing_lookup:
+        hearing_lookup = '%s__' % hearing_lookup
 
-    if not request.user.is_superuser:
-        filters['%s__published' % hearing_lookup] = True
+    filters = {
+        '%sdeleted' % hearing_lookup: False,
+    }
+    user = request.user
+
+    if user.is_superuser:
+        return queryset.filter(**filters)
+
+    if user.is_authenticated():
+        organization = user.get_default_organization()
+        if organization:
+            filters['%sorganization' % hearing_lookup] = organization
+            return queryset.filter(**filters)
+
+    filters['%spublished' % hearing_lookup] = True
+    filters['%sopen_at__lte' % hearing_lookup] = now()
 
     return queryset.filter(**filters)
 
@@ -169,9 +182,6 @@ class GeoJSONField(serializers.JSONField):
 class Base64ImageField(serializers.ImageField):
 
     def to_internal_value(self, data):
-        if not data:
-            raise ValidationError(_('"image" field is required.'))
-
         if isinstance(data, str) and data.startswith('data:image'):
             # base64 encoded image - decode
             try:
@@ -181,7 +191,7 @@ class Base64ImageField(serializers.ImageField):
 
             ext = format.split('/')[-1]  # guess file extension
 
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
+            data = ContentFile(base64.b64decode(imgstr), name='%s.%s' % (get_random_string(8), ext))
 
             # Do not limit image size if there is no settings for that
             if data.size <= getattr(settings, 'MAX_IMAGE_SIZE', data.size):

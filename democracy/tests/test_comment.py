@@ -11,14 +11,9 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content
-from democracy.tests.test_images import get_hearing_detail_url
-from democracy.tests.utils import IMAGES, assert_common_keys_equal, get_data_from_response, get_geojson, image_to_base64
-
-test_image = {
-    'caption': 'Test',
-    'title': 'Test title',
-    'image': image_to_base64(IMAGES['ORIGINAL']),
-}
+from democracy.tests.utils import (
+    assert_common_keys_equal, get_data_from_response, get_geojson, get_hearing_detail_url, image_test_json
+)
 
 
 def get_comment_data(**extra):
@@ -292,7 +287,7 @@ def test_56_add_comment_with_images_to_section(john_doe_api_client, default_hear
         old_comment_list = old_comment_list['results']
 
     # set section explicitly
-    comment_data = get_comment_data(section=section.pk, images=[test_image])
+    comment_data = get_comment_data(section=section.pk, images=[image_test_json()])
     response = john_doe_api_client.post(url, data=comment_data, format='json')
     data = get_data_from_response(response, status_code=201)
 
@@ -316,6 +311,7 @@ def test_56_add_comment_with_images_to_section(john_doe_api_client, default_hear
 
     assert len(new_comment_list) == len(old_comment_list) + 1
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    new_comment['images'][0].pop('id')
     assert_common_keys_equal(new_comment, response_data)
     assert new_comment["is_registered"] == True
     assert new_comment["author_name"] is None
@@ -350,7 +346,7 @@ def test_56_add_comment_with_invalid_content_as_images(john_doe_api_client, defa
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
 
-    invalid_image = deepcopy(test_image)
+    invalid_image = image_test_json()
     invalid_image.update({"image": "not a b64 image"})
     comment_data = get_comment_data(section=section.pk, images=[invalid_image])
     response = john_doe_api_client.post(url, data=comment_data, format='json')
@@ -371,7 +367,7 @@ def test_56_add_comment_with_image_too_big(john_doe_api_client, default_hearing,
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
 
-    comment_data = get_comment_data(section=section.pk, images=[test_image])
+    comment_data = get_comment_data(section=section.pk, images=[image_test_json()])
     # 10 bytes max
     with override_settings(MAX_IMAGE_SIZE=10):
         response = john_doe_api_client.post(url, data=comment_data, format='json')

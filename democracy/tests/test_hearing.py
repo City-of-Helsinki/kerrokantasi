@@ -6,15 +6,122 @@ from django.utils.timezone import now
 
 from democracy.enums import InitialSectionType
 from democracy.models import (
-    Hearing, Label, Section, SectionComment, SectionImage, SectionType
+    Hearing, Label, Organization, Section, SectionComment, SectionImage, SectionType
 )
 from democracy.models.utils import copy_hearing
 from democracy.tests.utils import (
-    assert_datetime_fuzzy_equal, get_data_from_response, get_geojson, get_hearing_detail_url
+    assert_common_keys_equal, assert_datetime_fuzzy_equal, get_data_from_response, get_geojson,
+    get_hearing_detail_url, image_test_json
 )
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint
+
+
+@pytest.fixture
+def valid_hearing_json(contact_person, default_label):
+    return {
+        "abstract": "",
+        "title": "My first hearing",
+        "id": "nD6aC5herQM3X1yi9aNQf6rGm6ZogAlC",
+        "borough": "Punavuori",
+        "n_comments": 0,
+        "published": True,
+        "labels": [{"id": default_label.id, "label": default_label.label}],
+        "open_at": "2016-09-29T11:39:12Z",
+        "close_at": "2016-09-29T11:39:12Z",
+        "created_at": "2016-10-04T10:30:38.066436Z",
+        "servicemap_url": "",
+        "sections": [
+            {
+                "type": "closure-info",
+                "commenting": 'none',
+                "published": True,
+                "title": "Section 3",
+                "abstract": "",
+                "content": "<p>Enter the introductioververn text for the hearing here.</p>",
+                "created_at": "2016-10-04T12:12:06.798574Z",
+                "created_by": None,
+                "images": [],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "sulkeutumistiedote",
+                "type_name_plural": "sulkeutumistiedotteet",
+            },
+            {
+                "commenting": 'none',
+                "published": True,
+                "title": "Section 1",
+                "abstract": "",
+                "content": "<p>Enter the introduction text for the hearing here.ve</p>",
+                "created_at": "2016-10-04T11:33:37.430091Z",
+                "created_by": None,
+                "images": [
+                    image_test_json(),
+                ],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "pääosio",
+                "type_name_plural": "pääosiot",
+                "type": "main"
+            },
+            {
+                "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
+                "type": "part",
+                "commenting": 'none',
+                "published": True,
+                "title": "Section 2",
+                "abstract": "",
+                "content": "<p>Enter the introduction text for the hearing here.eve</p>",
+                "created_at": "2016-10-04T12:09:16.818364Z",
+                "created_by": None,
+                "images": [
+                    image_test_json(),
+                ],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "osa-alue",
+                "type_name_plural": "osa-alueet"
+            },
+        ],
+        "closed": True,
+        "organization": None,
+        "geojson": None,
+        "main_image": None,
+        "contact_persons": [{
+            "id": contact_person.id,
+            "name": contact_person.name,
+            "title": contact_person.title,
+            "phone": contact_person.phone,
+            "email": contact_person.email,
+            "organization": contact_person.organization.id,
+        }],
+    }
+
+
+def _update_hearing_data(data):
+    data.update({
+        "title": "Updating my first hearing",
+        "abstract": "A new abstract",
+        "borough": "Eira",
+        "n_comments": 10,
+        "published": False,
+        "open_at": "2016-10-29T11:39:12Z",
+        "close_at": "2016-10-29T11:39:12Z",
+        "created_at": "2015-06-04T10:30:38.066436Z",
+        "servicemap_url": "url",
+    })
+    data['sections'][0]['title'] = 'First section'
+    data['sections'][1]['images'][0]['caption'] = 'New image caption'
+
+
+@pytest.fixture
+def unpublished_hearing_json(valid_hearing_json):
+    valid_hearing_json.update({'published': False})
+    return valid_hearing_json
 
 
 def get_detail_url(id):
@@ -210,7 +317,7 @@ def test_8_get_detail_labels(api_client):
 
     assert 'results' not in data
     assert len(data['labels']) is 3
-    assert label_one.label in data['labels']
+    assert {'id': label_one.id, 'label': label_one.label} in data['labels']
 
 
 @pytest.mark.django_db
@@ -450,3 +557,301 @@ def test_hearing_filters(admin_api_client, default_hearing, updates, filters, ex
     response = admin_api_client.get(list_endpoint, filters)
     data = get_data_from_response(response)
     assert data['count'] == expected_count
+
+
+def assert_hearing_equals(data, posted, user, create=True):
+    posted['contact_persons'][0].update({'organization': 'The department for squirrel welfare'})
+    posted.pop('id')
+    created_at = data.pop('created_at')
+    if create:
+        assert_datetime_fuzzy_equal(created_at, now())
+    organization = data.pop('organization')
+    assert organization == user.get_default_organization().name
+    assert len(data['sections']) == len(posted['sections'])
+    sections_created = data.pop('sections')
+    sections_posted = posted.pop('sections')
+    assert_common_keys_equal(data, posted)
+    for section_created, section_posted in zip(sections_created, sections_posted):
+        section_created.pop('id', None)
+        created_at = section_created.pop('created_at')
+        if create:
+            assert_datetime_fuzzy_equal(created_at, now())
+            images = section_created.pop('images')
+            assert len(images) == len(section_posted['images'])
+        assert_common_keys_equal(section_created, section_posted)
+
+
+@pytest.mark.django_db
+def test_POST_hearing_anonymous_user(valid_hearing_json, api_client):
+    response = api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=401)
+    assert data == {'detail': 'Authentication credentials were not provided.'}
+
+
+@pytest.mark.django_db
+def test_POST_hearing_unauthorized_user(valid_hearing_json, john_doe_api_client):
+    response = john_doe_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert data == {"status": "User without organization cannot POST hearings."}
+
+
+# Test that a user can POST a hearing
+@pytest.mark.django_db
+def test_POST_hearing(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert data['organization'] == john_smith_api_client.user.get_default_organization().name
+    assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
+
+
+# Test that an anonymous user fails to update a hearing
+@pytest.mark.django_db
+def test_PUT_hearing_anonymous_user(valid_hearing_json, api_client, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    _update_hearing_data(data)
+    response = api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=401)
+    assert data == {'detail': 'Authentication credentials were not provided.'}
+
+
+# Test that a user without organization fails to update a hearing
+@pytest.mark.django_db
+def test_PUT_hearing_unauthorized_user(valid_hearing_json, john_doe_api_client, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    _update_hearing_data(data)
+    response = john_doe_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert data == {'status': 'User without organization cannot PUT hearings.'}
+
+
+# Test that a user cannot update a hearing from another organization
+@pytest.mark.django_db
+def test_PUT_hearing_other_organization_hearing(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.first()
+    hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
+    hearing.save()
+    _update_hearing_data(data)
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert data == {'detail': "User cannot update hearings from different organizations."}
+
+
+# Test that a user can update a hearing
+@pytest.mark.django_db
+def test_PUT_hearing(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    created_at = data['created_at']
+    _update_hearing_data(data)
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    assert updated_data['created_at'] == created_at
+    assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
+
+
+# Test that a user cannot update a hearing having no organization
+@pytest.mark.django_db
+def test_PUT_hearing_no_organization(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    _update_hearing_data(data)
+    hearing = Hearing.objects.filter(id=data['id']).first()
+    hearing.organization = None
+    hearing.save()
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert data == {'detail': "User cannot update hearings from different organizations."}
+
+
+# Test that a user cannot steal an section while updating a hearing
+@pytest.mark.django_db
+def test_PUT_hearing_steal_section(valid_hearing_json, john_smith_api_client, default_hearing):
+    hearing = default_hearing
+    hearing.save()
+    other_hearing_section_id = hearing.get_main_section().id
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][0]['id'] = other_hearing_section_id
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=400)
+    assert ('The Hearing does not have a section with ID %s' % other_hearing_section_id) in updated_data['sections']
+
+
+# Test that the section are deleted upon updating the hearing
+@pytest.mark.django_db
+def test_PUT_hearing_delete_sections(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    closure_section_id = data['sections'][0]['id']
+    part_section_id = data['sections'][2]['id']
+    image_id = data['sections'][2]['images'][0]['id']
+    created_at = data['created_at']
+    data['sections'] = [data['sections'][1], ]
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    assert updated_data['created_at'] == created_at
+    assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
+    closure_section = Section.objects.deleted().filter(id=closure_section_id).first()
+    part_section = Section.objects.deleted().filter(id=part_section_id).first()
+    image = SectionImage.objects.deleted().filter(id=image_id).first()
+    assert closure_section
+    assert part_section
+    assert image
+
+
+# Test that a hearing cannot be created without 1 main section
+@pytest.mark.django_db
+def test_POST_hearing_no_main_section(valid_hearing_json, john_smith_api_client):
+    del(valid_hearing_json['sections'][1])
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'A hearing must have exactly one main section' in data['sections']
+
+
+# Test that a hearing cannot be created with more than 1 main section
+@pytest.mark.django_db
+def test_POST_hearing_two_main_sections(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['sections'][2]['type'] = 'main'
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'A hearing must have exactly one main section' in data['sections']
+
+
+# Test that a hearing cannot be created with more than 1 closure-info section
+@pytest.mark.django_db
+def test_POST_hearing_two_closure_sections(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['sections'][2]['type'] = 'closure-info'
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'A hearing cannot have more than one closure info sections' in data['sections']
+
+
+# Test that a hearing cannot be updated without 1 main section
+@pytest.mark.django_db
+def test_PUT_hearing_no_main_section(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][1]['type'] = 'part'
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'A hearing must have exactly one main section' in data['sections']
+
+
+# Test that a hearing cannot be updated with more than 1 main section
+@pytest.mark.django_db
+def test_PUT_hearing_two_main_sections(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][2]['type'] = 'main'
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'A hearing must have exactly one main section' in data['sections']
+
+
+# Test that a hearing cannot be updated with more than 1 closure-info section
+@pytest.mark.django_db
+def test_PUT_hearing_two_closure_sections(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][2]['type'] = 'closure-info'
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'A hearing cannot have more than one closure info sections' in data['sections']
+
+
+# Test that an anonymous user cannot GET an unpublished hearing
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_anon_user(unpublished_hearing_json, john_smith_api_client, api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a regular user cannot GET an unpublished hearing
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_regular_user(unpublished_hearing_json, john_smith_api_client, john_doe_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = john_doe_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = john_doe_api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a user cannot GET an unpublished hearing from another organization
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_other_org(unpublished_hearing_json, john_smith_api_client, john_doe_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.filter(id=data['id']).first()
+    hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
+    hearing.save()
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = john_smith_api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a user cannot GET unpublished hearing without organization
+@pytest.mark.django_db
+def test_GET_unpublished_hearing_no_organization(unpublished_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.filter(id=data['id']).first()
+    hearing.organization = None
+    hearing.save()
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    data = get_data_from_response(response, status_code=404)
+    response = john_smith_api_client.get(endpoint, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['count'] == 0
+
+
+# Test that a user can GET unpublished hearing from his organization
+@pytest.mark.django_db
+def test_GET_unpublished_hearing(unpublished_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format='json')
+    data_created = get_data_from_response(response, status_code=201)
+    assert data_created['published'] == False
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data_created['id']), format='json')
+    data = get_data_from_response(response, status_code=200)
+    response = john_smith_api_client.get(endpoint, format='json')
+    list_data = get_data_from_response(response, status_code=200)
+    assert list_data['count'] == 1
+    assert list_data['results'][0]['id'] == data['id']
+    assert_hearing_equals(data_created, data, john_smith_api_client.user)
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['close_at'] = datetime.datetime.now() + datetime.timedelta(days=1)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert data['closed'] == False
+    before = datetime.datetime.now() - datetime.timedelta(days=1)
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data['id']), data={'close_at': before}, format='json')
+    data = get_data_from_response(response, status_code=200)
+    assert data['closed'] == True
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing_update_section(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data['id']), data={'sections': [{
+        'id': '3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE',
+        'title': 'New title',
+    }]}, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'Sections cannot be updated by PATCHing the Hearing' in data['sections']

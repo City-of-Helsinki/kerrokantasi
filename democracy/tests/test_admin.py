@@ -6,7 +6,6 @@ from democracy.models import Hearing
 
 
 @pytest.mark.django_db
-@override_settings(LANGUAGE_CODE='en-us')
 def test_hearing_delete_action(admin_client, default_hearing):
     change_url = reverse('admin:democracy_hearing_changelist')
     data = {'action': 'delete_selected', '_selected_action': [default_hearing.pk]}

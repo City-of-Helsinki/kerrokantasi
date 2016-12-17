@@ -14,6 +14,7 @@ from democracy.tests.utils import assert_ascending_sequence, create_default_imag
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
 red_comment_content = 'Mine is red'
 green_comment_content = 'I like green'
+default_lang_code = 'en'
 
 
 def pytest_configure():

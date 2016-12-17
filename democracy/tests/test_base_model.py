@@ -25,7 +25,7 @@ def test_cant_delete():
 @pytest.mark.django_db
 def test_unpublished():
     # the story of an unpublished hearing
-    hearing = Hearing.objects.create(published=False)
+    hearing = Hearing.objects.create(published=False, title='test')
     assert not Hearing.objects.public(pk=hearing.pk).exists()  # not in the regular qs
     assert Hearing.objects.with_unpublished(pk=hearing.pk).exists()  # but in the unpub qs
     assert Hearing.objects.everything(pk=hearing.pk).exists()  # and the everything qs

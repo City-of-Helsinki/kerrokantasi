@@ -3,6 +3,7 @@ import pytest
 from django.utils.timezone import now
 
 from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url
+from democracy.tests.conftest import default_lang_code
 
 
 def check_entity_images(entity, images_field=True):
@@ -11,7 +12,7 @@ def check_entity_images(entity, images_field=True):
     image_list = entity['images'] if images_field else entity
     assert len(image_list) == 3
     assert all([im['url'].startswith("http") for im in image_list])
-    assert set(im['title'] for im in image_list) == set(IMAGES.values())
+    assert set(im['title'][default_lang_code] for im in image_list) == set(IMAGES.values())
 
     for im in image_list:
         assert 'caption' in im
@@ -55,7 +56,7 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     image.published = False
     image.save(update_fields=('published',))
 
-    image = default_hearing.sections.all()[2].images.get(title=IMAGES['ORIGINAL'])
+    image = default_hearing.sections.all()[2].images.get(translations__title=IMAGES['ORIGINAL'])
     image.published = False
     image.save(update_fields=('published',))
 
@@ -63,7 +64,7 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     main_image = get_data_from_response(response)['main_image']
     if expected:
-        assert main_image['title'] == default_hearing.get_main_section().images.first().title
+        assert main_image['title'][default_lang_code] == default_hearing.get_main_section().images.first().title
     else:
         assert main_image is None
 
@@ -78,7 +79,7 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     image_set_3 = get_data_from_response(response)['results']
 
     for image_set in (image_set_1, image_set_2, image_set_3):
-        assert (IMAGES['ORIGINAL'] in [image['title'] for image in image_set]) is expected
+        assert (IMAGES['ORIGINAL'] in [image['title'][default_lang_code] for image in image_set]) is expected
 
 
 @pytest.mark.django_db

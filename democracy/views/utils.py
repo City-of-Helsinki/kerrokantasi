@@ -89,6 +89,9 @@ class PublicFilteredImageField(serializers.Field):
         else:
             images = images.public()
 
+        # Remove duplicated rows
+        images = images.order_by('pk')
+
         serializer = self.serializer_class.get_field_serializer(
             many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
         )

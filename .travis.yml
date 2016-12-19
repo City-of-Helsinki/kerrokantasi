@@ -1,17 +1,14 @@
 language: python
-
 python:
 - '3.4'
-
 env:
 - DJANGO=Django>=1.9
-
 install:
 - pip install coveralls -r requirements-dev.txt
-
 script:
 - flake8 democracy
 - py.test -vvv --cov democracy democracy/tests
-
-after_success:
-  coveralls
+after_success: coveralls
+notifications:
+  slack:
+    secure: JSJCruF/Z4YtP28tNrv+/WcDG10viEbgQPQmeV96DvCYNjSKen9HrOzeUHkLWn3Jt4/SMulXSJ3iv5Lf2d4VEB49mXzCoJrhEQ8tjlOubNdPW4roIrMs8CFsJkirYMqUURvFEW496GiHFKCUhiKDyDXeaLMP+hgZ1OzuG5IncW+F7eLEj1SeaeXRACbM/QBCRt5lF8SNvFzzEHzZNHwRcamsAOadyTI5KOz8ZiQ6cOu3k48h9BGJIAoA+9nIgNa8bEVTYrRF432Yu2JsxkZ8Z2gPIDcAadP20cgVVi6ibVpO9hDOO++e21Hp5b5b0xA15lSJ0XkoviWvKjPoaXN9zEBg83aj/JWrmujnFujGbnrW2tlJ4WlBSJtsURTaY/5BLmA9NYlbw1ea7LMe+F9hy8MstXXnw3fEZg5C50PPPi1ucKp1lqGyP6DJE2V1G+yTg5j6d7qfulgD8KJMcF5VqrivLDTsn2NRqDkmGmVMzxxnkexdGXIZgxkz4PaM+uWFmTabSVw821CgWcomKRHc0VVkVv5yP3ZNNL48Y+OqPSUPBI8gz1CvjEaejRlaTFZvRzZl2TlRusVXyURBQPgap7o7vyJ/nELmMKv7p2QiGo+UDb0LQ0PYQLQhM85l9b43Vn8vZTsWlpsgoA7dpZJygJ3OT69cuzExkdQlYlr8VDk=

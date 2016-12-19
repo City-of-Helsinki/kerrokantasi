@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
@@ -71,6 +72,20 @@ class BaseComment(BaseModel):
     def recache_parent_n_comments(self):
         if self.parent_id:  # pragma: no branch
             self.parent.recache_n_comments()
+
+    def can_edit(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to edit this Comment.
+        """
+        is_authenticated = request.user.is_authenticated()
+        if is_authenticated and self.created_by == request.user:
+            # also make sure the hearing is still commentable
+            try:
+                self.parent.check_commenting(request)
+            except ValidationError:
+                return False
+            return True
+        return False
 
 
 def comment_recache(sender, instance, using, created, **kwargs):

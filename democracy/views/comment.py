@@ -11,12 +11,13 @@ from democracy.models.comment import BaseComment
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin
 
-COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered',
+COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
                   'geojson', 'images', 'label']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
 
     def to_representation(self, instance):
         r = super().to_representation(instance)
@@ -28,6 +29,12 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
 
     def get_is_registered(self, obj):
         return obj.created_by_id is not None
+
+    def get_can_edit(self, obj):
+        request = self.context.get('request', None)
+        if request:
+            return obj.can_edit(request)
+        return False
 
     class Meta:
         model = BaseComment

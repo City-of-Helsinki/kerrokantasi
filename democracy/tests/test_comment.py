@@ -524,6 +524,7 @@ def test_comment_editing_disallowed_after_closure(john_doe_api_client, default_h
     })
     data = get_data_from_response(response, status_code=200)
     assert data["content"] == "Hello"
+    assert data["can_edit"]
     # Close the hearing:
     default_hearing.close_at = default_hearing.open_at
     default_hearing.save()

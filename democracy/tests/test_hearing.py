@@ -217,7 +217,7 @@ def test_list_hearings_check_default_to_fullscreen(api_client, default_hearing, 
 
 
 @pytest.mark.django_db
-def test_get_next_closing_hearings(api_client):
+def test_get_next_closing_and_open_hearings(api_client):
     create_hearings(0)  # Clear out old hearings
     closed_hearing_1 = Hearing.objects.create(title='Gone', close_at=now() - datetime.timedelta(days=1))
     closed_hearing_2 = Hearing.objects.create(title='Gone too', close_at=now() - datetime.timedelta(days=2))
@@ -231,6 +231,16 @@ def test_get_next_closing_hearings(api_client):
     data = get_data_from_response(response)
     assert len(data['results']) == 1
     assert data['results'][0]['title'] == future_hearing_2.title
+    response = api_client.get(list_endpoint, {"open": 'true'})
+    data = get_data_from_response(response)
+    assert len(data['results']) == 2
+    assert data['results'][0]['title'].startswith('Next')
+    assert data['results'][1]['title'].startswith('Next')
+    response = api_client.get(list_endpoint, {"open": 'false'})
+    data = get_data_from_response(response)
+    assert len(data['results']) == 2
+    assert data['results'][0]['title'].startswith('Gone')
+    assert data['results'][1]['title'].startswith('Gone')
 
 
 @pytest.mark.django_db

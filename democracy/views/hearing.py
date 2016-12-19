@@ -1,5 +1,6 @@
 from collections import defaultdict
 import django_filters
+import datetime
 from django.db import transaction
 from django.db.models import Prefetch
 from rest_framework import filters, permissions, response, serializers, status, viewsets
@@ -259,8 +260,8 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     pagination_class = DefaultLimitPagination
     serializer_class = HearingListSerializer
 
-    # ordering_fields = ('created_at',)
-    # ordering = ('-created_at',)
+    ordering_fields = ('created_at', 'close_at', 'open_at', 'n_comments')
+    ordering = ('-created_at',)
     filter_class = HearingFilter
 
     def get_serializer_class(self, *args, **kwargs):
@@ -271,16 +272,22 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         return HearingSerializer
 
-    def common_queryset_filtering(self, queryset):
-        """
-        Apply common time filters etc to the queryset.
-
-        Used by both get_queryset() and get_object().
-        """
+    def filter_queryset(self, queryset):
         next_closing = self.request.query_params.get('next_closing', None)
+        open = self.request.query_params.get('open', None)
         if next_closing is not None:
+            # sliced querysets cannot be filtered or ordered further
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
-        return queryset.order_by('-created_at')
+        if open is not None:
+            if open.lower() == 'false' or open == 0:
+                queryset = (queryset.filter(close_at__lt=datetime.datetime.now()) |\
+                           queryset.filter(open_at__gt=datetime.datetime.now()) |\
+                           queryset.filter(force_closed=True)).distinct()
+            else:
+                queryset = queryset.filter(close_at__gt=datetime.datetime.now()).\
+                    filter(open_at__lt=datetime.datetime.now()).filter(force_closed=False)
+        queryset = super().filter_queryset(queryset)
+        return queryset
 
     def get_queryset(self):
         queryset = filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request,
@@ -291,12 +298,12 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 to_attr='main_section_list'
             )
         )
-        return self.common_queryset_filtering(queryset)
+        return queryset
 
     def get_object(self):
         id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
 
-        queryset = self.common_queryset_filtering(Hearing.objects.with_unpublished())
+        queryset = self.filter_queryset(Hearing.objects.with_unpublished())
         queryset = queryset.prefetch_related(
             Prefetch(
                 'sections',

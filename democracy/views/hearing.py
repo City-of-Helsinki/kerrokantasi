@@ -280,9 +280,9 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
         if open is not None:
             if open.lower() == 'false' or open == 0:
-                queryset = (queryset.filter(close_at__lt=datetime.datetime.now()) |\
-                           queryset.filter(open_at__gt=datetime.datetime.now()) |\
-                           queryset.filter(force_closed=True)).distinct()
+                queryset = (queryset.filter(close_at__lt=datetime.datetime.now()) |
+                            queryset.filter(open_at__gt=datetime.datetime.now()) |
+                            queryset.filter(force_closed=True)).distinct()
             else:
                 queryset = queryset.filter(close_at__gt=datetime.datetime.now()).\
                     filter(open_at__lt=datetime.datetime.now()).filter(force_closed=False)

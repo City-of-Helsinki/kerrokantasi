@@ -49,6 +49,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
             window.parent.CKEDITOR.tools.callFunction({0}, '{1}');
         </script>""".format(ck_func_num, url))
 
+
 upload = csrf_exempt(AbsoluteUrlImageUploadView.as_view())
 
 

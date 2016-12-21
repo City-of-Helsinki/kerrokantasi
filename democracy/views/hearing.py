@@ -25,7 +25,7 @@ class HearingFilter(django_filters.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='lte')
     open_at_gt = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='gt')
     title = django_filters.CharFilter(lookup_type='icontains')
-    label = django_filters.CharFilter(name='labels__id', lookup_type='exact')
+    label = django_filters.Filter(name='labels__id', lookup_type='in', widget=django_filters.widgets.CSVWidget)
 
     class Meta:
         model = Hearing

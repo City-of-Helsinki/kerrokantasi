@@ -3,7 +3,7 @@ djangorestframework<3.4
 django-extensions
 django-reversion
 django-cors-headers
-django-filter
+django-filter==0.15
 pillow
 psycopg2
 easy-thumbnails

@@ -24,10 +24,12 @@ from .utils import NestedPKRelatedField, filter_by_hearing_visible
 class HearingFilter(django_filters.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='lte')
     open_at_gt = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='gt')
+    title = django_filters.CharFilter(lookup_type='icontains')
+    label = django_filters.CharFilter(name='labels__id', lookup_type='exact')
 
     class Meta:
         model = Hearing
-        fields = ['published', 'open_at_lte', 'open_at_gt']
+        fields = ['published', 'open_at_lte', 'open_at_gt', 'title', 'label']
 
 
 class HearingCreateUpdateSerializer(serializers.ModelSerializer):

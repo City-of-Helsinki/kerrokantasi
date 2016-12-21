@@ -149,6 +149,22 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 )
         return super().update(request, *args, **kwargs)
 
+    def destroy(self, request, *args, **kwargs):
+        resp = self._check_may_comment(request)
+        if resp:
+            return resp
+
+        instance = self.get_object()
+
+        if self.request.user != instance.created_by:
+            return response.Response(
+                {'status': 'You may not delete a comment not owned by you'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        instance.soft_delete()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
+
     def perform_update(self, serializer):
         with transaction.atomic(), revisions.create_revision():
             super().perform_update(serializer)

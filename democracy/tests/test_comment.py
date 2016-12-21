@@ -16,6 +16,25 @@ from democracy.tests.utils import (
 )
 
 
+root_list_url = '/v1/comment/'
+
+
+def get_root_detail_url(comment):
+    return root_list_url + str(comment.pk) + '/'
+
+
+def get_nested_detail_url(comment):
+    return '/v1/hearing/%s/sections/%s/comments/%s/' % (comment.section.hearing.id, comment.section.id, comment.id)
+
+
+@pytest.fixture(params=['nested', 'root'])
+def get_detail_url(request):
+    return {
+        'nested': get_nested_detail_url,
+        'root': get_root_detail_url,
+    }[request.param]
+
+
 def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
@@ -614,17 +633,17 @@ def test_get_plugin_data_for_comment(api_client, default_hearing):
 
 @pytest.mark.parametrize('data', [{'section': 'nonexistingsection'}, None])
 @pytest.mark.django_db
-def test_post_to_root_endpoint_invalid_section(api_client, default_hearing, data):
+def test_post_to_root_endpoint_invalid_section(john_doe_api_client, default_hearing, data):
     url = '/v1/comment/'
 
-    response = api_client.post(url, data=data)
+    response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 400
     assert 'section' in response.data
 
     comment = default_hearing.sections.first().comments.first()
     url = '%s%s/' % (url, comment.id)
 
-    response = api_client.put(url, data)
+    response = john_doe_api_client.put(url, data)
     assert response.status_code == 400
     assert 'section' in response.data
 
@@ -685,3 +704,95 @@ def test_only_unauthenticated_can_set_author_name(client, can_set_author_name, r
     else:
         assert response.status_code == 403
         assert 'Authenticated users cannot set author name.' in response.data['status']
+
+
+@pytest.mark.django_db
+def test_comment_put(john_doe_api_client, default_hearing, get_detail_url):
+    section = default_hearing.get_main_section()
+    comment = section.comments.all()[0]
+    comment_data = get_comment_data(content='updated content', section=section.id)
+    url = get_detail_url(comment)
+
+    response = john_doe_api_client.put(url, data=comment_data)
+    assert response.status_code == 200
+
+    comment.refresh_from_db()
+    assert comment.content == 'updated content'
+
+
+@pytest.mark.django_db
+def test_comment_patch(john_doe_api_client, default_hearing, get_detail_url):
+    section = default_hearing.get_main_section()
+    comment = section.comments.all()[0]
+    url = get_detail_url(comment)
+
+    response = john_doe_api_client.patch(url, data={'content': 'updated content'})
+    assert response.status_code == 200
+
+    comment.refresh_from_db()
+    assert comment.content == 'updated content'
+
+
+@pytest.mark.parametrize('anonymous_comment', [True, False])
+@pytest.mark.django_db
+def test_cannot_modify_others_comments(api_client, jane_doe_api_client, default_hearing, get_detail_url,
+                                       anonymous_comment):
+    section = default_hearing.get_main_section()
+    comment = section.comments.all()[0]
+
+    if anonymous_comment:
+        comment.created_by = None
+        comment.save(update_fields=('created_by',))
+
+    old_content = comment.content
+    comment_data = get_comment_data(content='updated content', section=section.id)
+    url = get_detail_url(comment)
+
+    # anonymous user
+    response = api_client.put(url, data=comment_data)
+    assert response.status_code == 403
+    comment.refresh_from_db()
+    assert comment.content == old_content
+
+    # wrong user
+    response = jane_doe_api_client.put(url, data=comment_data)
+    assert response.status_code == 403
+    comment.refresh_from_db()
+    assert comment.content == old_content
+
+
+@pytest.mark.django_db
+def test_comment_delete(john_doe_api_client, default_hearing, get_detail_url):
+    comment = default_hearing.get_main_section().comments.all()[0]
+    url = get_detail_url(comment)
+
+    response = john_doe_api_client.delete(url)
+    assert response.status_code == 204
+
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is True
+
+
+@pytest.mark.parametrize('anonymous_comment', [True, False])
+@pytest.mark.django_db
+def test_cannot_delete_others_comments(api_client, jane_doe_api_client, default_hearing, get_detail_url,
+                                       anonymous_comment):
+    comment = default_hearing.get_main_section().comments.all()[0]
+
+    if anonymous_comment:
+        comment.created_by = None
+        comment.save(update_fields=('created_by',))
+
+    url = get_detail_url(comment)
+
+    # anonymous user
+    response = api_client.delete(url)
+    assert response.status_code == 403
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is False
+
+    # wrong user
+    response = jane_doe_api_client.delete(url)
+    assert response.status_code == 403
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is False

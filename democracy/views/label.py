@@ -4,6 +4,7 @@ import django_filters
 from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination
 
+
 class LabelFilter(django_filters.FilterSet):
     label = django_filters.CharFilter(lookup_type='icontains')
 

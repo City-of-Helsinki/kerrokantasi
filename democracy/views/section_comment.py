@@ -8,7 +8,7 @@ from rest_framework.fields import JSONField
 from rest_framework.serializers import get_validation_error_detail
 from rest_framework.settings import api_settings
 
-from democracy.models import SectionComment, Label
+from democracy.models import SectionComment, Label, Section
 from democracy.models.section import CommentImage
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
@@ -116,39 +116,41 @@ class CommentViewSet(SectionCommentViewSet):
     filter_class = CommentFilter
 
     def get_comment_parent_id(self):
-        parent_field = self.get_serializer_class().Meta.model.parent_field
-        try:
-            return self.request.data[parent_field]
-        except KeyError:
-            return None
+        method = self.request.method
+        data = self.request.data
+
+        if method == 'POST':
+            return data.get('section') if 'section' in data else None
+        elif method in ('PUT', 'PATCH'):
+            return data.get('section') if 'section' in data else self.get_object().section_id
+        elif method == 'DELETE':
+            return self.get_object().section_id
+
+        return None
 
     def get_comment_parent(self):
-        """
-        :rtype: Commentable
-        """
         parent_id = self.get_comment_parent_id()
-        if parent_id:
-            parent_model = self.get_queryset().model.parent_model
-            try:
-                return parent_model.objects.get(pk=parent_id)
-            except parent_model.DoesNotExist:
-                raise ValidationError({self.get_serializer_class().Meta.model.parent_field: [
-                    _('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)
-                ]})
-        return None
+
+        if not parent_id:
+            return None
+
+        try:
+            return Section.objects.get(pk=parent_id)
+        except Section.DoesNotExist:
+            raise ValidationError({'section': [
+                _('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)
+            ]})
 
     def get_queryset(self):
         queryset = super(BaseCommentViewSet, self).get_queryset()
-        parent_id = self.get_comment_parent_id()
-        if parent_id:
-            queryset.filter(**{queryset.model.parent_field: parent_id})
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
         return queryset
 
     def _check_may_comment(self, request):
         parent = self.get_comment_parent()
         if not parent:
-            raise ValidationError({self.get_serializer_class().Meta.model.parent_field: [
+            # this should be possible only with POST requests
+            raise ValidationError({'section': [
                 _('This field is required.')
             ]})
         return super(SectionCommentViewSet, self)._check_may_comment(request)

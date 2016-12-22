@@ -8,6 +8,7 @@ from django.utils.timezone import now
 from reversion import revisions
 
 from democracy.enums import Commenting, InitialSectionType
+from democracy.factories.hearing import SectionCommentFactory
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content
@@ -796,3 +797,25 @@ def test_cannot_delete_others_comments(api_client, jane_doe_api_client, default_
     assert response.status_code == 403
     comment = SectionComment.objects.everything().get(id=comment.id)
     assert comment.deleted is False
+
+
+@pytest.mark.parametrize('ordering, expected_order', [
+    ('created_at', [0, 1, 2]),
+    ('-created_at', [2, 1, 0]),
+    ('n_votes', [0, 1, 2]),
+    ('-n_votes', [2, 1, 0]),
+])
+@pytest.mark.django_db
+def test_comment_ordering(api_client, ordering, expected_order, default_hearing):
+    SectionComment.objects.all().delete()
+    section = default_hearing.get_main_section()
+
+    for i in range(3):
+        comment = SectionCommentFactory(section=section)
+        SectionComment.objects.filter(id=comment.id).update(n_votes=i, created_at=datetime.datetime.now())
+
+    response = api_client.get(root_list_url + '?ordering=' + ordering)
+    results = get_data_from_response(response)['results']
+
+    n_votes_list = [comment['n_votes'] for comment in results]
+    assert n_votes_list == expected_order

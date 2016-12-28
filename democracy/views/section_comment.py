@@ -12,9 +12,8 @@ from democracy.models import SectionComment, Label, Section
 from democracy.models.section import CommentImage
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
-from democracy.views.section import SectionImageSerializer
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.comment_image import CommentImageCreateSerializer
+from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
 from democracy.views.utils import filter_by_hearing_visible, GeoJSONField, NestedPKRelatedField
 
 
@@ -77,7 +76,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     """
     label = LabelSerializer(read_only=True)
     geojson = JSONField(required=False, allow_null=True)
-    images = SectionImageSerializer(many=True, read_only=True)
+    images = CommentImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = SectionComment

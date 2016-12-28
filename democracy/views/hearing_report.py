@@ -52,7 +52,8 @@ class HearingReport(object):
         self.add_hearing_row('Abstract', self.json['abstract'])
         for lang, borough in self.json['borough'].items():
             self.add_hearing_row('Borough (%s)' % lang, borough)
-        self.add_hearing_row('Labels', str('%s' % ', '.join(self._get_default_translation(label) for label in self.json['labels'])))
+        self.add_hearing_row('Labels', str('%s' % ', '.join(self._get_default_translation(label) for label in
+                                                            self.json['labels'])))
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
 

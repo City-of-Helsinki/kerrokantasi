@@ -3,6 +3,7 @@ import django_filters
 
 from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.utils import TranslatableSerializer
 
 
 class LabelFilter(django_filters.FilterSet):
@@ -13,10 +14,11 @@ class LabelFilter(django_filters.FilterSet):
         fields = ['label']
 
 
-class LabelSerializer(serializers.ModelSerializer):
+class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
     class Meta:
         model = Label
         fields = ('id', 'label')
+        translated_fields = ['label', ]
 
 
 class LabelViewSet(viewsets.ReadOnlyModelViewSet):

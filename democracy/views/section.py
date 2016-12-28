@@ -10,16 +10,19 @@ from democracy.models import Hearing, Section, SectionImage, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.utils import Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField
+from democracy.views.utils import (
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField, TranslatableSerializer
+)
 
 
-class SectionImageSerializer(BaseImageSerializer):
+class SectionImageSerializer(BaseImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
         fields = ['id', 'title', 'url', 'width', 'height', 'caption']
+        translated_fields = ['title', 'caption']
 
 
-class SectionImageCreateUpdateSerializer(BaseImageSerializer):
+class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
     image = Base64ImageField()
 
     def __init__(self, *args, **kwargs):
@@ -32,9 +35,10 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer):
     class Meta:
         model = SectionImage
         fields = ['title', 'url', 'width', 'height', 'caption', 'image']
+        translated_fields = ['title', 'caption']
 
 
-class SectionSerializer(serializers.ModelSerializer):
+class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section instance.
     """
@@ -53,6 +57,7 @@ class SectionSerializer(serializers.ModelSerializer):
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_iframe_url', 'plugin_fullscreen',
         ]
+        translated_fields = ['title', 'abstract', 'content']
 
 
 class SectionFieldSerializer(serializers.RelatedField):
@@ -64,7 +69,7 @@ class SectionFieldSerializer(serializers.RelatedField):
         return SectionSerializer(section, context=self.context).data
 
 
-class SectionCreateUpdateSerializer(serializers.ModelSerializer):
+class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section create/update.
     """
@@ -84,6 +89,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer):
             'plugin_identifier', 'plugin_data',
             'images',
         ]
+        translated_fields = ['content', 'abstract', 'title']
 
     @transaction.atomic()
     def create(self, validated_data):
@@ -188,7 +194,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return filter_by_hearing_visible(queryset, self.request, 'section__hearing')
 
 
-class RootSectionSerializer(SectionSerializer):
+class RootSectionSerializer(SectionSerializer, TranslatableSerializer):
     """
     Serializer for root level section endpoint.
     """

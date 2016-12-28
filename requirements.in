@@ -28,3 +28,4 @@ pytest-cov
 transifex-client
 Babel
 django-parler
+langdetect

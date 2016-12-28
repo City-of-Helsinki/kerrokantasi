@@ -135,6 +135,8 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     ("This is a comment", "en"),
     ("Tämä on kommentti", "fi"),
     ("Detta är en kommentar", "sv"),
+    ("10.24", ""),
+    ("abc", ""),
 ])
 def test_226_add_comment_to_section_detect_lang(
     john_doe_api_client,
@@ -143,6 +145,10 @@ def test_226_add_comment_to_section_detect_lang(
     comment_content,
 ):
     section = default_hearing.sections.first()
+    translation = section._get_translated_model('sv', auto_create=True)
+    translation.save()
+    translation = section._get_translated_model('fi', auto_create=True)
+    translation.save()
     url, data = get_comments_url_and_data(default_hearing, section)
 
     # set section explicitly

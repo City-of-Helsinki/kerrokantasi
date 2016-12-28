@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
+from langdetect import detect_langs
+from langdetect.lang_detect_exception import LangDetectException
 
 from .base import BaseModel
 
@@ -17,6 +19,7 @@ class BaseComment(BaseModel):
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
     label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True)
+    language_code = models.CharField(verbose_name=_('language code'), blank=True, max_length=15)
     n_votes = models.IntegerField(
         verbose_name=_('vote count'),
         help_text=_('number of votes given to this comment'),
@@ -54,11 +57,25 @@ class BaseComment(BaseModel):
         """
         return getattr(self, "%s_id" % self.parent_field, None)
 
+    def _detect_lang(self):
+        try:
+            candidates = detect_langs(self.content.lower())
+            for candidate in candidates:
+                if candidate.lang in [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]:
+                    if candidate.prob > settings.DETECT_LANGS_MIN_PROBA:
+                        self.language_code = candidate.lang
+                    break
+
+        except LangDetectException:
+            pass
+
     def save(self, *args, **kwargs):
         if not (self.plugin_data or self.content or self.label):
             raise ValueError("Comments must have either plugin data, textual content or label")
         if not self.author_name and self.created_by_id:
             self.author_name = (self.created_by.get_display_name() or None)
+        if not self.language_code and self.content:
+            self._detect_lang()
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):

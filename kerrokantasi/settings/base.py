@@ -131,6 +131,7 @@ PARLER_LANGUAGES = {
     }
 }
 
+DETECT_LANGS_MIN_PROBA = 0.3
 
 # CKEDITOR_CONFIGS is in __init__.py
 CKEDITOR_UPLOAD_PATH = 'uploads/'

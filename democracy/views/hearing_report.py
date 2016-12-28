@@ -1,6 +1,7 @@
 import io
 
 import xlsxwriter
+from django.conf import settings
 from django.http import HttpResponse
 
 from democracy.models import SectionComment
@@ -28,20 +29,30 @@ class HearingReport(object):
         self.hearing_worksheet.write(row, 1, content)
         self.hearing_worksheet_active_row += 1
 
+    def _get_default_translation(self, field):
+        lang = settings.LANGUAGE_CODE
+        if field.get(lang):
+            return field.get(lang)
+        for lang, value in field.items():
+            if value:
+                return value
+
     def generate_hearing_worksheet(self):
         self.hearing_worksheet.set_column('A:A', 20)
         self.hearing_worksheet.set_column('B:B', 200)
 
         # add header to hearing worksheet
-        self.hearing_worksheet.set_header(self.json['title'])
+        self.hearing_worksheet.set_header(self._get_default_translation(self.json['title']))
 
-        self.add_hearing_row('Title', self.json['title'])
+        for lang, title in self.json['title'].items():
+            self.add_hearing_row('Title (%s)' % lang, title)
         self.add_hearing_row('Created', self.json['created_at'])
         self.add_hearing_row('Close', self.json['close_at'])
         # self.add_hearing_row('Author', self.json['created_by'])
         self.add_hearing_row('Abstract', self.json['abstract'])
-        self.add_hearing_row('Borough', self.json['borough'])
-        self.add_hearing_row('Labels', str('%s' % ', '.join(label for label in self.json['labels'])))
+        for lang, borough in self.json['borough'].items():
+            self.add_hearing_row('Borough (%s)' % lang, borough)
+        self.add_hearing_row('Labels', str('%s' % ', '.join(self._get_default_translation(label) for label in self.json['labels'])))
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
 
@@ -85,7 +96,7 @@ class HearingReport(object):
         for s in sections:
             comments = [SectionCommentSerializer(c).data for c in SectionComment.objects.filter(section=s['id'])]
             for comment in comments:
-                self.add_comment_row('Section', s['title'], comment)
+                self.add_comment_row('Section', self._get_default_translation(s['title']), comment)
                 comments_count += 1
 
         self.add_hearing_row('All comments', str(comments_count))

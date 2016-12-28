@@ -34,7 +34,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SectionComment
         fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name',
-                  'label', 'images', 'geojson']
+                  'label', 'images', 'geojson', 'language_code']
 
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
@@ -80,7 +80,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     class Meta:
         model = SectionComment
-        fields = ['section'] + COMMENT_FIELDS
+        fields = ['section', 'language_code'] + COMMENT_FIELDS
 
 
 class SectionCommentViewSet(BaseCommentViewSet):

@@ -573,11 +573,11 @@ def test_abstract_is_populated_from_main_abstract(api_client, default_hearing):
 
     response = api_client.get(list_endpoint)
     data = get_data_from_response(response)
-    assert data['results'][0]['abstract'] == 'very abstract'
+    assert data['results'][0]['abstract'] == {default_lang_code: 'very abstract'}
 
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     data = get_data_from_response(response)
-    assert data['abstract'] == 'very abstract'
+    assert data['abstract'] == {default_lang_code: 'very abstract'}
 
 
 @pytest.mark.parametrize('updates, filters, expected_count', [

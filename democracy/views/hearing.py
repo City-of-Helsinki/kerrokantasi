@@ -2,6 +2,7 @@ from collections import defaultdict
 import django_filters
 import datetime
 
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
 from rest_framework import filters, permissions, response, serializers, status, viewsets
@@ -196,7 +197,17 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
 
     def get_abstract(self, hearing):
         main_section = self._get_main_section(hearing)
-        return main_section.abstract if main_section else ''
+        if not main_section:
+            return ''
+        translations = {
+            t.language_code: t.abstract for t in
+            main_section.translations.filter(language_code__in=self.Meta.translation_lang)
+        }
+        abstract = {}
+        for lang_code, translation in translations.items():
+            if translation:
+                abstract[lang_code] = translation
+        return abstract
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -234,6 +245,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
         translated_fields = ['title', 'borough', ]
+        translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
 
 
 class HearingListSerializer(HearingSerializer):

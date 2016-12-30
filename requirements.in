@@ -1,9 +1,9 @@
 Django>=1.9,<1.10
-djangorestframework<3.4
+djangorestframework
 django-extensions
 django-reversion
 django-cors-headers
-django-filter==0.15
+django-filter>=0.15,<1.0
 pillow
 psycopg2
 easy-thumbnails

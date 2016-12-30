@@ -5,7 +5,7 @@ from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import JSONField
-from rest_framework.serializers import get_validation_error_detail
+from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment, Label, Section
@@ -54,7 +54,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
                 attrs["plugin_data"] = plugin.clean_client_data(attrs["plugin_data"])
             except (ValidationError, DjangoValidationError) as ve:
                 # Massage the validation error slightly...
-                detail = get_validation_error_detail(ve)
+                detail = as_serializer_error(ve)
                 detail.setdefault("plugin_data", []).extend(detail.pop(api_settings.NON_FIELD_ERRORS_KEY, ()))
                 raise ValidationError(detail=detail)
             attrs["plugin_identifier"] = section.plugin_identifier

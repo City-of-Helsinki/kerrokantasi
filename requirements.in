@@ -12,7 +12,7 @@ xlsxwriter
 -e git+https://github.com/City-of-Helsinki/django-helusers@v0.1#egg=django-helusers
 djangorestframework-jwt
 pyjwt
-django-enumfields
+django-enumfields>=0.8
 pytz
 jsonfield
 django-nested-admin

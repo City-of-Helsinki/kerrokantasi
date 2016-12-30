@@ -6,6 +6,7 @@ from django.test.utils import override_settings
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from reversion import revisions
+from reversion.models import Version
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
@@ -466,14 +467,14 @@ def test_comment_edit_versioning(john_doe_api_client, default_hearing, lookup_fi
     comment_id = data["id"]
     comment = SectionComment.objects.get(pk=comment_id)
     assert comment.content.isupper()  # Oh my, all that screaming :(
-    assert not revisions.get_for_object(comment)  # No revisions
+    assert not Version.objects.get_for_object(comment)  # No revisions
     response = john_doe_api_client.patch('%s%s/' % (url, comment_id), data={
         "content": "Never mind, it's nice :)"
     })
     data = get_data_from_response(response, 200)
     comment = SectionComment.objects.get(pk=comment_id)
     assert not comment.content.isupper()  # Screaming is gone
-    assert len(revisions.get_for_object(comment)) == 1  # One old revision
+    assert len(Version.objects.get_for_object(comment)) == 1  # One old revision
 
 
 @pytest.mark.django_db

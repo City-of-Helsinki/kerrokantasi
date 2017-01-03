@@ -307,7 +307,11 @@ class TranslatableSerializer(serializers.Serializer):
         Save translation data into translation objects.
         """
         for field in self.Meta.translated_fields:
-            translations = translated_data.get(field, {})
+            translations = {}
+            if not self.partial:
+                translations = {lang_code: '' for lang_code in self.Meta.translation_lang}
+            translations.update(translated_data.get(field, {}))
+
             for lang_code, value in translations.items():
                 translation = instance._get_translated_model(lang_code, auto_create=True)
                 setattr(translation, field, value)

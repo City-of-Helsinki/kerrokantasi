@@ -733,6 +733,19 @@ def test_PUT_hearing_unsupported_language(valid_hearing_json, john_smith_api_cli
     assert "fr is not a supported languages (['en', 'fi', 'sv'])" in data['title']
 
 
+# Test that a user can PUT a hearing with less translations
+@pytest.mark.django_db
+def test_PUT_hearing_remove_translation(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    _update_hearing_data(data)
+    data["title"].pop("sv")
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    assert updated_data['title'].get('sv') is None
+    assert updated_data['title']['en'] == data['title']['en']
+    assert updated_data['title']['fi'] == data['title']['fi']
+
 # Test that a user cannot update a hearing having no organization
 @pytest.mark.django_db
 def test_PUT_hearing_no_organization(valid_hearing_json, john_smith_api_client):

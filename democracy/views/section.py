@@ -19,7 +19,6 @@ class SectionImageSerializer(BaseImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
         fields = ['id', 'title', 'url', 'width', 'height', 'caption']
-        translated_fields = ['title', 'caption']
 
 
 class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
@@ -35,7 +34,6 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerial
     class Meta:
         model = SectionImage
         fields = ['title', 'url', 'width', 'height', 'caption', 'image']
-        translated_fields = ['title', 'caption']
 
 
 class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -57,7 +55,6 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_iframe_url', 'plugin_fullscreen',
         ]
-        translated_fields = ['title', 'abstract', 'content']
 
 
 class SectionFieldSerializer(serializers.RelatedField):
@@ -89,7 +86,6 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'plugin_identifier', 'plugin_data',
             'images',
         ]
-        translated_fields = ['content', 'abstract', 'title']
 
     @transaction.atomic()
     def create(self, validated_data):

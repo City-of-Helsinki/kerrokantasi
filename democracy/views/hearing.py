@@ -60,7 +60,6 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'closed', 'geojson', 'organization', 'slug',
             'contact_persons', 'labels',
         ]
-        translated_fields = ['title', 'borough', ]
 
     def __init__(self, *args, **kwargs):
         super(HearingCreateUpdateSerializer, self).__init__(*args, **kwargs)
@@ -244,7 +243,6 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
-        translated_fields = ['title', 'borough', ]
         translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
 
 
@@ -266,7 +264,6 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = [
             'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug'
         ]
-        translated_fields = ['title', 'borough']
 
 
 class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):

@@ -215,7 +215,9 @@ class TranslatableSerializer(serializers.Serializer):
     """
 
     def __init__(self, *args, **kwargs):
-        assert hasattr(self.Meta, 'translated_fields'), 'Improperly configured: Need to specify translated_fields'
+        self.Meta.translated_fields = [
+            field for field in self.Meta.model._parler_meta._fields_to_model if field in self.Meta.fields
+        ]
         non_translated_fields = [field for field in self.Meta.fields if field not in self.Meta.translated_fields]
         self.Meta.fields = non_translated_fields
         super(TranslatableSerializer, self).__init__(*args, **kwargs)

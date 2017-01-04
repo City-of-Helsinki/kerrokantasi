@@ -18,7 +18,6 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
     class Meta:
         model = Label
         fields = ('id', 'label')
-        translated_fields = ['label', ]
 
 
 class LabelViewSet(viewsets.ReadOnlyModelViewSet):

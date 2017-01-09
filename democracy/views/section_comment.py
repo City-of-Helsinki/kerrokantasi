@@ -63,6 +63,14 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     @atomic
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        if user and self.validated_data.get('author_name'):
+            user.nickname = self.validated_data['author_name']
+            user.save(update_fields=('nickname',))
+        return super(SectionCommentCreateSerializer, self).save(**kwargs)
+
+    @atomic
     def create(self, validated_data):
         images = validated_data.pop('images', [])
         comment = SectionComment.objects.create(**validated_data)

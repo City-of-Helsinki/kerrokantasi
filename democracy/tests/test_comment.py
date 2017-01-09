@@ -425,7 +425,7 @@ def test_add_comment_to_section_user_has_name(john_doe_api_client, john_doe, def
 
 @pytest.mark.django_db
 def test_add_comment_to_section_user_has_nickname(john_doe_api_client, john_doe, default_hearing,
-                                              get_comments_url_and_data):
+                                                  get_comments_url_and_data):
     john_doe.first_name = 'John'
     john_doe.last_name = 'Doe'
     john_doe.nickname = 'Johnny'
@@ -712,28 +712,6 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
     response = api_client.get('/v1/comment/')
     response_data = get_data_from_response(response)['results']
     assert len(response_data) == 0
-
-
-@pytest.mark.parametrize('client, can_set_author_name', [
-    ('api_client', True),
-    ('jane_doe_api_client', False),
-])
-@pytest.mark.django_db
-def test_only_unauthenticated_can_set_author_name(client, can_set_author_name, request, default_hearing,
-                                                  get_comments_url_and_data):
-    api_client = request.getfuncargvalue(client)
-
-    section = default_hearing.get_main_section()
-    url, data = get_comments_url_and_data(default_hearing, section)
-    comment_data = get_comment_data(section=section.pk, author_name='CRAZYJOE994')
-    response = api_client.post(url, data=comment_data)
-
-    if can_set_author_name:
-        assert response.status_code == 201
-        assert SectionComment.objects.first().author_name == 'CRAZYJOE994'
-    else:
-        assert response.status_code == 403
-        assert 'Authenticated users cannot set author name.' in response.data['status']
 
 
 @pytest.mark.django_db

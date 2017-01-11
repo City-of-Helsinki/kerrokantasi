@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from democracy.enums import InitialSectionType
 from democracy.models import Organization, Section, SectionType
 from democracy.models.section import CLOSURE_INFO_ORDERING
+from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import assert_id_in_results, get_data_from_response, get_hearing_detail_url
 from democracy.views.section import SectionSerializer
 
@@ -80,7 +81,7 @@ def test_45_get_one_section_check_abstract(api_client, default_hearing, get_sect
     response = api_client.get(get_sections_url(default_hearing))
 
     data = get_results_from_response(response)
-    assert data[0]['abstract'] == sections[0].abstract
+    assert data[0]['abstract'][default_lang_code] == sections[0].abstract
 
 
 @pytest.mark.django_db
@@ -90,7 +91,7 @@ def test_45_get_one_section_check_content(api_client, default_hearing, get_secti
     response = api_client.get(get_sections_url(default_hearing))
 
     data = get_results_from_response(response)
-    assert data[0]['content'] == sections[0].content
+    assert data[0]['content'][default_lang_code] == sections[0].content
 
 
 @pytest.mark.django_db
@@ -110,7 +111,7 @@ def test_45_get_many_sections_check_abstract(api_client, default_hearing, get_se
     response = api_client.get(get_sections_url(default_hearing))
 
     data = get_results_from_response(response)
-    abstracts = [s['abstract'] for s in data]
+    abstracts = [s['abstract'][default_lang_code] for s in data]
 
     # ensure we have 3 abstracts
     assert len(abstracts) == 3
@@ -127,7 +128,7 @@ def test_45_get_many_sections_check_content(api_client, default_hearing, get_sec
     response = api_client.get(get_sections_url(default_hearing))
 
     data = get_results_from_response(response)
-    contents = [s['content'] for s in data]
+    contents = [s['content'][default_lang_code] for s in data]
 
     # ensure we have 3 contents
     assert len(contents) == 3
@@ -168,7 +169,7 @@ def test_45_get_hearing_with_one_section_check_abstract(api_client, default_hear
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
-    assert data['sections'][0]['abstract'] == sections[0].abstract
+    assert data['sections'][0]['abstract'][default_lang_code] == sections[0].abstract
 
 
 @pytest.mark.django_db
@@ -178,7 +179,7 @@ def test_45_get_hearing_with_one_section_check_content(api_client, default_heari
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
 
     data = get_data_from_response(response)
-    assert data['sections'][0]['content'] == sections[0].content
+    assert data['sections'][0]['content'][default_lang_code] == sections[0].content
 
 
 @pytest.mark.django_db
@@ -210,7 +211,7 @@ def test_45_get_hearing_with_many_sections_check_abstract(api_client, default_he
     response = api_client.get(get_hearing_detail_url(default_hearing.id, ))
 
     data = get_data_from_response(response)
-    abstracts = [s['abstract'] for s in data['sections']]
+    abstracts = [s['abstract'][default_lang_code] for s in data['sections']]
 
     # ensure we have 3 abstracts
     assert len(abstracts) == 3
@@ -227,7 +228,7 @@ def test_45_get_hearing_with_many_sections_check_content(api_client, default_hea
     response = api_client.get(get_hearing_detail_url(default_hearing.id, ))
 
     data = get_data_from_response(response)
-    contents = [s['content'] for s in data['sections']]
+    contents = [s['content'][default_lang_code] for s in data['sections']]
 
     # ensure we have 3 contents
     assert len(contents) == 3

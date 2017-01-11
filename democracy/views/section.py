@@ -10,16 +10,18 @@ from democracy.models import Hearing, Section, SectionImage, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
-from democracy.views.utils import Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField
+from democracy.views.utils import (
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField, TranslatableSerializer
+)
 
 
-class SectionImageSerializer(BaseImageSerializer):
+class SectionImageSerializer(BaseImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
         fields = ['id', 'title', 'url', 'width', 'height', 'caption']
 
 
-class SectionImageCreateUpdateSerializer(BaseImageSerializer):
+class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
     image = Base64ImageField()
 
     def __init__(self, *args, **kwargs):
@@ -34,7 +36,7 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer):
         fields = ['title', 'url', 'width', 'height', 'caption', 'image']
 
 
-class SectionSerializer(serializers.ModelSerializer):
+class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section instance.
     """
@@ -64,7 +66,7 @@ class SectionFieldSerializer(serializers.RelatedField):
         return SectionSerializer(section, context=self.context).data
 
 
-class SectionCreateUpdateSerializer(serializers.ModelSerializer):
+class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section create/update.
     """
@@ -188,7 +190,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return filter_by_hearing_visible(queryset, self.request, 'section__hearing')
 
 
-class RootSectionSerializer(SectionSerializer):
+class RootSectionSerializer(SectionSerializer, TranslatableSerializer):
     """
     Serializer for root level section endpoint.
     """

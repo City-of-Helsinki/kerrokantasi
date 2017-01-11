@@ -9,7 +9,6 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = (
-    #'modeltranslation',  # - Not used at present.
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -29,6 +28,7 @@ INSTALLED_APPS = (
     'helusers',
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app
+    'parler',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -71,7 +71,7 @@ DATABASES = {
 }
 
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
@@ -83,10 +83,9 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, "var", "media")
 LANGUAGES = (
     ('fi', gettext('Finnish')),
-    ('se', gettext('Swedish')),
+    ('sv', gettext('Swedish')),
     ('en', gettext('English')),
 )
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'fi'
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_URLS_REGEX = r'^/[a-z-]*/?v1/.*$'
@@ -119,6 +118,20 @@ DEMOCRACY_PLUGINS = {
     "map-questionnaire": "democracy.plugins.Plugin",
 }
 
+PARLER_DEFAULT_LANGUAGE_CODE = 'en'
+PARLER_LANGUAGES = {
+    None: (
+        {'code': 'en', },
+        {'code': 'fi', },
+        {'code': 'sv', },
+    ),
+    'default': {
+        'hide_untranslated': False,
+        'fallbacks': ['fi', 'en', 'sv'],
+    }
+}
+
+DETECT_LANGS_MIN_PROBA = 0.3
 
 # CKEDITOR_CONFIGS is in __init__.py
 CKEDITOR_UPLOAD_PATH = 'uploads/'

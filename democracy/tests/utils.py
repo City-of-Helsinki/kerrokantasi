@@ -33,6 +33,20 @@ def image_test_json():
     }
 
 
+def sectionimage_test_json():
+    return {
+        'caption': {
+            'en': 'Test',
+            'fi': 'Testi',
+        },
+        'title': {
+            'en': 'Test title',
+            'fi': 'Finnish test title',
+        },
+        'image': image_to_base64(IMAGES['ORIGINAL']),
+    }
+
+
 def create_image(instance, filename):
     image_class = BaseImage.find_subclass(parent_model=instance)
     image_field = image_class._meta.get_field("image")

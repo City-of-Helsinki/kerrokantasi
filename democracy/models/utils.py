@@ -1,9 +1,17 @@
-from copy import copy
+from copy import deepcopy
 
 from django.db import transaction
 
 from democracy.enums import InitialSectionType
 from democracy.models import SectionType
+
+
+def _copy_translations(new_obj, old_obj):
+    for old_translation in old_obj.translations.all():
+        translation = deepcopy(old_translation)
+        translation.pk = None
+        translation.master_id = new_obj.pk
+        translation.save()
 
 
 @transaction.atomic
@@ -23,7 +31,8 @@ def copy_hearing(old_hearing, **kwargs):
     :param kwargs: field value overrides
     :return: newly created Hearing
     """
-    new_hearing = copy(old_hearing)
+
+    new_hearing = deepcopy(old_hearing)
     new_hearing.pk = None
 
     # possible field value overrides
@@ -33,18 +42,23 @@ def copy_hearing(old_hearing, **kwargs):
     new_hearing.n_comments = 0
     new_hearing.save()
     new_hearing.labels = old_hearing.labels.all()
+    _copy_translations(new_hearing, old_hearing)
 
     # create new sections and section images
     closure_info = SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO)
-    for section in old_hearing.sections.exclude(type=closure_info):
-        old_images = section.images.all()
+    for old_section in old_hearing.sections.exclude(type=closure_info):
+        old_images = old_section.images.all()
+        section = deepcopy(old_section)
         section.pk = None
         section.hearing = new_hearing
         section.n_comments = 0
         section.save()
-        for image in old_images:
+        _copy_translations(section, old_section)
+        for old_image in old_images:
+            image = deepcopy(old_image)
             image.pk = None
             image.section = section
             image.save()
+            _copy_translations(image, old_image)
 
     return new_hearing

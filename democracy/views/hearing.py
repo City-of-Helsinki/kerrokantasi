@@ -1,12 +1,14 @@
 from collections import defaultdict
 import django_filters
 import datetime
+
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.fields import JSONField
-from rest_framework.exceptions import NotFound, ValidationError, PermissionDenied
 
 from democracy.enums import InitialSectionType
 from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage
@@ -14,9 +16,10 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelSerializer
-from democracy.views.section import (SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer,
-                                     SectionSerializer)
-
+from democracy.views.section import (
+    SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
+)
+from democracy.views.utils import TranslatableSerializer
 from .hearing_report import HearingReport
 from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
@@ -33,7 +36,7 @@ class HearingFilter(django_filters.FilterSet):
         fields = ['published', 'open_at_lte', 'open_at_gt', 'title', 'label']
 
 
-class HearingCreateUpdateSerializer(serializers.ModelSerializer):
+class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
     geojson = JSONField(required=False, allow_null=True)
 
     # this field is used only for incoming data validation, outgoing data is added manually
@@ -175,7 +178,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer):
         return data
 
 
-class HearingSerializer(serializers.ModelSerializer):
+class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = JSONField()
@@ -194,7 +197,17 @@ class HearingSerializer(serializers.ModelSerializer):
 
     def get_abstract(self, hearing):
         main_section = self._get_main_section(hearing)
-        return main_section.abstract if main_section else ''
+        if not main_section:
+            return ''
+        translations = {
+            t.language_code: t.abstract for t in
+            main_section.translations.filter(language_code__in=self.Meta.translation_lang)
+        }
+        abstract = {}
+        for lang_code, translation in translations.items():
+            if translation:
+                abstract[lang_code] = translation
+        return abstract
 
     def get_sections(self, hearing):
         queryset = hearing.sections.all()
@@ -231,6 +244,7 @@ class HearingSerializer(serializers.ModelSerializer):
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
+        translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
 
 
 class HearingListSerializer(HearingSerializer):
@@ -243,7 +257,7 @@ class HearingListSerializer(HearingSerializer):
         return fields
 
 
-class HearingMapSerializer(serializers.ModelSerializer):
+class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
     geojson = JSONField()
 
     class Meta:

@@ -13,7 +13,9 @@ from django.utils.translation import ugettext_lazy as _
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from djgeojson.fields import GeoJSONFormField
 from leaflet.admin import LeafletGeoAdmin
-from nested_admin.nested import NestedModelAdmin, NestedStackedInline
+from nested_admin.nested import NestedModelAdminMixin, NestedStackedInline
+from parler.admin import TranslatableAdmin, TranslatableStackedInline
+from parler.forms import TranslatableModelForm, TranslatableBaseInlineFormSet
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
@@ -22,7 +24,7 @@ from democracy.models.utils import copy_hearing
 from democracy.plugins import get_implementation
 
 
-class FixedModelForm(forms.ModelForm):
+class FixedModelForm(TranslatableModelForm):
     # Taken from https://github.com/asyncee/django-easy-select2/blob/master/easy_select2/forms.py
     """
     Simple child of ModelForm that removes the 'Hold down "Control" ...'
@@ -48,7 +50,7 @@ class FixedModelForm(forms.ModelForm):
 # Inlines
 
 
-class SectionImageInline(NestedStackedInline):
+class SectionImageInline(TranslatableStackedInline, NestedStackedInline):
     model = models.SectionImage
     extra = 0
     exclude = ("title",)
@@ -57,7 +59,7 @@ class SectionImageInline(NestedStackedInline):
     }
 
 
-class SectionInlineFormSet(forms.BaseInlineFormSet):
+class SectionInlineFormSet(TranslatableBaseInlineFormSet):
     def clean(self):
         super().clean()
 
@@ -84,7 +86,7 @@ class SectionInlineFormSet(forms.BaseInlineFormSet):
             raise ValidationError(_('There cannot be more than one closure info section.'))
 
 
-class SectionInline(NestedStackedInline):
+class SectionInline(NestedStackedInline, TranslatableStackedInline):
     model = models.Section
     extra = 1
     inlines = [SectionImageInline]
@@ -149,7 +151,7 @@ class HearingGeoAdmin(LeafletGeoAdmin):
     }
 
 
-class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
+class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
 
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)
@@ -157,7 +159,7 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
     inlines = [SectionInline]
     list_display = ("slug", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)
-    search_fields = ("slug", "title")
+    search_fields = ("slug", "translations__title")
     readonly_fields = ("preview_url",)
     fieldsets = (
         (None, {
@@ -219,11 +221,11 @@ class HearingAdmin(NestedModelAdmin, HearingGeoAdmin):
         formset.save_m2m()
 
 
-class LabelAdmin(admin.ModelAdmin):
+class LabelAdmin(TranslatableAdmin, admin.ModelAdmin):
     exclude = ("published",)
 
 
-class SectionTypeAdmin(admin.ModelAdmin):
+class SectionTypeAdmin(TranslatableAdmin, admin.ModelAdmin):
     fields = ("name_singular", "name_plural")
 
     def get_queryset(self, request):
@@ -237,7 +239,7 @@ class OrganizationAdmin(admin.ModelAdmin):
     exclude = ('published', )
 
 
-class ContactPersonAdmin(admin.ModelAdmin):
+class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     list_display = ('name', 'title', 'organization', 'phone', 'email')
     exclude = ('published',)
 

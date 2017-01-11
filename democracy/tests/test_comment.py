@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import datetime
 from copy import deepcopy
 
@@ -12,7 +13,7 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
-from democracy.tests.conftest import default_comment_content
+from democracy.tests.conftest import default_comment_content, default_lang_code
 from democracy.tests.utils import (
     assert_common_keys_equal, get_data_from_response, get_geojson, get_hearing_detail_url, image_test_json
 )
@@ -130,6 +131,35 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("comment_content", [
+    ("This is a comment", "en"),
+    ("Tämä on kommentti", "fi"),
+    ("Detta är en kommentar", "sv"),
+    ("10.24", ""),
+    ("abc", ""),
+])
+def test_226_add_comment_to_section_detect_lang(
+    john_doe_api_client,
+    default_hearing,
+    get_comments_url_and_data,
+    comment_content,
+):
+    section = default_hearing.sections.first()
+    translation = section._get_translated_model('sv', auto_create=True)
+    translation.save()
+    translation = section._get_translated_model('fi', auto_create=True)
+    translation.save()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, content=comment_content[0])
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+    assert data['language_code'] == comment_content[1]
+
+
+@pytest.mark.django_db
 def test_add_empty_comment(john_doe_api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
@@ -184,7 +214,6 @@ def test_56_add_comment_to_section_with_no_geometry_in_geojson(john_doe_api_clie
 
 @pytest.mark.django_db
 def test_56_add_comment_with_label_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
-
     label_one = Label(id=1, label='The Label')
     label_one.save()
 
@@ -202,11 +231,11 @@ def test_56_add_comment_with_label_to_section(john_doe_api_client, default_heari
     data = get_data_from_response(response, status_code=201)
 
     assert 'label' in data
-    assert data["label"] == {'id': 1, 'label': 'The Label'}
+    assert data["label"] == {'id': 1, 'label': {default_lang_code: 'The Label'}}
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
-    comment_data = get_comment_data(section=section.pk, label={'label': 'The Label', 'id': 1})
+    comment_data = get_comment_data(section=section.pk, label={'label': {default_lang_code: 'The Label'}, 'id': 1})
 
     # If pagination is used the actual data is in "results"
     if 'results' in new_comment_list:
@@ -216,7 +245,7 @@ def test_56_add_comment_with_label_to_section(john_doe_api_client, default_heari
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
     assert_common_keys_equal(new_comment, comment_data)
     assert new_comment["is_registered"] == True
-    assert new_comment["label"] == {'id': 1, 'label': 'The Label'}
+    assert new_comment["label"] == {'id': 1, 'label': {default_lang_code: 'The Label'}}
     assert new_comment["author_name"] is None
 
 
@@ -240,11 +269,11 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
     data = get_data_from_response(response, status_code=201)
 
     assert 'label' in data
-    assert data["label"] == {'id': 1, 'label': 'The Label'}
+    assert data["label"] == {'id': 1, 'label': {default_lang_code: 'The Label'}}
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
-    comment_data = get_comment_data(section=section.pk, label={'label': 'The Label', 'id': 1}, content='')
+    comment_data = get_comment_data(section=section.pk, label={'label': {default_lang_code: 'The Label'}, 'id': 1}, content='')
     # If pagination is used the actual data is in "results"
     if 'results' in new_comment_list:
         new_comment_list = new_comment_list['results']
@@ -253,7 +282,7 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
     new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
     assert_common_keys_equal(new_comment, comment_data)
     assert new_comment["is_registered"] == True
-    assert new_comment["label"] == {'id': 1, 'label': 'The Label'}
+    assert new_comment["label"] == {'id': 1, 'label': {default_lang_code: 'The Label'}}
     assert new_comment["author_name"] is None
     assert new_comment["content"] is ''
 

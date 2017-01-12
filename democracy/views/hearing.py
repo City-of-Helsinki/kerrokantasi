@@ -253,7 +253,10 @@ class HearingListSerializer(HearingSerializer):
         fields = super(HearingListSerializer, self).get_fields()
         # Elide section and geo data when listing hearings; one can get to them via detail routes
         fields.pop("sections")
-        fields.pop("geojson")
+        request = self.context.get('request', None)
+        if request:
+            if not request.GET.get('include', None) == 'geojson':
+                fields.pop("geojson")
         return fields
 
 

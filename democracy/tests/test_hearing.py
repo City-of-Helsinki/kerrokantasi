@@ -223,6 +223,14 @@ def test_list_top_5_hearings_check_title(api_client):
     assert '6' in objects[4]['title'][default_lang_code]
 
 
+@pytest.mark.django_db
+def test_filter_hearings_by_title(api_client):
+    hearings = create_hearings(3)
+    response = api_client.get(list_endpoint, data={"title": "title 1"})
+    data = get_data_from_response(response)
+    assert len(data['results']) == 1
+    assert data['results'][0]['title'][default_lang_code] == hearings[0].title
+
 
 @pytest.mark.parametrize('plugin_fullscreen', [
     True,

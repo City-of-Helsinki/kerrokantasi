@@ -453,6 +453,64 @@ def test_add_comment_to_section_user_has_name(john_doe_api_client, john_doe, def
 
 
 @pytest.mark.django_db
+def test_add_comment_to_section_user_has_nickname(john_doe_api_client, john_doe, default_hearing,
+                                                  get_comments_url_and_data):
+    john_doe.first_name = 'John'
+    john_doe.last_name = 'Doe'
+    john_doe.nickname = 'Johnny'
+    john_doe.save()
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk)
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    assert new_comment["author_name"] == 'Johnny'
+
+
+@pytest.mark.django_db
+def test_add_comment_to_section_user_update_nickname(john_doe_api_client, john_doe, default_hearing,
+                                                     get_comments_url_and_data):
+    john_doe.first_name = 'John'
+    john_doe.last_name = 'Doe'
+    john_doe.nickname = 'Johnny'
+    john_doe.save()
+
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, author_name='Jo')
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    john_doe.refresh_from_db()
+    assert john_doe.nickname == 'Jo'
+    assert new_comment["author_name"] == 'Jo'
+
+
+@pytest.mark.django_db
 def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_comments_url_and_data):
     hearing = Hearing.objects.create(
         title='Test Hearing',
@@ -713,28 +771,6 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
     response = api_client.get('/v1/comment/')
     response_data = get_data_from_response(response)['results']
     assert len(response_data) == 0
-
-
-@pytest.mark.parametrize('client, can_set_author_name', [
-    ('api_client', True),
-    ('jane_doe_api_client', False),
-])
-@pytest.mark.django_db
-def test_only_unauthenticated_can_set_author_name(client, can_set_author_name, request, default_hearing,
-                                                  get_comments_url_and_data):
-    api_client = request.getfuncargvalue(client)
-
-    section = default_hearing.get_main_section()
-    url, data = get_comments_url_and_data(default_hearing, section)
-    comment_data = get_comment_data(section=section.pk, author_name='CRAZYJOE994')
-    response = api_client.post(url, data=comment_data)
-
-    if can_set_author_name:
-        assert response.status_code == 201
-        assert SectionComment.objects.first().author_name == 'CRAZYJOE994'
-    else:
-        assert response.status_code == 403
-        assert 'Authenticated users cannot set author name.' in response.data['status']
 
 
 @pytest.mark.django_db

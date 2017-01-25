@@ -378,7 +378,8 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     @detail_route(methods=['get'])
     def report(self, request, pk=None):
-        report = HearingReport(HearingSerializer(self.get_object(), context=self.get_serializer_context()).data)
+        context = self.get_serializer_context()
+        report = HearingReport(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
 
     @list_route(methods=['get'])

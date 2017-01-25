@@ -11,7 +11,7 @@ from .section_comment import SectionCommentSerializer
 
 class HearingReport(object):
 
-    def __init__(self, json):
+    def __init__(self, json, context=None):
         self.json = json
         self.buffer = io.BytesIO()
         self.xlsdoc = xlsxwriter.Workbook(self.buffer, {'in_memory': True})
@@ -22,6 +22,7 @@ class HearingReport(object):
         self.comments_worksheet.set_landscape()
         self.comments_worksheet_active_row = 0
         self.format_bold = self.xlsdoc.add_format({'bold': True})
+        self.context = context
 
     def add_hearing_row(self, label, content):
         row = self.hearing_worksheet_active_row
@@ -53,8 +54,8 @@ class HearingReport(object):
             self.add_hearing_row('Abstract (%s)' % lang, abstract)
         for lang, borough in self.json['borough'].items():
             self.add_hearing_row('Borough (%s)' % lang, borough)
-        self.add_hearing_row('Labels', str('%s' % ', '.join(self._get_default_translation(label) for label in
-                                                            self.json['labels'])))
+        self.add_hearing_row('Labels', str('%s' % ', '.join([self._get_default_translation(label['label']) for label in
+                                                            self.json['labels']])))
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
 
@@ -72,6 +73,8 @@ class HearingReport(object):
         self.comments_worksheet.write(row, 4, comment['n_votes'])
         # add content
         self.comments_worksheet.write(row, 5, comment['content'])
+        self.comments_worksheet.write(row, 6, ','.join(
+            image['url'] for image in comment['images']))
         self.comments_worksheet_active_row += 1
 
     def generate_comments_worksheet(self):
@@ -81,7 +84,7 @@ class HearingReport(object):
         self.comments_worksheet.set_column('E:E', 5)
         self.comments_worksheet.set_column('F:F', 200)
 
-        self.comments_worksheet.set_header('Comments of %s' % self.json['title'])
+        self.comments_worksheet.set_header('Comments of %s' % self._get_default_translation(self.json['title']))
 
         self.comments_worksheet.write(0, 0, 'Title', self.format_bold)
         self.comments_worksheet.write(0, 1, 'Type', self.format_bold)
@@ -89,6 +92,7 @@ class HearingReport(object):
         self.comments_worksheet.write(0, 3, 'Created', self.format_bold)
         self.comments_worksheet.write(0, 4, 'Votes', self.format_bold)
         self.comments_worksheet.write(0, 5, 'Content', self.format_bold)
+        self.comments_worksheet.write(0, 6, 'Images', self.format_bold)
 
         self.comments_worksheet_active_row = 1
 
@@ -96,7 +100,8 @@ class HearingReport(object):
 
         sections = [s for s in self.json['sections']]
         for s in sections:
-            comments = [SectionCommentSerializer(c).data for c in SectionComment.objects.filter(section=s['id'])]
+            comments = [SectionCommentSerializer(c, context=self.context).data
+                        for c in SectionComment.objects.filter(section=s['id'])]
             for comment in comments:
                 self.add_comment_row('Section', self._get_default_translation(s['title']), comment)
                 comments_count += 1
@@ -115,5 +120,6 @@ class HearingReport(object):
             self.get_xlsx(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(filename=self.json['title'])
+        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(
+            filename=self._get_default_translation(self.json['title']))
         return response

@@ -18,7 +18,7 @@ django-leaflet==0.19.0
 django-nested-admin==3.0.12
 django-parler==1.7
 django-reversion==2.0.8
-Django==1.9.12            # via django-ckeditor, django-geojson, django-leaflet, django-reversion, easy-thumbnails, jsonfield
+Django==1.9.13            # via django-ckeditor, django-geojson, django-leaflet, django-reversion, easy-thumbnails, jsonfield
 djangorestframework-jwt==1.9.0
 djangorestframework==3.5.3
 drf-nested-routers==0.11.1

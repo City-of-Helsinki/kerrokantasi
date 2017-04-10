@@ -10,6 +10,7 @@ from django.contrib.gis.gdal.error import GDALException
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.db.models.query import QuerySet
+from django.db.models import Q
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
@@ -112,16 +113,17 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
     if user.is_superuser:
         return queryset.filter(**filters)
 
+    filters['%spublished' % hearing_lookup] = True
+    filters['%sopen_at__lte' % hearing_lookup] = now()
+    q = Q(**filters)
+
     if user.is_authenticated():
         organization = user.get_default_organization()
         if organization:
-            filters['%sorganization' % hearing_lookup] = organization
-            return queryset.filter(**filters)
+            # regardless of publication status or date, admins will see everything from their organization
+            q |= Q(**{'%sorganization' % hearing_lookup: organization})
 
-    filters['%spublished' % hearing_lookup] = True
-    filters['%sopen_at__lte' % hearing_lookup] = now()
-
-    return queryset.filter(**filters)
+    return queryset.filter(q)
 
 
 class NestedPKRelatedField(PrimaryKeyRelatedField):

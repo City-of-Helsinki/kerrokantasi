@@ -151,7 +151,7 @@ def get_detail_url(id):
     return '%s%s/' % (endpoint, id)
 
 
-def create_hearings(n):
+def create_hearings(n, organization=None):
     # Get rid of all other hearings:
     SectionImage.objects.all().delete()
     SectionComment.objects.all().delete()
@@ -166,7 +166,8 @@ def create_hearings(n):
         hearings.append(
             Hearing.objects.create(
                 title='Test purpose created hearing title %s' % (i + 1),
-                created_at=now() - datetime.timedelta(seconds=1 + (n - i))
+                created_at=now() - datetime.timedelta(seconds=1 + (n - i)),
+                organization=organization
             )
         )
     return hearings
@@ -426,16 +427,19 @@ def test_hearing_stringification(random_hearing):
 
 
 @pytest.mark.django_db
-def test_admin_can_see_unpublished(api_client, john_doe_api_client, admin_api_client):
-    hearings = create_hearings(3)
+def test_admin_can_see_unpublished_and_published(api_client, john_doe_api_client, john_smith_api_client, default_organization):
+    hearings = create_hearings(3, organization=default_organization)
     unpublished_hearing = hearings[0]
     unpublished_hearing.published = False
     unpublished_hearing.save()
+    hearing_outside_organization = hearings[1]
+    hearing_outside_organization.organization = None  # This one should be visible to J. Smith too, n'est ce pas?
+    hearing_outside_organization.save()
     data = get_data_from_response(api_client.get(list_endpoint))
     assert len(data['results']) == 2  # Can't see it as anon
     data = get_data_from_response(john_doe_api_client.get(list_endpoint))
     assert len(data['results']) == 2  # Can't see it as registered
-    data = get_data_from_response(admin_api_client.get(list_endpoint))
+    data = get_data_from_response(john_smith_api_client.get(list_endpoint))
     assert len(data['results']) == 3  # Can see it as admin
     assert len([1 for h in data['results'] if not h["published"]]) == 1  # Only one unpublished, yeah?
 

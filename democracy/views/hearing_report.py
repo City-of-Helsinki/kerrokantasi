@@ -1,6 +1,6 @@
 import io
 
-import xlsxwriter
+import xlsxwriter, json
 from django.conf import settings
 from django.http import HttpResponse
 
@@ -59,40 +59,46 @@ class HearingReport(object):
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
 
-    def add_comment_row(self, commented_type, title, comment):
+    def add_comment_row(self, commented_section, comment):
         row = self.comments_worksheet_active_row
-        # add title
-        self.comments_worksheet.write(row, 0, title)
-        # add type
-        self.comments_worksheet.write(row, 1, commented_type)
+        # add commented section
+        self.comments_worksheet.write(row, 0, commented_section)
         # add author
-        self.comments_worksheet.write(row, 2, comment['author_name'])
+        self.comments_worksheet.write(row, 1, comment['author_name'])
         # add creation date
-        self.comments_worksheet.write(row, 3, comment['created_at'])
+        self.comments_worksheet.write(row, 2, comment['created_at'])
         # add votes
-        self.comments_worksheet.write(row, 4, comment['n_votes'])
+        self.comments_worksheet.write(row, 3, comment['n_votes'])
+        # add label
+        self.comments_worksheet.write(row, 4, self._get_default_translation(comment['label']['label']))
         # add content
         self.comments_worksheet.write(row, 5, comment['content'])
-        self.comments_worksheet.write(row, 6, ','.join(
+        # add geojson
+        self.comments_worksheet.write(row, 6, json.dumps(comment['geojson']))
+        self.comments_worksheet.write(row, 7, ','.join(
             image['url'] for image in comment['images']))
         self.comments_worksheet_active_row += 1
 
     def generate_comments_worksheet(self):
-        self.comments_worksheet.set_column('A:A', 30)
+        self.comments_worksheet.set_column('A:A', 25)
+        self.comments_worksheet.set_column('B:B', 20)
         self.comments_worksheet.set_column('C:C', 20)
-        self.comments_worksheet.set_column('D:D', 25)
-        self.comments_worksheet.set_column('E:E', 5)
+        self.comments_worksheet.set_column('D:D', 5)
+        self.comments_worksheet.set_column('E:E', 20)
         self.comments_worksheet.set_column('F:F', 200)
+        self.comments_worksheet.set_column('G:G', 100)
+        self.comments_worksheet.set_column('H:H', 100)
 
         self.comments_worksheet.set_header('Comments of %s' % self._get_default_translation(self.json['title']))
 
-        self.comments_worksheet.write(0, 0, 'Title', self.format_bold)
-        self.comments_worksheet.write(0, 1, 'Type', self.format_bold)
-        self.comments_worksheet.write(0, 2, 'Author', self.format_bold)
-        self.comments_worksheet.write(0, 3, 'Created', self.format_bold)
-        self.comments_worksheet.write(0, 4, 'Votes', self.format_bold)
+        self.comments_worksheet.write(0, 0, 'Section', self.format_bold)
+        self.comments_worksheet.write(0, 1, 'Author', self.format_bold)
+        self.comments_worksheet.write(0, 2, 'Created', self.format_bold)
+        self.comments_worksheet.write(0, 3, 'Votes', self.format_bold)
+        self.comments_worksheet.write(0, 4, 'Label', self.format_bold)
         self.comments_worksheet.write(0, 5, 'Content', self.format_bold)
-        self.comments_worksheet.write(0, 6, 'Images', self.format_bold)
+        self.comments_worksheet.write(0, 6, 'Geojson', self.format_bold)
+        self.comments_worksheet.write(0, 7, 'Images', self.format_bold)
 
         self.comments_worksheet_active_row = 1
 
@@ -103,7 +109,8 @@ class HearingReport(object):
             comments = [SectionCommentSerializer(c, context=self.context).data
                         for c in SectionComment.objects.filter(section=s['id'])]
             for comment in comments:
-                self.add_comment_row('Section', self._get_default_translation(s['title']), comment)
+                self.add_comment_row('%s: %s' % (s['type_name_singular'],
+                                                 self._get_default_translation(s['title'])), comment)
                 comments_count += 1
 
         self.add_hearing_row('All comments', str(comments_count))

@@ -70,7 +70,8 @@ class HearingReport(object):
         # add votes
         self.comments_worksheet.write(row, 3, comment['n_votes'])
         # add label
-        self.comments_worksheet.write(row, 4, self._get_default_translation(comment['label']['label']))
+        self.comments_worksheet.write(row, 4, self._get_default_translation(comment['label'].get('label')
+                                                                            if comment['label'] else {}))
         # add content
         self.comments_worksheet.write(row, 5, comment['content'])
         # add geojson

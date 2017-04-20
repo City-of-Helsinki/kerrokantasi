@@ -9,10 +9,12 @@ from rest_framework import filters, permissions, response, serializers, status, 
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.fields import JSONField
+from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
 from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage
 from democracy.pagination import DefaultLimitPagination
+from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelSerializer
@@ -255,7 +257,8 @@ class HearingListSerializer(HearingSerializer):
         fields.pop("sections")
         request = self.context.get('request', None)
         if request:
-            if not request.GET.get('include', None) == 'geojson':
+            if not request.GET.get('include', None) == 'geojson'\
+                    and not isinstance(request.accepted_renderer, GeoJSONRenderer):
                 fields.pop("geojson")
         return fields
 
@@ -279,6 +282,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
     serializer_class = HearingListSerializer
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
 
     ordering_fields = ('created_at', 'close_at', 'open_at', 'n_comments')
     ordering = ('-created_at',)

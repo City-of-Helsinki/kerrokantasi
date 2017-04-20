@@ -160,6 +160,26 @@ def test_226_add_comment_to_section_detect_lang(
 
 
 @pytest.mark.django_db
+def test_56_add_comment_to_section_test_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url, {'format': 'geojson'}))
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk)
+    response = john_doe_api_client.post(url, data=comment_data, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url, {'format': 'geojson'}))
+
+    assert len(new_comment_list["features"]) == len(old_comment_list["features"]) + 1
+    new_comment = [c for c in new_comment_list["features"] if c["id"] == data["id"]][0]
+    assert_common_keys_equal(new_comment["geometry"], comment_data["geojson"]["geometry"])
+    assert_common_keys_equal(new_comment["properties"], comment_data["geojson"]["properties"])
+
+
+@pytest.mark.django_db
 def test_add_empty_comment(john_doe_api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)

@@ -5,11 +5,13 @@ from django.db import transaction
 from django.utils.encoding import force_text
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
+from rest_framework.settings import api_settings
 from reversion import revisions
 
 from democracy.models.comment import BaseComment
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin
+from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
                   'geojson', 'images', 'label']
@@ -58,6 +60,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     create_serializer_class = None
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = BaseCommentFilter
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()

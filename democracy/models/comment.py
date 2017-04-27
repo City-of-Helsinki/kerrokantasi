@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
@@ -74,7 +73,7 @@ class BaseComment(BaseModel):
     def clean(self):
         if not any((getattr(self, field) for field in self.fields_to_check_for_data)):
             raise ValidationError("You must supply at least one of the following data in a comment: " +
-                             str(self.fields_to_check_for_data))
+                                  str(self.fields_to_check_for_data))
         if not self.author_name and self.created_by_id:
             self.author_name = (self.created_by.get_display_name() or None)
         if not self.language_code and self.content:

@@ -57,8 +57,9 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
                 detail.setdefault("plugin_data", []).extend(detail.pop(api_settings.NON_FIELD_ERRORS_KEY, ()))
                 raise ValidationError(detail=detail)
             attrs["plugin_identifier"] = section.plugin_identifier
-        if not (attrs.get("plugin_data") or attrs.get("content") or attrs.get("label")):
-            raise ValidationError("Either content, plugin data or label must be supplied.")
+        if not any([attrs.get(field) for field in SectionComment.fields_to_check_for_data]):
+            raise ValidationError("You must supply at least one of the following data in a comment: " +
+                                  str(SectionComment.fields_to_check_for_data))
         return attrs
 
     @atomic

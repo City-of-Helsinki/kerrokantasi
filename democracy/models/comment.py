@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
@@ -39,6 +40,7 @@ class BaseComment(BaseModel):
         related_name="voted_%(app_label)s_%(class)s",
         blank=True
     )
+    fields_to_check_for_data = ['plugin_data', 'content', 'label', 'geojson']
 
     class Meta:
         abstract = True
@@ -69,13 +71,17 @@ class BaseComment(BaseModel):
         except LangDetectException:
             pass
 
-    def save(self, *args, **kwargs):
-        if not (self.plugin_data or self.content or self.label):
-            raise ValueError("Comments must have either plugin data, textual content or label")
+    def clean(self):
+        if not any((getattr(self, field) for field in self.fields_to_check_for_data)):
+            raise ValidationError("You must supply at least one of the following data in a comment: " +
+                             str(self.fields_to_check_for_data))
         if not self.author_name and self.created_by_id:
             self.author_name = (self.created_by.get_display_name() or None)
         if not self.language_code and self.content:
             self._detect_lang()
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):

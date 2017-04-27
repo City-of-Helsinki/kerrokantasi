@@ -190,7 +190,7 @@ def test_add_empty_comment(john_doe_api_client, default_hearing, get_comments_ur
         old_comment_list = old_comment_list['results']
 
     # set section explicitly
-    comment_data = get_comment_data(section=section.pk, content='')
+    comment_data = get_comment_data(section=section.pk, content='', geojson=None)
     response = john_doe_api_client.post(url, data=comment_data)
     # comment may not be empty
     assert response.status_code == 400
@@ -284,7 +284,7 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
         old_comment_list = old_comment_list['results']
 
     # set section explicitly
-    comment_data = get_comment_data(section=section.pk, content='', label={'id': 1})
+    comment_data = get_comment_data(section=section.pk, content='', label={'id': 1}, geojson=None)
     response = john_doe_api_client.post(url, data=comment_data, format='json')
     data = get_data_from_response(response, status_code=201)
 
@@ -293,7 +293,7 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
-    comment_data = get_comment_data(section=section.pk, label={'label': {default_lang_code: 'The Label'}, 'id': 1}, content='')
+    comment_data = get_comment_data(section=section.pk, label={'label': {default_lang_code: 'The Label'}, 'id': 1}, content='', geojson=None)
     # If pagination is used the actual data is in "results"
     if 'results' in new_comment_list:
         new_comment_list = new_comment_list['results']
@@ -305,6 +305,41 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
     assert new_comment["label"] == {'id': 1, 'label': {default_lang_code: 'The Label'}}
     assert new_comment["author_name"] is None
     assert new_comment["content"] is ''
+
+
+@pytest.mark.django_db
+def test_56_add_empty_comment_with_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set section explicitly
+    comment_data = get_comment_data(section=section.pk, content='')
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+    assert 'section' in data
+    assert data['section'] == section.pk
+
+    assert 'geojson' in data
+    assert data['geojson'] == get_geojson()
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    assert len(new_comment_list) == len(old_comment_list) + 1
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+    assert_common_keys_equal(new_comment, comment_data)
+    assert new_comment["is_registered"] == True
+    assert new_comment["author_name"] is None
 
 
 @pytest.mark.django_db

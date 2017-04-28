@@ -70,7 +70,7 @@ class BaseComment(BaseModel):
         except LangDetectException:
             pass
 
-    def clean(self):
+    def save(self, *args, **kwargs):
         if not any((getattr(self, field) for field in self.fields_to_check_for_data)):
             raise ValidationError("You must supply at least one of the following data in a comment: " +
                                   str(self.fields_to_check_for_data))
@@ -78,9 +78,6 @@ class BaseComment(BaseModel):
             self.author_name = (self.created_by.get_display_name() or None)
         if not self.language_code and self.content:
             self._detect_lang()
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):

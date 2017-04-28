@@ -24,7 +24,8 @@ class BaseComment(BaseModel):
         verbose_name=_('vote count'),
         help_text=_('number of votes given to this comment'),
         default=0,
-        editable=False
+        editable=False,
+        db_index=True
     )
     n_unregistered_votes = models.IntegerField(
         verbose_name=_('unregistered vote count'),

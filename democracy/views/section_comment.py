@@ -96,6 +96,8 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    ordering_fields = ('created_at', 'n_votes')
 
 
 class RootSectionCommentSerializer(SectionCommentSerializer):
@@ -120,9 +122,7 @@ class CommentFilter(filters.FilterSet):
 class CommentViewSet(SectionCommentViewSet):
     serializer_class = RootSectionCommentSerializer
     pagination_class = DefaultLimitPagination
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
     filter_class = CommentFilter
-    ordering_fields = ('created_at', 'n_votes')
 
     def get_comment_parent_id(self):
         method = self.request.method

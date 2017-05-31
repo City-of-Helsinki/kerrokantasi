@@ -29,7 +29,7 @@ from .utils import NestedPKRelatedField, filter_by_hearing_visible
 class HearingFilter(django_filters.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='lte')
     open_at_gt = django_filters.IsoDateTimeFilter(name='open_at', lookup_type='gt')
-    title = django_filters.CharFilter(lookup_type='icontains', name='translations__title')
+    title = django_filters.CharFilter(lookup_type='icontains', name='translations__title', distinct=True)
     label = django_filters.Filter(name='labels__id', lookup_type='in', distinct=True,
                                   widget=django_filters.widgets.CSVWidget)
 

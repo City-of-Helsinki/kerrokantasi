@@ -1,5 +1,8 @@
-from rest_framework import serializers, viewsets, filters
+from rest_framework import permissions
+from rest_framework import response
+from rest_framework import serializers, viewsets, filters, mixins
 import django_filters
+from rest_framework import status
 
 from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination
@@ -20,9 +23,16 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = ('id', 'label')
 
 
-class LabelViewSet(viewsets.ReadOnlyModelViewSet):
+class LabelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     serializer_class = LabelSerializer
     queryset = Label.objects.all()
     pagination_class = DefaultLimitPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (filters.DjangoFilterBackend,)
     filter_class = LabelFilter
+
+    def create(self, request):
+        if not request.user or not request.user.get_default_organization():
+            return response.Response({'status': 'User without organization cannot POST labels.'},
+                                     status=status.HTTP_403_FORBIDDEN)
+        return super().create(request)

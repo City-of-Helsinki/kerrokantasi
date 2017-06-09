@@ -47,7 +47,3 @@ def test_admin_user_can_post_label(api_client, john_smith_api_client, valid_labe
     response = john_smith_api_client.post(endpoint, data=valid_label_json, format='json')
     data = get_data_from_response(response, status_code=201)
     assert data['label'] == valid_label_json['label']
-    data = get_data_from_response(api_client.get('/v1/label/'))
-    assert len(data['results']) == 1
-    print(data)
-    assert False

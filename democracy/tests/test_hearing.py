@@ -116,11 +116,6 @@ def valid_hearing_json(contact_person, default_label):
         "main_image": None,
         "contact_persons": [{
             "id": contact_person.id,
-            "name": contact_person.name,
-            "title": contact_person.title,
-            "phone": contact_person.phone,
-            "email": contact_person.email,
-            "organization": contact_person.organization.id,
         }],
     }
 
@@ -382,7 +377,7 @@ def test_get_detail_contact_person(api_client, default_hearing, default_organiza
 
     cp = data['contact_persons'][0]
     assert cp['name'] == contact_person.name
-    assert cp['title'] == contact_person.title
+    assert cp['title'][default_lang_code] == contact_person.title
     assert cp['phone'] == contact_person.phone
     assert cp['email'] == contact_person.email
     assert cp['organization'] == default_organization.name
@@ -613,7 +608,11 @@ def test_hearing_filters(admin_api_client, default_hearing, updates, filters, ex
 
 
 def assert_hearing_equals(data, posted, user, create=True):
-    posted['contact_persons'][0].update({'organization': 'The department for squirrel welfare'})
+    # posted contact person data need only contain the id, even though the api returns all fields
+    persons_included = data.pop('contact_persons')
+    persons_posted = posted.pop('contact_persons')
+    for person_included, person_posted in zip(persons_included, persons_posted):
+        assert_common_keys_equal(person_included, person_posted)
     posted.pop('id')
     created_at = data.pop('created_at')
     if create:

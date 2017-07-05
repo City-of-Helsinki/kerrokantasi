@@ -132,8 +132,8 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
           * If a section with given id exists, update it.
           * Old sections whose ids aren't matched are (soft) deleted.
         """
-        if instance.organization != self.context['request'].user.get_default_organization():
-            raise PermissionDenied('User cannot update hearings from different organizations.')
+        if instance.organization not in self.context['request'].user.admin_organizations.all():
+            raise PermissionDenied('Only organization admins can update organization hearings.')
 
         if self.partial:
             return super().update(instance, validated_data)

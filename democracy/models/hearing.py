@@ -124,4 +124,4 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         user_organization = user.get_default_organization()
         if not (user_organization and self.organization):
             return False
-        return user_organization == self.organization
+        return self.organization in user.admin_organizations.all()

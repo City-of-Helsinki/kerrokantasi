@@ -707,7 +707,7 @@ def test_PUT_hearing_other_organization_hearing(valid_hearing_json, john_smith_a
     _update_hearing_data(data)
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
     data = get_data_from_response(response, status_code=403)
-    assert data == {'detail': "User cannot update hearings from different organizations."}
+    assert data == {'detail': "Only organization admins can update organization hearings."}
 
 
 # Test that a user can update a hearing
@@ -771,7 +771,7 @@ def test_PUT_hearing_no_organization(valid_hearing_json, john_smith_api_client):
     hearing.save()
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
     data = get_data_from_response(response, status_code=403)
-    assert data == {'detail': "User cannot update hearings from different organizations."}
+    assert data == {'detail': "Only organization admins can update organization hearings."}
 
 
 # Test that a user cannot steal an section while updating a hearing

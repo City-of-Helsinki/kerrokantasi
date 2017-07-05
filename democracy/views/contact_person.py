@@ -14,7 +14,7 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
 
     def to_internal_value(self, value):
         if 'organization' in value:
-            if value['organization'] != str(self.context['request'].user.get_default_organization()):
+            if value['organization'] not in map(str, self.context['request'].user.admin_organizations.all()):
                 raise serializers.ValidationError(
                     {'organization': ("Setting organization to %(given)s " +
                                       "is not allowed for your organization. The organization" +

@@ -425,17 +425,21 @@ def test_hearing_stringification(random_hearing):
 def test_admin_can_see_unpublished_and_published(api_client, john_doe_api_client, john_smith_api_client, default_organization):
     hearings = create_hearings(3, organization=default_organization)
     unpublished_hearing = hearings[0]
-    unpublished_hearing.published = False
+    unpublished_hearing.published = False  # This one should be visible to admin only
     unpublished_hearing.save()
     hearing_outside_organization = hearings[1]
-    hearing_outside_organization.organization = None  # This one should be visible to J. Smith too, n'est ce pas?
+    hearing_outside_organization.organization = None  # This one should be visible to J. Doe too, n'est ce pas?
     hearing_outside_organization.save()
+    future_hearing = hearings[2]
+    future_hearing.open_at = now() + datetime.timedelta(days=1)  # This one should be visible to admin only
+    future_hearing.close_at = now() + datetime.timedelta(days=2)
+    future_hearing.save()
     data = get_data_from_response(api_client.get(list_endpoint))
-    assert len(data['results']) == 2  # Can't see it as anon
+    assert len(data['results']) == 1  # Can't see them as anon
     data = get_data_from_response(john_doe_api_client.get(list_endpoint))
-    assert len(data['results']) == 2  # Can't see it as registered
+    assert len(data['results']) == 1  # Can't see them as registered
     data = get_data_from_response(john_smith_api_client.get(list_endpoint))
-    assert len(data['results']) == 3  # Can see it as admin
+    assert len(data['results']) == 3  # Can see them as admin
     assert len([1 for h in data['results'] if not h["published"]]) == 1  # Only one unpublished, yeah?
 
 
@@ -444,11 +448,25 @@ def test_can_see_unpublished_with_preview_code(api_client):
     hearings = create_hearings(1)
     unpublished_hearing = hearings[0]
     unpublished_hearing.published = False
-    unpublished_hearing.open = now() - datetime.timedelta(hours=1)
+    unpublished_hearing.open_at = now() + datetime.timedelta(hours=1)
     unpublished_hearing.save()
     get_data_from_response(api_client.get(get_detail_url(unpublished_hearing.id)), status_code=404)
     preview_url = "{}?preview={}".format(get_detail_url(unpublished_hearing.id), unpublished_hearing.preview_code)
     get_data_from_response(api_client.get(preview_url), status_code=200)
+
+
+@pytest.mark.django_db
+def test_can_see_published_with_preview_code(api_client):
+    hearings = create_hearings(1)
+    published_hearing = hearings[0]
+    published_hearing.published = True
+    published_hearing.open_at = now() + datetime.timedelta(hours=1)
+    published_hearing.save()
+    get_data_from_response(api_client.get(get_detail_url(published_hearing.id)), status_code=404)
+    preview_url = "{}?preview={}".format(get_detail_url(published_hearing.id), published_hearing.preview_code)
+    response = api_client.get(preview_url)
+    print(response.status_code)
+    get_data_from_response(response, status_code=200)
 
 
 @pytest.mark.django_db

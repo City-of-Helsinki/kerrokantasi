@@ -10,6 +10,8 @@ class Organization(StringIdBaseModel):
     admin_users = models.ManyToManyField(
         settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations'
     )
+    parent = models.ForeignKey('Organization', on_delete=models.SET_NULL,
+                               blank=True, null=True, related_name='children')
 
     class Meta:
         verbose_name = _('organization')

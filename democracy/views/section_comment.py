@@ -65,7 +65,7 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
     @atomic
     def save(self, **kwargs):
         user = self.context['request'].user
-        if user and self.validated_data.get('author_name'):
+        if user and not user.is_anonymous and self.validated_data.get('author_name'):
             user.nickname = self.validated_data['author_name']
             user.save(update_fields=('nickname',))
         return super(SectionCommentCreateSerializer, self).save(**kwargs)

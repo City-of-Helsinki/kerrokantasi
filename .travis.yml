@@ -1,14 +1,19 @@
+install:
 language: python
 python:
-- '3.4'
-env:
-- DJANGO=Django>=1.9
-install:
-- pip install -r requirements.txt
+  - '3.6'
+  - 'nightly'
+
+cache: pip
+
+install : 'pip install -r requirements.txt'
+
 script:
 - flake8 democracy
-- py.test -vvv --cov democracy democracy/tests
-after_success: coveralls
+- pytest --cov=. democracy/tests
+
+after_success: codecov
+
 notifications:
   slack:
     secure: Q8jaL419Pu7hG7yRyohOQSLjvXW2MCOb7ViyxTGdTDSVW3kvMjtNqAkDNFqukztaMpuFJc5QrMITvxg/yLQouUIm/nl+8MqHLKVJw8B2sraNNF/rdatFNLitC/kEgz/S9gQOi+2QAKrE/ofo35AxMlbofEukb19RLQ3Zi/kHm2P4r40yD0sXLtASW0dbZXLBFMn6eheBiN9TG9JB1l1BjccE76h/fQ7Nyrdc03IMVyqop/X+3ic1/DetJ81C0yo+Xjm/RD6jauZ7Bst7ruMRG470KKBlxJPA7oI49fF6cm4kgCwF0zDWGA9RVh7ezEfdxQVKnLFqPEqgolzxML3d4KY/u/+J11VjaRMAJE4EimZllgHxOEx8tItHDuiwm2tMZrZBJGNQ9Zd4zuqgZ7sOoHLF1XkfO6enn48DfCdUFw8seKCYPTvvynNVTfr81juuvgpq6ZbDpq749IKMHX/4AR8uG2WSQB/eAV2zeUFgMDAcQ7CBOJOx4JqM4Kqoa06gmLsTZPMMXwlQE9CDBTD1uNSuTrCPE5Dg/Mt5ia/u5Zmw2ensAB/tYBGoG+Pa1m5jyPDSkmbCfYpV5Yka3BAsiDILkajJRuABj9pgbm2f0l2SG3rS0Os3Ns3pLtyXTmAI97ZjAfLT/ElniKbq+N8Z7u7pQAw3bzlEG2GdnFsox1o=

@@ -1,3 +1,6 @@
+[![Build status](https://travis-ci.org/City-of-Helsinki/kerrokantasi.svg)](https://travis-ci.org/City-of-Helsinki/kerrokantasi)
+[![codecov](https://codecov.io/gh/City-of-Helsinki/kerrokantasi/branch/master/graph/badge.svg)](https://codecov.io/gh/City-of-Helsinki/kerrokantasi)
+[![Requirements](https://requires.io/github/City-of-Helsinki/kerrokantasi/requirements.svg?branch=master)](https://requires.io/github/City-of-Helsinki/kerrokantasi/requirements/?branch=master)
 
 Kerro kantasi
 =============

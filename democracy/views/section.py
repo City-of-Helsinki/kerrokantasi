@@ -91,14 +91,14 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
         section = super().create(validated_data)
-        self._handle_images(section, images_data)
+        section.images = self._handle_images(section, images_data)
         return section
 
     @transaction.atomic()
     def update(self, instance, validated_data):
         images_data = validated_data.pop('images', [])
         section = super().update(instance, validated_data)
-        self._handle_images(section, images_data)
+        section.images = self._handle_images(section, images_data)
         return section
 
     def validate_images(self, data):
@@ -125,16 +125,18 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     def _handle_images(self, section, data):
         new_image_ids = set()
+        images = []
 
         for image_data in data:
             serializer = image_data.pop('serializer')
             image = serializer.save(section=section)
             new_image_ids.add(image.id)
+            images.append(image)
 
         for image in section.images.exclude(id__in=new_image_ids):
             image.soft_delete()
 
-        return section
+        return images
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

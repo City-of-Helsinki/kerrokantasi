@@ -10,7 +10,7 @@ from democracy.views.utils import TranslatableSerializer
 
 
 class LabelFilter(django_filters.FilterSet):
-    label = django_filters.CharFilter(lookup_type='icontains', name='translations__label')
+    label = django_filters.CharFilter(lookup_expr='icontains', name='translations__label')
 
     class Meta:
         model = Label

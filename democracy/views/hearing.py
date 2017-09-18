@@ -147,6 +147,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 image.soft_delete()
             section.soft_delete()
 
+        hearing.sections = sections  # see if this prevents returning outdated sections
         return hearing
 
     def validate_sections(self, data):

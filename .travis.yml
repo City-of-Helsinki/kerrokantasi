@@ -11,6 +11,10 @@ script:
 - flake8 democracy
 - pytest --cov=. democracy/tests
 
+apt:
+  packages:
+    postgresql-9.6-postgis-2.3
+
 after_success: codecov
 
 notifications:

@@ -119,7 +119,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         sections_data = validated_data.pop('sections')
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         hearing = super().create(validated_data)
-        hearing.sections = self._create_or_update_sections(hearing, sections_data, force_create=True)
+        self._create_or_update_sections(hearing, sections_data, force_create=True)
         return hearing
 
     @transaction.atomic()
@@ -147,7 +147,6 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 image.soft_delete()
             section.soft_delete()
 
-        hearing.sections = sections  # see if this prevents returning outdated sections
         return hearing
 
     def validate_sections(self, data):

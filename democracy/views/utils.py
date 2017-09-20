@@ -30,7 +30,6 @@ def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.
     prefetched_translations = getattr(obj, 'translation_list', [])
     filtered_prefetched = [translation for translation in prefetched_translations if
                            translation.language_code in language_codes]
-    print(filtered_prefetched)
     return filtered_prefetched if prefetched_translations else obj.translations.filter(
         language_code__in=language_codes)
 

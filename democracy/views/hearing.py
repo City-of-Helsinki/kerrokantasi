@@ -221,11 +221,11 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         return serializer.to_representation(queryset)
 
     def get_main_image(self, hearing):
-        main_image = SectionImage.objects.filter(
-            section__hearing=hearing,
-            section__type__identifier='main'
-        ).first()
+        main_section = self._get_main_section(hearing)
+        if not main_section:
+            return None
 
+        main_image = main_section.images.first()
         if not main_image:
             return None
 
@@ -273,11 +273,15 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug'
         ]
 
+
 hearing_prefetches = (
     Prefetch(
         'sections',
         queryset=Section.objects.filter(type__identifier='main').prefetch_related(
-            Prefetch('translations', to_attr='translation_list')
+            Prefetch('translations', to_attr='translation_list'),
+            Prefetch('images',
+                     queryset=SectionImage.objects.filter(section__type__identifier='main').
+                     prefetch_related('translations'))
         ),
         to_attr='main_section_list'
     ),
@@ -285,15 +289,9 @@ hearing_prefetches = (
         'labels',
         queryset=Label.objects.prefetch_related('translations')
     ),
-    Prefetch(
-        'contact_persons',
-        queryset=ContactPerson.objects.prefetch_related('translations')
-    ),
     'translations'
-    # 'sections__translations',
-    # 'labels__translations',
-    # 'contact_persons__translations'
     )
+
 
 class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """

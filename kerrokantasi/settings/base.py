@@ -29,6 +29,7 @@ INSTALLED_APPS = (
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app
     'parler',
+    'django_filters',
 )
 
 MIDDLEWARE_CLASSES = (

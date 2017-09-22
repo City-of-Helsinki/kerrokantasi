@@ -19,6 +19,21 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
 
 
+def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.PARLER_LANGUAGES[None]]):
+    """
+    This method uses translation_list attribute created by Prefetch to obtain translations without database hit.
+
+    :param obj: Any translated object that may have had Prefetch('translations', to_attr='translation_list') done
+    :param language_codes: Iterable containing the languages to return
+    :return: QuerySet or list containing the desired translations, if not the default
+    """
+    prefetched_translations = getattr(obj, 'translation_list', [])
+    filtered_prefetched = [translation for translation in prefetched_translations if
+                           translation.language_code in language_codes]
+    return filtered_prefetched if prefetched_translations else obj.translations.filter(
+        language_code__in=language_codes)
+
+
 class AbstractFieldSerializer(serializers.RelatedField):
     parent_serializer_class = serializers.ModelSerializer
     many_field_class = ManyRelatedField

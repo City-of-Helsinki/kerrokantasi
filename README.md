@@ -5,15 +5,19 @@
 Kerro kantasi
 =============
 
+Backend and open API for City of Helsinki participatory democracy UI https://github.com/City-of-Helsinki/kerrokantasi-ui
+
 Required packages
 -----------------
 
  - PostgreSQL with PostGIS extension
  - Python 3.4
- - Django 1.9
+ - Django 1.11
  - Django REST framework (http://www.django-rest-framework.org/)
  - munigeo (https://github.com/City-of-Helsinki/munigeo)
  - django-reversion (http://django-reversion.readthedocs.org)
+ - django-parler (http://django-parler.readthedocs.io)
+ - django-filter (http://django-filter.readthedocs.io)
  - and more!
 
 Install

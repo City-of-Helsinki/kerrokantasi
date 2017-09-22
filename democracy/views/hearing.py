@@ -21,7 +21,7 @@ from democracy.views.label import LabelSerializer
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
-from democracy.views.utils import TranslatableSerializer
+from democracy.views.utils import TranslatableSerializer, get_translation_list
 from .hearing_report import HearingReport
 from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
@@ -119,7 +119,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         sections_data = validated_data.pop('sections')
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         hearing = super().create(validated_data)
-        hearing.sections = self._create_or_update_sections(hearing, sections_data, force_create=True)
+        self._create_or_update_sections(hearing, sections_data, force_create=True)
         return hearing
 
     @transaction.atomic()
@@ -147,7 +147,6 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 image.soft_delete()
             section.soft_delete()
 
-        hearing.sections = sections  # see if this prevents returning outdated sections
         return hearing
 
     def validate_sections(self, data):
@@ -204,7 +203,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             return ''
         translations = {
             t.language_code: t.abstract for t in
-            main_section.translations.filter(language_code__in=self.Meta.translation_lang)
+            get_translation_list(main_section, language_codes=self.Meta.translation_lang)
         }
         abstract = {}
         for lang_code, translation in translations.items():
@@ -222,11 +221,11 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         return serializer.to_representation(queryset)
 
     def get_main_image(self, hearing):
-        main_image = SectionImage.objects.filter(
-            section__hearing=hearing,
-            section__type__identifier='main'
-        ).first()
+        main_section = self._get_main_section(hearing)
+        if not main_section:
+            return None
 
+        main_image = main_section.images.first()
         if not main_image:
             return None
 
@@ -254,8 +253,9 @@ class HearingListSerializer(HearingSerializer):
 
     def get_fields(self):
         fields = super(HearingListSerializer, self).get_fields()
-        # Elide section and geo data when listing hearings; one can get to them via detail routes
+        # Elide section, contact person and geo data when listing hearings; one can get to them via detail routes
         fields.pop("sections")
+        fields.pop("contact_persons")
         request = self.context.get('request', None)
         if request:
             if not request.GET.get('include', None) == 'geojson'\
@@ -272,6 +272,25 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = [
             'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug'
         ]
+
+
+hearing_prefetches = (
+    Prefetch(
+        'sections',
+        queryset=Section.objects.filter(type__identifier='main').prefetch_related(
+            Prefetch('translations', to_attr='translation_list'),
+            Prefetch('images',
+                     queryset=SectionImage.objects.filter(section__type__identifier='main').
+                     prefetch_related('translations'))
+        ),
+        to_attr='main_section_list'
+    ),
+    Prefetch(
+        'labels',
+        queryset=Label.objects.prefetch_related('translations')
+    ),
+    'translations'
+    )
 
 
 class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
@@ -316,26 +335,14 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request,
-                                             hearing_lookup='').prefetch_related(
-            Prefetch(
-                'sections',
-                queryset=Section.objects.filter(type__identifier='main'),
-                to_attr='main_section_list'
-            )
-        )
+                                             hearing_lookup='').prefetch_related(*hearing_prefetches)
         return queryset
 
     def get_object(self):
         id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
 
         queryset = self.filter_queryset(Hearing.objects.with_unpublished())
-        queryset = queryset.prefetch_related(
-            Prefetch(
-                'sections',
-                queryset=Section.objects.filter(type__identifier='main'),
-                to_attr='main_section_list'
-            )
-        )
+        queryset = queryset.prefetch_related(*hearing_prefetches)
 
         try:
             obj = queryset.get_by_id_or_slug(id_or_slug)

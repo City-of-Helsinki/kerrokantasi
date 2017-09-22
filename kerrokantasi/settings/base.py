@@ -131,6 +131,7 @@ PARLER_LANGUAGES = {
         'fallbacks': ['fi', 'en', 'sv'],
     }
 }
+PARLER_ENABLE_CACHING = False
 
 DETECT_LANGS_MIN_PROBA = 0.3
 

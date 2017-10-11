@@ -33,10 +33,10 @@ class Select2SelectMultiple(SelectMultiple):
             css={"all": [static("admin/select2/select2.min.css")]}
         )
 
-    def render(self, name, value, attrs=None, choices=()):
+    def render(self, name, value, attrs=None, renderer=None):
         id = attrs.get("id", "id_%s" % name)
         output = [
-            super(Select2SelectMultiple, self).render(name, value, attrs, choices),
+            super(Select2SelectMultiple, self).render(name, value, attrs, renderer),
             self.SCRIPT_TEMPLATE.format(id=id)
         ]
         return mark_safe(''.join(output))

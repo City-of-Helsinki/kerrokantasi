@@ -53,7 +53,6 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
     )
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
-    plugin_iframe_url = models.URLField(verbose_name=_('plugin iframe url'), blank=True)
     plugin_fullscreen = models.BooleanField(default=False)
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 

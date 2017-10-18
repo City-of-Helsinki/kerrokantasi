@@ -53,7 +53,7 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
             'id', 'type', 'commenting', 'voting', 'published',
             'title', 'abstract', 'content', 'created_at', 'images', 'n_comments',
             'type_name_singular', 'type_name_plural',
-            'plugin_identifier', 'plugin_data', 'plugin_iframe_url', 'plugin_fullscreen',
+            'plugin_identifier', 'plugin_data', 'plugin_fullscreen',
         ]
 
 

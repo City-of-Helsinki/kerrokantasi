@@ -116,7 +116,8 @@ DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
     "mapdon-ksv": "democracy.plugins.Plugin",
     "mapdon-ksv-visualize": "democracy.plugins.Plugin",
-    "map-questionnaire": "democracy.plugins.Plugin",
+    "map-bikeracks": "democracy.plugins.Plugin",
+    "map-winterbiking": "democracy.plugins.Plugin"
 }
 
 PARLER_DEFAULT_LANGUAGE_CODE = 'en'

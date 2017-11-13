@@ -1,7 +1,7 @@
 import os
 gettext = lambda s: s
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 SECRET_KEY = '52k^*)c*bz9t0lzsf_$a+jl3zcy6re!gnw77__)y(#v91-p%tp'
 DEBUG = True

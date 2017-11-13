@@ -17,7 +17,7 @@ class UserDataSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = [
             'uuid',
-            'username', 'first_name', 'last_name',
+            'username', 'first_name', 'last_name', 'nickname',
             'voted_section_comments', 'followed_hearings',
             'admin_organizations'
         ]

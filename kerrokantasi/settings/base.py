@@ -5,27 +5,19 @@ import raven
 
 gettext = lambda s: s
 
-project_root = environ.Path(__file__) - 3
-BASE_DIR = project_root()
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-env = environ.Env(
-    DEBUG=(bool, True),
-    # For debugging, specify a really secret one for production
-    SECRET_KEY=(str, '52k^*)c*bz9t0lzsf_$a+jl3zcy6re!gnw77__)y(#v91-p%tp'),
-    ALLOWED_HOSTS=(list, []),
-    ADMINS=(list, []),
-    DATABASE_URL=(str, 'postgis:///kerrokantasi'),
-    SENTRY_DSN=(str, ''),
-    DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086')
-)
+env = environ.Env()
 
-SECRET_KEY = env('SECRET_KEY')
-DEBUG = env('DEBUG')
-ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+DEBUG = env.bool('DEBUG', default=True)
+SECRET_KEY = env.str('SECRET_KEY', default=('x' if DEBUG else environ.Env.NOTSET))
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+ADMINS = env.list(default=[])
 DATABASES = {
-    'default': env.db()
+    'default': env.db('DATABASE_URL', default='postgis:///kerrokantasi')
 }
-DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
+SENTRY_DSN = env.str('SENTRY_DSN', default='')
+DEMOCRACY_UI_BASE_URL = env.str('DEMOCRACY_UI_BASE_URL', default='http://localhost:8086')
 
 ### Settings below do not usually need changing
 

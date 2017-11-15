@@ -10,14 +10,19 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 env = environ.Env()
 
 DEBUG = env.bool('DEBUG', default=True)
-SECRET_KEY = env.str('SECRET_KEY', default=('x' if DEBUG else environ.Env.NOTSET))
+SECRET_KEY = env.str('SECRET_KEY', default=('x' if DEBUG else ''))
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-ADMINS = env.list(default=[])
+ADMINS = env.list('ADMINS', default=[])
 DATABASES = {
     'default': env.db('DATABASE_URL', default='postgis:///kerrokantasi')
 }
 SENTRY_DSN = env.str('SENTRY_DSN', default='')
 DEMOCRACY_UI_BASE_URL = env.str('DEMOCRACY_UI_BASE_URL', default='http://localhost:8086')
+
+JWT_AUTH = {
+    'JWT_SECRET_KEY': env.str('JWT_SECRET_KEY', default='kerrokantasi'),
+    'JWT_AUDIENCE': env.str('JWT_AUDIENCE', default='kerrokantasi')
+}
 
 ### Settings below do not usually need changing
 
@@ -46,6 +51,7 @@ INSTALLED_APPS = [
     'democracy',  # Reusable participatory democracy app
     'parler',
     'django_filters',
+    ''
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -111,12 +117,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
-
-JWT_AUTH = {
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_SECRET_KEY': 'kerrokantasi',
-    'JWT_AUDIENCE': 'kerrokantasi'
-}
+JWT_AUTH['JWT_PAYLOAD_GET_USER_ID_HANDLER'] = 'helusers.jwt.get_user_id_from_payload_handler'
 
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format

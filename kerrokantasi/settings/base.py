@@ -1,12 +1,33 @@
 import os
+
+import environ
+import raven
+
 gettext = lambda s: s
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+project_root = environ.Path(__file__) - 3
+BASE_DIR = project_root()
 
-SECRET_KEY = '52k^*)c*bz9t0lzsf_$a+jl3zcy6re!gnw77__)y(#v91-p%tp'
-DEBUG = True
+env = environ.Env(
+    DEBUG=(bool, True),
+    # For debugging, specify a really secret one for production
+    SECRET_KEY=(str, '52k^*)c*bz9t0lzsf_$a+jl3zcy6re!gnw77__)y(#v91-p%tp'),
+    ALLOWED_HOSTS=(list, []),
+    ADMINS=(list, []),
+    DATABASE_URL=(str, 'postgis:///kerrokantasi'),
+    SENTRY_DSN=(str, ''),
+    DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086')
+)
 
-ALLOWED_HOSTS = []
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+DATABASES = {
+    'default': env.db()
+}
+DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
+
+### Settings below do not usually need changing
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -67,14 +88,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'kerrokantasi.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'kerrokantasi',
-    }
-}
-
-
 LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
@@ -113,8 +126,6 @@ JWT_AUTH = {
     'JWT_AUDIENCE': 'kerrokantasi'
 }
 
-
-DEMOCRACY_UI_BASE_URL = 'http://localhost:8086'
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
     "mapdon-ksv": "democracy.plugins.Plugin",

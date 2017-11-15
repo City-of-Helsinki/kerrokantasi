@@ -1,0 +1,14 @@
+- name: Run kerrokantasi for development
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - docker_service:
+        project_name: kerrokantasi_api
+        definition:
+          version: '2'
+          services:
+            db:
+              image: postgis
+            backend:
+              image: 23963b35a197

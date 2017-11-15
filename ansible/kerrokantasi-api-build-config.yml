@@ -1,0 +1,69 @@
+# Used to configure python appserver below
+wsgi_entrypoint: kerrokantasi
+
+django_user: kerrokantasi-api-prod
+# This is the directory the source code if checked out to
+# also the prefix for all cookies
+django_name: kerrokantasi
+django_python3: yes
+# No special things needed for Pillow any more?
+django_pillow: no
+# Install packages needed for lxml Python module
+django_lxml: yes
+
+django_deb_deps:
+  - libgdal1h
+
+django_git_url: https://github.com/City-of-Helsinki/kerrokantasi.git
+django_git_version: master
+# Only switch to true if repo is borked
+django_git_force_pull: false
+
+# This only runs manage.py rebuild_index
+django_full_reinit: false
+django_config_fragments:
+  - ansible/files/django_settings/30_authentication_config.py
+  - ansible/files/django_settings/40_raven.py
+
+django_service_pypis:
+  - raven
+
+# For docker these must be run runtime
+django_run_migrations: false
+
+#django_setup_commands:
+#- install_templates helevents
+# These are for special cases. Just restore the backup instead
+#- geo_import finland --municipalities
+#- geo_import helsinki --divisions
+
+django_virtualhosts:
+  - kerrokantasi-api.prod.hel.ninja
+  - api.hel.fi
+
+# This is only used below to name TLS keys (if used)
+external_name: kerrokantasi-api.prod.hel.ninja
+# Prefix expected/stripped for all incoming requests
+django_url_prefix: kerrokantasi
+
+django_db_name: "{{ django_user }}"
+# Sets the DB adapter used by Django
+django_db_postgis: yes
+# Does nothing
+#django_db_hstore: yes
+
+django_debug: no
+django_debug_logging: no
+django_site_state: production
+
+# Not done in docker
+pycont_start_service: false
+# Done in docker
+pycont_use_pypi: true
+pycont_user: "{{ django_user }}"
+# This is the name of system services and such
+pycont_name: "kerrokantasi-api-prod"
+pycont_app_name: "{{ wsgi_entrypoint }}"
+pycont_app_path: "{{ django_name }}"
+pycont_url_prefix: "{{ django_url_prefix }}"
+pycont_contract_socket: /run/uwsgi/app/{{ pycont_name }}/contract_socket

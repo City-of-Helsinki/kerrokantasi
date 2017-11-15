@@ -1,0 +1,27 @@
+---
+- name: Create base image
+  hosts: localhost
+  tasks:
+  - name: Create container for building image
+    docker_container:
+      name: kerrokantasi_builder
+      image: python:3.6
+      interactive: true
+      hostname: kerrokantasi-api-prod
+      state: started
+      recreate: "{{ recreate_image|default(true) }}"
+  - name: Add container to dynamic inventory
+    add_host:
+      name: kerrokantasi_builder
+      ansible_connection: docker
+      ansible_user: root
+
+- name: Build kerrokantasi in container
+  hosts: kerrokantasi_builder
+  become: yes
+  become_method: su
+  vars_files:
+    - ansible/kerrokantasi-api-build-config.yml
+  roles:
+    - django-configuration
+    - python-container

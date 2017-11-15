@@ -9,7 +9,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 
 env = environ.Env()
 
-DEBUG = env.bool('DEBUG', default=True)
+DEBUG = env.bool('DEBUG', default=False)
 SECRET_KEY = env.str('SECRET_KEY', default=('x' if DEBUG else ''))
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 ADMINS = env.list('ADMINS', default=[])
@@ -22,6 +22,11 @@ DEMOCRACY_UI_BASE_URL = env.str('DEMOCRACY_UI_BASE_URL', default='http://localho
 JWT_AUTH = {
     'JWT_SECRET_KEY': env.str('JWT_SECRET_KEY', default='kerrokantasi'),
     'JWT_AUDIENCE': env.str('JWT_AUDIENCE', default='kerrokantasi')
+}
+
+RAVEN_CONFIG = {
+    'dsn': env.str('SENTRY_DSN', default=''),
+    'release': raven.fetch_git_sha(BASE_DIR),
 }
 
 ### Settings below do not usually need changing
@@ -51,8 +56,10 @@ INSTALLED_APPS = [
     'democracy',  # Reusable participatory democracy app
     'parler',
     'django_filters',
-    ''
 ]
+
+if RAVEN_CONFIG['dsn']:
+    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',

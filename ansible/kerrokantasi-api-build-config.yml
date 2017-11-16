@@ -1,7 +1,7 @@
 # Used to configure python appserver below
 wsgi_entrypoint: kerrokantasi
 
-django_user: kerrokantasi-api-prod
+django_user: kerrokantasi-api
 # This is the directory the source code if checked out to
 # also the prefix for all cookies
 django_name: kerrokantasi
@@ -15,21 +15,19 @@ django_deb_deps:
   - libgdal1h
 
 django_git_url: https://github.com/City-of-Helsinki/kerrokantasi.git
-django_git_version: master
+django_git_version: feature/conf-from-environment
 # Only switch to true if repo is borked
 django_git_force_pull: false
 
 # This only runs manage.py rebuild_index
 django_full_reinit: false
-django_config_fragments:
-  - ansible/files/django_settings/30_authentication_config.py
-  - ansible/files/django_settings/40_raven.py
-
-django_service_pypis:
-  - raven
 
 # For docker these must be run runtime
 django_run_migrations: false
+
+# Useless cruft for docker
+django_create_local_settings: false
+django_enable_local_settings_d: false
 
 #django_setup_commands:
 #- install_templates helevents

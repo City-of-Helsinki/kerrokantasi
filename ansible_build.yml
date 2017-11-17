@@ -34,11 +34,12 @@
 
 - name: Finalize container
   hosts: localhost
+  become: no
   tasks:
     - name: Commit and define entrypoint in image
-      become: no
-      local_action: command docker commit --change "ENTRYPOINT /docker-entrypoint.sh" kerrokantasi_builder helsinki/kerrokantasi-api
+      command: docker commit --change "ENTRYPOINT /docker-entrypoint.sh" kerrokantasi_builder helsinki/kerrokantasi-api
     - name: Destroy the build container
       docker_container:
         name: kerrokantasi_builder
         state: absent
+      when: recreate_image|default(true)

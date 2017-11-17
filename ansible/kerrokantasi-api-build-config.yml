@@ -5,7 +5,8 @@ django_user: kerrokantasi-api
 # This is the directory the source code if checked out to
 # also the prefix for all cookies
 django_name: kerrokantasi
-django_python3: yes
+# Don't use system python on docker
+django_install_system_python: false
 # No special things needed for Pillow any more?
 django_pillow: no
 # Install packages needed for lxml Python module

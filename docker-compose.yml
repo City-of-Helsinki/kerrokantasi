@@ -1,13 +1,14 @@
 version: '2'
 services:
-  respa_db:
+  database:
     environment:
       POSTGRES_PASSWORD: dUZM87S0Kn1vxjexIxWj
-      POSTGRES_USER: kerrokantasi-api-prod    
+      POSTGRES_USER: kerrokantasi-api-dev
     image: mdillon/postgis
   backend:
-    user: kerrokantasi-api-prod
-    environment:
-      DATABASE_URL: postgis://kerrokantasi-api-prod:dUZM87S0Kn1vxjexIxWj@respa_db/kerrokantasi-api-prod
+    user: kerrokantasi-api
     command: /docker-entrypoint.sh
-    image: 72c4625b6afb
+    environment:
+      DEBUG: yes
+      DATABASE_URL: postgis://kerrokantasi-api-prod:dUZM87S0Kn1vxjexIxWj@respa_db/kerrokantasi-api-prod
+    image: helsinki/kerrokantasi-api

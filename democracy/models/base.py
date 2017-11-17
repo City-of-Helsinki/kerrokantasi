@@ -8,7 +8,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from enumfields.fields import EnumIntegerField
-
 from democracy.enums import Commenting
 
 ORDERING_HELP = _("The ordering position for this object. Objects with smaller numbers appear first.")

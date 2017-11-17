@@ -225,7 +225,7 @@ class LabelAdmin(TranslatableAdmin, admin.ModelAdmin):
     exclude = ("published",)
 
 
-class SectionTypeAdmin(TranslatableAdmin, admin.ModelAdmin):
+class SectionTypeAdmin(admin.ModelAdmin):
     fields = ("name_singular", "name_plural")
 
     def get_queryset(self, request):

@@ -25,13 +25,13 @@ uwsgi:
 {% endif %}
   env: DJANGO_SETTINGS_MODULE={{pycont_app_name}}.settings
   env: LANG=en_US.UTF-8
-  virtualenv: /home/{{pycont_user}}/venv
+  virtualenv: /home/{{ pycont_user }}/venv
 {% if pycont_contract_port is defined %}
-  socket: 127.0.0.1:{{pycont_contract_port}}
+  socket: 127.0.0.1:{{ pycont_contract_uwsgi }}
 {% elif pycont_contract_socket is defined %}
-  socket: {{pycont_contract_socket}}
-{% elif pycont_http_port is defined %}
-  http-socket: {{ pycont_http_port }}
+  socket: {{ pycont_contract_socket }}
+{% elif pycont_contract_http is defined %}
+  http-socket: {{ pycont_contract_http }}
 {% endif %}
   processes: {{pycont_uwsgi_processes|default(4)}}
   threads: {{ pycont_uwsgi_threads|default(1)}}

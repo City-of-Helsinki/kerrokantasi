@@ -7,8 +7,10 @@ services:
     image: mdillon/postgis
   backend:
     user: kerrokantasi-api
-    command: /docker-entrypoint.sh
     environment:
       DEBUG: "yes"
       DATABASE_URL: postgis://kerrokantasi-api-dev:dUZM87S0Kn1vxjexIxWj@database/kerrokantasi-api-dev
+      URL_PREFIX: kerrokantasi
     image: helsinki/kerrokantasi-api
+    ports:
+      - "8080:8080"

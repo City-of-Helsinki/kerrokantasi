@@ -22,6 +22,12 @@
   - python3
   - libpython3-dev
 
+- name: Install rsync to synchoronize
+  apt: pkg={{item}} state=present update-cache=yes cache_valid_time=86400
+  with_items:
+  - rsync
+  when: django_sync_source is defined
+
 - name: Install application specific .deb dependencies
   apt: pkg={{item}} state=present update-cache=yes cache_valid_time=86400
   with_items: "{{django_deb_deps|default([])}}"

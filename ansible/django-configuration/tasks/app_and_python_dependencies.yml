@@ -9,6 +9,13 @@
   until: git_deploy|succeeded
   when: not django_skip_git is defined
 
+- name: Synchoronize given directory as source
+  become_user: "{{ django_user }}"
+  synchronize:
+    src: "{{ django_sync_source }}"
+    dest: /home/{{ django_user }}/{{ django_name }}/
+  when: django_sync_source is defined
+
 #- name: Create Python 3.x venv
 #  become_user: "{{django_user}}"
 #  environment:
@@ -43,7 +50,6 @@
        virtualenv_site_packages=no
        state={{ django_upgrade_requirements | default(False) | ternary('latest', 'present') }}
   tags: [ venv, code_update ]
-  when: not django_skip_git is defined
 
 - name: Install requirements-dev.txt into virtualenv
   become_user: "{{django_user}}"
@@ -57,7 +63,7 @@
        virtualenv_site_packages=no
        state={{ django_upgrade_requirements | default(False) | ternary('latest', 'present') }}
   tags: [ venv, code_update ]
-  when: not django_skip_git is defined and django_install_devreqs | default(False)
+  when: django_install_devreqs | default(False)
 
 - name: Install configuration specific Python packages into virtualenv
   become_user: "{{django_user}}"

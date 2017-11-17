@@ -10,6 +10,13 @@
             mode=0644
   when: django_create_local_settings|default(True)
 
+- name: Template in Django configuration for container
+  become_user: "{{django_user}}"
+  template: src=django_local_settings_docker.py.j2
+            dest=/home/{{django_user}}/{{django_name}}/local_settings.py
+            mode=0644
+  when: django_create_contained_local_settings|default(True)
+
 - name: Create django configuration fragment directory
   file:
     path: /home/{{django_user}}/{{django_name}}/local_settings.d
@@ -63,6 +70,8 @@
   django_manage: command=compilemessages app_path=/home/{{django_user}}/{{django_name}}
                  virtualenv=/home/{{django_user}}/venv
   become_user: "{{django_user}}"
+  environment:
+    DEBUG: "True"
   # django_locales_present is an override when the test above produces false results
   when: locale.matched > 0 and django_locales_present|default(True)
   tags: code_update
@@ -99,6 +108,8 @@
 
 - name: Collect static files
   become_user: "{{django_user}}"
+  environment:
+    DEBUG: "True"
   django_manage: command=collectstatic app_path=/home/{{django_user}}/{{django_name}}
                  virtualenv=/home/{{django_user}}/venv
   tags: code_update

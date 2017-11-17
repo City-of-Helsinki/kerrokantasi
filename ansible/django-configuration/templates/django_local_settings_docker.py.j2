@@ -1,17 +1,24 @@
 # {{ansible_managed}}
-LOGIN_REDIRECT_URL = 'https://api.hel.fi{{ "/" ~ django_url_prefix if django_url_prefix is defined else "" }}/admin/'
+import environ
+
+env = environ.Env()
+
+INSTANCE_NAME = env.str('INSTANCE_NAME', default="{{ django_name }}")
+URL_PREFIX = '/' + env.str('URL_PREFIX', default="{{ django_url_prefix if django_url_prefix is defined else "" }}")
+
+LOGIN_REDIRECT_URL = 'https://api.hel.fi/{}/admin/'.format(URL_PREFIX)
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = 'https'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = {{ django_use_x_forwarded_host|default("True") }}
 
-CSRF_COOKIE_NAME = '{{ django_name }}-csrftoken'
-CSRF_COOKIE_PATH = '/{{ django_url_prefix|default("") }}'
-SESSION_COOKIE_NAME = '{{ django_name }}-sessionid'
+CSRF_COOKIE_NAME = '{}-csrftoken'.format(INSTANCE_NAME)
+CSRF_COOKIE_PATH = '{}'.format(URL_PREFIX)
+SESSION_COOKIE_NAME = '{}-sessionid'.format(INSTANCE_NAME)
 {# FIXME, django role should not really look inside nginx configuration #}
 SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_PATH = '/{{ django_url_prefix|default("") }}'
+SESSION_COOKIE_PATH = '{}'.format(URL_PREFIX)
 
-SITE_TYPE = '{{ django_site_state }}'
+SITE_TYPE = env.str('SITE_STATE', default="{{ django_site_state }}")
 
 {% if django_debug_logging|default(False) %}
 LOGGING = {
@@ -85,33 +92,7 @@ LOGGING = {
 }
 {% endif %}
 
-{% if django_sentry_dsn is defined %}
-import raven
-
-RAVEN_CONFIG = {
-    'dsn': '{{django_sentry_dsn}}',
-    # Needs to change if settings.py is not in an immediate child of the project
-    'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
-{% if django_sentry_environment is defined %}    'environment': '{{django_sentry_environment}}'{% endif %}
-}
-{% endif %}
-
 STATIC_ROOT = '/home/{{django_user}}/static'
 MEDIA_ROOT = '/home/{{django_user}}/media'
-STATIC_URL = '{{ ("/" ~ django_url_prefix) if django_url_prefix is defined else ""}}/static/'
-MEDIA_URL = '{{ ("/" ~ django_url_prefix) if django_url_prefix is defined else "" }}/media/'
-
-{% if django_jwt_secret|default(False) %}
-JWT_AUTH = {
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_SECRET_KEY': '{{django_jwt_secret}}',
-    'JWT_AUDIENCE': '{{django_jwt_audience}}'
-}
-{% endif %}
-
-{# haystack configurations are wery complex and require a fwagment #}
-{% include django_haystack_config_fragment|default("non_existent") ignore missing %}
-
-{% if django_kerrokantasi_ui_location|default(False) %}
-DEMOCRACY_UI_BASE_URL = 'http://{{ django_kerrokantasi_ui_location }}'
-{% endif %}
+STATIC_URL = '{}/static/'.format(URL_PREFIX)
+MEDIA_URL = '{}/media/'.format(URL_PREFIX)

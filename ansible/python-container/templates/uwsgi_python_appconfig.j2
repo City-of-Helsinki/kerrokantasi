@@ -1,5 +1,6 @@
 # {{ansible_managed}}
 uwsgi:
+{% if pycont_use_python_plugin|default(True) %}
   # Take heed! Plugins must be near top. Uwsgi will automagically
   # attempt to find a plugin providing unknown configuration options
   # If the parser encounters 'callable'-option it will load the first
@@ -7,9 +8,10 @@ uwsgi:
   # Then you application will be run using that python and you will
   # be quite confused.
   plugins: python3
+{% endif %}
   chdir: /home/{{pycont_user}}/{{pycont_app_path}}
 {% if pycont_url_prefix is defined %}
-  mount: "/{{pycont_url_prefix}}={{pycont_app_name}}/wsgi.py"
+  mount: /{{pycont_url_prefix}}={{pycont_app_name}}/wsgi.py
   # This causes uwsgi to cut off the mountpoint name from URLs it
   # passes on to the the WSGI-application. Or at least it causes Django
   # to work when not installed in the root of URI-space
@@ -17,7 +19,7 @@ uwsgi:
 {% else %}
   wsgi-file: {{pycont_app_name}}/wsgi.py
 {% endif %}
-  callable: "application"
+  callable: application
 {% if pycont_path is defined %}
   env: PATH={{pycont_path ~ ":"}}$(PATH)
 {% endif %}

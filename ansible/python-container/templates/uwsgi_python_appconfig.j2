@@ -46,6 +46,9 @@ uwsgi:
 {% for process in pycont_aux_processes|default([]) %}
   smart-attach-daemon: {{ process.pidfile }} {{ process.command }}
 {% endfor %}
+  if-env: AUTO_RELOAD_TIMER
+    py-auto-reload: %(_)
+  endif:
   # Based on AKX
   master: true
   reload-on-rss: 300

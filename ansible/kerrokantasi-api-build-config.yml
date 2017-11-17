@@ -66,4 +66,4 @@ pycont_name: "kerrokantasi-api"
 pycont_app_name: "{{ wsgi_entrypoint }}"
 pycont_app_path: "{{ django_name }}"
 pycont_url_prefix: "{{ django_url_prefix }}"
-pycont_contract_port: 8080
+pycont_http_port: 8080

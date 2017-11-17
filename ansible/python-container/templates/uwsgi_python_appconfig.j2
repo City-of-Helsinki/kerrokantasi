@@ -30,6 +30,8 @@ uwsgi:
   socket: 127.0.0.1:{{pycont_contract_port}}
 {% elif pycont_contract_socket is defined %}
   socket: {{pycont_contract_socket}}
+{% elif pycont_http_port is defined %}
+  http-socket: {{ pycont_http_port }}
 {% endif %}
   processes: {{pycont_uwsgi_processes|default(4)}}
   threads: {{ pycont_uwsgi_threads|default(1)}}

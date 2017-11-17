@@ -21,7 +21,7 @@ class Organization(StringIdBaseModel):
         return self.name
 
 
-class ContactPerson(StringIdBaseModel, TranslatableModel):
+class ContactPerson(TranslatableModel, StringIdBaseModel):
     organization = models.ForeignKey(Organization, verbose_name=_('organization'), related_name='contact_persons',
                                      blank=True, null=True)
     translations = TranslatedFields(

@@ -21,6 +21,7 @@
   with_items:
   - python3
   - libpython3-dev
+  when: django_install_system_python|default(true)
 
 - name: Install rsync to synchoronize
   apt: pkg={{item}} state=present update-cache=yes cache_valid_time=86400

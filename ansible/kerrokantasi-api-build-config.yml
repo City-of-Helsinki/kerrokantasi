@@ -27,6 +27,7 @@ django_run_migrations: false
 
 # Useless cruft for docker
 django_create_local_settings: false
+django_create_contained_local_settings: true
 django_enable_local_settings_d: false
 
 #django_setup_commands:
@@ -36,11 +37,11 @@ django_enable_local_settings_d: false
 #- geo_import helsinki --divisions
 
 django_virtualhosts:
-  - kerrokantasi-api.prod.hel.ninja
+  - kerrokantasi-api.dev.hel.ninja
   - api.hel.fi
 
 # This is only used below to name TLS keys (if used)
-external_name: kerrokantasi-api.prod.hel.ninja
+external_name: kerrokantasi-api.dev.hel.ninja
 # Prefix expected/stripped for all incoming requests
 django_url_prefix: kerrokantasi
 
@@ -56,12 +57,13 @@ django_site_state: production
 
 # Not done in docker
 pycont_start_service: false
+pycont_use_python_plugin: false
 # Done in docker
 pycont_use_pypi: true
 pycont_user: "{{ django_user }}"
 # This is the name of system services and such
-pycont_name: "kerrokantasi-api-prod"
+pycont_name: "kerrokantasi-api"
 pycont_app_name: "{{ wsgi_entrypoint }}"
 pycont_app_path: "{{ django_name }}"
 pycont_url_prefix: "{{ django_url_prefix }}"
-pycont_contract_socket: /run/uwsgi/app/{{ pycont_name }}/contract_socket
+pycont_contract_port: 8080

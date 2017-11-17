@@ -31,7 +31,12 @@ uwsgi:
 {% elif pycont_contract_socket is defined %}
   socket: {{ pycont_contract_socket }}
 {% elif pycont_contract_http is defined %}
-  http-socket: {{ pycont_contract_http }}
+  http-socket: :{{ pycont_contract_http }}
+{% endif %}
+{% if pycont_static_maps is defined %}
+{% for map in pycont_static_maps %}
+  static-map: {{ map }}={{ pycont_static_maps[map] }}
+{% endfor %}
 {% endif %}
   processes: {{pycont_uwsgi_processes|default(4)}}
   threads: {{ pycont_uwsgi_threads|default(1)}}

@@ -61,6 +61,9 @@ pycont_use_python_plugin: false
 # Done in docker
 pycont_use_pypi: true
 pycont_user: "{{ django_user }}"
+pycont_static_maps:
+  /static: /home/kerrokantasi-api/static
+  /media: /home/kerrokantasi-api/media
 # This is the name of system services and such
 pycont_name: "kerrokantasi-api"
 pycont_app_name: "{{ wsgi_entrypoint }}"

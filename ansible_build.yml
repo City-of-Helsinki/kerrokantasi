@@ -7,7 +7,7 @@
       name: kerrokantasi_builder
       image: python:3.6
       interactive: true
-      hostname: kerrokantasi-api-prod
+      hostname: kerrokantasi-api
       state: started
       recreate: "{{ recreate_image|default(true) }}"
   - name: Add container to dynamic inventory
@@ -25,3 +25,20 @@
   roles:
     - django-configuration
     - python-container
+  tasks:
+    - name: Insert entrypoint into docker_container
+      copy:
+        src: ansible/files/docker-entrypoint.sh
+        dest: /docker-entrypoint.sh
+        mode: 0755
+
+- name: Finalize container
+  hosts: localhost
+  tasks:
+    - name: Commit and define entrypoint in image
+      become: no
+      local_action: command docker commit --change "ENTRYPOINT /docker-entrypoint.sh" kerrokantasi_builder helsinki/kerrokantasi-api
+    - name: Destroy the build container
+      docker_container:
+        name: kerrokantasi_builder
+        state: absent

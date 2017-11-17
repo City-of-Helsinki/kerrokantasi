@@ -10,5 +10,5 @@ services:
     command: /docker-entrypoint.sh
     environment:
       DEBUG: yes
-      DATABASE_URL: postgis://kerrokantasi-api-prod:dUZM87S0Kn1vxjexIxWj@respa_db/kerrokantasi-api-prod
+      DATABASE_URL: postgis://kerrokantasi-api-prod:dUZM87S0Kn1vxjexIxWj@database/kerrokantasi-api-prod
     image: helsinki/kerrokantasi-api

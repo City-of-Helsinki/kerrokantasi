@@ -1,0 +1,20 @@
+version: '2'
+services:
+  backend:
+    environment:
+      # You can generate your own too, eg. by using 'pwgen -s 60 1'
+      SECRET_KEY: h6KJXvuCsc81DJw9iDfiVm3yXcG1MdqTygS6S2fGZ3MOSrcKC1gZjjhVXtWYAd26
+      #ALLOWED_HOSTS: {{ insert your own allowed hosts here, if needed }}
+      #SENTRY_DSN: {{ insert URL-style sentry dsn }}
+      # Some admins maybe?
+      ADMINS: dev@hel.fi
+      # This is needed for admin preview functionality
+      DEMOCRACY_UI_BASE_URL: https://kerrokantasi.hel.ninja/
+      # For checking keys issued by tunnistamo
+      JWT_SECRET_KEY: {{ insert string from tunnistamo here }}
+      JWT_AUDIENCE: {{ insert another string from tunnistamo here }}
+      # Causes uwsgi to reload changed files every 2 seconds
+      AUTO_RELOAD_TIMER: 2
+      # If you feel like using your local code
+#    volumes:
+#      - .:/home/kerrokantasi-api/kerrokantasi

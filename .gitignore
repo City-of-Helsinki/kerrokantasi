@@ -47,3 +47,4 @@ target/
 var/
 migrator/*.json
 migrator/*.xml
+docker-compose.override.yml

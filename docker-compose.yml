@@ -7,6 +7,9 @@ services:
     image: mdillon/postgis
   backend:
     user: kerrokantasi-api
+    depends_on:
+      - "database"
+    restart: on-failure
     environment:
       DEBUG: "yes"
       DATABASE_URL: postgis://kerrokantasi-api-dev:dUZM87S0Kn1vxjexIxWj@database/kerrokantasi-api-dev

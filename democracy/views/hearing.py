@@ -68,6 +68,21 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         super(HearingCreateUpdateSerializer, self).__init__(*args, **kwargs)
         self.partial = kwargs.get('partial', False)
 
+    def validate(self, data):
+        # Seems like TranslatableFields always allows null values by design, so title can't
+        # be set as null=False in model.
+        # DRF does not use model validation routine at all,
+        # so this check can't be in model.clean()-method.
+        # For some reason per field validation in this serializer is not working with parler
+        try:
+            titles = data['title']
+        except KeyError:
+            raise serializers.ValidationError('Title is required with at least one locale')
+        else:
+            if '' in titles.values():
+                raise serializers.ValidationError('Title missing for selected locale')
+        return data
+
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """
         Create or update sections of a hearing

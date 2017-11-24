@@ -69,18 +69,16 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         self.partial = kwargs.get('partial', False)
 
     def validate(self, data):
-        # Seems like TranslatableFields always allows null values by design, so title can't
-        # be set as null=False in model.
-        # DRF does not use model validation routine at all,
-        # so this check can't be in model.clean()-method.
-        # For some reason per field validation in this serializer is not working with parler
+        data = super(HearingCreateUpdateSerializer, self).validate(data)
+        action = self.context['view'].action
         try:
-            # When creating or update as whole, there must be title
             titles = data['title']
         except KeyError:
-            raise serializers.ValidationError('Title is required at least in one locale')
+            # When creating or updating as whole, there must be title
+            if action in ('create', 'update'):
+                raise serializers.ValidationError('Title is required at least in one locale')
         else:
-            # Title must be set atleast in one locale
+            # When creating or updating as whole or patching, title must be set at least in one locale
             has_title = False
             for title in titles.values():
                 if title:
@@ -89,13 +87,16 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             if not has_title:
                 raise serializers.ValidationError('Title is required at least in one locale')
 
-        # require slug
         try:
             slug = data['slug']
-            if not slug:
-                raise KeyError
         except KeyError:
-            raise serializers.ValidationError('Slug is required')
+            # When creating or updating as whole, there must be a slug
+            if action in ('create', 'update'):
+                raise serializers.ValidationError('Slug is required')
+        else:
+            # If slug is present it must have non-empty value
+            if not slug:
+                raise serializers.ValidationError('Empty slug not allowed')
 
         return data
 
@@ -208,32 +209,6 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             many=True,
             context=self.context
         ).data
-        return data
-
-
-class HearingPartialUpdateSerializer(HearingCreateUpdateSerializer):
-    def validate(self, data):
-        try:
-            # title is not required in partial updates
-            titles = data['title']
-        except KeyError:
-            pass
-        else:
-            # If title is in payload, require at least one locale
-            # Title must be set atleast in one locale
-            has_title = False
-            for title in titles.values():
-                if title:
-                    has_title = True
-                    break
-            if not has_title:
-                raise serializers.ValidationError('Title is required at least in one locale')
-
-        # if slug is in payload, it must be set
-        if 'slug' in data:
-            if not data['slug']:
-                raise serializers.ValidationError('Empty slug not allowed')
-
         return data
 
 
@@ -368,10 +343,8 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     def get_serializer_class(self, *args, **kwargs):
         if self.action == 'list':
             return HearingListSerializer
-        elif self.action in ('create', 'update'):
+        if self.action in ('create', 'update', 'partial_update'):
             return HearingCreateUpdateSerializer
-        elif self.action == 'partial_update':
-            return HearingPartialUpdateSerializer
         return HearingSerializer
 
     def filter_queryset(self, queryset):

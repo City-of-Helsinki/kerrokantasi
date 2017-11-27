@@ -53,6 +53,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         read_only=True,
         slug_field='name'
     )
+    slug = serializers.SlugField()
 
     class Meta:
         model = Hearing
@@ -71,6 +72,14 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def validate(self, data):
         data = super(HearingCreateUpdateSerializer, self).validate(data)
         action = self.context['view'].action
+        if self._validate_title_present(action, data):
+            return data
+        raise serializers.ValidationError()
+
+    def _validate_title_present(self, action, data):
+        # Kind of hackish slution to require title when POSTing or PUTing
+        # Parler makes it hard to use build in validations for this, as translatable fields
+        # are always nullable bu default
         try:
             titles = data['title']
         except KeyError:
@@ -86,19 +95,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                     break
             if not has_title:
                 raise serializers.ValidationError('Title is required at least in one locale')
-
-        try:
-            slug = data['slug']
-        except KeyError:
-            # When creating or updating as whole, there must be a slug
-            if action in ('create', 'update'):
-                raise serializers.ValidationError('Slug is required')
-        else:
-            # If slug is present it must have non-empty value
-            if not slug:
-                raise serializers.ValidationError('Empty slug not allowed')
-
-        return data
+        return True
 
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """

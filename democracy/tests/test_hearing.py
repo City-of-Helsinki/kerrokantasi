@@ -734,12 +734,20 @@ def test_POST_hearing_no_slug(valid_hearing_json, john_smith_api_client):
     del valid_hearing_json['slug']
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
     data = get_data_from_response(response, status_code=400)
-    assert 'Slug is required' in data['non_field_errors']
+    assert 'This field is required' in data['slug'][0]
     # With empty value
     valid_hearing_json['slug'] = ''
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
     data = get_data_from_response(response, status_code=400)
-    assert 'Empty slug not allowed' in data['non_field_errors']
+    assert 'This field may not be blank' in data['slug'][0]
+
+
+@pytest.mark.django_db
+def test_POST_hearing_invalid_slug(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['slug'] = 'foo-bar-´'
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'Enter a valid "slug"' in data['slug'][0]
 
 
 @pytest.mark.django_db
@@ -749,12 +757,12 @@ def test_PUT_hearing_no_slug(valid_hearing_json, john_smith_api_client):
     del data1['slug']
     response = john_smith_api_client.put('%s%s/' % (endpoint, data1['id']), data=data1, format='json')
     data2 = get_data_from_response(response, status_code=400)
-    assert 'Slug is required' in data2['non_field_errors']
+    assert 'This field is required' in data2['slug'][0]
     # with empty value
     data1['slug'] = ''
     response = john_smith_api_client.put('%s%s/' % (endpoint, data1['id']), data=data1, format='json')
     data3 = get_data_from_response(response, status_code=400)
-    assert 'Empty slug not allowed' in data3['non_field_errors']
+    assert 'This field may not be blank' in data3['slug'][0]
 
 
 @pytest.mark.django_db
@@ -768,7 +776,7 @@ def test_PATCH_hearing_no_slug(valid_hearing_json, john_smith_api_client):
     data = {'slug': ''}
     response = john_smith_api_client.patch('%s%s/' % (endpoint, data1['id']), data=data, format='json')
     data2 = get_data_from_response(response, status_code=400)
-    assert 'Empty slug not allowed' in data2['non_field_errors']
+    assert 'This field may not be blank' in data2['slug'][0]
 
 
 # Test that a user cannot POST a hearing without the translation

@@ -22,6 +22,12 @@ def check_entity_images(entity, images_field=True):
         assert 'url' in im
 
 
+def set_images_ordering(images, ordered_image_names):
+    for image in images:
+        image.ordering = ordered_image_names.index(image.title)
+        image.save()
+
+
 @pytest.mark.django_db
 def test_38_get_section_with_images(api_client, default_hearing):
     """
@@ -41,6 +47,29 @@ def test_38_get_hearing_check_section_with_images(api_client, default_hearing):
     assert 'sections' in data
     first_section = data['sections'][0]
     check_entity_images(first_section)
+
+
+@pytest.mark.django_db
+def test_section_images_ordering(api_client, default_hearing):
+    """
+    Check images order matches ordering-field
+    """
+
+    section_images = default_hearing.sections.first().images.all()
+
+    # Test some initial order
+    ordered_image_names = list(IMAGES.values())
+    set_images_ordering(section_images, ordered_image_names)
+    data = get_data_from_response(api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section_data = data[0]
+    assert [im['title'][default_lang_code] for im in first_section_data['images']] == ordered_image_names
+
+    # Test same order reversed
+    reversed_image_names = list(reversed(ordered_image_names))
+    set_images_ordering(section_images, reversed_image_names)
+    data = get_data_from_response(api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section_data = data[0]
+    assert [im['title'][default_lang_code] for im in first_section_data['images']] == reversed_image_names
 
 
 @pytest.mark.parametrize('client, expected', [

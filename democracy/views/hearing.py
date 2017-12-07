@@ -72,30 +72,14 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def validate(self, data):
         data = super(HearingCreateUpdateSerializer, self).validate(data)
         action = self.context['view'].action
-        if self._validate_title_present(action, data):
-            return data
-        raise serializers.ValidationError()
-
-    def _validate_title_present(self, action, data):
-        # Kind of hackish slution to require title when POSTing or PUTing
-        # Parler makes it hard to use build in validations for this, as translatable fields
-        # are always nullable bu default
-        try:
-            titles = data['title']
-        except KeyError:
-            # When creating or updating as whole, there must be title
-            if action in ('create', 'update'):
-                raise serializers.ValidationError('Title is required at least in one locale')
-        else:
-            # When creating or updating as whole or patching, title must be set at least in one locale
-            has_title = False
-            for title in titles.values():
-                if title:
-                    has_title = True
-                    break
-            if not has_title:
-                raise serializers.ValidationError('Title is required at least in one locale')
-        return True
+        titles = data.get('title')
+        if not titles and action in ('create', 'update'):
+            raise serializers.ValidationError('Title is required at least in one locale')
+        if titles and not any(titles.values()):
+            # If title is present in payload, one locale must be set when creating,
+            # updating as whole or patching
+            raise serializers.ValidationError('Title is required at least in one locale')
+        return data
 
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """

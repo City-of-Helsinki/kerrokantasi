@@ -117,6 +117,7 @@ def valid_hearing_json(contact_person, default_label):
         "contact_persons": [{
             "id": contact_person.id,
         }],
+        "slug": "test-hearing",
     }
 
 
@@ -672,6 +673,110 @@ def test_POST_hearing(valid_hearing_json, john_smith_api_client):
     data = get_data_from_response(response, status_code=201)
     assert data['organization'] == john_smith_api_client.user.get_default_organization().name
     assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
+
+
+@pytest.mark.django_db
+def test_POST_hearing_no_title(valid_hearing_json, john_smith_api_client):
+    del valid_hearing_json['title']
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'Title is required at least in one locale' in data['non_field_errors']
+
+
+@pytest.mark.django_db
+def test_POST_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['title'] = {'fi': ''}
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'Title is required at least in one locale' in data['non_field_errors']
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_no_title(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data1 = get_data_from_response(response, status_code=201)
+    del data1['title']
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data1['id']), data=data1, format='json')
+    data2 = get_data_from_response(response, status_code=400)
+    assert 'Title is required at least in one locale' in data2['non_field_errors']
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data1 = get_data_from_response(response, status_code=201)
+    data1['title'] = {'fi': ''}
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data1['id']), data=data1, format='json')
+    data2 = get_data_from_response(response, status_code=400)
+    assert 'Title is required at least in one locale' in data2['non_field_errors']
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing_no_title(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data1 = get_data_from_response(response, status_code=201)
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data1['id']), data={}, format='json')
+    get_data_from_response(response, status_code=200)
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data1 = get_data_from_response(response, status_code=201)
+    data = {'title': {'fi': ''}}
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data1['id']), data=data, format='json')
+    data2 = get_data_from_response(response, status_code=400)
+    assert 'Title is required at least in one locale' in data2['non_field_errors']
+
+
+@pytest.mark.django_db
+def test_POST_hearing_no_slug(valid_hearing_json, john_smith_api_client):
+    del valid_hearing_json['slug']
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'This field is required' in data['slug'][0]
+    # With empty value
+    valid_hearing_json['slug'] = ''
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'This field may not be blank' in data['slug'][0]
+
+
+@pytest.mark.django_db
+def test_POST_hearing_invalid_slug(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['slug'] = 'foo-bar-´'
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert 'Enter a valid "slug"' in data['slug'][0]
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_no_slug(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data1 = get_data_from_response(response, status_code=201)
+    del data1['slug']
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data1['id']), data=data1, format='json')
+    data2 = get_data_from_response(response, status_code=400)
+    assert 'This field is required' in data2['slug'][0]
+    # with empty value
+    data1['slug'] = ''
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data1['id']), data=data1, format='json')
+    data3 = get_data_from_response(response, status_code=400)
+    assert 'This field may not be blank' in data3['slug'][0]
+
+
+@pytest.mark.django_db
+def test_PATCH_hearing_no_slug(valid_hearing_json, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data1 = get_data_from_response(response, status_code=201)
+    # first with empty data with no slug key
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data1['id']), data={}, format='json')
+    get_data_from_response(response, status_code=200)
+    # with empty value
+    data = {'slug': ''}
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data1['id']), data=data, format='json')
+    data2 = get_data_from_response(response, status_code=400)
+    assert 'This field may not be blank' in data2['slug'][0]
 
 
 # Test that a user cannot POST a hearing without the translation

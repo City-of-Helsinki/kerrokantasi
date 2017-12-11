@@ -1,4 +1,5 @@
 import datetime
+import json
 
 import pytest
 from django.utils.encoding import force_text
@@ -489,6 +490,7 @@ def test_hearing_geo(api_client, random_hearing):
     random_hearing.save()
     data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id)))
     assert data["geojson"] == random_hearing.geojson
+    assert data["geojson"]["geometry"] == json.loads(random_hearing.geometry.geojson)
     geojson_data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id), {'format': 'geojson'}))
     assert_common_keys_equal(geojson_data["geometry"], random_hearing.geojson["geometry"])
     assert_common_keys_equal(geojson_data["properties"], random_hearing.geojson["properties"])

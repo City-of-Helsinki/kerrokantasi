@@ -1,11 +1,13 @@
 from django.conf import settings
-from django.db import models
+from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeometryField
 from langdetect import detect_langs
 from langdetect.lang_detect_exception import LangDetectException
+
+from democracy.utils.geo import get_geometry_from_geojson
 
 from .base import BaseModel
 
@@ -14,6 +16,7 @@ class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
     geojson = GeometryField(blank=True, null=True, verbose_name=_('location'))
+    geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
@@ -79,6 +82,7 @@ class BaseComment(BaseModel):
             self.author_name = (self.created_by.get_display_name() or None)
         if not self.language_code and self.content:
             self._detect_lang()
+        self.geometry = get_geometry_from_geojson(self.geojson)
         return super(BaseComment, self).save(*args, **kwargs)
 
     def recache_n_votes(self):

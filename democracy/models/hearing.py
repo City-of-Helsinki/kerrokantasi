@@ -2,7 +2,7 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
+from django.contrib.gis.db import models
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.html import format_html
@@ -16,6 +16,7 @@ from parler.managers import TranslatableQuerySet
 
 from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
+from democracy.utils.geo import get_geometry_from_geojson
 
 from .base import BaseModelManager, StringIdBaseModel
 from .organization import ContactPerson, Organization
@@ -39,6 +40,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     )
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
     geojson = GeometryField(blank=True, null=True, verbose_name=_('area'))
+    geometry = models.GeometryField(blank=True, null=True, verbose_name=_('area geometry'))
     organization = models.ForeignKey(
         Organization,
         verbose_name=_('organization'),
@@ -99,6 +101,8 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
         # uses our default manager, which can lead to a slug collision between this and a deleted hearing
         self.slug = generate_unique_slug(slug_field, self, self.slug, Hearing.original_manager)
+
+        self.geometry = get_geometry_from_geojson(self.geojson)
 
         super().save(*args, **kwargs)
 

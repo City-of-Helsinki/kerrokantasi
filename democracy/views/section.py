@@ -2,8 +2,8 @@ import django_filters
 from django.db.models import Q, Max
 from django.db import transaction
 from django.utils.timezone import now
-from rest_framework import filters, serializers, viewsets
-from rest_framework.exceptions import ValidationError
+from rest_framework import filters, serializers, viewsets, permissions
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage, SectionType
@@ -198,14 +198,34 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     serializer_class = RootSectionImageSerializer
     pagination_class = DefaultLimitPagination
     filter_class = ImageFilter
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
         return queryset.filter(deleted=False)
 
+    def _is_user_organisation_admin(self, section):
+        target_org = section.hearing.organization
+        return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+
+    def perform_create(self, serializer):
+        if self._is_user_organisation_admin(serializer.validated_data['section']):
+            return super().perform_create(serializer)
+        else:
+            raise PermissionDenied('Only organisation admin can create SectionImages')
+
+    def perform_update(self, serializer):
+        if self._is_user_organisation_admin(serializer.instance.section):
+            return super().perform_update(serializer)
+        else:
+            raise PermissionDenied('Only organisation admin can update SectionImages')
+
     def perform_destroy(self, instance):
-        instance.soft_delete()
+        if self._is_user_organisation_admin(instance.section):
+            instance.soft_delete()
+        else:
+            raise PermissionDenied('Only organisation admin can delete SectionImages')
 
 
 class RootSectionSerializer(SectionSerializer, TranslatableSerializer):

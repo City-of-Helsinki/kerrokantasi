@@ -89,9 +89,7 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
 
 
 class SectionImageManager(TranslatableManager, BaseModelManager):
-
-    def get_queryset(self):
-        return super(SectionImageManager, self).get_queryset().order_by('pk')
+    pass
 
 
 class SectionImage(BaseImage, TranslatableModel):
@@ -106,7 +104,7 @@ class SectionImage(BaseImage, TranslatableModel):
     class Meta:
         verbose_name = _('section image')
         verbose_name_plural = _('section images')
-        ordering = ("ordering", "translations__title")
+        ordering = ('ordering',)
 
 
 @revisions.register

@@ -53,6 +53,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         read_only=True,
         slug_field='name'
     )
+    slug = serializers.SlugField()
 
     class Meta:
         model = Hearing
@@ -67,6 +68,18 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def __init__(self, *args, **kwargs):
         super(HearingCreateUpdateSerializer, self).__init__(*args, **kwargs)
         self.partial = kwargs.get('partial', False)
+
+    def validate(self, data):
+        data = super(HearingCreateUpdateSerializer, self).validate(data)
+        action = self.context['view'].action
+        titles = data.get('title')
+        if not titles and action in ('create', 'update'):
+            raise serializers.ValidationError('Title is required at least in one locale')
+        if titles and not any(titles.values()):
+            # If title is present in payload, one locale must be set when creating,
+            # updating as whole or patching
+            raise serializers.ValidationError('Title is required at least in one locale')
+        return data
 
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """
@@ -313,7 +326,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return HearingListSerializer
         if self.action in ('create', 'update', 'partial_update'):
             return HearingCreateUpdateSerializer
-
         return HearingSerializer
 
     def filter_queryset(self, queryset):

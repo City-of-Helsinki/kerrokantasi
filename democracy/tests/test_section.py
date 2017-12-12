@@ -363,7 +363,7 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
     setattr(default_hearing, hearing_update[0], hearing_update[1])
     default_hearing.save()
 
-    response = api_client.get('/v1/image/')
+    response = api_client.get('/v1/section/')
     response_data = get_results_from_response(response)
     assert len(response_data) == 0
 
@@ -373,7 +373,7 @@ def test_hearing_visibility_anon(api_client, default_hearing):
     default_hearing.published = False
     default_hearing.save()
 
-    response = api_client.get('/v1/image/')
+    response = api_client.get('/v1/section/')
     response_data = get_results_from_response(response)
     assert len(response_data) == 0
 
@@ -383,7 +383,7 @@ def test_hearing_visibility_no_org(john_doe_api_client, default_hearing):
     default_hearing.published = False
     default_hearing.save()
 
-    response = john_doe_api_client.get('/v1/image/')
+    response = john_doe_api_client.get('/v1/section/')
     response_data = get_results_from_response(response)
     assert len(response_data) == 0
 
@@ -394,7 +394,7 @@ def test_hearing_visibility_different_org(john_smith_api_client, default_hearing
     default_hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
     default_hearing.save()
 
-    response = john_smith_api_client.get('/v1/image/')
+    response = john_smith_api_client.get('/v1/section/')
     response_data = get_results_from_response(response)
     assert len(response_data) == 0
 
@@ -405,6 +405,6 @@ def test_hearing_visibility(john_smith_api_client, default_hearing):
     default_hearing.organization = john_smith_api_client.user.get_default_organization()
     default_hearing.save()
 
-    response = john_smith_api_client.get('/v1/image/')
+    response = john_smith_api_client.get('/v1/section/')
     response_data = get_results_from_response(response)
     assert len(response_data) > 1

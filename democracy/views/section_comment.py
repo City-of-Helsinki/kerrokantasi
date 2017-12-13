@@ -84,7 +84,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     Serializer for comment added to section.
     """
     label = LabelSerializer(read_only=True)
-    geojson = JSONField(required=False, allow_null=True)
+    geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
 
     class Meta:

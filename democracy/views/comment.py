@@ -10,7 +10,7 @@ from reversion import revisions
 
 from democracy.models.comment import BaseComment
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
-from democracy.views.utils import AbstractSerializerMixin
+from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
 from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
@@ -20,6 +20,7 @@ COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_r
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    geojson = GeoJSONField()
 
     def to_representation(self, instance):
         r = super().to_representation(instance)

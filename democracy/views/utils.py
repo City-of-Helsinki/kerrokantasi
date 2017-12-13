@@ -187,11 +187,20 @@ class GeoJSONField(serializers.JSONField):
     def to_internal_value(self, data):
         if not data:
             return None
-        if "geometry" not in data:
-            raise ValidationError('Invalid geojson format. "geometry" field is required. Got %(data)s' % {'data': data})
+        geometry = data.get('geometry', None) or data
+
+        if 'type' not in data:
+            raise ValidationError('Invalid geojson format. "type" field is required. Got %(data)s' % {'data': data})
+
+        supported_types = [
+            'Feature', 'Point', 'LineString', 'Polygon', 'MultiPoint',
+            'MultiLineString', 'MultiPolygon', 'GeometryCollection',
+        ]
+        if data['type'] not in supported_types:
+            raise ValidationError('Invalid geojson format. Type is not supported. Supported types are %(types)s. Got %(data)s' % {'types': ', '.join(supported_types), 'data': data})
 
         try:
-            GEOSGeometry(json.dumps(data["geometry"]))
+            GEOSGeometry(json.dumps(geometry))
         except GDALException:
             raise ValidationError('Invalid geojson format: %(data)s' % {'data': data})
         return super(GeoJSONField, self).to_internal_value(data)

@@ -8,7 +8,8 @@ from django.utils.crypto import get_random_string
 from democracy.enums import InitialSectionType
 from democracy.importing.json_importer import import_from_data, parse_aware_datetime
 from democracy.models import Hearing
-from democracy.tests.utils import assert_datetime_fuzzy_equal, get_geojson
+from democracy.tests.conftest import geojson_feature
+from democracy.tests.utils import assert_datetime_fuzzy_equal
 
 LIKE = {
     "comment_id": "154",
@@ -81,7 +82,7 @@ ALT2 = {'body': 'qixzbjypctfgffvro kjqlangqf ltvp', 'comments': [
                    'filename': 'images/hameentie/alternative_1/main_image.jpg', 'id': '45'}, 'main_image_id': '45',
     'position': '0', 'title': 'aksebfq rufmmwszkdkdocanzliys cv', 'updated_at': '2014-11-25T19:01:23.900758'}
 
-HEARING = {'_area': 'x', '_geometry': get_geojson(), 'alternatives': [ALT1, ALT2],
+HEARING = {'_area': 'x', '_geometry': geojson_feature(), 'alternatives': [ALT1, ALT2],
            'body': ' gcthqzqrndsutwhoiqiabothsomtjwp',
            'closes_at': '2014-12-31', 'comments': [
     {'body': 'x hisydetgyr tooetpydxmmdg  ylnc', 'created_at': '2014-12-23T09:30:51.991187', 'hearing_id': '12',

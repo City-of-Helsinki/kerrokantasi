@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+import json
+
 import django.contrib.gis.db.models.fields
 
+from django.contrib.gis.geos import GEOSGeometry
 from django.db import migrations
-from democracy.utils.geo import get_geometry_from_geojson
+
+
+def get_geometry_from_geojson(geojson):
+    if geojson is None:
+        return None
+    geometry_data = geojson.get('geometry', None) or geojson
+    geometry = GEOSGeometry(json.dumps(geometry_data))
+    return geometry
 
 
 def hearings_data_migration(apps, schema_editor):

@@ -177,3 +177,132 @@ def admin_api_client(admin_user):
 @pytest.fixture()
 def api_client():
     return APIClient()
+
+
+@pytest.fixture()
+def geojson_feature():
+    return {
+        "type": "Feature",
+        "properties": {
+            "name": "Coors Field",
+            "amenity": "Baseball Stadium",
+            "popupContent": "This is where the Rockies play!"
+        },
+        "geometry": {
+            "type": "Point",
+            "coordinates": [-104.99404, 39.75621]
+        }
+    }
+
+
+@pytest.fixture()
+def geojson_point():
+    return {"type": "Point", "coordinates": [24.9482, 60.1744]}
+
+
+@pytest.fixture()
+def geojson_polygon():
+    return {"type": "Polygon", "coordinates": [[
+        [24.9309, 60.1818], [24.9279, 60.1771], [24.9354, 60.1743],
+        [24.9409, 60.1768], [24.9382, 60.1804], [24.9309, 60.1818],
+    ]]}
+
+
+@pytest.fixture()
+def geojson_polygon_with_hole():
+    return {"type": "Polygon", "coordinates": [
+        [
+            [24.9416, 60.1710], [24.9328, 60.1685], [24.9353, 60.1658],
+            [24.9430, 60.1630], [24.9440, 60.1679], [24.9416, 60.1710],
+        ],
+        [
+            [24.9375, 60.1682], [24.9413, 60.1652], [24.9407, 60.1690],
+            [24.9375, 60.1682],
+        ],
+    ]}
+
+
+@pytest.fixture()
+def geojson_multipolygon():
+    return {"type": "MultiPolygon", "coordinates": [
+        [[
+            [24.9509, 60.1692], [24.9559, 60.1690], [24.9563, 60.1714],
+            [24.9508, 60.1715], [24.9509, 60.1692],
+        ]],
+        [[
+            [24.9510, 60.1718], [24.9561, 60.1717], [24.9537, 60.1740],
+            [24.9510, 60.1718],
+        ]],
+    ]}
+
+
+@pytest.fixture()
+def geojson_linestring():
+    return {"type": "LineString", "coordinates": [
+        [24.9322, 60.1883], [24.9224, 60.1842], [24.9159, 60.1799],
+        [24.9157, 60.1746], [24.9252, 60.1703],
+    ]}
+
+
+@pytest.fixture()
+def geojson_multilinestring():
+    return {"type": "MultiLineString", "coordinates": [
+        [[24.9488, 60.1892], [24.9535, 60.1880], [24.9511, 60.1857]],
+        [[24.9490, 60.1869], [24.9466, 60.1846], [24.9522, 60.1833]],
+        [[24.9498, 60.1821], [24.9546, 60.1813], [24.9569, 60.1840]],
+    ]}
+
+
+@pytest.fixture()
+def geojson_geometrycollection(
+    geojson_point, geojson_polygon, geojson_polygon_with_hole,
+    geojson_multipolygon, geojson_linestring, geojson_multilinestring):
+    return {
+        "type": "GeometryCollection",
+        "geometries": [
+            geojson_point,
+            geojson_polygon,
+            geojson_polygon_with_hole,
+            geojson_multipolygon,
+            geojson_linestring,
+            geojson_multilinestring,
+        ]
+    }
+
+
+@pytest.fixture()
+def geojson_feature_with_geometries(geojson_geometrycollection):
+    return {
+        "type": "Feature",
+        "properties": {
+            "name": "Collection of Geometries",
+        },
+        "geometry": geojson_geometrycollection,
+    }
+
+
+@pytest.fixture()
+def geojson_featurecollection(geojson_point, geojson_polygon):
+    return {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "name": "Feature 1",
+                    "amenity": "Marker",
+                    "popupContent": "This is a marker.",
+                },
+                "geometry": geojson_point,
+            },
+            {
+                "type": "Feature",
+                "properties": {
+                    "name": "Feature 2",
+                    "amenity": "Area",
+                    "popupContent": "This is an area.",
+                },
+                "geometry": geojson_polygon,
+            },
+        ]
+    }

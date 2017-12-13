@@ -12,7 +12,7 @@ from democracy.models import (
 )
 from democracy.models.utils import copy_hearing
 from democracy.tests.utils import (
-    assert_common_keys_equal, assert_datetime_fuzzy_equal, get_data_from_response, get_geojson,
+    assert_common_keys_equal, assert_datetime_fuzzy_equal, get_data_from_response,
     get_hearing_detail_url, sectionimage_test_json
 )
 from democracy.tests.conftest import default_lang_code
@@ -487,17 +487,57 @@ def test_can_see_published_with_preview_code(api_client):
 
 
 @pytest.mark.django_db
-def test_hearing_geo(api_client, random_hearing):
-    random_hearing.geojson = get_geojson()
-    random_hearing.save()
-    data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id)))
-    assert data["geojson"] == random_hearing.geojson
-    assert data["geojson"]["geometry"] == json.loads(random_hearing.geometry.geojson)
-    geojson_data = get_data_from_response(api_client.get(get_detail_url(random_hearing.id), {'format': 'geojson'}))
-    assert_common_keys_equal(geojson_data["geometry"], random_hearing.geojson["geometry"])
-    assert_common_keys_equal(geojson_data["properties"], random_hearing.geojson["properties"])
-    map_data = get_data_from_response(api_client.get(list_endpoint + "map/"))
-    assert map_data['results'][0]["geojson"] == random_hearing.geojson
+@pytest.mark.parametrize('geojson_fixture_name', [
+    'geojson_feature',
+    'geojson_feature_with_geometries',
+])
+def test_hearing_geojson_feature(request, john_smith_api_client, valid_hearing_json, geojson_fixture_name):
+    geojson = request.getfixturevalue(geojson_fixture_name)
+    valid_hearing_json['geojson'] = geojson
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    hearing_data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.get(pk=hearing_data['id'])
+    hearing_geometry = json.loads(hearing.geometry.geojson)
+    assert hearing.geojson == geojson
+    assert hearing_data['geojson'] == geojson
+    assert hearing_data['geojson']['geometry'] == hearing_geometry
+    geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {'format': 'geojson'}))
+    assert geojson_data['id'] == hearing.pk
+    assert_common_keys_equal(geojson_data['geometry'], geojson['geometry'])
+    assert_common_keys_equal(geojson_data['properties'], geojson['properties'])
+    map_data = get_data_from_response(john_smith_api_client.get(list_endpoint + 'map/'))
+    assert map_data['results'][0]['geojson'] == geojson
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('geojson_fixture_name', [
+    'geojson_point',
+    'geojson_geometrycollection',
+])
+def test_hearing_geojson_geometry_only(request, john_smith_api_client, valid_hearing_json, geojson_fixture_name):
+    geojson = request.getfixturevalue(geojson_fixture_name)
+    valid_hearing_json['geojson'] = geojson
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    hearing_data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.get(pk=hearing_data['id'])
+    hearing_geometry = json.loads(hearing.geometry.geojson)
+    assert hearing.geojson == geojson
+    assert hearing_data['geojson'] == geojson
+    assert hearing_data['geojson'] == hearing_geometry
+    geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {'format': 'geojson'}))
+    assert geojson_data['id'] == hearing.pk
+    assert_common_keys_equal(geojson_data['geometry'], geojson)
+    assert_common_keys_equal(geojson_data['properties'], hearing_data)
+    map_data = get_data_from_response(john_smith_api_client.get(list_endpoint + 'map/'))
+    assert map_data['results'][0]['geojson'] == geojson
+
+
+@pytest.mark.django_db
+def test_hearing_geojson_featurecollection(request, john_smith_api_client, valid_hearing_json, geojson_featurecollection):
+    valid_hearing_json['geojson'] = geojson_featurecollection
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=400)
+    assert data['geojson'][0].startswith('Invalid geojson format. Type is not supported.')
 
 
 @pytest.mark.django_db

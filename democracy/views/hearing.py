@@ -21,7 +21,7 @@ from democracy.views.label import LabelSerializer
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
-from democracy.views.utils import TranslatableSerializer, get_translation_list
+from democracy.views.utils import GeoJSONField, TranslatableSerializer, get_translation_list
 from .hearing_report import HearingReport
 from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
@@ -39,7 +39,7 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    geojson = JSONField(required=False, allow_null=True)
+    geojson = GeoJSONField(required=False, allow_null=True)
 
     # this field is used only for incoming data validation, outgoing data is added manually
     # in to_representation()
@@ -196,7 +196,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
-    geojson = JSONField()
+    geojson = GeoJSONField()
     organization = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name'
@@ -278,7 +278,7 @@ class HearingListSerializer(HearingSerializer):
 
 
 class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    geojson = JSONField()
+    geojson = GeoJSONField()
 
     class Meta:
         model = Hearing

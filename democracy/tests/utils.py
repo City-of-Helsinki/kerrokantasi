@@ -33,14 +33,14 @@ def image_test_json():
     }
 
 
-def sectionimage_test_json():
+def sectionimage_test_json(title_en='Test title'):
     return {
         'caption': {
             'en': 'Test',
             'fi': 'Testi',
         },
         'title': {
-            'en': 'Test title',
+            'en': title_en,
             'fi': 'Finnish test title',
         },
         'image': image_to_base64(IMAGES['ORIGINAL']),

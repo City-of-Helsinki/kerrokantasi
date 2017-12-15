@@ -664,11 +664,8 @@ def assert_hearing_equals(data, posted, user, create=True):
             assert_datetime_fuzzy_equal(created_at, now())
             images = section_created.pop('images')
             assert len(images) == len(section_posted['images'])
-            last_image_ordering = -1
             for created_image, posted_image in zip(images, section_posted['images']):
                 assert created_image['title']['en'] == posted_image['title']['en']
-                assert created_image['ordering'] > last_image_ordering
-                last_image_ordering = created_image['ordering']
         assert_common_keys_equal(section_created, section_posted)
 
 

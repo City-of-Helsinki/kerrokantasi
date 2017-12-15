@@ -13,7 +13,7 @@ django_pillow: no
 django_lxml: yes
 
 django_deb_deps:
-  - libgdal1h
+  - libgdal20
 
 django_git_url: https://github.com/City-of-Helsinki/kerrokantasi.git
 django_git_version: feature/conf-from-environment

@@ -5,8 +5,11 @@
   - name: Create container for building image
     docker_container:
       name: kerrokantasi_builder
-      image: python:3.6
+      # stretch == Debian 9 released 2017-06-17
+      image: python:3.6-stretch
+      # Keeps the image running, as the python process has a terminal
       interactive: true
+      # Just a nicety, does not leave permanent mark
       hostname: kerrokantasi-api
       state: started
       recreate: "{{ recreate_image|default(true) }}"
@@ -42,4 +45,4 @@
       docker_container:
         name: kerrokantasi_builder
         state: absent
-      when: recreate_image|default(true)
+      when: recreate_image|default(true) == true

@@ -18,7 +18,7 @@ from democracy.views.utils import (
 class SectionImageSerializer(BaseImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
-        fields = ['id', 'title', 'url', 'width', 'height', 'caption',]
+        fields = ['id', 'title', 'url', 'width', 'height', 'caption']
 
 
 class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):

@@ -130,10 +130,10 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
     q = Q(**filters)
 
     if user.is_authenticated():
-        organization = user.get_default_organization()
-        if organization:
+        organizations = user.admin_organizations.all()
+        if organizations.exists():
             # regardless of publication status or date, admins will see everything from their organization
-            q |= Q(**{'%sorganization' % hearing_lookup: organization})
+            q |= Q(**{'%sorganization__in' % hearing_lookup: organizations})
 
     return queryset.filter(q)
 

@@ -5,6 +5,7 @@ from django.utils.encoding import force_text
 from django.utils.timezone import now
 
 from democracy.enums import InitialSectionType
+from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
     Hearing, Label, Organization, Section, SectionComment, SectionImage, SectionType
 )
@@ -424,7 +425,10 @@ def test_hearing_stringification(random_hearing):
 
 @pytest.mark.django_db
 def test_admin_can_see_unpublished_and_published(api_client, john_doe_api_client, john_smith_api_client, default_organization):
-    hearings = create_hearings(3, organization=default_organization)
+    hearings = create_hearings(5, organization=default_organization)
+    not_own_organization = OrganizationFactory()
+    own_organization = OrganizationFactory()
+    john_smith_api_client.user.admin_organizations.add(own_organization)
     unpublished_hearing = hearings[0]
     unpublished_hearing.published = False  # This one should be visible to admin only
     unpublished_hearing.save()
@@ -435,13 +439,22 @@ def test_admin_can_see_unpublished_and_published(api_client, john_doe_api_client
     future_hearing.open_at = now() + datetime.timedelta(days=1)  # This one should be visible to admin only
     future_hearing.close_at = now() + datetime.timedelta(days=2)
     future_hearing.save()
+    not_own_organization_unpublished_hearing = hearings[3]
+    not_own_organization_unpublished_hearing.published = False
+    not_own_organization_unpublished_hearing.organization = not_own_organization
+    not_own_organization_unpublished_hearing.save()
+    own_organization_unpublished_hearing = hearings[4]
+    own_organization_unpublished_hearing.published = False
+    own_organization_unpublished_hearing.organization = own_organization
+    own_organization_unpublished_hearing.save()
     data = get_data_from_response(api_client.get(list_endpoint))
     assert len(data['results']) == 1  # Can't see them as anon
     data = get_data_from_response(john_doe_api_client.get(list_endpoint))
     assert len(data['results']) == 1  # Can't see them as registered
     data = get_data_from_response(john_smith_api_client.get(list_endpoint))
-    assert len(data['results']) == 3  # Can see them as admin
-    assert len([1 for h in data['results'] if not h["published"]]) == 1  # Only one unpublished, yeah?
+    assert len(data['results']) == 4  # Can all as admin, except unpublished from other orgs
+    assert len([1 for h in data['results'] if not h["published"]]) == 2  # Two unpublished
+
 
 
 @pytest.mark.django_db

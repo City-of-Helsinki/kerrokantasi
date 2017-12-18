@@ -4,7 +4,6 @@ from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import JSONField
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 

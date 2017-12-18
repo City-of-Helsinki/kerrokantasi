@@ -197,7 +197,11 @@ class GeoJSONField(serializers.JSONField):
             'MultiLineString', 'MultiPolygon', 'GeometryCollection',
         ]
         if data['type'] not in supported_types:
-            raise ValidationError('Invalid geojson format. Type is not supported. Supported types are %(types)s. Got %(data)s' % {'types': ', '.join(supported_types), 'data': data})
+            raise ValidationError('Invalid geojson format. Type is not supported.'
+                                  'Supported types are %(types)s. Got %(data)s' % {
+                                      'types': ', '.join(supported_types),
+                                      'data': data
+                                  })
 
         try:
             GEOSGeometry(json.dumps(geometry))

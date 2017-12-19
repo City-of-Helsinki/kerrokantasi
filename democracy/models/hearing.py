@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
-from djgeojson.fields import GeometryField
+from djgeojson.fields import GeoJSONField
 from autoslug import AutoSlugField
 from autoslug.utils import generate_unique_slug
 from parler.models import TranslatedFields, TranslatableModel
@@ -39,7 +39,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         borough=models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200),
     )
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
-    geojson = GeometryField(blank=True, null=True, verbose_name=_('area'))
+    geojson = GeoJSONField(blank=True, null=True, verbose_name=_('area'))
     geometry = models.GeometryField(blank=True, null=True, verbose_name=_('area geometry'))
     organization = models.ForeignKey(
         Organization,

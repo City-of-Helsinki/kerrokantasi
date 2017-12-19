@@ -3,7 +3,7 @@ from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
 from django.utils.translation import ugettext_lazy as _
-from djgeojson.fields import GeometryField
+from djgeojson.fields import GeoJSONField
 from langdetect import detect_langs
 from langdetect.lang_detect_exception import LangDetectException
 
@@ -15,7 +15,7 @@ from .base import BaseModel
 class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
-    geojson = GeometryField(blank=True, null=True, verbose_name=_('location'))
+    geojson = GeoJSONField(blank=True, null=True, verbose_name=_('location'))
     geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)

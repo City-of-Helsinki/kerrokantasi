@@ -83,6 +83,16 @@ def test_56_add_comment_to_section_without_authentication(api_client, default_he
 
 
 @pytest.mark.django_db
+def test_56_add_comment_to_section_without_authentication_with_nickname(api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    data['author_name'] = 'Jane Commenter'
+    response = api_client.post(url, data=data)
+    assert response.status_code == 201
+    assert response.data['author_name'] == 'Jane Commenter'
+
+
+@pytest.mark.django_db
 def test_56_add_comment_to_section_without_data(api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)

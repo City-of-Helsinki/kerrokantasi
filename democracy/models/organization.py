@@ -34,6 +34,7 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
     class Meta:
         verbose_name = _('contact person')
         verbose_name_plural = _('contact persons')
+        ordering = ['name']
 
     def __str__(self):
         return '%s, %s / %s' % (self.name, self.title, self.organization)

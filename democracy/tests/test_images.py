@@ -2,7 +2,7 @@ import datetime
 import pytest
 from django.utils.timezone import now
 
-from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url
+from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url, sectionimage_test_json
 from democracy.tests.conftest import default_lang_code
 
 
@@ -155,3 +155,75 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
     response = api_client.get('/v1/image/')
     response_data = get_data_from_response(response)['results']
     assert len(response_data) == 0
+
+
+@pytest.mark.django_db
+def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
+    # Check original image count
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
+    assert len(data['results']) == 9
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new image to the section
+    post_data = sectionimage_test_json()
+    post_data['section'] = first_section['id']
+    data = get_data_from_response(john_smith_api_client.post('/v1/image/', data=post_data, format='json'), status_code=201)
+    # Save order of the newly created image
+    ordering = data['ordering']
+    # Make sure new image was created
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
+    assert len(data['results']) == 10
+    # Create another image and make sure it gets higher ordering than the last one
+    data = get_data_from_response(john_smith_api_client.post('/v1/image/', data=post_data, format='json'), status_code=201)
+    assert data['ordering'] == ordering + 1
+
+
+@pytest.mark.django_db
+def test_POST_image_root_endpoint_wrong_user(john_doe_api_client, default_hearing):
+    # Get some section
+    data = get_data_from_response(john_doe_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new image to the section
+    post_data = sectionimage_test_json()
+    post_data['section'] = first_section['id']
+    data = get_data_from_response(john_doe_api_client.post('/v1/image/', data=post_data, format='json'), status_code=403)
+
+
+@pytest.mark.django_db
+def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
+    section_image = data['results'][0]
+    post_data = {'title': {'en': 'changed_title'}, 'caption': {'en': 'changed_caption'}}
+    data = get_data_from_response(john_smith_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'), status_code=200)
+    changed_section_image = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id']))
+    assert changed_section_image['title']['en'] == 'changed_title'
+
+
+@pytest.mark.django_db
+def test_PATCH_image_root_endpoint_wrong_user(john_doe_api_client, default_hearing):
+    data = get_data_from_response(john_doe_api_client.get('/v1/image/'))
+    section_image = data['results'][0]
+    post_data = {'title': {'en': 'changed_title'}, 'caption': {'en': 'changed_caption'}}
+    data = get_data_from_response(john_doe_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'), status_code=403)
+
+
+@pytest.mark.django_db
+def test_DELETE_image_root_endpoint(john_smith_api_client, default_hearing):
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
+    assert len(data['results']) == 9
+    section_image = data['results'][0]
+    response = john_smith_api_client.delete('/v1/image/%d/' % section_image['id'], format='json')
+    assert response.status_code == 204
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id'], format='json'), status_code=404)
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
+    assert len(data['results']) == 8
+
+
+@pytest.mark.django_db
+def test_DELETE_image_root_endpoint_wrong_user(john_doe_api_client, default_hearing):
+    data = get_data_from_response(john_doe_api_client.get('/v1/image/'))
+    section_image = data['results'][0]
+    response = john_doe_api_client.delete('/v1/image/%d/' % section_image['id'], format='json')
+    assert response.status_code == 403
+

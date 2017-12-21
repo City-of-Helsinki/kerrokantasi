@@ -3,7 +3,7 @@ from rest_framework_nested import routers
 
 from democracy.views import (
     CommentViewSet, ContactPersonViewSet, HearingViewSet, ImageViewSet, LabelViewSet, RootSectionViewSet,
-    SectionCommentViewSet, SectionViewSet, UserDataViewSet
+    SectionCommentViewSet, SectionViewSet, UserDataViewSet, FileViewSet, ServeFileView
 )
 
 router = routers.DefaultRouter()
@@ -14,6 +14,7 @@ router.register(r'image', ImageViewSet, base_name='image')
 router.register(r'section', RootSectionViewSet, base_name='section')
 router.register(r'label', LabelViewSet, base_name='label')
 router.register(r'contact_person', ContactPersonViewSet, base_name='contact_person')
+router.register(r'file', FileViewSet, base_name='file')
 
 hearing_comments_router = routers.NestedSimpleRouter(router, r'hearing', lookup='comment_parent')
 
@@ -28,4 +29,5 @@ urlpatterns = [
     url(r'^', include(hearing_comments_router.urls, namespace='v1')),
     url(r'^', include(hearing_child_router.urls, namespace='v1')),
     url(r'^', include(section_comments_router.urls, namespace='v1')),
+    url(r'^download/(?P<filetype>sectionfile|sectionimage)/(?P<pk>\d+)/$', ServeFileView.as_view(), name='serve_file'),
 ]

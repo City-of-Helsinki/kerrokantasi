@@ -1,6 +1,6 @@
 from .hearing import Hearing
 from .label import Label
-from .section import Section, SectionComment, SectionImage, SectionType
+from .section import Section, SectionComment, SectionImage, SectionType, SectionFile
 from .organization import ContactPerson, Organization
 
 __all__ = [
@@ -12,4 +12,5 @@ __all__ = [
     "SectionImage",
     "SectionType",
     "Organization",
+    "SectionFile",
 ]

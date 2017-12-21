@@ -7,6 +7,7 @@ from parler.managers import TranslatableQuerySet
 
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.images import BaseImage
+from democracy.models.files import BaseFile
 from democracy.plugins import get_implementation
 
 from democracy.enums import InitialSectionType
@@ -100,6 +101,25 @@ class SectionImage(BaseImage, TranslatableModel):
     class Meta:
         verbose_name = _('section image')
         verbose_name_plural = _('section images')
+        ordering = ('ordering',)
+
+
+class SectionFileManager(TranslatableManager, BaseModelManager):
+    pass
+
+
+class SectionFile(BaseFile, TranslatableModel):
+    parent_field = "section"
+    section = models.ForeignKey(Section, related_name="files")
+    translations = TranslatedFields(
+        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
+        caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
+    )
+    objects = SectionFileManager()
+
+    class Meta:
+        verbose_name = _('section file')
+        verbose_name_plural = _('section files')
         ordering = ('ordering',)
 
 

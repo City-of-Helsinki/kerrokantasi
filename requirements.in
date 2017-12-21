@@ -31,3 +31,4 @@ transifex-client
 Babel
 django-parler
 langdetect
+django-sendfile==0.3.11

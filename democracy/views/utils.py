@@ -91,7 +91,7 @@ class IOErrorIgnoringManyRelatedField(ManyRelatedField):
         return out
 
 
-class PublicFilteredImageField(serializers.Field):
+class PublicFilteredRelatedField(serializers.Field):
 
     def __init__(self, *args, **kwargs):
         self.serializer_class = kwargs.pop('serializer_class', None)
@@ -99,20 +99,20 @@ class PublicFilteredImageField(serializers.Field):
             raise ImproperlyConfigured('Keyword argument serializer_class required')
         super().__init__(*args, **kwargs)
 
-    def to_representation(self, images):
+    def to_representation(self, queryset):
         request = self.context.get('request')
 
         if request and request.user and request.user.is_authenticated() and request.user.is_superuser:
-            images = images.with_unpublished()
+            queryset = queryset.with_unpublished()
         else:
-            images = images.public()
+            queryset = queryset.public()
 
         serializer = self.serializer_class.get_field_serializer(
             many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
         )
         serializer.bind(self.source, self)  # this is needed to get context in the serializer
 
-        return serializer.to_representation(images)
+        return serializer.to_representation(queryset)
 
 
 def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):

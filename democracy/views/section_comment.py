@@ -13,7 +13,8 @@ from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseComm
 from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
-from democracy.views.utils import filter_by_hearing_visible, GeoJSONField, NestedPKRelatedField
+from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField
+from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend
 
 
 class SectionCommentCreateSerializer(serializers.ModelSerializer):
@@ -95,7 +96,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
 
 

@@ -196,6 +196,11 @@ def geojson_feature():
 
 
 @pytest.fixture()
+def bbox_containing_feature():
+    return '-104.9950,39.7554,-104.9930,39.7569'
+
+
+@pytest.fixture()
 def geojson_point():
     return {"type": "Point", "coordinates": [24.9482, 60.1744]}
 
@@ -279,6 +284,16 @@ def geojson_feature_with_geometries(geojson_geometrycollection):
         },
         "geometry": geojson_geometrycollection,
     }
+
+
+@pytest.fixture()
+def bbox_containing_geometries():
+    return '24.9034,60.1614,24.9684,60.1920'
+
+
+@pytest.fixture()
+def bbox_all():
+    return '-180.0,-90.0,180.0,90.0'
 
 
 @pytest.fixture()

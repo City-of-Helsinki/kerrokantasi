@@ -20,7 +20,7 @@ from democracy.views.label import LabelSerializer
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
-from democracy.views.utils import GeoJSONField, TranslatableSerializer, get_translation_list
+from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend, TranslatableSerializer, get_translation_list
 from .hearing_report import HearingReport
 from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
@@ -310,7 +310,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     API endpoint for hearings.
     """
     model = Hearing
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
     serializer_class = HearingListSerializer

@@ -489,6 +489,7 @@ def test_can_see_published_with_preview_code(api_client):
 @pytest.mark.django_db
 @pytest.mark.parametrize('geometry_fixture_name', [
     'geojson_point',
+    'geojson_multipoint',
     'geojson_polygon',
     'geojson_polygon_with_hole',
     'geojson_multipolygon',
@@ -517,6 +518,7 @@ def test_hearing_geojson_feature(request, john_smith_api_client, valid_hearing_j
 @pytest.mark.django_db
 @pytest.mark.parametrize('geometry_fixture_name', [
     'geojson_point',
+    'geojson_multipoint',
     'geojson_polygon',
     'geojson_polygon_with_hole',
     'geojson_multipolygon',
@@ -576,6 +578,7 @@ def test_hearing_bbox_filtering(
 @pytest.mark.django_db
 @pytest.mark.parametrize('geometry_fixture_name', [
     'geojson_point',
+    'geojson_multipoint',
     'geojson_polygon',
     'geojson_polygon_with_hole',
     'geojson_multipolygon',

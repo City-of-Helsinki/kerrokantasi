@@ -5,6 +5,7 @@ import datetime
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
+from django.utils import timezone
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -202,6 +203,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     )
     main_image = serializers.SerializerMethodField()
     abstract = serializers.SerializerMethodField()
+    preview_url = serializers.SerializerMethodField()
     contact_persons = ContactPersonSerializer(many=True, read_only=True)
     default_to_fullscreen = serializers.SerializerMethodField()
 
@@ -250,14 +252,22 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         main_section = self._get_main_section(hearing)
         return main_section.plugin_fullscreen if main_section else False
 
+    def get_preview_url(self, hearing):
+        is_public = hearing.published and hearing.open_at < timezone.now()
+        if not is_public:
+            return hearing.preview_url
+        else:
+            return None
+
     class Meta:
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'published', 'labels', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'sections',
+            'servicemap_url', 'sections', 'preview_url',
             'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
+        read_only_fields = ['preview_url']
         translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
 
 

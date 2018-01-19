@@ -459,7 +459,6 @@ def test_admin_can_see_unpublished_and_published(api_client, john_doe_api_client
     assert len([1 for h in data['results'] if not h["published"]]) == 2  # Two unpublished
 
 
-
 @pytest.mark.django_db
 def test_can_see_unpublished_with_preview_code(api_client):
     hearings = create_hearings(1)
@@ -482,8 +481,29 @@ def test_can_see_published_with_preview_code(api_client):
     get_data_from_response(api_client.get(get_detail_url(published_hearing.id)), status_code=404)
     preview_url = "{}?preview={}".format(get_detail_url(published_hearing.id), published_hearing.preview_code)
     response = api_client.get(preview_url)
-    print(response.status_code)
     get_data_from_response(response, status_code=200)
+
+
+@pytest.mark.django_db
+def test_preview_code_in_unpublished(john_smith_api_client, default_organization):
+    hearings = create_hearings(1, organization=default_organization)
+    unpublished_hearing = hearings[0]
+    unpublished_hearing.published = False
+    unpublished_hearing.save()
+    hearing_data = get_data_from_response(john_smith_api_client.get(get_detail_url(unpublished_hearing.pk)), status_code=200)
+    assert hearing_data['preview_url'] == unpublished_hearing.preview_url
+
+
+@pytest.mark.django_db
+def test_preview_code_not_in_published(john_smith_api_client, default_organization):
+    hearings = create_hearings(1, organization=default_organization)
+    published_hearing = hearings[0]
+    published_hearing.published = True
+    published_hearing.open_at = now() - datetime.timedelta(hours=1)
+    published_hearing.save()
+    hearing_data = get_data_from_response(john_smith_api_client.get(get_detail_url(published_hearing.pk)), status_code=200)
+    print(hearing_data)
+    assert hearing_data['preview_url'] == None
 
 
 @pytest.mark.django_db

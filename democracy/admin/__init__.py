@@ -9,6 +9,7 @@ from django.contrib.gis.db.models import ManyToManyField
 from django.contrib.admin.utils import model_ngettext
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.utils.encoding import force_text
+from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from djgeojson.fields import GeoJSONFormField
@@ -188,7 +189,11 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             self.message_user(request, _('Copied Hearing "%s" as a draft.' % hearing.title))
 
     def preview_url(self, obj):
-        return obj.preview_url
+        if not obj.preview_url:
+            return ''
+        return format_html(
+            '<a href="%s">%s</a>' % (obj.preview_url, obj.preview_url)
+        )
     preview_url.short_description = _('Preview URL')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):

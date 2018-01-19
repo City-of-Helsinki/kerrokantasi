@@ -5,7 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.gis.db import models
 from django.db.models import Sum
 from django.utils import timezone
-from django.utils.html import format_html
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONField
@@ -89,11 +88,9 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     @property
     def preview_url(self):
         if not (self.preview_code and hasattr(settings, 'DEMOCRACY_UI_BASE_URL')):
-            return ''
+            return None
         url = urljoin(settings.DEMOCRACY_UI_BASE_URL, '/hearing/%s/?preview=%s' % (self.pk, self.preview_code))
-        return format_html(
-            '<a href="%s">%s</a>' % (url, url)
-        )
+        return url
 
     def save(self, *args, **kwargs):
         slug_field = self._meta.get_field('slug')

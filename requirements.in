@@ -10,6 +10,7 @@ psycopg2
 easy-thumbnails
 drf-nested-routers
 xlsxwriter
+-e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
 -e git+https://github.com/City-of-Helsinki/django-helusers@v0.1#egg=django-helusers
 djangorestframework-jwt
 pyjwt

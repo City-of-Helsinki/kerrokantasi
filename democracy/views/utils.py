@@ -16,7 +16,9 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import BaseFilterBackend
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
+from munigeo.api import build_bbox_filter, srid_to_srs
 
 
 def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.PARLER_LANGUAGES[None]]):
@@ -194,7 +196,7 @@ class GeoJSONField(serializers.JSONField):
 
         supported_types = [
             'Feature', 'Point', 'LineString', 'Polygon', 'MultiPoint',
-            'MultiLineString', 'MultiPolygon', 'GeometryCollection',
+            'MultiLineString', 'MultiPolygon',
         ]
         if data['type'] not in supported_types:
             raise ValidationError('Invalid geojson format. Type is not supported.'
@@ -208,6 +210,19 @@ class GeoJSONField(serializers.JSONField):
         except GDALException:
             raise ValidationError('Invalid geojson format: %(data)s' % {'data': data})
         return super(GeoJSONField, self).to_internal_value(data)
+
+
+class GeometryBboxFilterBackend(BaseFilterBackend):
+    """
+    Filter ViewSets with a geometry field by bounding box
+    """
+    def filter_queryset(self, request, queryset, view):
+        srs = srid_to_srs(request.query_params.get('srid', None))
+        bbox = request.query_params.get('bbox', None)
+        if bbox:
+            bbox_filter = build_bbox_filter(srs, bbox, 'geometry')
+            queryset = queryset.filter(**bbox_filter)
+        return queryset
 
 
 class Base64ImageField(serializers.ImageField):

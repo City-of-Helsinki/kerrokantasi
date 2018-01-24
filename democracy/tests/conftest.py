@@ -196,8 +196,23 @@ def geojson_feature():
 
 
 @pytest.fixture()
+def bbox_containing_feature():
+    return '-104.9950,39.7554,-104.9930,39.7569'
+
+
+@pytest.fixture()
 def geojson_point():
     return {"type": "Point", "coordinates": [24.9482, 60.1744]}
+
+
+@pytest.fixture()
+def geojson_multipoint():
+    return {
+        "type": "MultiPoint",
+        "coordinates": [
+            [24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]
+        ]
+    }
 
 
 @pytest.fixture()
@@ -255,12 +270,13 @@ def geojson_multilinestring():
 
 @pytest.fixture()
 def geojson_geometrycollection(
-    geojson_point, geojson_polygon, geojson_polygon_with_hole,
+    geojson_point, geojson_multipoint, geojson_polygon, geojson_polygon_with_hole,
     geojson_multipolygon, geojson_linestring, geojson_multilinestring):
     return {
         "type": "GeometryCollection",
         "geometries": [
             geojson_point,
+            geojson_multipoint,
             geojson_polygon,
             geojson_polygon_with_hole,
             geojson_multipolygon,
@@ -279,6 +295,16 @@ def geojson_feature_with_geometries(geojson_geometrycollection):
         },
         "geometry": geojson_geometrycollection,
     }
+
+
+@pytest.fixture()
+def bbox_containing_geometries():
+    return '24.9034,60.1614,24.9684,60.1920'
+
+
+@pytest.fixture()
+def bbox_all():
+    return '-180.0,-90.0,180.0,90.0'
 
 
 @pytest.fixture()

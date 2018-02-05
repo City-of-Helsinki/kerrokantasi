@@ -83,7 +83,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'id', 'type', 'commenting', 'published',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
-            'images',
+            'images', 'ordering',
         ]
 
     @transaction.atomic()

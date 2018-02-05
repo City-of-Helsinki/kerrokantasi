@@ -1028,6 +1028,24 @@ def test_PUT_hearing_steal_section(valid_hearing_json, john_smith_api_client, de
     assert ('The Hearing does not have a section with ID %s' % other_hearing_section_id) in updated_data['sections']
 
 
+# Test that hearing sections ordering is saved when updating sections
+@pytest.mark.django_db
+def test_PUT_hearing_section_ordering(valid_hearing_json, john_smith_api_client, default_hearing):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    reordered_sections = [
+        data['sections'][0],
+        data['sections'][2],
+        data['sections'][1],
+    ]
+    data['sections'] = reordered_sections
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    assert reordered_sections[0]['id'] == updated_data['sections'][0]['id']
+    assert reordered_sections[1]['id'] == updated_data['sections'][1]['id']
+    assert reordered_sections[2]['id'] == updated_data['sections'][2]['id']
+
+
 # Test that the section are deleted upon updating the hearing
 @pytest.mark.django_db
 def test_PUT_hearing_delete_sections(valid_hearing_json, john_smith_api_client):

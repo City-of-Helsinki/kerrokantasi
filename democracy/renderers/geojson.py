@@ -19,7 +19,7 @@ class GeoJSONRenderer(JSONRenderer):
         if not geojson:
             # missing geometry is indicated by null in the GeoJSON specification
             geojson = {"type": "Feature", "geometry": None}
-        if 'coordinates' in geojson:
+        if geojson['type'] not in ['Feature', 'FeatureCollection']:
             # the object must be embedded in feature
             geojson = {"type": "Feature", "geometry": geojson}
         geojson['id'] = data['id']

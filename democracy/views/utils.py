@@ -16,7 +16,9 @@ from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
+from rest_framework.filters import BaseFilterBackend
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
+from munigeo.api import build_bbox_filter, srid_to_srs
 
 
 def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.PARLER_LANGUAGES[None]]):
@@ -105,9 +107,6 @@ class PublicFilteredImageField(serializers.Field):
         else:
             images = images.public()
 
-        # Remove duplicated rows
-        images = images.order_by('pk')
-
         serializer = self.serializer_class.get_field_serializer(
             many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
         )
@@ -133,10 +132,10 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
     q = Q(**filters)
 
     if user.is_authenticated():
-        organization = user.get_default_organization()
-        if organization:
+        organizations = user.admin_organizations.all()
+        if organizations.exists():
             # regardless of publication status or date, admins will see everything from their organization
-            q |= Q(**{'%sorganization' % hearing_lookup: organization})
+            q |= Q(**{'%sorganization__in' % hearing_lookup: organizations})
 
     return queryset.filter(q)
 
@@ -190,14 +189,40 @@ class GeoJSONField(serializers.JSONField):
     def to_internal_value(self, data):
         if not data:
             return None
-        if "geometry" not in data:
-            raise ValidationError('Invalid geojson format. "geometry" field is required. Got %(data)s' % {'data': data})
+        geometry = data.get('geometry', None) or data
+
+        if 'type' not in data:
+            raise ValidationError('Invalid geojson format. "type" field is required. Got %(data)s' % {'data': data})
+
+        supported_types = [
+            'Feature', 'Point', 'LineString', 'Polygon', 'MultiPoint',
+            'MultiLineString', 'MultiPolygon',
+        ]
+        if data['type'] not in supported_types:
+            raise ValidationError('Invalid geojson format. Type is not supported.'
+                                  'Supported types are %(types)s. Got %(data)s' % {
+                                      'types': ', '.join(supported_types),
+                                      'data': data
+                                  })
 
         try:
-            GEOSGeometry(json.dumps(data["geometry"]))
+            GEOSGeometry(json.dumps(geometry))
         except GDALException:
             raise ValidationError('Invalid geojson format: %(data)s' % {'data': data})
         return super(GeoJSONField, self).to_internal_value(data)
+
+
+class GeometryBboxFilterBackend(BaseFilterBackend):
+    """
+    Filter ViewSets with a geometry field by bounding box
+    """
+    def filter_queryset(self, request, queryset, view):
+        srs = srid_to_srs(request.query_params.get('srid', None))
+        bbox = request.query_params.get('bbox', None)
+        if bbox:
+            bbox_filter = build_bbox_filter(srs, bbox, 'geometry')
+            queryset = queryset.filter(**bbox_filter)
+        return queryset
 
 
 class Base64ImageField(serializers.ImageField):

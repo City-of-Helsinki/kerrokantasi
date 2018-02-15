@@ -4,10 +4,9 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 
-from democracy.models import SectionComment
-
 
 def forwards_func(apps, schema_editor):
+    SectionComment = apps.get_model('democracy', 'SectionComment')
     for comment in SectionComment.objects.all():
         comment._detect_lang()
         comment.save()

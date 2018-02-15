@@ -5,10 +5,10 @@ import datetime
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
+from django.utils import timezone
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
-from rest_framework.fields import JSONField
 from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
@@ -21,7 +21,7 @@ from democracy.views.label import LabelSerializer
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
-from democracy.views.utils import TranslatableSerializer, get_translation_list
+from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend, TranslatableSerializer, get_translation_list
 from .hearing_report import HearingReport
 from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
@@ -39,7 +39,7 @@ class HearingFilter(django_filters.FilterSet):
 
 
 class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    geojson = JSONField(required=False, allow_null=True)
+    geojson = GeoJSONField(required=False, allow_null=True)
 
     # this field is used only for incoming data validation, outgoing data is added manually
     # in to_representation()
@@ -53,6 +53,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         read_only=True,
         slug_field='name'
     )
+    slug = serializers.SlugField()
 
     class Meta:
         model = Hearing
@@ -67,6 +68,18 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def __init__(self, *args, **kwargs):
         super(HearingCreateUpdateSerializer, self).__init__(*args, **kwargs)
         self.partial = kwargs.get('partial', False)
+
+    def validate(self, data):
+        data = super(HearingCreateUpdateSerializer, self).validate(data)
+        action = self.context['view'].action
+        titles = data.get('title')
+        if not titles and action in ('create', 'update'):
+            raise serializers.ValidationError('Title is required at least in one locale')
+        if titles and not any(titles.values()):
+            # If title is present in payload, one locale must be set when creating,
+            # updating as whole or patching
+            raise serializers.ValidationError('Title is required at least in one locale')
+        return data
 
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """
@@ -183,13 +196,14 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
-    geojson = JSONField()
+    geojson = GeoJSONField()
     organization = serializers.SlugRelatedField(
         read_only=True,
         slug_field='name'
     )
     main_image = serializers.SerializerMethodField()
     abstract = serializers.SerializerMethodField()
+    preview_url = serializers.SerializerMethodField()
     contact_persons = ContactPersonSerializer(many=True, read_only=True)
     default_to_fullscreen = serializers.SerializerMethodField()
 
@@ -238,14 +252,22 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         main_section = self._get_main_section(hearing)
         return main_section.plugin_fullscreen if main_section else False
 
+    def get_preview_url(self, hearing):
+        is_public = hearing.published and hearing.open_at < timezone.now()
+        if not is_public:
+            return hearing.preview_url
+        else:
+            return None
+
     class Meta:
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'published', 'labels', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'sections',
+            'servicemap_url', 'sections', 'preview_url',
             'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
+        read_only_fields = ['preview_url']
         translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
 
 
@@ -265,7 +287,7 @@ class HearingListSerializer(HearingSerializer):
 
 
 class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    geojson = JSONField()
+    geojson = GeoJSONField()
 
     class Meta:
         model = Hearing
@@ -298,7 +320,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     API endpoint for hearings.
     """
     model = Hearing
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
     serializer_class = HearingListSerializer
@@ -313,7 +335,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return HearingListSerializer
         if self.action in ('create', 'update', 'partial_update'):
             return HearingCreateUpdateSerializer
-
         return HearingSerializer
 
     def filter_queryset(self, queryset):

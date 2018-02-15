@@ -4,7 +4,6 @@ from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import JSONField
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 
@@ -14,7 +13,8 @@ from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseComm
 from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
-from democracy.views.utils import filter_by_hearing_visible, GeoJSONField, NestedPKRelatedField
+from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField
+from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend
 
 
 class SectionCommentCreateSerializer(serializers.ModelSerializer):
@@ -84,7 +84,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     Serializer for comment added to section.
     """
     label = LabelSerializer(read_only=True)
-    geojson = JSONField(required=False, allow_null=True)
+    geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
 
     class Meta:
@@ -96,7 +96,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter)
+    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
 
 

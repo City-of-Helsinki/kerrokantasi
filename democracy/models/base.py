@@ -72,11 +72,11 @@ class BaseModel(models.Model):
 
     def soft_delete(self, using=None):
         self.deleted = True
-        self.save(update_fields=("deleted",), using=using, force_update=True)
+        self.save(update_fields=("deleted",), using=using)
 
     def undelete(self, using=None):
         self.deleted = False
-        self.save(update_fields=("deleted",), using=using, force_update=True)
+        self.save(update_fields=("deleted",), using=using)
 
     def delete(self, using=None):
         raise NotImplementedError("This model does not support hard deletion")

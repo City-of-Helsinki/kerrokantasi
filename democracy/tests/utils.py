@@ -33,14 +33,14 @@ def image_test_json():
     }
 
 
-def sectionimage_test_json():
+def sectionimage_test_json(title_en='Test title'):
     return {
         'caption': {
             'en': 'Test',
             'fi': 'Testi',
         },
         'title': {
-            'en': 'Test title',
+            'en': title_en,
             'fi': 'Finnish test title',
         },
         'image': image_to_base64(IMAGES['ORIGINAL']),
@@ -99,21 +99,6 @@ def get_hearing_detail_url(id, element=None):
     return url
 
 
-def get_geojson():
-    return {
-        "type": "Feature",
-        "properties": {
-            "name": "Coors Field",
-            "amenity": "Baseball Stadium",
-            "popupContent": "This is where the Rockies play!"
-        },
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-104.99404, 39.75621]
-        }
-    }
-
-
 def assert_id_in_results(id, results, expected=True):
     included = id in [value['id'] for value in results]
     assert included is expected
@@ -126,3 +111,4 @@ def assert_common_keys_equal(dict1, dict2):
             'v1': dict1[key],
             'v2': dict2[key],
         }
+

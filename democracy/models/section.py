@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from reversion import revisions
 from autoslug import AutoSlugField
 from parler.models import TranslatedFields, TranslatableModel
-from parler.managers import TranslatableQuerySet, TranslatableManager
+from parler.managers import TranslatableQuerySet
 
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.images import BaseImage
@@ -88,12 +88,6 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
         return get_implementation(self.plugin_identifier)
 
 
-class SectionImageManager(TranslatableManager, BaseModelManager):
-
-    def get_queryset(self):
-        return super(SectionImageManager, self).get_queryset().order_by('pk')
-
-
 class SectionImage(BaseImage, TranslatableModel):
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="images")
@@ -101,12 +95,12 @@ class SectionImage(BaseImage, TranslatableModel):
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
     )
-    objects = SectionImageManager()
+    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         verbose_name = _('section image')
         verbose_name_plural = _('section images')
-        ordering = ("ordering", "translations__title")
+        ordering = ('ordering',)
 
 
 @revisions.register

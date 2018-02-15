@@ -13,9 +13,9 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
-from democracy.tests.conftest import default_comment_content, default_lang_code
+from democracy.tests.conftest import default_comment_content, default_lang_code, geojson_feature
 from democracy.tests.utils import (
-    assert_common_keys_equal, get_data_from_response, get_geojson, get_hearing_detail_url, image_test_json
+    assert_common_keys_equal, get_data_from_response, get_hearing_detail_url, image_test_json
 )
 
 
@@ -41,7 +41,7 @@ def get_detail_url(request):
 def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
-        'geojson': get_geojson(),
+        'geojson': geojson_feature(),
         'section': None
     }, **extra)
 
@@ -83,6 +83,16 @@ def test_56_add_comment_to_section_without_authentication(api_client, default_he
 
 
 @pytest.mark.django_db
+def test_56_add_comment_to_section_without_authentication_with_nickname(api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    data['author_name'] = 'Jane Commenter'
+    response = api_client.post(url, data=data)
+    assert response.status_code == 201
+    assert response.data['author_name'] == 'Jane Commenter'
+
+
+@pytest.mark.django_db
 def test_56_add_comment_to_section_without_data(api_client, default_hearing, get_comments_url_and_data):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
@@ -93,7 +103,7 @@ def test_56_add_comment_to_section_without_data(api_client, default_hearing, get
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -114,7 +124,7 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
     assert data['content'] == default_comment_content
 
     assert 'geojson' in data
-    assert data['geojson'] == get_geojson()
+    assert data['geojson'] == geojson_feature
 
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -207,11 +217,11 @@ def test_56_add_comment_to_section_with_invalid_geojson(john_doe_api_client, def
         old_comment_list = old_comment_list['results']
 
     # set section and invalid geojson explicitly
-    comment_data = get_comment_data(section=section.pk, geojson={'geometry': {'hello': 'world'}})
+    comment_data = get_comment_data(section=section.pk, geojson={'type': 'Feature', 'geometry': {'hello': 'world'}})
     response = john_doe_api_client.post(url, data=comment_data, format='json')
 
     data = get_data_from_response(response, status_code=400)
-    assert data["geojson"][0] == 'Invalid geojson format: {\'geometry\': {\'hello\': \'world\'}}'
+    assert data["geojson"][0].startswith('Invalid geojson format: ')
 
 
 @pytest.mark.django_db
@@ -229,7 +239,7 @@ def test_56_add_comment_to_section_with_no_geometry_in_geojson(john_doe_api_clie
     response = john_doe_api_client.post(url, data=comment_data, format='json')
 
     data = get_data_from_response(response, status_code=400)
-    assert data["geojson"][0] == 'Invalid geojson format. "geometry" field is required. Got {\'hello\': \'world\'}'
+    assert data["geojson"][0] == 'Invalid geojson format. "type" field is required. Got {\'hello\': \'world\'}'
 
 
 @pytest.mark.django_db
@@ -308,7 +318,7 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
 
 
 @pytest.mark.django_db
-def test_56_add_empty_comment_with_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_empty_comment_with_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -326,7 +336,7 @@ def test_56_add_empty_comment_with_geojson(john_doe_api_client, default_hearing,
     assert data['section'] == section.pk
 
     assert 'geojson' in data
-    assert data['geojson'] == get_geojson()
+    assert data['geojson'] == geojson_feature
 
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -811,6 +821,26 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 9
+
+
+@pytest.mark.django_db
+def test_root_endpoint_bbox_filtering(api_client, default_hearing, geojson_feature, bbox_containing_feature, bbox_containing_geometries):
+    url = '/v1/comment/'
+    section = default_hearing.sections.first()
+    comment = section.comments.first()
+    comment.geojson = geojson_feature
+    comment.save()
+
+    containing_query = '?bbox=%s' % bbox_containing_feature
+    not_containing_query = '?bbox=%s' % bbox_containing_geometries
+
+    response = api_client.get(url + containing_query)
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 1
+
+    response = api_client.get(url + not_containing_query)
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 0
 
 
 @pytest.mark.parametrize('hearing_update', [

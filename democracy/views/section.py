@@ -1,9 +1,9 @@
 import django_filters
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.db import transaction
 from django.utils.timezone import now
-from rest_framework import filters, serializers, viewsets
-from rest_framework.exceptions import ValidationError
+from rest_framework import filters, serializers, viewsets, permissions
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage, SectionType
@@ -26,14 +26,13 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerial
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
         # image content isn't mandatory on updates
         if self.instance:
             self.fields['image'].required = False
 
     class Meta:
         model = SectionImage
-        fields = ['title', 'url', 'width', 'height', 'caption', 'image']
+        fields = ['title', 'url', 'width', 'height', 'caption', 'image', 'ordering']
 
 
 class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -84,7 +83,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'id', 'type', 'commenting', 'published',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
-            'images',
+            'images', 'ordering',
         ]
 
     @transaction.atomic()
@@ -159,14 +158,29 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class RootSectionImageSerializer(SectionImageSerializer):
+class RootSectionImageSerializer(SectionImageCreateUpdateSerializer):
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
 
-    class Meta(SectionImageSerializer.Meta):
-        fields = SectionImageSerializer.Meta.fields + ['section', 'hearing']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            if 'section' in self.fields:
+                self.fields['section'].required = False
+
+    class Meta(SectionImageCreateUpdateSerializer.Meta):
+        fields = SectionImageCreateUpdateSerializer.Meta.fields + ['id', 'section', 'hearing', 'ordering']
+
+    @transaction.atomic()
+    def create(self, validated_data):
+        section_image = super().create(validated_data)
+        section_images = section_image.section.images.all()
+        if section_images.exists():
+            section_image.ordering = section_images.aggregate(Max('ordering'))['ordering__max'] + 1
+            section_image.save()
+        return section_image
 
 
 class ImageFilter(filters.FilterSet):
@@ -179,15 +193,39 @@ class ImageFilter(filters.FilterSet):
 
 
 # root level SectionImage endpoint
-class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     model = SectionImage
     serializer_class = RootSectionImageSerializer
     pagination_class = DefaultLimitPagination
     filter_class = ImageFilter
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        return filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+        return queryset.filter(deleted=False)
+
+    def _is_user_organisation_admin(self, section):
+        target_org = section.hearing.organization
+        return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+
+    def perform_create(self, serializer):
+        if self._is_user_organisation_admin(serializer.validated_data['section']):
+            return super().perform_create(serializer)
+        else:
+            raise PermissionDenied('Only organisation admin can create SectionImages')
+
+    def perform_update(self, serializer):
+        if self._is_user_organisation_admin(serializer.instance.section):
+            return super().perform_update(serializer)
+        else:
+            raise PermissionDenied('Only organisation admin can update SectionImages')
+
+    def perform_destroy(self, instance):
+        if self._is_user_organisation_admin(instance.section):
+            instance.soft_delete()
+        else:
+            raise PermissionDenied('Only organisation admin can delete SectionImages')
 
 
 class RootSectionSerializer(SectionSerializer, TranslatableSerializer):

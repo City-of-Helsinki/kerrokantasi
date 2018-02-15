@@ -2,13 +2,12 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
-from django.db import models
+from django.contrib.gis.db import models
 from django.db.models import Sum
 from django.utils import timezone
-from django.utils.html import format_html
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
-from djgeojson.fields import GeometryField
+from djgeojson.fields import GeoJSONField
 from autoslug import AutoSlugField
 from autoslug.utils import generate_unique_slug
 from parler.models import TranslatedFields, TranslatableModel
@@ -16,6 +15,7 @@ from parler.managers import TranslatableQuerySet
 
 from democracy.enums import InitialSectionType
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
+from democracy.utils.geo import get_geometry_from_geojson
 
 from .base import BaseModelManager, StringIdBaseModel
 from .organization import ContactPerson, Organization
@@ -38,7 +38,8 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         borough=models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200),
     )
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
-    geojson = GeometryField(blank=True, null=True, verbose_name=_('area'))
+    geojson = GeoJSONField(blank=True, null=True, verbose_name=_('area'))
+    geometry = models.GeometryField(blank=True, null=True, verbose_name=_('area geometry'))
     organization = models.ForeignKey(
         Organization,
         verbose_name=_('organization'),
@@ -87,11 +88,9 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     @property
     def preview_url(self):
         if not (self.preview_code and hasattr(settings, 'DEMOCRACY_UI_BASE_URL')):
-            return ''
+            return None
         url = urljoin(settings.DEMOCRACY_UI_BASE_URL, '/hearing/%s/?preview=%s' % (self.pk, self.preview_code))
-        return format_html(
-            '<a href="%s">%s</a>' % (url, url)
-        )
+        return url
 
     def save(self, *args, **kwargs):
         slug_field = self._meta.get_field('slug')
@@ -99,6 +98,8 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
         # uses our default manager, which can lead to a slug collision between this and a deleted hearing
         self.slug = generate_unique_slug(slug_field, self, self.slug, Hearing.original_manager)
+
+        self.geometry = get_geometry_from_geojson(self.geojson)
 
         super().save(*args, **kwargs)
 
@@ -125,3 +126,10 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         if not (user_organization and self.organization):
             return False
         return self.organization in user.admin_organizations.all()
+
+    def soft_delete(self, using=None):
+        # we want deleted hearings to give way to new ones, the original slug from a deleted hearing
+        # is now free to use
+        self.slug += '-deleted'
+        self.save()
+        super().soft_delete(using=using)

@@ -25,7 +25,8 @@ django-mptt==0.9.0
 django-nested-admin==3.0.20
 django-parler==1.8
 django-reversion==2.0.10
-Django==1.11.10            # via django-geojson, django-leaflet, django-reversion, drf-nested-routers, easy-thumbnails, jsonfield
+django-sendfile==0.3.11
+Django==1.11.10
 djangorestframework-jwt==1.11.0
 djangorestframework==3.6.4
 dnspython==1.15.0         # via email-validator
@@ -60,6 +61,3 @@ six==1.11.0               # via django-extensions, django-geojson, faker, langde
 transifex-client==0.12.4
 urllib3==1.22             # via requests, transifex-client
 xlsxwriter==1.0.0
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools                # via pytest

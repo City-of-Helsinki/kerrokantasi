@@ -1275,3 +1275,30 @@ def test_PATCH_hearing_update_section(valid_hearing_json, john_smith_api_client)
     }]}, format='json')
     data = get_data_from_response(response, status_code=400)
     assert 'Sections cannot be updated by PATCHing the Hearing' in data['sections']
+
+
+@pytest.mark.django_db
+def test_DELETE_unpublished_hearing(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['published'] = False
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = john_smith_api_client.delete('%s%s/' % (endpoint, data['id']), format='json')
+    assert response.status_code == 200
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_DELETE_unpublished_hearing_with_comments(default_hearing, john_smith_api_client):
+    default_hearing.published = False
+    default_hearing.save()
+    response = john_smith_api_client.delete('%s%s/' % (endpoint, default_hearing.pk), format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert 'Cannot DELETE hearing with comments.' in data['status']
+
+
+@pytest.mark.django_db
+def test_DELETE_published_hearing(default_hearing, john_smith_api_client):
+    response = john_smith_api_client.delete('%s%s/' % (endpoint, default_hearing.pk), format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert 'Cannot DELETE published hearing.' in data['status']

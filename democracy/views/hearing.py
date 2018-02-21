@@ -438,3 +438,17 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return response.Response({'status': 'User without organization cannot PUT hearings.'},
                                      status=status.HTTP_403_FORBIDDEN)
         return super().update(request, pk=pk, partial=partial)
+
+    def destroy(self, request, pk=None):
+        if not request.user or not request.user.get_default_organization():
+            return response.Response({'status': 'User without organization cannot DELETE hearings.'},
+                                     status=status.HTTP_403_FORBIDDEN)
+        hearing = self.get_object()
+        if hearing.published:
+            return response.Response({'status': 'Cannot DELETE published hearing.'},
+                                     status=status.HTTP_403_FORBIDDEN)
+        if hearing.n_comments > 0:
+            return response.Response({'status': 'Cannot DELETE hearing with comments.'},
+                                     status=status.HTTP_403_FORBIDDEN)
+        hearing.soft_delete()
+        return response.Response({'status': 'Hearing deleted'}, status=status.HTTP_200_OK)

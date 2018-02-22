@@ -104,10 +104,6 @@ class SectionImage(BaseImage, TranslatableModel):
         ordering = ('ordering',)
 
 
-class SectionFileManager(TranslatableManager, BaseModelManager):
-    pass
-
-
 class SectionFile(BaseFile, TranslatableModel):
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="files")
@@ -115,7 +111,7 @@ class SectionFile(BaseFile, TranslatableModel):
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
     )
-    objects = SectionFileManager()
+    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         verbose_name = _('section file')

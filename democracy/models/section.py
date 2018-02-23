@@ -106,7 +106,7 @@ class SectionImage(BaseImage, TranslatableModel):
 
 class SectionFile(BaseFile, TranslatableModel):
     parent_field = "section"
-    section = models.ForeignKey(Section, related_name="files")
+    section = models.ForeignKey(Section, related_name="files", blank=True, null=True)
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),

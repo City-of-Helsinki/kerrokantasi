@@ -6,26 +6,46 @@ import raven
 gettext = lambda s: s
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+root = environ.Path(BASE_DIR)
 
 env = environ.Env()
 
-DEBUG = env.bool('DEBUG', default=False)
-SECRET_KEY = env.str('SECRET_KEY', default=('x' if DEBUG else ''))
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
-ADMINS = env.list('ADMINS', default=[])
+env = environ.Env(
+    DEBUG=(bool, False),
+    SECRET_KEY=(str, ''),
+    ALLOWED_HOSTS=(list, []),
+    ADMINS=(list, []),
+    DATABASE_URL=(str, 'postgis:///kerrokantasi'),
+    JWT_SECRET_KEY=(str, ''),
+    JWT_AUDIENCE=(str, ''),
+    MEDIA_ROOT=(environ.Path(), root('media')),
+    STATIC_ROOT=(environ.Path(), root('static')),
+    MEDIA_URL=(str, '/media/'),
+    STATIC_URL=(str, '/static/'),
+    SENTRY_DSN=(str, ''),
+    COOKIE_PREFIX=(str, 'kerrokantasi'),
+    DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
+)
+
+DEBUG = env('DEBUG')
+SECRET_KEY = env('SECRET_KEY')
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+ADMINS = env('ADMINS')
+
 DATABASES = {
-    'default': env.db('DATABASE_URL', default='postgis:///kerrokantasi')
+    'default': env.db('DATABASE_URL')
 }
-SENTRY_DSN = env.str('SENTRY_DSN', default='')
-DEMOCRACY_UI_BASE_URL = env.str('DEMOCRACY_UI_BASE_URL', default='http://localhost:8086')
+
+SENTRY_DSN = env('SENTRY_DSN')
+DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
 
 JWT_AUTH = {
-    'JWT_SECRET_KEY': env.str('JWT_SECRET_KEY', default='kerrokantasi'),
-    'JWT_AUDIENCE': env.str('JWT_AUDIENCE', default='kerrokantasi')
+    'JWT_SECRET_KEY': env('JWT_SECRET_KEY'),
+    'JWT_AUDIENCE': env('JWT_AUDIENCE')
 }
 
 RAVEN_CONFIG = {
-    'dsn': env.str('SENTRY_DSN', default=''),
+    'dsn': env('SENTRY_DSN'),
     'release': raven.fetch_git_sha(BASE_DIR),
 }
 

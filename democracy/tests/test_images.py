@@ -122,11 +122,19 @@ def test_get_images_root_endpoint(api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_get_thumbnail_images_root_endpoint(api_client, default_hearing):
-    data = get_data_from_response(api_client.get('/v1/image/?dim=400x300'))
+    data = get_data_from_response(api_client.get('/v1/image/?dim=100x100'))
     assert len(data['results']) == 9
+    for image in data['results']:
+        assert image['width'] == 100
+        assert image['height'] == 100
 
-    data = get_data_from_response(api_client.get('/v1/image/?section=%s' % default_hearing.sections.first().id))
-    check_entity_images(data['results'], False)
+
+
+@pytest.mark.django_db
+def test_get_thumbnail_image(api_client, default_hearing):
+    data = get_data_from_response(api_client.get('/v1/image/%s/?dim=100x100' % default_hearing.sections.first().images.first().id))
+    assert data['width'] == 100
+    assert data['height'] == 100
 
 
 @pytest.mark.django_db

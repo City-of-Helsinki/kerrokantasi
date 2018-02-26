@@ -3,6 +3,7 @@ from django.db.models import Q, Max
 from django.db import transaction
 from django.utils.timezone import now
 from easy_thumbnails.files import get_thumbnailer
+from functools import lru_cache
 from rest_framework import filters, serializers, viewsets, permissions
 from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
 
@@ -18,7 +19,7 @@ from democracy.views.utils import (
 
 class ThumbnailImageSerializer(BaseImageSerializer):
     """
-    Image serializer supporting thumbnails vie GET parameter
+    Image serializer supporting thumbnails via GET parameter
 
     ?dim=640x480
     """
@@ -29,7 +30,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
         request = self._get_context_request()
         if request and 'dim' in request.GET:
             try:
-                width, height = self._parse_dimension_string(request.GET['dim'])
+                width, _height = self._parse_dimension_string(request.GET['dim'])
                 return width
             except ValueError as verr:
                 raise ParseError(detail=str(verr), code="invalid-dim-parameter")
@@ -39,7 +40,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
         request = self._get_context_request()
         if request and 'dim' in request.GET:
             try:
-                width, height = self._parse_dimension_string(request.GET['dim'])
+                _width, height = self._parse_dimension_string(request.GET['dim'])
                 return height
             except ValueError as verr:
                 raise ParseError(detail=str(verr), code="invalid-dim-parameter")
@@ -59,6 +60,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
         else:
             return obj.image
 
+    @lru_cache()
     def _parse_dimension_string(self, dim):
         """
         Parse a dimension string ("WxH") into (width, height).

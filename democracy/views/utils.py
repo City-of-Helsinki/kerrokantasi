@@ -15,7 +15,7 @@ from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
 from munigeo.api import build_bbox_filter, srid_to_srs
@@ -360,3 +360,23 @@ class TranslatableSerializer(serializers.Serializer):
                 translation = instance._get_translated_model(lang_code, auto_create=True)
                 setattr(translation, field, value)
         instance.save_translations()
+
+
+class FormDataTranslatableSerializer(TranslatableSerializer):
+    """
+    A serializer for translated fields.
+
+    Variation of the base class for use with form-data instead of json payloads. Translated fields are expected to be strings containing valid json with translations, such as:
+        title={"en": "A title", "fi": "Otsikko"}&content={"en": "content"}
+    """
+    def to_internal_value(self, value):
+        ret = super(TranslatableSerializer, self).to_internal_value(value)
+        for field in self.Meta.translated_fields:
+            v = value.get(field)
+            if v:
+                try:
+                    ret[field] = json.loads(v)
+                except json.decoder.JSONDecodeError:
+                    # can't raise ValidationError here
+                    raise ParseError(_('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v}))
+        return ret

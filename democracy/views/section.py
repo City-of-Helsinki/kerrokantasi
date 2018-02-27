@@ -15,7 +15,7 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
 from democracy.views.utils import (
-    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer, FormDataTranslatableSerializer
 )
 
 
@@ -241,7 +241,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             raise PermissionDenied('Only organisation admin can delete SectionImages')
 
 
-class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
+class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
     filetype = 'sectionfile'
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
 

@@ -8,7 +8,7 @@ from rest_framework.test import APIClient
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
 from democracy.models import ContactPerson, Hearing, Label, Section, SectionType, Organization
-from democracy.tests.utils import assert_ascending_sequence, create_default_images
+from democracy.tests.utils import assert_ascending_sequence, create_default_images, create_default_files
 
 
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
@@ -70,6 +70,7 @@ def default_hearing(john_doe, contact_person, default_organization):
             commenting=Commenting.OPEN
         )
         create_default_images(section)
+        create_default_files(section)
         section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
         section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
         section.comments.create(created_by=john_doe, content=green_comment_content[::-1])

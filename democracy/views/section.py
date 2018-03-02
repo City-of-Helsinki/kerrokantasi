@@ -15,7 +15,8 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
 from democracy.views.utils import (
-    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer, FormDataTranslatableSerializer
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
+    FormDataTranslatableSerializer
 )
 
 
@@ -329,7 +330,10 @@ class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         # section file can be put to another section if admin in both previous and next org
         section = serializer.validated_data.get('section')
         instance = serializer.instance
-        return self._is_user_organisation_admin(user, section) and self._is_user_organisation_admin(user, instance.section)
+        return (
+            self._is_user_organisation_admin(user, section) and
+            self._is_user_organisation_admin(user, instance.section)
+        )
 
     def _can_user_destroy(self, user, instance):
         # organisation admin can destroy a file with a section,

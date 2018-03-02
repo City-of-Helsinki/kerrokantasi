@@ -138,7 +138,7 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing', inclu
             q |= Q(**{'%sorganization__in' % hearing_lookup: organizations})
         if include_orphans:
             # include items belonging to no hearings
-            q |= Q(**{'%sisnull' % hearing_lookup: True })
+            q |= Q(**{'%sisnull' % hearing_lookup: True})
 
     return queryset.filter(q)
 
@@ -369,7 +369,8 @@ class FormDataTranslatableSerializer(TranslatableSerializer):
     """
     A serializer for translated fields.
 
-    Variation of the base class for use with form-data instead of json payloads. Translated fields are expected to be strings containing valid json with translations, such as:
+    Variation of the base class for use with form-data instead of json payloads.
+    Translated fields are expected to be strings containing valid json with translations, such as:
         title={"en": "A title", "fi": "Otsikko"}&content={"en": "content"}
     """
     def to_internal_value(self, value):
@@ -381,5 +382,8 @@ class FormDataTranslatableSerializer(TranslatableSerializer):
                     ret[field] = json.loads(v)
                 except json.decoder.JSONDecodeError:
                     # can't raise ValidationError here
-                    raise ParseError(_('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v}))
+                    raise ParseError(
+                        _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
+                    )
         return ret
+

@@ -260,11 +260,24 @@ class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
     @transaction.atomic()
     def create(self, validated_data):
         section_file = super().create(validated_data)
-        section_files = section_file.section.files.all()
-        if section_files.exists():
-            section_file.ordering = section_files.aggregate(Max('ordering'))['ordering__max'] + 1
-            section_file.save()
+        self._update_ordering(section_file)
         return section_file
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        is_section_changed = instance.section != validated_data.get('section', instance.section)
+        section_file = super().update(instance, validated_data)
+        if is_section_changed:
+            self._update_ordering(section_file)
+        return section_file
+
+    def _update_ordering(self, section_file):
+        existing_section_files = SectionFile.objects.filter(section=section_file.section).exclude(pk=section_file.pk)
+        if section_file.section and existing_section_files.exists():
+            section_file.ordering = existing_section_files.aggregate(Max('ordering'))['ordering__max'] + 1
+        else:
+            section_file.ordering = 1
+        section_file.save()
 
 
 class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
@@ -275,30 +288,53 @@ class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing', include_orphans=True)
         return queryset.filter(deleted=False)
 
-    def _is_user_organisation_admin(self, section):
-        target_org = section.hearing.organization
-        return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
-
     def perform_create(self, serializer):
-        if self._is_user_organisation_admin(serializer.validated_data['section']):
+        if self._can_user_create(self.request.user, serializer):
             return super().perform_create(serializer)
         else:
             raise PermissionDenied('Only organisation admin can create SectionFiles')
 
     def perform_update(self, serializer):
-        if self._is_user_organisation_admin(serializer.instance.section):
+        if self._can_user_update(self.request.user, serializer):
             return super().perform_update(serializer)
         else:
             raise PermissionDenied('Only organisation admin can update SectionFiles')
 
     def perform_destroy(self, instance):
-        if self._is_user_organisation_admin(instance.section):
+        if self._can_user_destroy(self.request.user, instance):
             instance.soft_delete()
         else:
             raise PermissionDenied('Only organisation admin can delete SectionFiles')
+
+    def _can_user_create(self, user, serializer):
+        # new sectionless file can be created by any org admin
+        # new file with section can be created if admin in that org
+        section = serializer.validated_data.get('section')
+        return self._is_user_organisation_admin(user, section)
+
+    def _is_user_organisation_admin(self, user, section=None):
+        if section:
+            target_org = section.hearing.organization
+            return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+        else:
+            return self.request.user.admin_organizations.exists()
+
+    def _can_user_update(self, user, serializer):
+        # sectionless file can be edited without section data by any admin
+        # sectionless file can be put to section if admin in that org
+        # section file can be edited if admin in that org
+        # section file can be put to another section if admin in both previous and next org
+        section = serializer.validated_data.get('section')
+        instance = serializer.instance
+        return self._is_user_organisation_admin(user, section) and self._is_user_organisation_admin(user, instance.section)
+
+    def _can_user_destroy(self, user, instance):
+        # organisation admin can destroy a file with a section,
+        # any organisation admin can destroy a sectionless file
+        return self._is_user_organisation_admin(user, instance.section)
 
 
 class RootSectionSerializer(SectionSerializer, TranslatableSerializer):

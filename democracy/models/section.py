@@ -118,6 +118,8 @@ class SectionFile(BaseFile, TranslatableModel):
         verbose_name_plural = _('section files')
         ordering = ('ordering',)
 
+    def __str__(self):
+        return '%s - %s' % (self.pk, self.uploaded_file.name)
 
 @revisions.register
 @recache_on_save

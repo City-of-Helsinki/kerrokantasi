@@ -115,7 +115,7 @@ class PublicFilteredRelatedField(serializers.Field):
         return serializer.to_representation(queryset)
 
 
-def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
+def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing', include_orphans=False):
     if hearing_lookup:
         hearing_lookup = '%s__' % hearing_lookup
 
@@ -136,6 +136,9 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
         if organizations.exists():
             # regardless of publication status or date, admins will see everything from their organization
             q |= Q(**{'%sorganization__in' % hearing_lookup: organizations})
+        if include_orphans:
+            # include items belonging to no hearings
+            q |= Q(**{'%sisnull' % hearing_lookup: True })
 
     return queryset.filter(q)
 

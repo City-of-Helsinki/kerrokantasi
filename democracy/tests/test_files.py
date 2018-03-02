@@ -2,7 +2,8 @@ import datetime
 import pytest
 from django.utils.timezone import now
 
-from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_test_data
+from democracy.models import SectionFile
+from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_test_data
 from democracy.tests.conftest import default_lang_code
 
 
@@ -128,3 +129,100 @@ def test_unpublished_hearing_section_files_download_link_admin(default_hearing, 
     assert response.status_code == 200
 
 
+@pytest.mark.django_db
+def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_hearing):
+    """
+    File should be able to be uploaded without section data
+    """
+    # Check original file count
+    data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+    assert len(data['results']) == 3
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new file to the section
+    post_data = sectionfile_test_data()
+    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+        post_data['uploaded_file'] = fp
+        data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
+        assert data['section'] is None
+        assert data['hearing'] is None
+        # Make sure new file was created
+        data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+        assert len(data['results']) == 4
+
+
+@pytest.mark.django_db
+def test_PUT_file_section(john_smith_api_client, default_hearing):
+    """
+    File with empty section should be able to be updated with section data
+    """
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new file to the section
+    post_data = sectionfile_test_data()
+    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+        post_data['uploaded_file'] = fp
+        data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
+    file_obj_id = data['id']
+    put_data = sectionfile_test_data()
+    put_data['section'] = first_section['id']
+    data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=put_data, format='multipart'), status_code=200)
+    assert data['section'] == first_section['id']
+    assert data['hearing'] == default_hearing.pk
+
+
+@pytest.mark.django_db
+def test_GET_file(john_doe_api_client, default_hearing):
+    url = '/v1/file/%s/' % default_hearing.sections.first().files.first().pk
+    data = get_data_from_response(john_doe_api_client.get(url), status_code=200)
+
+
+@pytest.mark.django_db
+def test_PUT_file_no_access(john_doe_api_client, default_hearing):
+    """
+    File should not accept PUT from unpriviledged user
+    """
+    url = '/v1/file/%s/' % default_hearing.sections.first().files.first().pk
+    put_data = sectionfile_test_data()
+    data = get_data_from_response(john_doe_api_client.put(url, data=put_data, format='multipart'), status_code=403)
+
+
+@pytest.mark.parametrize('client, expected', [
+    ('api_client', 401),
+    ('jane_doe_api_client', 403),
+    ('john_smith_api_client', 204)
+])
+@pytest.mark.django_db
+def test_DELETE_section_files(client, expected, request, default_hearing):
+    api_client = request.getfixturevalue(client)
+    file_obj = default_hearing.sections.first().files.first()
+    url = '/v1/file/%s/' % file_obj.pk
+    response = api_client.delete(url)
+    assert response.status_code == expected
+    if expected == 204:
+        file_obj = SectionFile.objects.deleted(pk=file_obj.pk).get()
+        assert file_obj.deleted is True
+
+
+@pytest.mark.django_db
+def test_POST_first_file(john_smith_api_client, default_hearing):
+    """
+    POST a file to hearing with no files
+    """
+    SectionFile.objects.filter(section__in=default_hearing.sections.all()).delete()
+    url = '/v1/file/'
+    section = default_hearing.sections.first()
+    # POST new file to the section
+    post_data = sectionfile_test_data()
+    post_data['section'] = section.pk
+    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+        post_data['uploaded_file'] = fp
+        data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
+        assert data['ordering'] == 1
+        assert data['section'] == section.pk
+        assert data['hearing'] == default_hearing.pk
+        # Make sure new file was created
+        data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+        assert len(data['results']) == 1

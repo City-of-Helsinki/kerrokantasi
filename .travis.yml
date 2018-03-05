@@ -11,9 +11,12 @@ cache: pip
 
 install: 'pip install -r requirements.txt'
 
+env:
+  - DEBUG=True
+
 script:
-- flake8 democracy
-- pytest --cov=. democracy/tests
+  - flake8 democracy
+  - pytest --cov=. democracy/tests
 
 addons:
   postgresql: '9.6'

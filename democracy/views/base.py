@@ -36,15 +36,19 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
         fields = ['title', 'url', 'width', 'height', 'caption']
 
     def get_url(self, obj):
-        url = obj.image.url
-        if not self.context:
-            raise NotImplementedError("Not implemented")  # pragma: no cover
-
-        request = self.context.get("request")
+        url = self._get_image(obj).url
+        request = self._get_context_request()
         if request:  # pragma: no branch
             url = request.build_absolute_uri(url)
-
         return url
+
+    def _get_image(self, obj):
+        return obj.image
+
+    def _get_context_request(self):
+        if not self.context:
+            raise NotImplementedError("Not implemented")  # pragma: no cover
+        return self.context.get("request")
 
 
 class AdminsSeeUnpublishedMixin(object):

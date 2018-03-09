@@ -2,8 +2,10 @@ import django_filters
 from django.db.models import Q, Max
 from django.db import transaction
 from django.utils.timezone import now
+from easy_thumbnails.files import get_thumbnailer
+from functools import lru_cache
 from rest_framework import filters, serializers, viewsets, permissions
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Hearing, Section, SectionImage, SectionType
@@ -15,13 +17,80 @@ from democracy.views.utils import (
 )
 
 
-class SectionImageSerializer(BaseImageSerializer, TranslatableSerializer):
+class ThumbnailImageSerializer(BaseImageSerializer):
+    """
+    Image serializer supporting thumbnails via GET parameter
+
+    ?dim=640x480
+    """
+    width = serializers.SerializerMethodField()
+    height = serializers.SerializerMethodField()
+
+    def get_width(self, obj):
+        request = self._get_context_request()
+        if request and 'dim' in request.GET:
+            try:
+                width, _height = self._parse_dimension_string(request.GET['dim'])
+                return width
+            except ValueError as verr:
+                raise ParseError(detail=str(verr), code="invalid-dim-parameter")
+        return obj.width
+
+    def get_height(self, obj):
+        request = self._get_context_request()
+        if request and 'dim' in request.GET:
+            try:
+                _width, height = self._parse_dimension_string(request.GET['dim'])
+                return height
+            except ValueError as verr:
+                raise ParseError(detail=str(verr), code="invalid-dim-parameter")
+        return obj.height
+
+    def _get_image(self, obj):
+        request = self._get_context_request()
+        if request and 'dim' in request.GET:
+            try:
+                width, height = self._parse_dimension_string(request.GET['dim'])
+            except ValueError as verr:
+                raise ParseError(detail=str(verr), code="invalid-dim-parameter")
+            return get_thumbnailer(obj.image).get_thumbnail({
+                'size': (width, height),
+                'crop': 'smart',
+            })
+        else:
+            return obj.image
+
+    @lru_cache()
+    def _parse_dimension_string(self, dim):
+        """
+        Parse a dimension string ("WxH") into (width, height).
+        :param dim: Dimension string
+        :type dim: str
+        :return: Dimension tuple
+        :rtype: tuple[int, int]
+        """
+        a = dim.split('x')
+        if len(a) != 2:
+            raise ValueError('"dim" must be <width>x<height>')
+        width, height = a
+        try:
+            width = int(width)
+            height = int(height)
+        except:
+            width = height = 0
+        if not (width > 0 and height > 0):
+            raise ValueError("width and height must be positive integers")
+        # FIXME: Check allowed image dimensions better
+        return (width, height)
+
+
+class SectionImageSerializer(ThumbnailImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
         fields = ['id', 'title', 'url', 'width', 'height', 'caption']
 
 
-class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
+class SectionImageCreateUpdateSerializer(ThumbnailImageSerializer, TranslatableSerializer):
     image = Base64ImageField()
 
     def __init__(self, *args, **kwargs):

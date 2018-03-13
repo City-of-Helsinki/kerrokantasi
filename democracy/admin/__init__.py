@@ -249,6 +249,17 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     exclude = ('published',)
 
 
+class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
+    list_display = ('title', 'identifier')
+    search_fields = ('title', 'identifier')
+
+
+
+class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
+    list_display = ('title', 'project')
+    search_fields = ('title',)
+
+
 # Wire it up!
 
 
@@ -257,3 +268,5 @@ admin.site.register(models.Hearing, HearingAdmin)
 admin.site.register(models.SectionType, SectionTypeAdmin)
 admin.site.register(models.Organization, OrganizationAdmin)
 admin.site.register(models.ContactPerson, ContactPersonAdmin)
+admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.ProjectPhase, ProjectPhaseAdmin)

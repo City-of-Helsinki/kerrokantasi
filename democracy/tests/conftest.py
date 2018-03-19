@@ -48,7 +48,7 @@ def contact_person(default_organization):
 
 
 @pytest.fixture()
-def default_hearing(john_doe, contact_person, default_organization):
+def default_hearing(john_doe, contact_person, default_organization, default_project):
     """
     Fixture for a "default" hearing with three sections (one main, two other sections).
     All objects will have the 3 default images attached.
@@ -60,6 +60,7 @@ def default_hearing(john_doe, contact_person, default_organization):
         close_at=now() + datetime.timedelta(days=1),
         slug='default-hearing-slug',
         organization=default_organization,
+        project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 4):
         section_type = (InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO)

@@ -12,12 +12,13 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage
+from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, Project, ProjectPhase
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelSerializer
+from democracy.views.project import ProjectSerializer, ProjectFieldSerializer, ProjectCreateUpdateSerializer
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
@@ -53,6 +54,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         read_only=True,
         slug_field='name'
     )
+    project = serializers.DictField(write_only=True, required=False, allow_null=True)
     slug = serializers.SlugField()
 
     class Meta:
@@ -62,7 +64,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'published', 'open_at', 'close_at', 'created_at',
             'servicemap_url', 'sections',
             'closed', 'geojson', 'organization', 'slug',
-            'contact_persons', 'labels',
+            'contact_persons', 'labels', 'project',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -127,12 +129,42 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             sections.add(section)
         return sections
 
+    def _create_or_update_project(self, hearing, project_data):
+        """
+        Create or update project associated to a hearing.
+        Handles the following cases:
+            - Project is None
+            - A new project with phases is created
+            - An existing project with phases is used
+            - An existing project with phases is used, but modified
+        """
+        if project_data is None:
+            return None
+
+        serializer_params = {
+            'data': project_data,
+            'context': {'hearing': hearing},
+        }
+        pk = project_data.pop('id', None)
+        if pk is not None:
+            # deserializing an existing instance
+            try:
+                serializer_params['instance'] = Project.objects.get(pk=pk)
+            except Project.DoesNotExist:
+                pass
+        serializer = ProjectCreateUpdateSerializer(**serializer_params)
+        serializer.is_valid(raise_exception=True)
+        project = serializer.save()
+        return project
+
     @transaction.atomic()
     def create(self, validated_data):
         sections_data = validated_data.pop('sections')
+        project_data = validated_data.pop('project', None)
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         hearing = super().create(validated_data)
         self._create_or_update_sections(hearing, sections_data, force_create=True)
+        self._create_or_update_project(hearing, project_data)
         return hearing
 
     @transaction.atomic()
@@ -152,8 +184,10 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             return super().update(instance, validated_data)
 
         sections_data = validated_data.pop('sections')
+        project_data = validated_data.pop('project', None)
         hearing = super().update(instance, validated_data)
         sections = self._create_or_update_sections(hearing, sections_data)
+        self._create_or_update_project(hearing, project_data)
         new_section_ids = set([section.id for section in sections])
         for section in hearing.sections.exclude(id__in=new_section_ids):
             for image in section.images.all():
@@ -183,6 +217,19 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
         return data
 
+    def validate_project(self, data):
+        if data is None:
+            return data
+        if len(self._get_active_phases(data)) != 1:
+            raise ValidationError('Hearing in a project must have exactly one active phase')
+        return data
+
+    def _get_active_phases(self, project_data):
+        """
+        Return list of phase data marked as is_active in the project data
+        """
+        return [phase for phase in project_data['phases'] if phase['is_active'] is True]
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data['sections'] = SectionSerializer(
@@ -190,6 +237,13 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             many=True,
             context=self.context
         ).data
+        if instance.project_phase:
+            data['project'] = ProjectSerializer(
+                instance=instance.project_phase.project,
+                context={'hearing': instance}
+            ).data
+        else:
+            data['project'] = None
         return data
 
 
@@ -206,6 +260,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     preview_url = serializers.SerializerMethodField()
     contact_persons = ContactPersonSerializer(many=True, read_only=True)
     default_to_fullscreen = serializers.SerializerMethodField()
+    project = serializers.SerializerMethodField()
 
     def _get_main_section(self, hearing):
         prefetched_mains = getattr(hearing, 'main_section_list', [])
@@ -259,12 +314,22 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         else:
             return None
 
+    def get_project(self, hearing):
+        if hearing.project_phase is None:
+            return None
+        context = self.context
+        context['hearing'] = hearing
+        project = hearing.project_phase.project
+        serializer = ProjectFieldSerializer(read_only=True)
+        serializer.bind('project', self)  # this is needed to get context in the serializer
+        return serializer.to_representation(project)
+
     class Meta:
         model = Hearing
         fields = [
             'abstract', 'title', 'id', 'borough', 'n_comments',
             'published', 'labels', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'sections', 'preview_url',
+            'servicemap_url', 'sections', 'preview_url', 'project',
             'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
         ]
         read_only_fields = ['preview_url']

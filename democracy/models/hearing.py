@@ -19,6 +19,7 @@ from democracy.utils.geo import get_geometry_from_geojson
 
 from .base import BaseModelManager, StringIdBaseModel
 from .organization import ContactPerson, Organization
+from .project import ProjectPhase
 
 
 class HearingQueryset(TranslatableQuerySet):
@@ -56,6 +57,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
                          help_text=_('You may leave this empty to automatically generate a slug'))
     n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
     contact_persons = models.ManyToManyField(ContactPerson, verbose_name=_('contact persons'), related_name='hearings')
+    project_phase = models.ForeignKey(ProjectPhase, verbose_name=_('project phase'), related_name='hearings', on_delete=models.PROTECT, null=True, blank=True)
 
     objects = BaseModelManager.from_queryset(HearingQueryset)()
     original_manager = models.Manager()

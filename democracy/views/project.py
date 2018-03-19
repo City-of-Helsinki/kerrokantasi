@@ -1,11 +1,7 @@
 
 # -*- coding: utf-8 -*-
 
-from rest_framework import permissions
-from rest_framework import response
-from rest_framework import serializers, viewsets, filters, mixins
-import django_filters
-from rest_framework import status
+from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 
 from democracy.models import Project, ProjectPhase
@@ -47,7 +43,8 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
 
 class ProjectSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    phases = NestedPKRelatedField(queryset=ProjectPhase.objects.all(), many=True, expanded=True, serializer=ProjectPhaseSerializer)
+    phases = NestedPKRelatedField(queryset=ProjectPhase.objects.all(), many=True, expanded=True,
+                                  serializer=ProjectPhaseSerializer)
 
     class Meta:
         model = Project
@@ -86,7 +83,7 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         """
         phases_data = validated_data.pop('phases')
         project = super().create(validated_data)
-        phases = [self._create_phase(phase, project) for phase in phases_data]
+        [self._create_phase(phase, project) for phase in phases_data]
         return project
 
     def update(self, instance, validated_data):
@@ -96,8 +93,10 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         phases_data = validated_data.pop('phases')
         project = super().update(instance, validated_data)
         existing_phases = {phase.pk: phase for phase in project.phases.exclude(deleted=True)}
-        new_phases = [self._create_phase(phase, project) for phase in phases_data if phase.get('id') not in existing_phases.keys()]
-        updated_phases = [self._update_phase(existing_phases[phase['id']], phase, project) for phase in phases_data if phase.get('id') in existing_phases.keys()]
+        # create new phases
+        [self._create_phase(phase, project) for phase in phases_data if phase.get('id') not in existing_phases.keys()]
+        updated_phases = [self._update_phase(existing_phases[phase['id']], phase, project)
+                          for phase in phases_data if phase.get('id') in existing_phases.keys()]
         # existing phases missing from updated phases are to be deleted
         deleted_phases = set(existing_phases.values()) - set(updated_phases)
         [phase.soft_delete() for phase in deleted_phases]
@@ -118,4 +117,3 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
     pagination_class = DefaultLimitPagination
-

@@ -12,7 +12,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, Project, ProjectPhase
+from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, Project
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin

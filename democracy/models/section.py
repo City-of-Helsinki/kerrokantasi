@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 from reversion import revisions
 from autoslug import AutoSlugField
@@ -6,6 +7,7 @@ from parler.models import TranslatedFields, TranslatableModel
 from parler.managers import TranslatableQuerySet
 
 from democracy.models.comment import BaseComment, recache_on_save
+from democracy.models.poll import BasePoll, BasePollOption, BasePollAnswer, poll_option_recache_on_save
 from democracy.models.images import BaseImage
 from democracy.plugins import get_implementation
 
@@ -116,6 +118,49 @@ class SectionComment(BaseComment):
         verbose_name = _('section comment')
         verbose_name_plural = _('section comments')
         ordering = ('-created_at',)
+
+    def soft_delete(self, using=None):
+        for answer in self.poll_answers.all():
+            answer.soft_delete()
+        super().soft_delete(using=using)
+
+
+class SectionPoll(BasePoll):
+    section = models.ForeignKey(Section, related_name='polls')
+    translations = TranslatedFields(
+        text=models.TextField(verbose_name=_('text')),
+    )
+
+    class Meta:
+        verbose_name = _('section poll')
+        verbose_name_plural = _('section polls')
+
+    def recache_n_answers(self):
+        n_answers = SectionPollAnswer.objects.filter(option__poll_id=self.pk).values('comment_id').distinct().count()
+        if n_answers != self.n_answers:
+            self.n_answers = n_answers
+            self.save(update_fields=('n_answers',))
+
+
+class SectionPollOption(BasePollOption):
+    poll = models.ForeignKey(SectionPoll, related_name='options')
+    translations = TranslatedFields(
+        text=models.TextField(verbose_name=_('option text')),
+    )
+
+    class Meta:
+        verbose_name = _('section poll option')
+        verbose_name_plural = _('section poll options')
+
+
+@poll_option_recache_on_save
+class SectionPollAnswer(BasePollAnswer):
+    comment = models.ForeignKey(SectionComment, related_name='poll_answers')
+    option = models.ForeignKey(SectionPollOption, related_name='answers')
+
+    class Meta:
+        verbose_name = _('section poll answer')
+        verbose_name_plural = _('section poll answers')
 
 
 class CommentImage(BaseImage):

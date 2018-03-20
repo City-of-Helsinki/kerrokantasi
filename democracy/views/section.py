@@ -8,7 +8,7 @@ from rest_framework import filters, serializers, viewsets, permissions
 from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, Section, SectionImage, SectionType
+from democracy.models import Hearing, Section, SectionImage, SectionType, SectionPoll, SectionPollOption
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
@@ -104,11 +104,26 @@ class SectionImageCreateUpdateSerializer(ThumbnailImageSerializer, TranslatableS
         fields = ['title', 'url', 'width', 'height', 'caption', 'image', 'ordering']
 
 
+class SectionPollOptionSerializer(serializers.ModelSerializer, TranslatableSerializer):
+    class Meta:
+        model = SectionPollOption
+        fields = ['id', 'text', 'n_answers']
+
+
+class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer):
+    options = SectionPollOptionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SectionPoll
+        fields = ['id', 'type', 'text', 'options', 'n_answers', 'is_independent_poll']
+
+
 class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section instance.
     """
     images = PublicFilteredImageField(serializer_class=SectionImageSerializer)
+    questions = SectionPollSerializer(many=True, read_only=True, source='polls')
     type = serializers.SlugRelatedField(slug_field='identifier', read_only=True)
     type_name_singular = serializers.SlugRelatedField(source='type', slug_field='name_singular', read_only=True)
     type_name_plural = serializers.SlugRelatedField(source='type', slug_field='name_plural', read_only=True)
@@ -119,7 +134,7 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
         model = Section
         fields = [
             'id', 'type', 'commenting', 'voting', 'published',
-            'title', 'abstract', 'content', 'created_at', 'images', 'n_comments',
+            'title', 'abstract', 'content', 'created_at', 'images', 'n_comments', 'questions',
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_fullscreen',
         ]

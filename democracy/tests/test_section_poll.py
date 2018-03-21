@@ -3,28 +3,96 @@ import pytest
 
 from democracy.factories.poll import SectionPollFactory, SectionPollOptionFactory
 from democracy.models import SectionPoll, SectionPollAnswer
-from democracy.tests.test_section import create_sections
 from democracy.tests.test_comment import get_comment_data
-from democracy.tests.utils import get_data_from_response
+from democracy.tests.test_hearing import valid_hearing_json
+from democracy.tests.test_section import create_sections
+from democracy.tests.utils import get_data_from_response, assert_common_keys_equal
+
+
+@pytest.fixture
+def valid_hearing_json_with_poll(valid_hearing_json):
+    valid_hearing_json['sections'][0]['questions'] = [
+        {
+            "type": "single-choice",
+            "text": {
+                "en": "Which is better?",
+                "fi": "Kumpi on parempi?",
+            },
+            "independent_poll": True,
+            "options": [
+                {
+                    "n_answers": 0,
+                    "text": {
+                        "en": "First option",
+                        "fi": "Ensimmäinen vaihtoehto",
+                    },
+                },
+                {
+                    "n_answers": 0,
+                    "text": {
+                        "en": "Second option",
+                        "fi": "Toinen vaihtoehto",
+                    },
+                },
+            ],
+            "n_answers": 0,
+        },
+        {
+            "type": "multiple-choice",
+            "text": {
+                "en": "Both?",
+                "fi": "Molemmat?",
+            },
+            "independent_poll": True,
+            "options": [
+                {
+                    "n_answers": 0,
+                    "text": {
+                        "en": "Yes",
+                        "fi": "kyllä",
+                    },
+                },
+                {
+                    "n_answers": 0,
+                    "text": {
+                        "en": "No",
+                        "fi": "Ei",
+                    },
+                },
+            ],
+            "n_answers": 0,
+        },
+    ]
+    return valid_hearing_json
 
 
 @pytest.mark.django_db
 def test_get_section_with_poll(api_client, default_hearing):
     section = default_hearing.sections.first()
     poll = SectionPollFactory(section=section, option_count=3)
-
     response = api_client.get('/v1/hearing/%s/sections/' % default_hearing.id)
-
     data = get_data_from_response(response)
     assert len(data[0]['questions']) == 1
     assert len(data[0]['questions'][0]['options']) == 3
 
 
 @pytest.mark.django_db
+def test_post_section_with_poll(valid_hearing_json_with_poll, john_smith_api_client):
+    response = john_smith_api_client.post('/v1/hearing/', data=valid_hearing_json_with_poll, format='json')
+    data = get_data_from_response(response, status_code=201)
+    questions1 = valid_hearing_json_with_poll['sections'][0]['questions']
+    questions2 = data['sections'][0]['questions']
+    assert len(questions1) == len(questions2)
+    assert len(questions1[0]['options']) == len(questions2[0]['options'])
+    assert questions1[0]['text']['fi'] == questions2[0]['text']['fi']
+    assert questions1[0]['options'][0]['text']['fi'] == questions2[0]['options'][0]['text']['fi']
+    assert questions1[1]['options'][1]['text']['fi'] == questions2[1]['options'][1]['text']['fi']
+
+
+@pytest.mark.django_db
 def test_post_section_poll_answer_unauthenticated(api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
     poll = SectionPollFactory(section=section, option_count=3)
-
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
     data['answers'] = [{}]

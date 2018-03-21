@@ -134,6 +134,7 @@ class SectionPoll(BasePoll):
     class Meta:
         verbose_name = _('section poll')
         verbose_name_plural = _('section polls')
+        ordering = ['ordering']
 
     def recache_n_answers(self):
         n_answers = SectionPollAnswer.objects.filter(option__poll_id=self.pk).values('comment_id').distinct().count()
@@ -151,6 +152,7 @@ class SectionPollOption(BasePollOption):
     class Meta:
         verbose_name = _('section poll option')
         verbose_name_plural = _('section poll options')
+        ordering = ['ordering']
 
 
 @poll_option_recache_on_save

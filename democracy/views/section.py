@@ -111,11 +111,51 @@ class SectionPollOptionSerializer(serializers.ModelSerializer, TranslatableSeria
 
 
 class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    options = SectionPollOptionSerializer(many=True, read_only=True)
+    options = SectionPollOptionSerializer(many=True)
 
     class Meta:
         model = SectionPoll
         fields = ['id', 'type', 'text', 'options', 'n_answers', 'is_independent_poll']
+
+    @transaction.atomic()
+    def create(self, validated_data):
+        options_data = validated_data.pop('options', [])
+        poll = super().create(validated_data)
+        self._handle_options(poll, options_data)
+        return poll
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        options_data = validated_data.pop('options', [])
+        poll = super().update(instance, validated_data)
+        self._handle_options(poll, options_data)
+        return poll
+
+    def validate_options(self, data):
+        for index, option_data in enumerate(data):
+            pk = option_data.get('id')
+            option_data['ordering'] = index + 1
+            serializer_params = {'data': option_data}
+            if pk:
+                try:
+                    option = self.instance.options.get(pk=pk)
+                except SectionPollOption.DoesNotExist:
+                    raise ValidationError('The Poll does not have an option with ID %s' % repr(pk))
+                serializer_params['instance'] = option
+            serializer = SectionPollOptionSerializer(**serializer_params)
+            serializer.is_valid(raise_exception=True)
+            # save serializer in data so it can be used when handling the options
+            option_data['serializer'] = serializer
+        return data
+
+    def _handle_options(self, poll, data):
+        new_option_ids = set()
+        for option_data in data:
+            serializer = option_data.pop('serializer')
+            option = serializer.save(poll=poll, ordering=option_data['ordering'])
+            new_option_ids.add(option.id)
+        for option in poll.options.exclude(id__in=new_option_ids):
+            option.soft_delete()
 
 
 class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -160,6 +200,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     # this field is used only for incoming data validation, outgoing data is added manually
     # in to_representation()
     images = serializers.ListField(child=serializers.DictField(), write_only=True)
+    questions = serializers.ListField(child=serializers.DictField(), write_only=True, required=False)
 
     class Meta:
         model = Section
@@ -167,21 +208,25 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'id', 'type', 'commenting', 'published',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
-            'images', 'ordering',
+            'images', 'questions', 'ordering',
         ]
 
     @transaction.atomic()
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
+        polls_data = validated_data.pop('questions', [])
         section = super().create(validated_data)
         self._handle_images(section, images_data)
+        self._handle_questions(section, polls_data)
         return section
 
     @transaction.atomic()
     def update(self, instance, validated_data):
         images_data = validated_data.pop('images', [])
+        polls_data = validated_data.pop('questions', [])
         section = super().update(instance, validated_data)
         self._handle_images(section, images_data)
+        self._handle_questions(section, polls_data)
         return section
 
     def validate_images(self, data):
@@ -219,13 +264,36 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
         return section
 
+    def validate_questions(self, data):
+        for index, poll_data in enumerate(data):
+            pk = poll_data.get('id')
+            poll_data['ordering'] = index + 1
+            serializer_params = {'data': poll_data}
+            if pk:
+                try:
+                    poll = self.instance.polls.get(pk=pk)
+                except SectionPoll.DoesNotExist:
+                    raise ValidationError('The Section does not have a poll with ID %s' % repr(pk))
+                serializer_params['instance'] = poll
+            serializer = SectionPollSerializer(**serializer_params)
+            serializer.is_valid(raise_exception=True)
+            # save serializer in data so it can be used when handling the polls
+            poll_data['serializer'] = serializer
+        return data
+
+    def _handle_questions(self, section, data):
+        new_poll_ids = set()
+        for poll_data in data:
+            serializer = poll_data.pop('serializer')
+            poll = serializer.save(section=section, ordering=poll_data['ordering'])
+            new_poll_ids.add(poll.id)
+        for poll in section.polls.exclude(id__in=new_poll_ids):
+            poll.soft_delete()
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['images'] = SectionImageSerializer(
-            instance.images.all(),
-            many=True,
-            context=self.context,
-        ).data
+        data['images'] = SectionImageSerializer(instance.images.all(), many=True, context=self.context).data
+        data['questions'] = SectionPollSerializer(instance.polls.all(), many=True).data
         return data
 
 

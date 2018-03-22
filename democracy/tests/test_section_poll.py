@@ -90,6 +90,24 @@ def test_post_section_with_poll(valid_hearing_json_with_poll, john_smith_api_cli
 
 
 @pytest.mark.django_db
+def test_put_section_with_poll(valid_hearing_json_with_poll, john_smith_api_client):
+    response = john_smith_api_client.post('/v1/hearing/', data=valid_hearing_json_with_poll, format='json')
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][0]['questions'] = list(reversed(data['sections'][0]['questions']))
+    data['sections'][0]['questions'][0]['options'] = list(reversed(data['sections'][0]['questions'][0]['options']))
+    data['sections'][0]['questions'][0]['text']['en'] = 'Edited question'
+    data['sections'][0]['questions'][0]['options'][0]['text']['en'] = 'Edited option'
+    response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    questions1 = valid_hearing_json_with_poll['sections'][0]['questions']
+    questions2 = updated_data['sections'][0]['questions']
+    assert data['sections'][0]['questions'][0]['text']['en'] == 'Edited question'
+    assert data['sections'][0]['questions'][1]['text']['en'] == 'Which is better?'
+    assert data['sections'][0]['questions'][0]['options'][0]['text']['en'] == 'Edited option'
+    assert data['sections'][0]['questions'][0]['options'][1]['text']['en'] == 'Yes'
+
+
+@pytest.mark.django_db
 def test_post_section_poll_answer_unauthenticated(api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
     poll = SectionPollFactory(section=section, option_count=3)

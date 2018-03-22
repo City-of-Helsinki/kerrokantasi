@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Max, Sum
+from django.db.models import Max
 from django.db.models.signals import post_save, pre_delete
 from django.utils.translation import ugettext_lazy as _
 from parler.models import TranslatableModel

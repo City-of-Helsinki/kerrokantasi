@@ -192,3 +192,15 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
     assert option1.n_answers == 0
     assert option2.n_answers == 1
     assert option3.n_answers == 1
+
+
+@pytest.mark.django_db
+def test_answers_appear_in_user_data(john_doe_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option = poll.options.all().first()
+    data = get_comment_data()
+    data['answers'] = [{'question': poll.id, 'type': SectionPoll.TYPE_SINGLE_CHOICE, 'answers': [option.id]}]
+    john_doe_api_client.post('/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id), data=data)
+    response = john_doe_api_client.get('/v1/users/')
+    assert poll.pk in response.data[0]['answered_questions']

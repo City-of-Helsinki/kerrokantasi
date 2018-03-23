@@ -24,14 +24,14 @@
   become: yes
   become_method: su
   vars_files:
-    - ansible/kerrokantasi-api-build-config.yml
+    - deploy/kerrokantasi-api-build-config.yml
   roles:
     - django-configuration
     - python-container
   tasks:
     - name: Insert entrypoint into docker_container
       copy:
-        src: ansible/files/docker-entrypoint.sh
+        src: deploy/files/docker-entrypoint.sh
         dest: /docker-entrypoint.sh
         mode: 0755
 
@@ -45,4 +45,4 @@
       docker_container:
         name: kerrokantasi_builder
         state: absent
-      when: recreate_image|default(true) == true
+      when: recreate_image|default(true)

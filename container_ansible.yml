@@ -38,9 +38,11 @@
 - name: Finalize container
   hosts: localhost
   become: no
+  vars_files:
+    - deploy/kerrokantasi-api-build-config.yml
   tasks:
     - name: Commit and define entrypoint in image
-      command: docker commit --change "ENTRYPOINT /docker-entrypoint.sh" kerrokantasi_builder helsinki/kerrokantasi-api
+      command: docker commit --change "ENTRYPOINT /docker-entrypoint.sh" --change "USER {{ django_user }}" kerrokantasi_builder helsinki/kerrokantasi-api
     - name: Destroy the build container
       docker_container:
         name: kerrokantasi_builder

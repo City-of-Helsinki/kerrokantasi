@@ -1,5 +1,5 @@
 coveralls
-Django
+Django<2
 djangorestframework
 django-extensions
 django-reversion

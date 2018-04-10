@@ -13,7 +13,8 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
 from democracy.views.utils import (
-    Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField, TranslatableSerializer
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField, TranslatableSerializer,
+    compare_serialized
 )
 
 
@@ -264,6 +265,19 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
         return section
 
+    def _validate_question_update(self, poll_data, poll):
+        poll_has_answers = poll.n_answers > 0
+        if not poll_has_answers:
+            return
+        try:
+            old_poll_data = SectionPollSerializer(poll).data
+            assert compare_serialized(old_poll_data['text'], poll_data['text'])
+            assert len(old_poll_data['options']) == len(poll_data['options'])
+            for old_option, option in zip(old_poll_data['options'], poll_data['options']):
+                assert compare_serialized(old_option['text'], option['text'])
+        except AssertionError:
+            raise ValidationError('Poll with ID %s has answers - editing it is not allowed' % repr(poll.pk))
+
     def validate_questions(self, data):
         for index, poll_data in enumerate(data):
             pk = poll_data.get('id')
@@ -274,6 +288,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                     poll = self.instance.polls.get(pk=pk)
                 except SectionPoll.DoesNotExist:
                     raise ValidationError('The Section does not have a poll with ID %s' % repr(pk))
+                self._validate_question_update(poll_data, poll)
                 serializer_params['instance'] = poll
             serializer = SectionPollSerializer(**serializer_params)
             serializer.is_valid(raise_exception=True)

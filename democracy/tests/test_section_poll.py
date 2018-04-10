@@ -1,4 +1,7 @@
 
+import datetime
+from copy import deepcopy
+
 import pytest
 
 from democracy.factories.poll import SectionPollFactory, SectionPollOptionFactory
@@ -105,6 +108,48 @@ def test_put_section_with_poll(valid_hearing_json_with_poll, john_smith_api_clie
     assert data['sections'][0]['questions'][1]['text']['en'] == 'Which is better?'
     assert data['sections'][0]['questions'][0]['options'][0]['text']['en'] == 'Edited option'
     assert data['sections'][0]['questions'][0]['options'][1]['text']['en'] == 'Yes'
+
+
+@pytest.mark.django_db
+def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_client, john_smith_api_client):
+    valid_hearing_json_with_poll['close_at'] = datetime.datetime.now() + datetime.timedelta(days=5)
+    valid_hearing_json_with_poll['sections'][0]['commenting'] = 'open'
+    response = john_smith_api_client.post('/v1/hearing/', data=valid_hearing_json_with_poll, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    hearing_id = data['id']
+    section_id = data['sections'][0]['id']
+    poll_id = data['sections'][0]['questions'][0]['id']
+    option_id = data['sections'][0]['questions'][0]['options'][0]['id']
+    data = get_comment_data()
+    data['answers'] = [{'question': poll_id, 'type': SectionPoll.TYPE_MULTIPLE_CHOICE, 'answers': [option_id]}]
+    comment_response = john_doe_api_client.post('/v1/hearing/%s/sections/%s/comments/' % (hearing_id, section_id), data=data)
+    assert comment_response.status_code == 201
+
+    # Edit question
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][0]['questions'][0]['text']['en'] = 'Edited question'
+    update_response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
+    assert update_response.status_code == 400
+
+    # Edit option
+    data = get_data_from_response(response, status_code=201)
+    data['sections'][0]['questions'][0]['options'][0]['text']['en'] = 'Edited option'
+    update_response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
+    assert update_response.status_code == 400
+
+    # Add option
+    data = get_data_from_response(response, status_code=201)
+    new_option = deepcopy(data['sections'][0]['questions'][0]['options'][0])
+    data['sections'][0]['questions'][0]['options'].append(new_option)
+    update_response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
+    assert update_response.status_code == 400
+
+    # Remove option
+    data = get_data_from_response(response, status_code=201)
+    del data['sections'][0]['questions'][0]['options'][1]
+    update_response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
+    assert update_response.status_code == 400
 
 
 @pytest.mark.django_db

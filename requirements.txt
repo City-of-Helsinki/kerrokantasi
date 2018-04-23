@@ -25,7 +25,7 @@ django-mptt==0.9.0
 django-nested-admin==3.0.20
 django-parler==1.8
 django-reversion==2.0.10
-Django==1.11.10            # via django-geojson, django-leaflet, django-reversion, drf-nested-routers, easy-thumbnails, jsonfield
+django==1.11.12
 djangorestframework-jwt==1.11.0
 djangorestframework==3.6.4
 dnspython==1.15.0         # via email-validator

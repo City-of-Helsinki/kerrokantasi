@@ -2,12 +2,12 @@ import django_filters
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
-from rest_framework import filters, serializers
+from rest_framework import filters, serializers, status, response
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 
-from democracy.models import SectionComment, Label, Section
+from democracy.models import SectionComment, Label, Section, SectionPollOption, SectionPollAnswer
 from democracy.models.section import CommentImage
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
@@ -30,11 +30,24 @@ class SectionCommentCreateSerializer(serializers.ModelSerializer):
     )
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageCreateSerializer(required=False, many=True)
+    answers = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
         fields = ['section', 'content', 'plugin_data', 'authorization_code', 'author_name',
-                  'label', 'images', 'geojson', 'language_code']
+                  'label', 'images', 'answers', 'geojson', 'language_code']
+
+    def get_answers(self, obj):
+        polls_by_id = {}
+        for answer in obj.poll_answers.select_related('option', 'option__poll').all():
+            if answer.option.poll.id not in polls_by_id:
+                polls_by_id[answer.option.poll.id] = {
+                    'question': answer.option.poll.id,
+                    'type': answer.option.poll.type,
+                    'answers': [],
+                }
+            polls_by_id[answer.option.poll.id]['answers'].append(answer.id)
+        return list(polls_by_id.values())
 
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
@@ -86,10 +99,23 @@ class SectionCommentSerializer(BaseCommentSerializer):
     label = LabelSerializer(read_only=True)
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
+    answers = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'language_code'] + COMMENT_FIELDS
+        fields = ['section', 'language_code', 'answers'] + COMMENT_FIELDS
+
+    def get_answers(self, obj):
+        polls_by_id = {}
+        for answer in obj.poll_answers.select_related('option', 'option__poll').all():
+            if answer.option.poll.id not in polls_by_id:
+                polls_by_id[answer.option.poll.id] = {
+                    'question': answer.option.poll.id,
+                    'type': answer.option.poll.type,
+                    'answers': [],
+                }
+            polls_by_id[answer.option.poll.id]['answers'].append(answer.id)
+        return list(polls_by_id.values())
 
 
 class SectionCommentViewSet(BaseCommentViewSet):
@@ -98,6 +124,45 @@ class SectionCommentViewSet(BaseCommentViewSet):
     create_serializer_class = SectionCommentCreateSerializer
     filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
+
+    def create_related(self, request, instance=None, *args, **kwargs):
+        answers = request.data.pop('answers', [])
+        for answer in answers:
+            for option_id in answer['answers']:
+                try:
+                    option = SectionPollOption.objects.get(pk=option_id)
+                    SectionPollAnswer.objects.create(comment=instance, option=option)
+                except SectionPollOption.DoesNotExist:
+                    raise ValidationError({'option': [
+                        _('Invalid id "{id}" - object does not exist.').format(id=option_id)
+                    ]})
+        super().create_related(request, instance=instance, *args, **kwargs)
+
+    def update_related(self, request, instance=None, *args, **kwargs):
+        answers = request.data.pop('answers', [])
+        for answer in answers:
+            option_ids = []
+            for option_id in answer['answers']:
+                try:
+                    option = SectionPollOption.objects.get(pk=option_id)
+                    option_ids.append(option.pk)
+                    if not SectionPollAnswer.objects.filter(comment=instance, option=option).exists():
+                        SectionPollAnswer.objects.create(comment=instance, option=option)
+                except SectionPollOption.DoesNotExist:
+                    raise ValidationError({'option': [
+                        _('Invalid id "{id}" - object does not exist.').format(id=option_id)
+                    ]})
+            for answer in SectionPollAnswer.objects.filter(comment=instance).exclude(option_id__in=option_ids):
+                answer.soft_delete()
+        super().update_related(request, instance=instance, *args, **kwargs)
+
+    def _check_may_comment(self, request):
+        if len(request.data.get('answers', [])) > 0 and not request.user.is_authenticated():
+            return response.Response(
+                {'status': 'Unauthenticated users cannot answer polls.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        return super()._check_may_comment(request)
 
 
 class RootSectionCommentSerializer(SectionCommentSerializer):

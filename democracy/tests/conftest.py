@@ -7,7 +7,7 @@ from rest_framework.test import APIClient
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import ContactPerson, Hearing, Label, Section, SectionType, Organization
+from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionType, Organization
 from democracy.tests.utils import assert_ascending_sequence, create_default_images
 
 
@@ -48,7 +48,7 @@ def contact_person(default_organization):
 
 
 @pytest.fixture()
-def default_hearing(john_doe, contact_person, default_organization):
+def default_hearing(john_doe, contact_person, default_organization, default_project):
     """
     Fixture for a "default" hearing with three sections (one main, two other sections).
     All objects will have the 3 default images attached.
@@ -60,6 +60,7 @@ def default_hearing(john_doe, contact_person, default_organization):
         close_at=now() + datetime.timedelta(days=1),
         slug='default-hearing-slug',
         organization=default_organization,
+        project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 4):
         section_type = (InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO)
@@ -79,6 +80,25 @@ def default_hearing(john_doe, contact_person, default_organization):
     hearing.contact_persons.add(contact_person)
 
     return hearing
+
+
+@pytest.fixture()
+def default_project():
+    project_data = {
+        'title': 'Default project',
+        'identifier': '123456'
+    }
+    project = Project.objects.create(**project_data)
+    for i in range(1, 4):
+        phase_data = {
+            'project': project,
+            'title': 'Phase %d' % i,
+            'description': 'Phase %d description' % i,
+            'schedule': 'Phase %d schedule' % i,
+            'ordering': i,
+        }
+        ProjectPhase.objects.create(**phase_data)
+    return project
 
 
 @pytest.fixture()

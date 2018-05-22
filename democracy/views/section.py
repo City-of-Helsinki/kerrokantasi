@@ -112,7 +112,7 @@ class SectionPollOptionSerializer(serializers.ModelSerializer, TranslatableSeria
 
 
 class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    options = SectionPollOptionSerializer(many=True)
+    options = serializers.ListField(child=serializers.DictField(), write_only=True)
 
     class Meta:
         model = SectionPoll
@@ -157,6 +157,11 @@ class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer)
             new_option_ids.add(option.id)
         for option in poll.options.exclude(id__in=new_option_ids):
             option.soft_delete()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['options'] = SectionPollOptionSerializer(instance.options.all(), many=True).data
+        return data
 
 
 class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):

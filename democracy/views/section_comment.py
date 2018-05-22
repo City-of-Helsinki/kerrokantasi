@@ -114,7 +114,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
                     'type': answer.option.poll.type,
                     'answers': [],
                 }
-            polls_by_id[answer.option.poll.id]['answers'].append(answer.id)
+            polls_by_id[answer.option.poll.id]['answers'].append(answer.option_id)
         return list(polls_by_id.values())
 
 

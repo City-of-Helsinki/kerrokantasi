@@ -6,7 +6,7 @@ from parler.models import TranslatableModel
 from .base import ORDERING_HELP, BaseModel
 
 
-class BasePoll(TranslatableModel, BaseModel):
+class BasePoll(BaseModel, TranslatableModel):
     TYPE_SINGLE_CHOICE = 'single-choice'
     TYPE_MULTIPLE_CHOICE = 'multiple-choice'
     TYPE_CHOICES = (
@@ -30,7 +30,7 @@ class BasePoll(TranslatableModel, BaseModel):
         raise NotImplementedError
 
 
-class BasePollOption(TranslatableModel, BaseModel):
+class BasePollOption(BaseModel, TranslatableModel):
     # `poll` must be defined as a foreign key to the corresponding subclassed Poll-model
     # with related name `options`
     poll = None

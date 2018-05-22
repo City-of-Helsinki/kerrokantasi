@@ -72,7 +72,7 @@ def valid_hearing_json_with_poll(valid_hearing_json):
 @pytest.mark.django_db
 def test_get_section_with_poll(api_client, default_hearing):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3)
+    SectionPollFactory(section=section, option_count=3)
     response = api_client.get('/v1/hearing/%s/sections/' % default_hearing.id)
     data = get_data_from_response(response)
     assert len(data[0]['questions']) == 1
@@ -102,12 +102,26 @@ def test_put_section_with_poll(valid_hearing_json_with_poll, john_smith_api_clie
     data['sections'][0]['questions'][0]['options'][0]['text']['en'] = 'Edited option'
     response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
     updated_data = get_data_from_response(response, status_code=200)
-    questions1 = valid_hearing_json_with_poll['sections'][0]['questions']
-    questions2 = updated_data['sections'][0]['questions']
-    assert data['sections'][0]['questions'][0]['text']['en'] == 'Edited question'
-    assert data['sections'][0]['questions'][1]['text']['en'] == 'Which is better?'
-    assert data['sections'][0]['questions'][0]['options'][0]['text']['en'] == 'Edited option'
-    assert data['sections'][0]['questions'][0]['options'][1]['text']['en'] == 'Yes'
+    assert updated_data['sections'][0]['questions'][0]['text']['en'] == 'Edited question'
+    assert updated_data['sections'][0]['questions'][1]['text']['en'] == 'Which is better?'
+    assert updated_data['sections'][0]['questions'][0]['options'][0]['text']['en'] == 'Edited option'
+    assert updated_data['sections'][0]['questions'][0]['options'][1]['text']['en'] == 'Yes'
+
+
+@pytest.mark.django_db
+def test_removing_poll_from_section(valid_hearing_json_with_poll, john_smith_api_client):
+    response = john_smith_api_client.post('/v1/hearing/', data=valid_hearing_json_with_poll, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert data['sections'][0]['questions'][0]['text']['en'] == 'Which is better?'
+    del data['sections'][0]['questions'][0]
+    response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    response = john_smith_api_client.get('/v1/hearing/%s/' % data['id'], format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+    from democracy.models import Section
+    for poll in Section.objects.get(pk=data['sections'][0]['id']).polls.all():
+        print('### da fuq 2', poll.deleted)
+    assert updated_data['sections'][0]['questions'][0]['text']['en'] == 'Both?'
 
 
 @pytest.mark.django_db
@@ -155,7 +169,7 @@ def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_c
 @pytest.mark.django_db
 def test_post_section_poll_answer_unauthenticated(api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3)
+    SectionPollFactory(section=section, option_count=3)
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
     data['answers'] = [{}]
@@ -177,11 +191,13 @@ def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hea
         'answers': [option.id],
     }]
     response = john_doe_api_client.post(url, data=data)
-    assert response.status_code == 201
+    created_data = get_data_from_response(response, status_code=201)
     poll.refresh_from_db(fields=['n_answers'])
     option.refresh_from_db(fields=['n_answers'])
     assert poll.n_answers == 1
     assert option.n_answers == 1
+    assert created_data['answers'][0]['type'] == data['answers'][0]['type']
+    assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
 
 @pytest.mark.django_db
@@ -198,7 +214,7 @@ def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_h
         'answers': [option1.id, option3.id],
     }]
     response = john_doe_api_client.post(url, data=data)
-    assert response.status_code == 201
+    created_data = get_data_from_response(response, status_code=201)
     poll.refresh_from_db(fields=['n_answers'])
     option1.refresh_from_db(fields=['n_answers'])
     option2.refresh_from_db(fields=['n_answers'])
@@ -207,6 +223,8 @@ def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_h
     assert option1.n_answers == 1
     assert option2.n_answers == 0
     assert option3.n_answers == 1
+    assert created_data['answers'][0]['type'] == data['answers'][0]['type']
+    assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
 
 @pytest.mark.django_db
@@ -230,6 +248,7 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
     data['answers'][0]['answers'] = [option2.id, option3.id]
     response = john_doe_api_client.patch(url, data=data)
     assert response.status_code == 200
+    updated_data = get_data_from_response(response, status_code=200)
 
     option1.refresh_from_db(fields=['n_answers'])
     option2.refresh_from_db(fields=['n_answers'])
@@ -237,6 +256,8 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
     assert option1.n_answers == 0
     assert option2.n_answers == 1
     assert option3.n_answers == 1
+    assert updated_data['answers'][0]['type'] == data['answers'][0]['type']
+    assert set(updated_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
 
 @pytest.mark.django_db

@@ -27,7 +27,7 @@ if [ "$TRAVIS_PULL_REQUEST" != false ]; then
     docker tag "$IMAGE" "$BASE"
     docker tag "$BASE" "$REPO-$TRAVIS_BUILD_NUMBER"
     docker push "$BASE"
-    docker push "$REPO-travis-$TRAVIS_BUILD_NUMBER"
+    docker push "$REPO:travis-$TRAVIS_BUILD_NUMBER"
     exit 0
 fi
 

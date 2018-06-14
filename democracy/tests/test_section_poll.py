@@ -118,9 +118,6 @@ def test_removing_poll_from_section(valid_hearing_json_with_poll, john_smith_api
     updated_data = get_data_from_response(response, status_code=200)
     response = john_smith_api_client.get('/v1/hearing/%s/' % data['id'], format='json')
     updated_data = get_data_from_response(response, status_code=200)
-    from democracy.models import Section
-    for poll in Section.objects.get(pk=data['sections'][0]['id']).polls.all():
-        print('### da fuq 2', poll.deleted)
     assert updated_data['sections'][0]['questions'][0]['text']['en'] == 'Both?'
 
 

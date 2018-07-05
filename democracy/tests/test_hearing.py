@@ -1514,4 +1514,6 @@ def test_get_project_data_in_hearing(default_hearing, api_client):
         is_active_phase = (phase['id'] == default_hearing.project_phase_id)
         assert phase['has_hearings'] == is_active_phase
         assert phase['is_active'] == is_active_phase
+        if is_active_phase:
+            assert default_hearing.id in phase['hearings']
 

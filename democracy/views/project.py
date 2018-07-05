@@ -15,7 +15,8 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     class Meta:
         model = ProjectPhase
-        fields = ('id', 'description', 'has_hearings', 'is_active', 'ordering', 'schedule', 'title',)
+        fields = ('id', 'description', 'has_hearings', 'is_active', 'ordering', 'schedule', 'title', 'hearings')
+        read_only_fields = ('hearings',)
 
     def get_has_hearings(self, project_phase):
         return project_phase.hearings.exists()

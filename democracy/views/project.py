@@ -6,20 +6,26 @@ from rest_framework.exceptions import ValidationError
 
 from democracy.models import Project, ProjectPhase
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.utils import TranslatableSerializer, NestedPKRelatedField
+from democracy.views.utils import TranslatableSerializer, NestedPKRelatedField, filter_by_hearing_visible
 
 
 class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer):
     has_hearings = serializers.SerializerMethodField()
+    hearings = serializers.SerializerMethodField()
     is_active = serializers.BooleanField()
 
     class Meta:
         model = ProjectPhase
         fields = ('id', 'description', 'has_hearings', 'is_active', 'ordering', 'schedule', 'title', 'hearings')
-        read_only_fields = ('hearings',)
 
     def get_has_hearings(self, project_phase):
         return project_phase.hearings.exists()
+
+    def get_hearings(self, project_phase):
+        return [hearing.id for hearing in
+                filter_by_hearing_visible(project_phase.hearings.with_unpublished(),
+                                          self.context.get('request'),
+                                          hearing_lookup='')]
 
     def to_representation(self, instance):
         self.fields.pop('is_active')

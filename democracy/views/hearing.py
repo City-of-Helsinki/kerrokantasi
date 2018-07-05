@@ -240,7 +240,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         if instance.project_phase:
             data['project'] = ProjectSerializer(
                 instance=instance.project_phase.project,
-                context={'hearing': instance}
+                context=self.context
             ).data
         else:
             data['project'] = None

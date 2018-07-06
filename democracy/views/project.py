@@ -22,7 +22,7 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         return project_phase.hearings.exists()
 
     def get_hearings(self, project_phase):
-        return [hearing.id for hearing in
+        return [hearing.slug for hearing in
                 filter_by_hearing_visible(project_phase.hearings.with_unpublished(),
                                           self.context.get('request'),
                                           hearing_lookup='')]

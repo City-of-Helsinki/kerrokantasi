@@ -165,7 +165,6 @@ def valid_hearing_json_with_project(valid_hearing_json):
                     "title": {
                         "en": "Phase 1"
                     },
-                    "ordering": 1,
                     "is_active": True,
                     "description": {
                         "en": "Phase 1 description"
@@ -180,7 +179,6 @@ def valid_hearing_json_with_project(valid_hearing_json):
                     "title": {
                         "en": "Phase 2"
                     },
-                    "ordering": 2,
                     "is_active": False,
                     "description": {
                         "en": "Phase 2 description"
@@ -195,7 +193,6 @@ def valid_hearing_json_with_project(valid_hearing_json):
                     "title": {
                         "en": "Phase 3"
                     },
-                    "ordering": 3,
                     "is_active": False,
                     "description": {
                         "en": "Phase 3 description"
@@ -229,7 +226,6 @@ def default_project_json(default_project):
             "title": {
                 "en": phase.title
             },
-            "ordering": phase.ordering,
             "is_active": is_first_loop,
             "description": {
                 "en": phase.description
@@ -964,7 +960,6 @@ def test_POST_hearing_with_updated_project(valid_hearing_json, default_project, 
         'title': {'en': 'new title'},
         'description': {'en': 'new description'},
         'schedule': {'en': 'new schedule'},
-        'ordering': 4,
         'is_active': False,
     })
 
@@ -976,12 +971,13 @@ def test_POST_hearing_with_updated_project(valid_hearing_json, default_project, 
     project = data['project']
     assert project['id'] == default_project.pk
     assert 'phases' in project
-    assert len(data['project']['phases']) == 4
+    assert len(project['phases']) == 4
     assert default_project.phases.count() == 4
-    for phase in project['phases']:
-        if phase['id'] == updated_phase_id:
+    for ordering, phase in enumerate(project['phases']):
+        if ordering == 0:
+            assert phase['id'] == updated_phase_id
             assert phase['title']['en'] == updated_title
-        if phase['ordering'] == 4:
+        if ordering == 3:
             assert phase['title']['en'] == 'new title'
             assert phase['description']['en'] == 'new description'
             assert phase['schedule']['en'] == 'new schedule'

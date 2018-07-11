@@ -95,7 +95,6 @@ def default_project():
             'title': 'Phase %d' % i,
             'description': 'Phase %d description' % i,
             'schedule': 'Phase %d schedule' % i,
-            'ordering': i,
         }
         ProjectPhase.objects.create(**phase_data)
     return project

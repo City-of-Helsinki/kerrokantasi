@@ -16,7 +16,7 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     class Meta:
         model = ProjectPhase
-        fields = ('id', 'description', 'has_hearings', 'is_active', 'ordering', 'schedule', 'title', 'hearings')
+        fields = ('id', 'description', 'has_hearings', 'is_active', 'schedule', 'title', 'hearings')
 
     def get_has_hearings(self, project_phase):
         return project_phase.hearings.exists()
@@ -83,12 +83,13 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 raise ValidationError('Can not delete phase which has hearings')
         return data
 
-    # TODO: ordering?
     def create(self, validated_data):
         """
         Create a new project from scratch. Phases are all new too.
         """
         phases_data = validated_data.pop('phases')
+        for ordering, phase in enumerate(phases_data):
+            phase['ordering'] = ordering + 1
         project = super().create(validated_data)
         [self._create_phase(phase, project) for phase in phases_data]
         return project
@@ -98,6 +99,8 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         Update an existing project and its phases.
         """
         phases_data = validated_data.pop('phases')
+        for ordering, phase in enumerate(phases_data):
+            phase['ordering'] = ordering + 1
         project = super().update(instance, validated_data)
         existing_phases = {phase.pk: phase for phase in project.phases.exclude(deleted=True)}
         # create new phases

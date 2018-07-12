@@ -16,7 +16,7 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     class Meta:
         model = ProjectPhase
-        fields = ('id', 'description', 'has_hearings', 'is_active', 'schedule', 'title', 'hearings')
+        fields = ('id', 'description', 'has_hearings', 'is_active', 'schedule', 'title', 'hearings', 'ordering')
 
     def get_has_hearings(self, project_phase):
         return project_phase.hearings.exists()
@@ -29,6 +29,8 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     def to_representation(self, instance):
         self.fields.pop('is_active')
+        # do not return ordering explicitly
+        self.fields.pop('ordering')
         data = super().to_representation(instance)
         if 'hearing' in self.context:
             data['is_active'] = self.context['hearing'].project_phase_id == instance.pk

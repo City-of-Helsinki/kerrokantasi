@@ -26,6 +26,7 @@ env = environ.Env(
     SENTRY_ENVIRONMENT=(str,''),
     COOKIE_PREFIX=(str, 'kerrokantasi'),
     DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
+    TRUST_X_FORWARDED_HOST=(bool, False),
 )
 
 DEBUG = env('DEBUG')
@@ -62,6 +63,9 @@ SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_PATH = '/{}'.format(env('COOKIE_PREFIX'))
 
 DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
+
+USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
+
 ### Settings below do not usually need changing
 
 INSTALLED_APPS = [

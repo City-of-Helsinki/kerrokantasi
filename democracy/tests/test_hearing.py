@@ -984,6 +984,27 @@ def test_POST_hearing_with_updated_project(valid_hearing_json, default_project, 
 
 
 @pytest.mark.django_db
+def test_POST_hearing_with_updated_project_add_translation(valid_hearing_json, default_project, default_project_json, john_smith_api_client):
+    # replace English with Finnish translation in project
+    default_project_json['project']['title'] = {'fi': 'Oletusprojekti'}
+    default_project_json['project']['phases'][2]['title'] = {'fi': 'Vaihe 3'}
+    valid_hearing_json.update(default_project_json)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert 'project' in data
+    project = data['project']
+    assert project['id'] == default_project.pk
+    assert 'phases' in project
+    assert len(project['phases']) == 3
+    assert default_project.phases.count() == 3
+    # check that the original translations remain even if they are not posted!
+    assert project['title']['en'] == 'Default project'
+    assert project['title']['fi'] == 'Oletusprojekti'
+    assert project['phases'][2]['title']['en'] == 'Phase 3'
+    assert project['phases'][2]['title']['fi'] == 'Vaihe 3'
+
+
+@pytest.mark.django_db
 def test_POST_hearing_with_updated_project_delete_phase(valid_hearing_json, default_project, default_project_json, john_smith_api_client):
     deleted_phase_id = default_project_json['project']['phases'][2]['id']
     del(default_project_json['project']['phases'][2])

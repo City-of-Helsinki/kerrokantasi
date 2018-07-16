@@ -18,6 +18,11 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         model = ProjectPhase
         fields = ('id', 'description', 'has_hearings', 'is_active', 'schedule', 'title', 'hearings', 'ordering')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # don't override existing translations even if the current hearing does not support all languages
+        self.partial = True
+
     def get_has_hearings(self, project_phase):
         return project_phase.hearings.exists()
 
@@ -75,6 +80,11 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     class Meta:
         model = Project
         fields = ('id', 'title', 'phases')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # don't override existing translations even if the current hearing does not support all languages
+        self.partial = True
 
     def validate_phases(self, data):
         if not self.instance:

@@ -1,3 +1,9 @@
+
+sudo: required
+
+services:
+  - docker
+
 language: python
 python:
   - '3.6'
@@ -11,9 +17,12 @@ cache: pip
 
 install: 'pip install -r requirements.txt'
 
+env:
+  - DEBUG=True
+
 script:
-- flake8 democracy
-- pytest --cov=. democracy/tests
+  - flake8 democracy
+  - pytest --cov=. democracy/tests
 
 addons:
   postgresql: '9.6'
@@ -21,7 +30,9 @@ addons:
     packages:
       postgresql-9.6-postgis-2.3
 
-after_success: codecov
+after_success:
+  - codecov
+  - ./deploy/containerize.sh
 
 notifications:
   slack:

@@ -91,6 +91,12 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         queryset = super().get_queryset()
         return queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
 
+    def create_related(self, request, instance=None, *args, **kwargs):
+        pass
+
+    def update_related(self, request, instance=None, *args, **kwargs):
+        pass
+
     def _check_may_comment(self, request):
         parent = self.get_comment_parent()
         try:
@@ -127,6 +133,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         comment = serializer.save(**kwargs)
         # and another for the response
         serializer = self.get_serializer(instance=comment)
+        self.create_related(request, instance=comment, *args, **kwargs)
         return response.Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, *args, **kwargs):
@@ -146,6 +153,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                     {'status': 'Authenticated users cannot set author name.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
+        self.update_related(request, instance=instance, *args, **kwargs)
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):

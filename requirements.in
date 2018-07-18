@@ -1,6 +1,7 @@
 coveralls
 Django<2
 djangorestframework
+django-environ
 django-extensions
 django-reversion
 django-cors-headers
@@ -31,3 +32,4 @@ transifex-client
 Babel
 django-parler
 langdetect
+raven

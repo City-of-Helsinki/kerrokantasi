@@ -23,8 +23,10 @@ env = environ.Env(
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     SENTRY_DSN=(str, ''),
+    SENTRY_ENVIRONMENT=(str,''),
     COOKIE_PREFIX=(str, 'kerrokantasi'),
     DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
+    TRUST_X_FORWARDED_HOST=(bool, False),
 )
 
 DEBUG = env('DEBUG')
@@ -36,18 +38,33 @@ DATABASES = {
     'default': env.db('DATABASE_URL')
 }
 
-SENTRY_DSN = env('SENTRY_DSN')
-DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
-
 JWT_AUTH = {
     'JWT_SECRET_KEY': env('JWT_SECRET_KEY'),
     'JWT_AUDIENCE': env('JWT_AUDIENCE')
 }
 
+MEDIA_ROOT = env('MEDIA_ROOT')
+MEDIA_URL = env('MEDIA_URL')
+
+STATIC_ROOT = env('STATIC_ROOT')
+STATIC_URL = env('STATIC_URL')
+
+SENTRY_DSN = env('SENTRY_DSN')
+
 RAVEN_CONFIG = {
     'dsn': env('SENTRY_DSN'),
+    'environment': env('SENTRY_ENVIRONMENT'),
     'release': raven.fetch_git_sha(BASE_DIR),
 }
+
+CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
+SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_PATH = '/{}'.format(env('COOKIE_PREFIX'))
+
+DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
+
+USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
 
 ### Settings below do not usually need changing
 
@@ -119,10 +136,6 @@ USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 AUTH_USER_MODEL = 'kerrokantasi.User'
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "var", "static")
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "var", "media")
 LANGUAGES = (
     ('fi', gettext('Finnish')),
     ('sv', gettext('Swedish')),

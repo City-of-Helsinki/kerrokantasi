@@ -1,6 +1,7 @@
 coveralls
-Django
+Django<2
 djangorestframework
+django-environ
 django-extensions
 django-reversion
 django-cors-headers
@@ -22,6 +23,7 @@ django-geojson
 django-leaflet
 django-ckeditor
 django-autoslug
+django-sendfile
 pytest
 pytest_django
 flake8
@@ -31,4 +33,4 @@ transifex-client
 Babel
 django-parler
 langdetect
-django-sendfile
+raven

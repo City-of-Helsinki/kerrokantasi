@@ -18,6 +18,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
+from rest_framework.utils import encoders
 from munigeo.api import build_bbox_filter, srid_to_srs
 
 
@@ -34,6 +35,12 @@ def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.
                            translation.language_code in language_codes]
     return filtered_prefetched if prefetched_translations else obj.translations.filter(
         language_code__in=language_codes)
+
+
+def compare_serialized(a, b):
+    a = json.dumps(a, cls=encoders.JSONEncoder, sort_keys=True)
+    b = json.dumps(b, cls=encoders.JSONEncoder, sort_keys=True)
+    return a == b
 
 
 class AbstractFieldSerializer(serializers.RelatedField):

@@ -45,10 +45,11 @@ def copy_hearing(old_hearing, **kwargs):
     new_hearing.labels = old_hearing.labels.all()
     _copy_translations(new_hearing, old_hearing)
 
-    # create new sections and section images
+    # create new sections, section images and section polls
     closure_info = SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO)
     for old_section in old_hearing.sections.exclude(type=closure_info):
         old_images = old_section.images.all()
+        old_polls = old_section.polls.all()
         section = deepcopy(old_section)
         section.pk = None
         section.hearing = new_hearing
@@ -61,5 +62,18 @@ def copy_hearing(old_hearing, **kwargs):
             image.section = section
             image.save()
             _copy_translations(image, old_image)
+        for old_poll in old_polls:
+            old_options = old_poll.options.all()
+            poll = deepcopy(old_poll)
+            poll.pk = None
+            poll.section = section
+            poll.save()
+            _copy_translations(poll, old_poll)
+            for old_option in old_options:
+                option = deepcopy(old_option)
+                option.pk = None
+                option.poll = poll
+                option.save()
+                _copy_translations(option, old_option)
 
     return new_hearing

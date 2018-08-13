@@ -1,12 +1,72 @@
 import os
+
+import environ
+import raven
+
 gettext = lambda s: s
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+root = environ.Path(BASE_DIR)
 
-SECRET_KEY = '52k^*)c*bz9t0lzsf_$a+jl3zcy6re!gnw77__)y(#v91-p%tp'
-DEBUG = True
+env = environ.Env()
 
-ALLOWED_HOSTS = []
+env = environ.Env(
+    DEBUG=(bool, False),
+    SECRET_KEY=(str, ''),
+    ALLOWED_HOSTS=(list, []),
+    ADMINS=(list, []),
+    DATABASE_URL=(str, 'postgis:///kerrokantasi'),
+    JWT_SECRET_KEY=(str, ''),
+    JWT_AUDIENCE=(str, ''),
+    MEDIA_ROOT=(environ.Path(), root('media')),
+    STATIC_ROOT=(environ.Path(), root('static')),
+    MEDIA_URL=(str, '/media/'),
+    STATIC_URL=(str, '/static/'),
+    SENTRY_DSN=(str, ''),
+    SENTRY_ENVIRONMENT=(str,''),
+    COOKIE_PREFIX=(str, 'kerrokantasi'),
+    DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
+    TRUST_X_FORWARDED_HOST=(bool, False),
+)
+
+DEBUG = env('DEBUG')
+SECRET_KEY = env('SECRET_KEY')
+ALLOWED_HOSTS = env('ALLOWED_HOSTS')
+ADMINS = env('ADMINS')
+
+DATABASES = {
+    'default': env.db('DATABASE_URL')
+}
+
+JWT_AUTH = {
+    'JWT_SECRET_KEY': env('JWT_SECRET_KEY'),
+    'JWT_AUDIENCE': env('JWT_AUDIENCE')
+}
+
+MEDIA_ROOT = env('MEDIA_ROOT')
+MEDIA_URL = env('MEDIA_URL')
+
+STATIC_ROOT = env('STATIC_ROOT')
+STATIC_URL = env('STATIC_URL')
+
+SENTRY_DSN = env('SENTRY_DSN')
+
+RAVEN_CONFIG = {
+    'dsn': env('SENTRY_DSN'),
+    'environment': env('SENTRY_ENVIRONMENT'),
+    'release': raven.fetch_git_sha(BASE_DIR),
+}
+
+CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
+SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_PATH = '/{}'.format(env('COOKIE_PREFIX'))
+
+DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
+
+USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
+
+### Settings below do not usually need changing
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -34,6 +94,9 @@ INSTALLED_APPS = [
     'parler',
     'django_filters',
 ]
+
+if RAVEN_CONFIG['dsn']:
+    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -67,24 +130,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'kerrokantasi.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'kerrokantasi',
-    }
-}
-
-
 LANGUAGE_CODE = 'en'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 AUTH_USER_MODEL = 'kerrokantasi.User'
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, "var", "static")
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "var", "media")
 LANGUAGES = (
     ('fi', gettext('Finnish')),
     ('sv', gettext('Swedish')),
@@ -92,7 +143,7 @@ LANGUAGES = (
 )
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_URLS_REGEX = r'^/[a-z-]*/?v1/.*$'
+CORS_URLS_REGEX = r'^/[a-z0-9-]*/?v1/.*$'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -106,15 +157,8 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+JWT_AUTH['JWT_PAYLOAD_GET_USER_ID_HANDLER'] = 'helusers.jwt.get_user_id_from_payload_handler'
 
-JWT_AUTH = {
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_SECRET_KEY': 'kerrokantasi',
-    'JWT_AUDIENCE': 'kerrokantasi'
-}
-
-
-DEMOCRACY_UI_BASE_URL = 'http://localhost:8086'
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
     "mapdon-ksv": "democracy.plugins.Plugin",

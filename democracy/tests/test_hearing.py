@@ -8,7 +8,7 @@ from django.utils.timezone import now
 from democracy.enums import InitialSectionType
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
-    Hearing, Label, Organization, Section, SectionComment, SectionImage, SectionType
+    Hearing, Label, Organization, Project, ProjectPhase, Section, SectionComment, SectionImage, SectionType
 )
 from democracy.models.utils import copy_hearing
 from democracy.tests.utils import (
@@ -145,6 +145,95 @@ def _update_hearing_data(data):
 def unpublished_hearing_json(valid_hearing_json):
     valid_hearing_json.update({'published': False})
     return valid_hearing_json
+
+
+@pytest.fixture
+def valid_hearing_json_with_project(valid_hearing_json):
+    valid_hearing_json.update({
+        "project": {
+            "id": "",
+            "title": {
+                "en": "Default project"
+            },
+            "phases": [
+                {
+                    "schedule": {
+                        "en": "Phase 1 schedule"
+                    },
+                    "has_hearings": True,
+                    "id": "",
+                    "title": {
+                        "en": "Phase 1"
+                    },
+                    "is_active": True,
+                    "description": {
+                        "en": "Phase 1 description"
+                    }
+                },
+                {
+                    "schedule": {
+                        "en": "Phase 2 schedule"
+                    },
+                    "has_hearings": False,
+                    "id": "",
+                    "title": {
+                        "en": "Phase 2"
+                    },
+                    "is_active": False,
+                    "description": {
+                        "en": "Phase 2 description"
+                    }
+                },
+                {
+                    "schedule": {
+                        "en": "Phase 3 schedule"
+                    },
+                    "has_hearings": False,
+                    "id": "",
+                    "title": {
+                        "en": "Phase 3"
+                    },
+                    "is_active": False,
+                    "description": {
+                        "en": "Phase 3 description"
+                    }
+                }
+            ],
+        },
+    })
+    return valid_hearing_json
+
+
+@pytest.fixture
+def default_project_json(default_project):
+    project_data = {
+        "project": {
+            "id": default_project.pk,
+            "title": {
+                "en": default_project.title
+            },
+            "phases": [],
+        }
+    }
+    is_first_loop = True
+    for phase in default_project.phases.all():
+        project_data['project']['phases'].append({
+            "schedule": {
+                "en": phase.schedule
+            },
+            "has_hearings": phase.hearings.exists(),
+            "id": phase.pk,
+            "title": {
+                "en": phase.title
+            },
+            "is_active": is_first_loop,
+            "description": {
+                "en": phase.description
+            }
+
+        })
+        is_first_loop = False
+    return project_data
 
 
 def get_detail_url(id):
@@ -821,6 +910,133 @@ def test_POST_hearing_no_title(valid_hearing_json, john_smith_api_client):
 
 
 @pytest.mark.django_db
+def test_POST_hearing_with_new_project(valid_hearing_json_with_project, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json_with_project, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert data['organization'] == john_smith_api_client.user.get_default_organization().name
+    assert 'project' in data
+    project = data['project']
+    assert 'phases' in project
+    assert len(data['project']['phases']) == 3
+    assert project['title'] == valid_hearing_json_with_project['project']['title']
+    projects = Project.objects.all()
+    assert projects.exists() is True
+    project = projects.first()
+    assert project.phases.count() == 3
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_null_project(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['project'] = None
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert data['organization'] == john_smith_api_client.user.get_default_organization().name
+    assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_existing_project(valid_hearing_json, default_project, default_project_json, john_smith_api_client):
+    valid_hearing_json.update(default_project_json)
+    default_project_phase_ids = set(default_project.phases.values_list('id', flat=True))
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert 'project' in data
+    project = data['project']
+    assert project['id'] == default_project.pk
+    assert 'phases' in project
+    assert len(data['project']['phases']) == 3
+    assert default_project.phases.count() == 3
+    for phase in project['phases']:
+        assert phase['id'] in default_project_phase_ids, "Phase ids return must match original default_project phase ids"
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_updated_project(valid_hearing_json, default_project, default_project_json, john_smith_api_client):
+    updated_title = 'updated title'
+    default_project_json['project']['title'] = {'en': updated_title}
+    default_project_json['project']['phases'][0]['title'] = {'en': updated_title}
+    updated_phase_id = default_project_json['project']['phases'][0]['id']
+    default_project_json['project']['phases'].append({
+        'title': {'en': 'new title'},
+        'description': {'en': 'new description'},
+        'schedule': {'en': 'new schedule'},
+        'is_active': False,
+    })
+
+    valid_hearing_json.update(default_project_json)
+    default_project_phase_ids = set(default_project.phases.values_list('id', flat=True))
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert 'project' in data
+    project = data['project']
+    assert project['id'] == default_project.pk
+    assert 'phases' in project
+    assert len(project['phases']) == 4
+    assert default_project.phases.count() == 4
+    for ordering, phase in enumerate(project['phases']):
+        if ordering == 0:
+            assert phase['id'] == updated_phase_id
+            assert phase['title']['en'] == updated_title
+        if ordering == 3:
+            assert phase['title']['en'] == 'new title'
+            assert phase['description']['en'] == 'new description'
+            assert phase['schedule']['en'] == 'new schedule'
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_updated_project_add_translation(valid_hearing_json, default_project, default_project_json, john_smith_api_client):
+    # replace English with Finnish translation in project
+    default_project_json['project']['title'] = {'fi': 'Oletusprojekti'}
+    default_project_json['project']['phases'][2]['title'] = {'fi': 'Vaihe 3'}
+    valid_hearing_json.update(default_project_json)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    assert 'project' in data
+    project = data['project']
+    assert project['id'] == default_project.pk
+    assert 'phases' in project
+    assert len(project['phases']) == 3
+    assert default_project.phases.count() == 3
+    # check that the original translations remain even if they are not posted!
+    assert project['title']['en'] == 'Default project'
+    assert project['title']['fi'] == 'Oletusprojekti'
+    assert project['phases'][2]['title']['en'] == 'Phase 3'
+    assert project['phases'][2]['title']['fi'] == 'Vaihe 3'
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_updated_project_delete_phase(valid_hearing_json, default_project, default_project_json, john_smith_api_client):
+    deleted_phase_id = default_project_json['project']['phases'][2]['id']
+    del(default_project_json['project']['phases'][2])
+    valid_hearing_json.update(default_project_json)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    project = data['project']
+    assert len(data['project']['phases']) == 2
+    assert default_project.phases.count() == 2
+    assert deleted_phase_id not in (p['id'] for p in project['phases'])
+    assert deleted_phase_id not in default_project.phases.values_list('pk', flat=True)
+
+
+@pytest.mark.django_db
+def test_POST_hearing_delete_phase_with_hearings(default_hearing, valid_hearing_json, default_project, default_project_json, john_smith_api_client):
+    initial_default_project_phase_count = default_project.phases.count()
+    default_hearing_phase = default_hearing.project_phase
+    deleted_phase_data = None
+    for idx, phase in enumerate(default_project_json['project']['phases']):
+        if phase['id'] == default_hearing_phase.pk:
+            deleted_phase_data = default_project_json['project']['phases'].pop(idx)
+    assert deleted_phase_data is not None, "Test fixture error: Default hearing should contain a project phase from default project"
+    default_project_json['project']['phases'][0]['is_active'] = True
+    valid_hearing_json.update(default_project_json)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    assert response.status_code == 400, "Should not be able to delete phase with default_hearing associated to it"
+    assert default_project.phases.count() == initial_default_project_phase_count, "Project phase count should not change"
+    deleted_phase = ProjectPhase.objects.everything().get(pk=deleted_phase_data['id'])
+    assert deleted_phase.deleted is False, "Phase should not be soft-deleted"
+
+
+@pytest.mark.django_db
 def test_POST_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
     valid_hearing_json['title'] = {'fi': ''}
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
@@ -1275,3 +1491,46 @@ def test_PATCH_hearing_update_section(valid_hearing_json, john_smith_api_client)
     }]}, format='json')
     data = get_data_from_response(response, status_code=400)
     assert 'Sections cannot be updated by PATCHing the Hearing' in data['sections']
+
+
+@pytest.mark.django_db
+def test_DELETE_unpublished_hearing(valid_hearing_json, john_smith_api_client):
+    valid_hearing_json['published'] = False
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    data = get_data_from_response(response, status_code=201)
+    response = john_smith_api_client.delete('%s%s/' % (endpoint, data['id']), format='json')
+    assert response.status_code == 200
+    response = john_smith_api_client.get('%s%s/' % (endpoint, data['id']), format='json')
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_DELETE_unpublished_hearing_with_comments(default_hearing, john_smith_api_client):
+    default_hearing.published = False
+    default_hearing.save()
+    response = john_smith_api_client.delete('%s%s/' % (endpoint, default_hearing.pk), format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert 'Cannot DELETE hearing with comments.' in data['status']
+
+
+@pytest.mark.django_db
+def test_DELETE_published_hearing(default_hearing, john_smith_api_client):
+    response = john_smith_api_client.delete('%s%s/' % (endpoint, default_hearing.pk), format='json')
+    data = get_data_from_response(response, status_code=403)
+    assert 'Cannot DELETE published hearing.' in data['status']
+
+
+@pytest.mark.django_db
+def test_get_project_data_in_hearing(default_hearing, api_client):
+    endpoint = list_endpoint + default_hearing.pk + '/'
+    data = get_data_from_response(api_client.get(endpoint))
+    assert data['id'] == default_hearing.id
+    assert 'project' in data, 'hearing should contain project data'
+    assert len(data['project']['phases']) == 3, 'default hearing should contain 3 project phases'
+    for phase in data['project']['phases']:
+        is_active_phase = (phase['id'] == default_hearing.project_phase_id)
+        assert phase['has_hearings'] == is_active_phase
+        assert phase['is_active'] == is_active_phase
+        if is_active_phase:
+            assert default_hearing.slug in phase['hearings']
+

@@ -3,6 +3,7 @@ from rest_framework import serializers, viewsets, permissions, mixins, response,
 from democracy.models import ContactPerson
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import TranslatableSerializer
+from rest_framework.exceptions import PermissionDenied
 
 
 class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -28,8 +29,13 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         return super().create(validated_data)
 
+    def update(self, instance, validated_data):
+        if instance.organization not in self.context['request'].user.admin_organizations.all():
+            raise PermissionDenied('Only organization admins can update organization contact persons.')
+        return super().update(instance, validated_data)
 
-class ContactPersonViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+
+class ContactPersonViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.UpdateModelMixin):
     serializer_class = ContactPersonSerializer
     queryset = ContactPerson.objects.select_related('organization')
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -40,3 +46,9 @@ class ContactPersonViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixi
             return response.Response({'status': 'User without organization cannot POST contact persons.'},
                                      status=status.HTTP_403_FORBIDDEN)
         return super().create(request)
+
+    def update(self, request, pk=None, partial=False):
+        if not request.user or not request.user.get_default_organization():
+            return response.Response({'status': 'User without organization cannot PUT contact persons.'},
+                                     status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, pk=pk, partial=partial)

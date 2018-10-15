@@ -175,12 +175,14 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
         fields = SectionCommentSerializer.Meta.fields + ['hearing']
 
 
-class CommentFilter(filters.FilterSet):
+class CommentFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
+    created_at__lt = django_filters.IsoDateTimeFilter(name='created_at', lookup_expr='lt')
+    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(name='created_at', lookup_expr='gt')
 
     class Meta:
         model = SectionComment
-        fields = ['authorization_code', 'section', 'hearing']
+        fields = ['authorization_code', 'created_at__lt', 'created_at__gt', 'section', 'hearing']
 
 
 # root level SectionComment endpoint

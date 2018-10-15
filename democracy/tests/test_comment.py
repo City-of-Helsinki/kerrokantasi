@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 from copy import deepcopy
+import urllib
 
 import pytest
 from django.test.utils import override_settings
@@ -821,6 +822,26 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response = api_client.get('%s?hearing=%s' % (url, default_hearing.id))
     response_data = get_data_from_response(response)
     assert len(response_data['results']) == 9
+
+
+@pytest.mark.django_db
+def test_root_endpoint_timestamp_filters(api_client, default_hearing):
+    url = '/v1/comment/'
+    timestamp_now = now()
+    timestamp_comment = timestamp_now + datetime.timedelta(days=2)
+    timestamp_check = timestamp_now + datetime.timedelta(days=1)
+    comment_count = SectionComment.objects.count()
+    future_comment = SectionComment.objects.first()
+    future_comment.created_at = timestamp_comment
+    future_comment.save(update_fields=('created_at',))
+
+    response = api_client.get('%s?created_at__gt=%s' % (url, urllib.parse.quote(timestamp_check.isoformat())))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == 1
+
+    response = api_client.get('%s?created_at__lt=%s' % (url, urllib.parse.quote(timestamp_check.isoformat())))
+    response_data = get_data_from_response(response)
+    assert len(response_data['results']) == comment_count - 1
 
 
 @pytest.mark.django_db

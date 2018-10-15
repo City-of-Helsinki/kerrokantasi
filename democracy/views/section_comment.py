@@ -175,12 +175,13 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
         fields = SectionCommentSerializer.Meta.fields + ['hearing']
 
 
-class CommentFilter(filters.FilterSet):
+class CommentFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
+    label = django_filters.Filter(name='label__id')
 
     class Meta:
         model = SectionComment
-        fields = ['authorization_code', 'section', 'hearing']
+        fields = ['authorization_code', 'section', 'hearing', 'label']
 
 
 # root level SectionComment endpoint

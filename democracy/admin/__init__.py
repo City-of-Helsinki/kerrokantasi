@@ -259,9 +259,13 @@ class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
 
 
 class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
-    list_display = ('title', 'identifier')
+    list_display = ('title_localized', 'identifier')
     search_fields = ('title', 'identifier')
     inlines = (ProjectPhaseInline,)
+
+    def title_localized(self, obj):
+        return get_any_language(obj, 'title')
+    title_localized.short_description = 'Title'
 
 
 class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):

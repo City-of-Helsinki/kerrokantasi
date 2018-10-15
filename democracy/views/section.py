@@ -17,7 +17,7 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
 from democracy.views.utils import (
-    Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField, TranslatableSerializer,
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
     compare_serialized, FormDataTranslatableSerializer
 )
 

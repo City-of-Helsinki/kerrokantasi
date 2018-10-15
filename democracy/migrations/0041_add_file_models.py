@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('democracy', '0037_change_djgeojson_field_type'),
+        ('democracy', '0040_add_hearing_project_phase'),
     ]
 
     operations = [

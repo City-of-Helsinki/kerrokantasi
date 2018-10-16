@@ -108,6 +108,7 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerial
         model = SectionImage
         fields = ['title', 'url', 'width', 'height', 'caption', 'image', 'ordering']
 
+
 class SectionFileSerializer(BaseFileSerializer, TranslatableSerializer):
     filetype = 'sectionfile'
 
@@ -328,7 +329,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             instance.images.all(),
             many=True,
             context=self.context,
-        ).data   
+        ).data
         data['questions'] = SectionPollSerializer(instance.polls.all(), many=True).data
         return data
 

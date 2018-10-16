@@ -393,4 +393,3 @@ class FormDataTranslatableSerializer(TranslatableSerializer):
                         _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
                     )
         return ret
-

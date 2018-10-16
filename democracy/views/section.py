@@ -89,7 +89,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
         return (width, height)
 
 
-class SectionImageSerializer(BaseImageSerializer, TranslatableSerializer):
+class SectionImageSerializer(ThumbnailImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
         fields = ['id', 'title', 'url', 'width', 'height', 'caption']
@@ -347,7 +347,7 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class RootSectionImageSerializer(SectionImageCreateUpdateSerializer):
+class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpdateSerializer):
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """

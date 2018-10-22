@@ -426,7 +426,7 @@ class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
         # file content isn't mandatory on updates
         if self.instance:
             self.fields['uploaded_file'].required = False
-        if self.context['view'].action in ('list', 'detail'):
+        if 'view' in self.context and self.context['view'].action in ('list', 'detail'):
             del self.fields['uploaded_file']
 
     class Meta:
@@ -567,7 +567,7 @@ class ServeFileView(View, SingleObjectMixin):
 
     def get_queryset(self):
         queryset = super(ServeFileView, self).get_queryset()
-        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing', include_orphans=True)
         return queryset.filter(deleted=False)
 
     def get(self, request, *args, **kwargs):

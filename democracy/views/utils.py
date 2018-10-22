@@ -132,7 +132,10 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing', inclu
     user = request.user
 
     if user.is_superuser:
-        return queryset.filter(**filters)
+        q = Q(**filters)
+        if include_orphans:
+            q |= Q(**{'%sisnull' % hearing_lookup: True})
+        return queryset.filter(q)
 
     filters['%spublished' % hearing_lookup] = True
     filters['%sopen_at__lte' % hearing_lookup] = now()

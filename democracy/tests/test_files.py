@@ -1,9 +1,11 @@
 import datetime
 import pytest
+import re
+from django.urls import reverse
 from django.utils.timezone import now
 
 from democracy.models import SectionFile
-from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_test_data
+from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_test_data
 from democracy.tests.conftest import default_lang_code
 
 
@@ -219,10 +221,104 @@ def test_POST_first_file(john_smith_api_client, default_hearing):
     post_data['section'] = section.pk
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
         post_data['uploaded_file'] = fp
-        data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
+        data = get_data_from_response(john_smith_api_client.post(url, data=post_data, format='multipart'), status_code=201)
         assert data['ordering'] == 1
         assert data['section'] == section.pk
         assert data['hearing'] == default_hearing.pk
         # Make sure new file was created
         data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
         assert len(data['results']) == 1
+
+
+@pytest.mark.django_db
+def test_ckeditor_file_upload_orphan(admin_api_client_logged_in):
+    """
+    CKEditor file upload should create files protected by sendfile.
+    The user can upload files when still being in the process of
+    creating the Hearing, so the section id is not known yet.
+    """
+    ckeditor_params = '?CKEditor=id_sections-0-content&CKEditorFuncNum=1&langCode=en'
+    url = '/upload/' + ckeditor_params
+    post_data = {}
+    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+        post_data['upload'] = fp
+        response = admin_api_client_logged_in.post(url, data=post_data, format='multipart')
+    assert response.status_code == 200, 'expected status_code 200, received %s' % response.status_code
+    assert SectionFile.objects.count() == 1
+    sectionfile_id = SectionFile.objects.first().pk
+    expected = r"window.parent.CKEDITOR.tools.callFunction\(1, 'https?://.+/v1/download/sectionfile/%s/'\);" % sectionfile_id
+    assert re.search(expected, response.content.decode('utf-8'))
+
+
+@pytest.mark.django_db
+def test_ckeditor_file_upload_image_orphan(admin_api_client_logged_in):
+    """
+    CKEditor file upload should create files protected by sendfile.
+    The user can upload files when still being in the process of
+    creating the Hearing, so the section id is not known yet.
+    """
+    ckeditor_params = '?CKEditor=id_sections-0-content&CKEditorFuncNum=1&langCode=en'
+    url = '/upload/' + ckeditor_params
+    post_data = {}
+    with open(get_image_path(IMAGES['SMALL']), 'rb') as fp:
+        post_data['upload'] = fp
+        response = admin_api_client_logged_in.post(url, data=post_data, format='multipart')
+    assert response.status_code == 200, 'expected status_code 200, received %s' % response.status_code
+    assert SectionFile.objects.count() == 1
+    sectionfile_id = SectionFile.objects.first().pk
+    expected = r"window.parent.CKEDITOR.tools.callFunction\(1, 'https?://.+/v1/download/sectionfile/%s/'\);" % sectionfile_id
+    assert re.search(expected, response.content.decode('utf-8'))
+
+
+@pytest.mark.django_db
+def test_ckeditor_get_uploaded_orphan(admin_api_client_logged_in):
+    """
+    CKEditor file upload should create files protected by sendfile.
+    The user can upload files when still being in the process of
+    creating the Hearing, so the section id is not known yet.
+
+    Uploaded file should be accessible to the uploader immediately
+    for CKEditor preview to work.
+    """
+    ckeditor_params = '?CKEditor=id_sections-0-content&CKEditorFuncNum=1&langCode=en'
+    url = '/upload/' + ckeditor_params
+    post_data = {}
+    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+        post_data['upload'] = fp
+        response = admin_api_client_logged_in.post(url, data=post_data, format='multipart')
+    assert response.status_code == 200, 'expected status_code 200, received %s' % response.status_code
+    assert SectionFile.objects.count() == 1
+
+    section_file = SectionFile.objects.first()
+    url = reverse('serve_file', kwargs={'filetype': 'sectionfile', 'pk': section_file.pk})
+    response = admin_api_client_logged_in.get(url)
+    assert response.status_code == 200, 'expected status_code 200 when accessing uploaded file'
+
+
+@pytest.mark.django_db
+def test_bind_orphan_file_to_section(default_hearing, section_file_orphan):
+    """
+    File uploaded via CKEditor will be orphaned. When saving a section, any
+    orphaned files linked in the text content should be linked to the section,
+    so the sendfile-protected files will be visible to viewers of the hearing.
+    """
+    section = default_hearing.sections.first()
+    download_url = reverse('serve_file', kwargs={'filetype': 'sectionfile', 'pk': section_file_orphan.pk})
+    section.content = '<a href="{}">fileupload</a>'.format(download_url)
+    section.save()
+    section_file_orphan.refresh_from_db()
+    assert section_file_orphan.section_id == section.pk
+
+
+@pytest.mark.django_db
+def test_access_section_file(default_hearing, section_file_orphan, john_doe_api_client):
+    """
+    Normal user should be able to access a SectionFile tied to a Section
+    """
+    section = default_hearing.sections.first()
+    section_file_orphan.section = section
+    section_file_orphan.save()
+    response = john_doe_api_client.get(reverse('serve_file', kwargs={'filetype': 'sectionfile', 'pk': section_file_orphan.pk}))
+    assert response.status_code == 200, 'normal user should be be able to get section file'
+
+

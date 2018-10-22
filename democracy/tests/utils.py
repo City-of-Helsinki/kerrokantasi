@@ -99,6 +99,10 @@ def get_file_path(filename):
     return os.path.join(FILE_SOURCE_PATH, filename)
 
 
+def get_image_path(filename):
+    return os.path.join(IMAGE_SOURCE_PATH, filename)
+
+
 def create_file(instance, filename):
     file_class = BaseFile.find_subclass(parent_model=instance)
     file_field = file_class._meta.get_field("uploaded_file")

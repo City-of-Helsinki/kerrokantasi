@@ -57,7 +57,7 @@ pytz==2017.2
 pyyaml==3.12
 raven==6.5.0
 requests-cache==0.4.13
-requests==2.18.4          # via coveralls, requests-cache
+requests==2.20.1          # via coveralls, requests-cache
 six==1.11.0               # via django-environ, django-extensions, django-geojson, faker, langdetect, python-dateutil, python-monkey-business, transifex-client
 transifex-client==0.12.4
 urllib3==1.22             # via requests, transifex-client

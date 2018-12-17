@@ -3,7 +3,7 @@ import django_filters
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import force_text
-from rest_framework import filters, permissions, response, serializers, status, viewsets
+from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.settings import api_settings
 from reversion import revisions
@@ -44,7 +44,7 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         fields = COMMENT_FIELDS
 
 
-class BaseCommentFilter(django_filters.FilterSet):
+class BaseCommentFilter(django_filters.rest_framework.FilterSet):
     authorization_code = django_filters.CharFilter()
 
     class Meta:
@@ -59,7 +59,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     permission_classes = (permissions.AllowAny,)
     serializer_class = None
     create_serializer_class = None
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filter_class = BaseCommentFilter
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
 

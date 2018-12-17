@@ -4,7 +4,7 @@ from django.db import transaction
 from django.utils.timezone import now
 from easy_thumbnails.files import get_thumbnailer
 from functools import lru_cache
-from rest_framework import filters, serializers, viewsets, permissions
+from rest_framework import serializers, viewsets, permissions
 from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
 
 from democracy.enums import Commenting, InitialSectionType
@@ -77,7 +77,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
         try:
             width = int(width)
             height = int(height)
-        except:
+        except ValueError:
             width = height = 0
         if not (width > 0 and height > 0):
             raise ValueError("width and height must be positive integers")
@@ -355,7 +355,7 @@ class RootSectionImageSerializer(SectionImageCreateUpdateSerializer):
         return section_image
 
 
-class ImageFilter(filters.FilterSet):
+class ImageFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
     section_type = django_filters.CharFilter(name='section__type__identifier')
 
@@ -409,7 +409,7 @@ class RootSectionSerializer(SectionSerializer, TranslatableSerializer):
         fields = SectionSerializer.Meta.fields + ['hearing']
 
 
-class SectionFilter(filters.FilterSet):
+class SectionFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='hearing_id')
     type = django_filters.CharFilter(name='type__identifier')
 

@@ -5,7 +5,7 @@ django-environ
 django-extensions
 django-reversion
 django-cors-headers
-django-filter
+django-filter<2.0
 pillow
 psycopg2
 easy-thumbnails
@@ -23,7 +23,7 @@ django-geojson
 django-leaflet
 django-ckeditor
 django-autoslug
-pytest
+pytest<4.0
 pytest_django
 flake8
 factory-boy>=2.8.1

@@ -1,6 +1,6 @@
 from rest_framework import permissions
 from rest_framework import response
-from rest_framework import serializers, viewsets, filters, mixins
+from rest_framework import serializers, viewsets, mixins
 import django_filters
 from rest_framework import status
 
@@ -9,7 +9,7 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import TranslatableSerializer
 
 
-class LabelFilter(django_filters.FilterSet):
+class LabelFilter(django_filters.rest_framework.FilterSet):
     label = django_filters.CharFilter(lookup_expr='icontains', name='translations__label')
 
     class Meta:
@@ -28,7 +28,7 @@ class LabelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     queryset = Label.objects.all()
     pagination_class = DefaultLimitPagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filter_class = LabelFilter
 
     def create(self, request):

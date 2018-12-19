@@ -122,7 +122,9 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,
+                       filters.OrderingFilter,
+                       GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
 
     def create_related(self, request, instance=None, *args, **kwargs):
@@ -175,7 +177,7 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
         fields = SectionCommentSerializer.Meta.fields + ['hearing']
 
 
-class CommentFilter(filters.FilterSet):
+class CommentFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
 
     class Meta:

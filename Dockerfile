@@ -3,7 +3,7 @@ FROM python:3.6
 
 WORKDIR /usr/src/app
 
-ENV ALLOWED_HOSTS [0.0.0.0]
+ENV DEBUG True
 
 RUN apt-get update && apt-get install -y libgdal20 libpq-dev
 

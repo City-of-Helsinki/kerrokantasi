@@ -1,0 +1,12 @@
+DATABASES = { 
+    'default': { 
+        'ENGINE': 'django.contrib.gis.db.backends.postgis', 
+        'HOST': 'kerrokantasi-psql',
+        'PORT': 5432,
+        'NAME': 'kerrokantasi', 
+        'USER': 'kerrokantasi', 
+        'PASSWORD': 'kerrokantasi', 
+    } 
+}
+
+ALLOWED_HOSTS=['localhost', '127.0.0.1']

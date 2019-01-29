@@ -104,8 +104,15 @@ def get_name(model):
     return model._meta.model_name
 
 
+def get_app_label(model):
+    return model._meta.app_label
+
+
 def create_sanitizer_config(models=MODELS, path="sanitizer_config"):
 
-    d = {get_name(m): {f.name: None for f in get_fields(m)} for m in models}
-    open(path, "w").write(yaml.dump(d, default_flow_style=False))
+    d = {
+        f"{get_app_label(m)}_{get_name(m)}": {f.name: None for f in get_fields(m)}
+        for m in models
+    }
 
+    open(path, "w").write(yaml.dump(d, default_flow_style=False))

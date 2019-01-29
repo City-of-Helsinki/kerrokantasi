@@ -1,377 +1,376 @@
-strategy:
-  address:
-    id: null
-    letter: null
-    location: null
-    modified_at: null
-    number: null
-    number_end: null
-    street: null
-  administrativedivision:
-    end: null
-    id: null
-    level: null
-    lft: null
-    modified_at: null
-    municipality: null
-    name: null
-    name_en: null
-    name_fi: null
-    name_sv: null
-    ocd_id: null
-    origin_id: null
-    parent: null
-    rght: null
-    service_point_id: null
-    start: null
-    tree_id: null
-    type: null
-  administrativedivisiongeometry:
-    boundary: null
-    division: null
-    id: null
-  administrativedivisiontype:
-    id: null
-    name: null
-    type: null
-  building:
-    geometry: null
-    id: null
-    modified_at: null
-    municipality: null
-    origin_id: null
-  commentimage:
-    caption: null
-    comment: null
-    created_at: null
-    created_by: null
-    deleted: null
-    height: null
-    id: null
-    image: null
-    modified_at: null
-    modified_by: null
-    ordering: null
-    published: null
-    title: null
-    width: null
-  contactperson:
-    created_at: null
-    created_by: null
-    deleted: null
-    email: null
-    id: null
-    modified_at: null
-    modified_by: null
-    name: null
-    organization: null
-    phone: null
-    published: null
-  contactpersontranslation:
-    id: null
-    language_code: null
-    master: null
-    title: null
-  contenttype:
-    app_label: null
-    id: null
-    model: null
-  group:
-    id: null
-    name: null
-  hearing:
-    close_at: null
-    created_at: null
-    created_by: null
-    deleted: null
-    force_closed: null
-    geojson: null
-    geometry: null
-    id: null
-    modified_at: null
-    modified_by: null
-    n_comments: null
-    open_at: null
-    organization: null
-    project_phase: null
-    published: null
-    servicemap_url: null
-    slug: null
-  hearingtranslation:
-    borough: null
-    id: null
-    language_code: null
-    master: null
-    title: null
-  label:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    modified_at: null
-    modified_by: null
-    published: null
-  labeltranslation:
-    id: null
-    label: null
-    language_code: null
-    master: null
-  logentry:
-    action_flag: null
-    action_time: null
-    change_message: null
-    content_type: null
-    id: null
-    object_id: null
-    object_repr: null
-    user: null
-  municipality:
-    division: null
-    id: null
-    name: null
-    name_en: null
-    name_fi: null
-    name_sv: null
-  organization:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    modified_at: null
-    modified_by: null
-    name: null
-    parent: null
-    published: null
-  permission:
-    codename: null
-    content_type: null
-    id: null
-    name: null
-  plan:
-    geometry: null
-    id: null
-    in_effect: null
-    municipality: null
-    origin_id: null
-  poi:
-    category: null
-    description: null
-    id: null
-    location: null
-    municipality: null
-    name: null
-    origin_id: null
-    street_address: null
-    zip_code: null
-  poicategory:
-    description: null
-    id: null
-    type: null
-  project:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    identifier: null
-    modified_at: null
-    modified_by: null
-    published: null
-  projectphase:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    modified_at: null
-    modified_by: null
-    ordering: null
-    project: null
-    published: null
-  projectphasetranslation:
-    description: null
-    id: null
-    language_code: null
-    master: null
-    schedule: null
-    title: null
-  projecttranslation:
-    id: null
-    language_code: null
-    master: null
-    title: null
-  revision:
-    comment: null
-    date_created: null
-    id: null
-    user: null
-  section:
-    commenting: null
-    created_at: null
-    created_by: null
-    deleted: null
-    hearing: null
-    id: null
-    modified_at: null
-    modified_by: null
-    n_comments: null
-    ordering: null
-    plugin_data: null
-    plugin_fullscreen: null
-    plugin_identifier: null
-    published: null
-    type: null
-    voting: null
-  sectioncomment:
-    author_name: null
-    authorization_code: null
-    content: null
-    created_at: null
-    created_by: null
-    deleted: null
-    geojson: null
-    geometry: null
-    id: null
-    label: null
-    language_code: null
-    modified_at: null
-    modified_by: null
-    n_unregistered_votes: null
-    n_votes: null
-    plugin_data: null
-    plugin_identifier: null
-    published: null
-    section: null
-    title: null
-  sectionimage:
-    created_at: null
-    created_by: null
-    deleted: null
-    height: null
-    id: null
-    image: null
-    modified_at: null
-    modified_by: null
-    ordering: null
-    published: null
-    section: null
-    width: null
-  sectionimagetranslation:
-    caption: null
-    id: null
-    language_code: null
-    master: null
-    title: null
-  sectionpoll:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    is_independent_poll: null
-    modified_at: null
-    modified_by: null
-    n_answers: null
-    ordering: null
-    published: null
-    section: null
-    type: null
-  sectionpollanswer:
-    comment: null
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    modified_at: null
-    modified_by: null
-    option: null
-    published: null
-    source_client: null
-  sectionpolloption:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    modified_at: null
-    modified_by: null
-    n_answers: null
-    ordering: null
-    poll: null
-    published: null
-  sectionpolloptiontranslation:
-    id: null
-    language_code: null
-    master: null
-    text: null
-  sectionpolltranslation:
-    id: null
-    language_code: null
-    master: null
-    text: null
-  sectiontranslation:
-    abstract: null
-    content: null
-    id: null
-    language_code: null
-    master: null
-    title: null
-  sectiontype:
-    created_at: null
-    created_by: null
-    deleted: null
-    id: null
-    identifier: null
-    modified_at: null
-    modified_by: null
-    name_plural: null
-    name_singular: null
-    published: null
-  session:
-    expire_date: null
-    session_data: null
-    session_key: null
-  source:
-    id: null
-    modified: null
-    name: null
-    storage_hash: null
-  street:
-    id: null
-    modified_at: null
-    municipality: null
-    name: null
-    name_en: null
-    name_fi: null
-    name_sv: null
-  thumbnail:
-    id: null
-    modified: null
-    name: null
-    source: null
-    storage_hash: null
-  thumbnaildimensions:
-    height: null
-    id: null
-    thumbnail: null
-    width: null
-  user:
-    date_joined: null
-    department_name: null
-    email: null
-    first_name: null
-    id: null
-    is_active: null
-    is_staff: null
-    is_superuser: null
-    last_login: null
-    last_name: null
-    nickname: null
-    password: null
-    username: null
-    uuid: null
-  version:
-    content_type: null
-    db: null
-    format: null
-    id: null
-    object_id: null
-    object_repr: null
-    revision: null
-    serialized_data: null
+admin_logentry:
+  action_flag: null
+  action_time: null
+  change_message: null
+  content_type: null
+  id: null
+  object_id: null
+  object_repr: null
+  user: null
+auth_group:
+  id: null
+  name: null
+auth_permission:
+  codename: null
+  content_type: null
+  id: null
+  name: null
+contenttypes_contenttype:
+  app_label: null
+  id: null
+  model: null
+democracy_commentimage:
+  caption: null
+  comment: null
+  created_at: null
+  created_by: null
+  deleted: null
+  height: null
+  id: null
+  image: null
+  modified_at: null
+  modified_by: null
+  ordering: null
+  published: null
+  title: null
+  width: null
+democracy_contactperson:
+  created_at: null
+  created_by: null
+  deleted: null
+  email: null
+  id: null
+  modified_at: null
+  modified_by: null
+  name: null
+  organization: null
+  phone: null
+  published: null
+democracy_contactpersontranslation:
+  id: null
+  language_code: null
+  master: null
+  title: null
+democracy_hearing:
+  close_at: null
+  created_at: null
+  created_by: null
+  deleted: null
+  force_closed: null
+  geojson: null
+  geometry: null
+  id: null
+  modified_at: null
+  modified_by: null
+  n_comments: null
+  open_at: null
+  organization: null
+  project_phase: null
+  published: null
+  servicemap_url: null
+  slug: null
+democracy_hearingtranslation:
+  borough: null
+  id: null
+  language_code: null
+  master: null
+  title: null
+democracy_label:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  modified_at: null
+  modified_by: null
+  published: null
+democracy_labeltranslation:
+  id: null
+  label: null
+  language_code: null
+  master: null
+democracy_organization:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  modified_at: null
+  modified_by: null
+  name: null
+  parent: null
+  published: null
+democracy_project:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  identifier: null
+  modified_at: null
+  modified_by: null
+  published: null
+democracy_projectphase:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  modified_at: null
+  modified_by: null
+  ordering: null
+  project: null
+  published: null
+democracy_projectphasetranslation:
+  description: null
+  id: null
+  language_code: null
+  master: null
+  schedule: null
+  title: null
+democracy_projecttranslation:
+  id: null
+  language_code: null
+  master: null
+  title: null
+democracy_section:
+  commenting: null
+  created_at: null
+  created_by: null
+  deleted: null
+  hearing: null
+  id: null
+  modified_at: null
+  modified_by: null
+  n_comments: null
+  ordering: null
+  plugin_data: null
+  plugin_fullscreen: null
+  plugin_identifier: null
+  published: null
+  type: null
+  voting: null
+democracy_sectioncomment:
+  author_name: null
+  authorization_code: null
+  content: null
+  created_at: null
+  created_by: null
+  deleted: null
+  geojson: null
+  geometry: null
+  id: null
+  label: null
+  language_code: null
+  modified_at: null
+  modified_by: null
+  n_unregistered_votes: null
+  n_votes: null
+  plugin_data: null
+  plugin_identifier: null
+  published: null
+  section: null
+  title: null
+democracy_sectionimage:
+  created_at: null
+  created_by: null
+  deleted: null
+  height: null
+  id: null
+  image: null
+  modified_at: null
+  modified_by: null
+  ordering: null
+  published: null
+  section: null
+  width: null
+democracy_sectionimagetranslation:
+  caption: null
+  id: null
+  language_code: null
+  master: null
+  title: null
+democracy_sectionpoll:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  is_independent_poll: null
+  modified_at: null
+  modified_by: null
+  n_answers: null
+  ordering: null
+  published: null
+  section: null
+  type: null
+democracy_sectionpollanswer:
+  comment: null
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  modified_at: null
+  modified_by: null
+  option: null
+  published: null
+  source_client: null
+democracy_sectionpolloption:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  modified_at: null
+  modified_by: null
+  n_answers: null
+  ordering: null
+  poll: null
+  published: null
+democracy_sectionpolloptiontranslation:
+  id: null
+  language_code: null
+  master: null
+  text: null
+democracy_sectionpolltranslation:
+  id: null
+  language_code: null
+  master: null
+  text: null
+democracy_sectiontranslation:
+  abstract: null
+  content: null
+  id: null
+  language_code: null
+  master: null
+  title: null
+democracy_sectiontype:
+  created_at: null
+  created_by: null
+  deleted: null
+  id: null
+  identifier: null
+  modified_at: null
+  modified_by: null
+  name_plural: null
+  name_singular: null
+  published: null
+easy_thumbnails_source:
+  id: null
+  modified: null
+  name: null
+  storage_hash: null
+easy_thumbnails_thumbnail:
+  id: null
+  modified: null
+  name: null
+  source: null
+  storage_hash: null
+easy_thumbnails_thumbnaildimensions:
+  height: null
+  id: null
+  thumbnail: null
+  width: null
+kerrokantasi_user:
+  date_joined: null
+  department_name: null
+  email: null
+  first_name: null
+  id: null
+  is_active: null
+  is_staff: null
+  is_superuser: null
+  last_login: null
+  last_name: null
+  nickname: null
+  password: null
+  username: null
+  uuid: null
+munigeo_address:
+  id: null
+  letter: null
+  location: null
+  modified_at: null
+  number: null
+  number_end: null
+  street: null
+munigeo_administrativedivision:
+  end: null
+  id: null
+  level: null
+  lft: null
+  modified_at: null
+  municipality: null
+  name: null
+  name_en: null
+  name_fi: null
+  name_sv: null
+  ocd_id: null
+  origin_id: null
+  parent: null
+  rght: null
+  service_point_id: null
+  start: null
+  tree_id: null
+  type: null
+munigeo_administrativedivisiongeometry:
+  boundary: null
+  division: null
+  id: null
+munigeo_administrativedivisiontype:
+  id: null
+  name: null
+  type: null
+munigeo_building:
+  geometry: null
+  id: null
+  modified_at: null
+  municipality: null
+  origin_id: null
+munigeo_municipality:
+  division: null
+  id: null
+  name: null
+  name_en: null
+  name_fi: null
+  name_sv: null
+munigeo_plan:
+  geometry: null
+  id: null
+  in_effect: null
+  municipality: null
+  origin_id: null
+munigeo_poi:
+  category: null
+  description: null
+  id: null
+  location: null
+  municipality: null
+  name: null
+  origin_id: null
+  street_address: null
+  zip_code: null
+munigeo_poicategory:
+  description: null
+  id: null
+  type: null
+munigeo_street:
+  id: null
+  modified_at: null
+  municipality: null
+  name: null
+  name_en: null
+  name_fi: null
+  name_sv: null
+reversion_revision:
+  comment: null
+  date_created: null
+  id: null
+  user: null
+reversion_version:
+  content_type: null
+  db: null
+  format: null
+  id: null
+  object_id: null
+  object_repr: null
+  revision: null
+  serialized_data: null
+sessions_session:
+  expire_date: null
+  session_data: null
+  session_key: null

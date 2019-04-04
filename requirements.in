@@ -12,7 +12,7 @@ easy-thumbnails
 drf-nested-routers
 xlsxwriter
 -e git+https://github.com/City-of-Helsinki/munigeo@v0.2.12#egg=django-munigeo
--e git+https://github.com/City-of-Helsinki/django-helusers@v0.1#egg=django-helusers
+django-helusers
 djangorestframework-jwt
 pyjwt
 django-enumfields>=0.8

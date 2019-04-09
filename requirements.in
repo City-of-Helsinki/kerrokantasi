@@ -3,16 +3,16 @@ Django<2
 djangorestframework
 django-environ
 django-extensions
+django-munigeo<0.3
 django-reversion
 django-cors-headers
-django-filter
+django-filter<2.0
 pillow
 psycopg2
 easy-thumbnails
 drf-nested-routers
 xlsxwriter
--e git+https://github.com/City-of-Helsinki/munigeo#egg=django-munigeo
--e git+https://github.com/City-of-Helsinki/django-helusers@v0.1#egg=django-helusers
+django-helusers
 djangorestframework-jwt
 pyjwt
 django-enumfields>=0.8
@@ -24,7 +24,7 @@ django-leaflet
 django-ckeditor
 django-autoslug
 django-sendfile
-pytest
+pytest<4.0
 pytest_django
 flake8
 factory-boy>=2.8.1

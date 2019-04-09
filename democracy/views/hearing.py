@@ -27,7 +27,7 @@ from .hearing_report import HearingReport
 from .utils import NestedPKRelatedField, filter_by_hearing_visible
 
 
-class HearingFilter(django_filters.FilterSet):
+class HearingFilter(django_filters.rest_framework.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(name='open_at', lookup_expr='lte')
     open_at_gt = django_filters.IsoDateTimeFilter(name='open_at', lookup_expr='gt')
     title = django_filters.CharFilter(lookup_expr='icontains', name='translations__title', distinct=True)
@@ -385,7 +385,9 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     API endpoint for hearings.
     """
     model = Hearing
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,
+                       filters.OrderingFilter,
+                       GeometryBboxFilterBackend)
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
     serializer_class = HearingListSerializer

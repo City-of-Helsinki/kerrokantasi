@@ -23,6 +23,7 @@ django-geojson
 django-leaflet
 django-ckeditor
 django-autoslug
+django-sendfile
 pytest<4.0
 pytest_django
 flake8

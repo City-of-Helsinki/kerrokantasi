@@ -1,14 +1,17 @@
 import os
 
+from PIL import Image
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from ckeditor_uploader import image_processing
 from ckeditor_uploader import utils
 from ckeditor_uploader.views import get_files_browse_urls, ImageUploadView, SearchForm
 from django.utils.html import escape
+from democracy.views.section import RootFileSerializer
 
 
 class AbsoluteUrlImageUploadView(ImageUploadView):
@@ -36,11 +39,9 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
                     window.parent.CKEDITOR.tools.callFunction({0}, '', 'Invalid file type.');
                     </script>""".format(ck_func_num))
 
-        saved_path = self._save_file(request, uploaded_file)
-        self._create_thumbnail_if_needed(backend, saved_path)
-        url = utils.get_media_url(saved_path)
+        section_file = self._save_file(request, uploaded_file)
 
-        # this is the only customization to this function
+        url = reverse('serve_file', kwargs={'filetype': 'sectionfile', 'pk': section_file.pk})
         url = request.build_absolute_uri(url)
 
         # Respond with Javascript sending ckeditor upload url.
@@ -48,6 +49,40 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         <script type='text/javascript'>
             window.parent.CKEDITOR.tools.callFunction({0}, '{1}');
         </script>""".format(ck_func_num, url))
+
+    @staticmethod
+    def _save_file(request, uploaded_file):
+        """
+        Uploaded files are saved to the protected storage.
+        """
+        data = {
+            'uploaded_file': uploaded_file,
+        }
+        serializer = RootFileSerializer(data=data, context={})
+        if not serializer.is_valid():
+            return None
+        section_file_obj = serializer.save()
+
+        filename = section_file_obj.uploaded_file.path
+
+        img_name, img_format = os.path.splitext(filename)
+        IMAGE_QUALITY = getattr(settings, "IMAGE_QUALITY", 60)
+
+        if(str(img_format).lower() == "png"):
+
+            img = Image.open(section_file_obj.uploaded_file.path)
+            img = img.resize(img.size, Image.ANTIALIAS)
+            img.save("{}.jpg".format(img_name), quality=IMAGE_QUALITY, optimize=True)
+            section_file_obj.uploaded_file.name = section_file_obj.uploaded_file.name.replace('.png', '.jpg')
+            section_file_obj.uploaded_file.save()
+
+        elif(str(img_format).lower() == "jpg" or str(img_format).lower() == "jpeg"):
+
+            img = Image.open(uploaded_file)
+            img = img.resize(img.size, Image.ANTIALIAS)
+            img.save(section_file_obj.uploaded_file.path, quality=IMAGE_QUALITY, optimize=True)
+
+        return section_file_obj
 
 
 upload = csrf_exempt(AbsoluteUrlImageUploadView.as_view())

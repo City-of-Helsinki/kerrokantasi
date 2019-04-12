@@ -2,19 +2,23 @@ import django_filters
 from django.db.models import Q, Max
 from django.db import transaction
 from django.utils.timezone import now
+from django.views.generic import View
+from django.views.generic.detail import SingleObjectMixin
+from django.core.exceptions import ImproperlyConfigured
 from easy_thumbnails.files import get_thumbnailer
 from functools import lru_cache
 from rest_framework import serializers, viewsets, permissions
 from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
+from sendfile import sendfile
 
 from democracy.enums import Commenting, InitialSectionType
-from democracy.models import Hearing, Section, SectionImage, SectionType, SectionPoll, SectionPollOption
+from democracy.models import Hearing, Section, SectionImage, SectionType, SectionPoll, SectionPollOption, SectionFile
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
-from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer
+from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
 from democracy.views.utils import (
-    Base64ImageField, filter_by_hearing_visible, PublicFilteredImageField, TranslatableSerializer,
-    compare_serialized
+    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
+    compare_serialized, FormDataTranslatableSerializer
 )
 
 
@@ -91,7 +95,7 @@ class SectionImageSerializer(ThumbnailImageSerializer, TranslatableSerializer):
         fields = ['id', 'title', 'url', 'width', 'height', 'caption']
 
 
-class SectionImageCreateUpdateSerializer(ThumbnailImageSerializer, TranslatableSerializer):
+class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
     image = Base64ImageField()
 
     def __init__(self, *args, **kwargs):
@@ -103,6 +107,14 @@ class SectionImageCreateUpdateSerializer(ThumbnailImageSerializer, TranslatableS
     class Meta:
         model = SectionImage
         fields = ['title', 'url', 'width', 'height', 'caption', 'image', 'ordering']
+
+
+class SectionFileSerializer(BaseFileSerializer, TranslatableSerializer):
+    filetype = 'sectionfile'
+
+    class Meta:
+        model = SectionFile
+        fields = ['title', 'url', 'caption']
 
 
 class SectionPollOptionSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -168,7 +180,8 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section instance.
     """
-    images = PublicFilteredImageField(serializer_class=SectionImageSerializer)
+    images = PublicFilteredRelatedField(serializer_class=SectionImageSerializer)
+    files = PublicFilteredRelatedField(serializer_class=SectionFileSerializer)
     questions = SectionPollSerializer(many=True, read_only=True, source='polls')
     type = serializers.SlugRelatedField(slug_field='identifier', read_only=True)
     type_name_singular = serializers.SlugRelatedField(source='type', slug_field='name_singular', read_only=True)
@@ -180,7 +193,7 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
         model = Section
         fields = [
             'id', 'type', 'commenting', 'voting', 'published',
-            'title', 'abstract', 'content', 'created_at', 'images', 'n_comments', 'questions',
+            'title', 'abstract', 'content', 'created_at', 'images', 'n_comments', 'files', 'questions',
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_fullscreen',
         ]
@@ -312,7 +325,11 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['images'] = SectionImageSerializer(instance.images.all(), many=True, context=self.context).data
+        data['images'] = SectionImageSerializer(
+            instance.images.all(),
+            many=True,
+            context=self.context,
+        ).data
         data['questions'] = SectionPollSerializer(instance.polls.all(), many=True).data
         return data
 
@@ -330,7 +347,7 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
         return queryset
 
 
-class RootSectionImageSerializer(SectionImageCreateUpdateSerializer):
+class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpdateSerializer):
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """
@@ -400,6 +417,105 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             raise PermissionDenied('Only organisation admin can delete SectionImages')
 
 
+class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
+    filetype = 'sectionfile'
+    hearing = serializers.CharField(source='section.hearing_id', read_only=True, allow_null=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # file content isn't mandatory on updates
+        if self.instance:
+            self.fields['uploaded_file'].required = False
+        if 'view' in self.context and self.context['view'].action in ('list', 'detail'):
+            del self.fields['uploaded_file']
+
+    class Meta:
+        model = SectionFile
+        fields = ['id', 'title', 'caption', 'uploaded_file', 'ordering', 'section', 'hearing', 'url']
+
+    @transaction.atomic()
+    def create(self, validated_data):
+        section_file = super().create(validated_data)
+        self._update_ordering(section_file)
+        return section_file
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        is_section_changed = instance.section != validated_data.get('section', instance.section)
+        section_file = super().update(instance, validated_data)
+        if is_section_changed:
+            self._update_ordering(section_file)
+        return section_file
+
+    def _update_ordering(self, section_file):
+        existing_section_files = SectionFile.objects.filter(section=section_file.section).exclude(pk=section_file.pk)
+        if section_file.section and existing_section_files.exists():
+            section_file.ordering = existing_section_files.aggregate(Max('ordering'))['ordering__max'] + 1
+        else:
+            section_file.ordering = 1
+        section_file.save()
+
+
+class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
+    model = SectionFile
+    serializer_class = RootFileSerializer
+    pagination_class = DefaultLimitPagination
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing', include_orphans=True)
+        return queryset.filter(deleted=False)
+
+    def perform_create(self, serializer):
+        if self._can_user_create(self.request.user, serializer):
+            return super().perform_create(serializer)
+        else:
+            raise PermissionDenied('Only organisation admin can create SectionFiles')
+
+    def perform_update(self, serializer):
+        if self._can_user_update(self.request.user, serializer):
+            return super().perform_update(serializer)
+        else:
+            raise PermissionDenied('Only organisation admin can update SectionFiles')
+
+    def perform_destroy(self, instance):
+        if self._can_user_destroy(self.request.user, instance):
+            instance.soft_delete()
+        else:
+            raise PermissionDenied('Only organisation admin can delete SectionFiles')
+
+    def _can_user_create(self, user, serializer):
+        # new sectionless file can be created by any org admin
+        # new file with section can be created if admin in that org
+        section = serializer.validated_data.get('section')
+        return self._is_user_organisation_admin(user, section)
+
+    def _is_user_organisation_admin(self, user, section=None):
+        if section:
+            target_org = section.hearing.organization
+            return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+        else:
+            return self.request.user.admin_organizations.exists()
+
+    def _can_user_update(self, user, serializer):
+        # sectionless file can be edited without section data by any admin
+        # sectionless file can be put to section if admin in that org
+        # section file can be edited if admin in that org
+        # section file can be put to another section if admin in both previous and next org
+        section = serializer.validated_data.get('section')
+        instance = serializer.instance
+        return (
+            self._is_user_organisation_admin(user, section) and
+            self._is_user_organisation_admin(user, instance.section)
+        )
+
+    def _can_user_destroy(self, user, instance):
+        # organisation admin can destroy a file with a section,
+        # any organisation admin can destroy a sectionless file
+        return self._is_user_organisation_admin(user, instance.section)
+
+
 class RootSectionSerializer(SectionSerializer, TranslatableSerializer):
     """
     Serializer for root level section endpoint.
@@ -434,3 +550,30 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
         queryset = queryset.exclude(open_hearings, type__identifier=InitialSectionType.CLOSURE_INFO)
 
         return queryset
+
+
+class ServeFileView(View, SingleObjectMixin):
+    def dispatch(self, request, *args, **kwargs):
+        self.model = self.get_model(request, *args, **kwargs)
+        return super(ServeFileView, self).dispatch(request, *args, **kwargs)
+
+    def get_model(self, request, *args, **kwargs):
+        filetype = kwargs.get('filetype', None)
+        if filetype == 'sectionimage':
+            return SectionImage
+        elif filetype == 'sectionfile':
+            return SectionFile
+        raise ImproperlyConfigured('filetype url param is required')
+
+    def get_queryset(self):
+        queryset = super(ServeFileView, self).get_queryset()
+        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing', include_orphans=True)
+        return queryset.filter(deleted=False)
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if isinstance(self.object, SectionImage):
+            f = self.object.image
+        elif isinstance(self.object, SectionFile):
+            f = self.object.uploaded_file
+        return sendfile(request, f.path)

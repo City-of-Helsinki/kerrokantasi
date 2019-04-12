@@ -28,6 +28,7 @@ django-munigeo==0.2.15
 django-nested-admin==3.2.1
 django-parler==1.9.2
 django-reversion==3.0.3
+django-sendfile==0.3.11
 django==1.11.20
 djangorestframework-jwt==1.11.0
 djangorestframework==3.9.2

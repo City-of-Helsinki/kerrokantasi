@@ -419,7 +419,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
 class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
     filetype = 'sectionfile'
-    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+    hearing = serializers.CharField(source='section.hearing_id', read_only=True, allow_null=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

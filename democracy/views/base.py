@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import reverse
 from rest_framework import serializers
 
 from democracy.models.base import BaseModel
 from democracy.models.images import BaseImage
+from democracy.models.files import BaseFile
 from democracy.views.utils import AbstractSerializerMixin
 
 
@@ -49,6 +51,27 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
         if not self.context:
             raise NotImplementedError("Not implemented")  # pragma: no cover
         return self.context.get("request")
+
+
+class BaseFileSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
+    """
+    Serializer for File objects.
+    """
+    url = serializers.SerializerMethodField()
+    filetype = None
+
+    class Meta:
+        model = BaseFile
+        fields = ['title', 'url', 'caption']
+
+    def get_url(self, obj):
+        url = reverse('serve_file', kwargs={'filetype': self.filetype, 'pk': obj.pk})
+        if not self.context:
+            raise NotImplementedError("Not implemented")  # pragma: no cover
+        request = self.context.get("request")
+        if request:  # pragma: no branch
+            url = request.build_absolute_uri(url)
+        return url
 
 
 class AdminsSeeUnpublishedMixin(object):

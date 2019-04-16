@@ -8,6 +8,7 @@ from django.utils.dateparse import parse_datetime
 from PIL import Image
 
 from democracy.models.images import BaseImage
+from democracy.models.files import BaseFile
 
 IMAGES = {
     "ORIGINAL": 'original.jpg',
@@ -15,14 +16,24 @@ IMAGES = {
     "THUMBNAIL": 'thumbnail.jpg'
 }
 
+FILES = {
+    "TXT": 'text_file.txt',
+}
+
 IMAGE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "images")
+FILE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "files")
 
 
 def image_to_base64(filename):
+    return 'data:image/jpg;base64,%s' % base64.b64encode(image_to_bytesio(filename).getvalue()).decode('ascii')
+
+
+def image_to_bytesio(filename):
     buffered = BytesIO()
     image = Image.open(os.path.join(IMAGE_SOURCE_PATH, filename))
     image.save(buffered, format="JPEG")
-    return 'data:image/jpg;base64,%s' % base64.b64encode(buffered.getvalue()).decode('ascii')
+    buffered.name = filename
+    return buffered
 
 
 def image_test_json():
@@ -47,6 +58,23 @@ def sectionimage_test_json(title_en='Test title'):
     }
 
 
+def sectionfile_test_data(title_en='Test title'):
+    return {
+        'caption': json.dumps({
+            'en': 'Test',
+            'fi': 'Testi',
+        }),
+        'title': json.dumps({
+            'en': title_en,
+            'fi': 'Finnish test title',
+        }),
+    }
+
+
+def get_image_path(filename):
+    return os.path.join(IMAGE_SOURCE_PATH, filename)
+
+
 def create_image(instance, filename):
     image_class = BaseImage.find_subclass(parent_model=instance)
     image_field = image_class._meta.get_field("image")
@@ -65,6 +93,34 @@ def create_image(instance, filename):
 def create_default_images(instance):
     for key, filename in IMAGES.items():
         create_image(instance, filename)
+
+
+def get_file_path(filename):
+    return os.path.join(FILE_SOURCE_PATH, filename)
+
+
+def get_image_path(filename):
+    return os.path.join(IMAGE_SOURCE_PATH, filename)
+
+
+def create_file(instance, filename):
+    file_class = BaseFile.find_subclass(parent_model=instance)
+    file_field = file_class._meta.get_field("uploaded_file")
+    file_path = file_field.generate_filename(instance, filename)
+    # Copy the file into the storage if it isn't there:
+    if not file_field.storage.exists(file_path):  # pragma: no cover
+        with open(os.path.join(FILE_SOURCE_PATH, filename), "rb") as infp:
+            file_field.storage.save(file_path, infp)
+    file_obj = file_class(title=filename, **{file_class.parent_field: instance})
+    file_obj.uploaded_file.name = file_path
+    file_obj.save()
+    assert file_obj.uploaded_file.name == file_path
+    return file_obj 
+
+
+def create_default_files(instance):
+    for key, filename in FILES.items():
+        create_file(instance, filename)
 
 
 def get_data_from_response(response, status_code=200):
@@ -97,6 +153,10 @@ def get_hearing_detail_url(id, element=None):
     if element:
         url += "%s/" % element
     return url
+
+
+def get_sectionfile_download_url(id):
+    return '/v1/download/sectionfile/%s/' % id
 
 
 def assert_id_in_results(id, results, expected=True):

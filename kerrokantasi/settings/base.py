@@ -149,7 +149,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'helusers.jwt.JWTAuthentication',
     ),
-    'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',),
+    'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'],
     'DEFAULT_VERSION': '1',
@@ -189,3 +189,7 @@ CKEDITOR_IMAGE_BACKEND = 'pillow'
 
 # Image files should not exceed 1MB (SI)
 MAX_IMAGE_SIZE = 10**6
+
+SENDFILE_BACKEND = 'sendfile.backends.development'
+SENDFILE_ROOT = os.path.join(BASE_DIR, "var", "protected")
+SENDFILE_URL = '/protected'

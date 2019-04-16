@@ -122,7 +122,9 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     create_serializer_class = SectionCommentCreateSerializer
-    filter_backends = (filters.DjangoFilterBackend, filters.OrderingFilter, GeometryBboxFilterBackend)
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,
+                       filters.OrderingFilter,
+                       GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
 
     def create_related(self, request, instance=None, *args, **kwargs):
@@ -178,10 +180,12 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
 class CommentFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
     label = django_filters.Filter(name='label__id')
+    created_at__lt = django_filters.IsoDateTimeFilter(name='created_at', lookup_expr='lt')
+    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(name='created_at', lookup_expr='gt')
 
     class Meta:
         model = SectionComment
-        fields = ['authorization_code', 'section', 'hearing', 'label']
+        fields = ['authorization_code', 'created_at__lt', 'created_at__gt', 'section', 'hearing', 'label']
 
 
 # root level SectionComment endpoint

@@ -162,9 +162,13 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
     list_filter = ("published",)
     search_fields = ("slug", "translations__title")
     readonly_fields = ("preview_url",)
+    raw_id_fields = ("project_phase",)
     fieldsets = (
         (None, {
             "fields": ("title", "labels", "slug", "preview_url", "organization")
+        }),
+        (_("Project"), {
+            "fields": ("project_phase",)
         }),
         (_("Availability"), {
             "fields": ("published", "open_at", "close_at", "force_closed")
@@ -249,15 +253,42 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     exclude = ('published',)
 
 
-class ProjectPhaseInline(NestedStackedInline, TranslatableStackedInline):
+class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase
     extra = 1
 
 
 class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
-    list_display = ('title', 'identifier')
+    list_display = ('title_localized', 'identifier')
     search_fields = ('title', 'identifier')
     inlines = (ProjectPhaseInline,)
+
+    def title_localized(self, obj):
+        return get_any_language(obj, 'title')
+    title_localized.short_description = 'Title'
+
+
+class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
+    list_display = ('title_localized', 'project')
+    list_filter = ('project',)
+    search_fields = ('title', 'project__title')
+
+    def title_localized(self, obj):
+        return get_any_language(obj, 'title')
+    title_localized.short_description = 'Title'
+
+
+def get_any_language(obj, attr_name):
+    """ Get a string of at least some language, if the attribute is not
+    translated to the current language or the translations are empty strings.
+    """
+    translation = obj.safe_translation_getter(attr_name)
+    if not translation:
+        for lang in settings.PARLER_LANGUAGES[None]:
+            translation = obj.safe_translation_getter(attr_name, language_code=lang['code'])
+            if translation:
+                break
+    return translation
 
 
 # Wire it up!
@@ -269,3 +300,4 @@ admin.site.register(models.SectionType, SectionTypeAdmin)
 admin.site.register(models.Organization, OrganizationAdmin)
 admin.site.register(models.ContactPerson, ContactPersonAdmin)
 admin.site.register(models.Project, ProjectAdmin)
+admin.site.register(models.ProjectPhase, ProjectPhaseAdmin)

@@ -75,5 +75,5 @@ six==1.11.0               # via django-extensions, django-geojson, django-nested
 text-unidecode==1.2       # via faker
 transifex-client==0.13.6
 unidecode==1.0.23         # via python-slugify
-urllib3==1.23             # via requests, transifex-client
+urllib3==1.24.2             # via requests, transifex-client
 xlsxwriter==1.1.5

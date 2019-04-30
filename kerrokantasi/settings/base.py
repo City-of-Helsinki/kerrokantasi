@@ -189,3 +189,7 @@ CKEDITOR_IMAGE_BACKEND = 'pillow'
 
 # Image files should not exceed 1MB (SI)
 MAX_IMAGE_SIZE = 10**6
+
+SENDFILE_BACKEND = 'sendfile.backends.development'
+SENDFILE_ROOT = os.path.join(BASE_DIR, "var", "protected")
+SENDFILE_URL = '/protected'

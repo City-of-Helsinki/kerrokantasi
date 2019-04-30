@@ -2,13 +2,14 @@ import datetime
 
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from rest_framework.test import APIClient
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionType, Organization
-from democracy.tests.utils import assert_ascending_sequence, create_default_images
+from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionFile, SectionType, Organization
+from democracy.tests.utils import FILES, assert_ascending_sequence, create_default_images, create_default_files, get_file_path
 
 
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
@@ -71,6 +72,7 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
             commenting=Commenting.OPEN
         )
         create_default_images(section)
+        create_default_files(section)
         section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
         section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
         section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
@@ -190,6 +192,17 @@ def admin_api_client(admin_user):
     api_client = APIClient()
     api_client.force_authenticate(user=admin_user)
     api_client.user = admin_user
+    return api_client
+
+
+@pytest.fixture()
+def admin_api_client_logged_in(admin_user):
+    api_client = APIClient()
+    api_client.force_authenticate(user=admin_user)
+    api_client.user = admin_user
+    admin_user.set_password('foo')
+    admin_user.save()
+    api_client.login(username=admin_user.username, password='foo')
     return api_client
 
 
@@ -351,3 +364,13 @@ def geojson_featurecollection(geojson_point, geojson_polygon):
             },
         ]
     }
+
+
+@pytest.fixture
+def section_file_orphan():
+    section_file = SectionFile()
+    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+        cf = ContentFile(fp.read())
+        section_file.uploaded_file.save('test/file.txt', cf, save=False)
+    section_file.save()
+    return section_file

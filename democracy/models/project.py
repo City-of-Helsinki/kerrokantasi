@@ -37,4 +37,6 @@ class ProjectPhase(StringIdBaseModel, TranslatableModel):
         ordering = ('ordering',)
 
     def __str__(self):
-        return (self.title or self.pk)
+        project = self.project.title or self.project.pk
+        title = self.title or self.pk
+        return '%s: %s' % (project, title)

@@ -1,3 +1,6 @@
+import logging
+import re
+from django.core.urlresolvers import get_resolver
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from reversion import revisions
@@ -8,6 +11,7 @@ from parler.managers import TranslatableQuerySet
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.poll import BasePoll, BasePollOption, BasePollAnswer, poll_option_recache_on_save
 from democracy.models.images import BaseImage
+from democracy.models.files import BaseFile
 from democracy.plugins import get_implementation
 
 from democracy.enums import InitialSectionType
@@ -17,6 +21,8 @@ from .hearing import Hearing
 CLOSURE_INFO_ORDERING = -10000
 
 INITIAL_SECTION_TYPE_IDS = set(value for key, value in InitialSectionType.__dict__.items() if key[:1] != '_')
+
+LOG = logging.getLogger(__name__)
 
 
 class SectionTypeQuerySet(models.QuerySet):
@@ -74,7 +80,32 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
                 # This is a new section or changing type from closure info,
                 # automatically derive next ordering, if possible
                 self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
-        return super(Section, self).save(*args, **kwargs)
+        obj = super(Section, self).save(*args, **kwargs)
+        self.claim_orphan_files()
+        return obj
+
+    def claim_orphan_files(self):
+        """
+        While creating the Section files might have been uploaded that should be
+        linked to the Section. Try to find such SectionFile objects and
+        link them.
+
+        CKEditor creates plain old <a> elements for uploaded files. We have to
+        parse the section content to figure out if there are new files.
+        """
+        # get regex pattern of protected sectionfile endpoint
+        resolver = get_resolver(None)
+        url = resolver.reverse_dict.getlist('serve_file')
+        if not url:
+            LOG.error('serve_file URL pattern not found')
+            return 0
+        pattern = url[0][1].rstrip('$')
+
+        sectionfile_pks = []
+        for translation in self.translations.all():
+            for match in re.finditer(pattern, translation.content):
+                sectionfile_pks.append(match.groupdict()['pk'])
+        return SectionFile.objects.filter(section__isnull=True, pk__in=sectionfile_pks).update(section_id=self.pk)
 
     def check_commenting(self, request):
         super().check_commenting(request)
@@ -102,6 +133,24 @@ class SectionImage(BaseImage, TranslatableModel):
         verbose_name = _('section image')
         verbose_name_plural = _('section images')
         ordering = ('ordering',)
+
+
+class SectionFile(BaseFile, TranslatableModel):
+    parent_field = "section"
+    section = models.ForeignKey(Section, related_name="files", blank=True, null=True)
+    translations = TranslatedFields(
+        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
+        caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
+    )
+    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
+
+    class Meta:
+        verbose_name = _('section file')
+        verbose_name_plural = _('section files')
+        ordering = ('ordering',)
+
+    def __str__(self):
+        return '%s - %s' % (self.pk, self.uploaded_file.name)
 
 
 @revisions.register

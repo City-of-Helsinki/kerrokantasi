@@ -15,7 +15,7 @@ from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, ParseError
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
 from rest_framework.utils import encoders
@@ -98,7 +98,7 @@ class IOErrorIgnoringManyRelatedField(ManyRelatedField):
         return out
 
 
-class PublicFilteredImageField(serializers.Field):
+class PublicFilteredRelatedField(serializers.Field):
 
     def __init__(self, *args, **kwargs):
         self.serializer_class = kwargs.pop('serializer_class', None)
@@ -106,23 +106,23 @@ class PublicFilteredImageField(serializers.Field):
             raise ImproperlyConfigured('Keyword argument serializer_class required')
         super().__init__(*args, **kwargs)
 
-    def to_representation(self, images):
+    def to_representation(self, queryset):
         request = self.context.get('request')
 
         if request and request.user and request.user.is_authenticated() and request.user.is_superuser:
-            images = images.with_unpublished()
+            queryset = queryset.with_unpublished()
         else:
-            images = images.public()
+            queryset = queryset.public()
 
         serializer = self.serializer_class.get_field_serializer(
             many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
         )
         serializer.bind(self.source, self)  # this is needed to get context in the serializer
 
-        return serializer.to_representation(images)
+        return serializer.to_representation(queryset)
 
 
-def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
+def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing', include_orphans=False):
     if hearing_lookup:
         hearing_lookup = '%s__' % hearing_lookup
 
@@ -132,7 +132,10 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
     user = request.user
 
     if user.is_superuser:
-        return queryset.filter(**filters)
+        q = Q(**filters)
+        if include_orphans:
+            q |= Q(**{'%sisnull' % hearing_lookup: True})
+        return queryset.filter(q)
 
     filters['%spublished' % hearing_lookup] = True
     filters['%sopen_at__lte' % hearing_lookup] = now()
@@ -143,6 +146,9 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing'):
         if organizations.exists():
             # regardless of publication status or date, admins will see everything from their organization
             q |= Q(**{'%sorganization__in' % hearing_lookup: organizations})
+        if include_orphans:
+            # include items belonging to no hearings
+            q |= Q(**{'%sisnull' % hearing_lookup: True})
 
     return queryset.filter(q)
 
@@ -367,3 +373,26 @@ class TranslatableSerializer(serializers.Serializer):
                 translation = instance._get_translated_model(lang_code, auto_create=True)
                 setattr(translation, field, value)
         instance.save_translations()
+
+
+class FormDataTranslatableSerializer(TranslatableSerializer):
+    """
+    A serializer for translated fields.
+
+    Variation of the base class for use with form-data instead of json payloads.
+    Translated fields are expected to be strings containing valid json with translations, such as:
+        title={"en": "A title", "fi": "Otsikko"}&content={"en": "content"}
+    """
+    def to_internal_value(self, value):
+        ret = super(TranslatableSerializer, self).to_internal_value(value)
+        for field in self.Meta.translated_fields:
+            v = value.get(field)
+            if v:
+                try:
+                    ret[field] = json.loads(v)
+                except json.decoder.JSONDecodeError:
+                    # can't raise ValidationError here
+                    raise ParseError(
+                        _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
+                    )
+        return ret

@@ -20,6 +20,7 @@ env = environ.Env(
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     TRUST_X_FORWARDED_HOST=(bool, False),
+    INTERNAL_IPS=(list,[]),
     # Helsinki Django app settings
     SENTRY_DSN=(str, ''),
     SENTRY_ENVIRONMENT=(str,''),

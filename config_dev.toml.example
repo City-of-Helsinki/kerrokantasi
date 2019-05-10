@@ -31,13 +31,6 @@ DEBUG=True
 # Django setting: ALLOWED_HOSTS https://docs.djangoproject.com/en/2.2/ref/settings/#allowed-hosts
 #ALLOWED_HOSTS=api.hel.ninja,kerrokantasi-api.hel.ninja
 
-# Specifies that Django is to use `X-Forwarded-Host` as it would normally
-# use the `Host`-header. This necessary when `Host`-header is used for
-# routing the requests in a network of reverse proxies. `X-Forwarded-Host`
-# is then used to carry the Host-header value supplied by the origin client.
-# This affects how ALLOWED_HOSTS behaves, as well.
-# Django setting: https://docs.djangoproject.com/en/2.2/ref/settings/#use-x-forwarded-host
-
 # List of tuples (or just e-mail addresses) specifying Administrators of this
 # Kerrokantasi instance. Django uses this only when logging is configured to
 # send exceptions to admins. Kerrokantasi does not do this. Still you may want
@@ -52,38 +45,6 @@ ADMINS=admin@this.kerrokantasi.instance,another-admin@this.kerrokantasi
 # called "kerrokantasi", connecting with same username as Django is running as.
 # Django setting: DATABASES (but not directly) https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 #DATABASE_URL=postgis:///kerrokantasi
-
-# Cookie prefix is added to the every cookie set by Kerrokantasi. These are
-# mostly used when accessing the internal Django admin site. This applies
-# to django session cookie and csrf cookie
-# Django setting: prepended to CSRF_COOKIE_NAME and SESSION_COOKIE_NAME
-COOKIE_PREFIX=kkdev
-
-# Django INTERNAL_IPS setting allows some debugging aids for the addresses
-# specified here
-# DJango setting: INTERNAL_IPS https://docs.djangoproject.com/en/2.2/ref/settings/#internal-ips
-INTERNAL_IPS=127.0.0.1
-
-# Specifies a header that is trusted to indicate that the request was using
-# https while traversing over the Internet at large. This is used when
-# a proxy terminates the TLS connection and forwards the request over
-# a secure network. Specified using a tuple
-# Django setting: SECURE_PROXY_SSL_HEADER https://docs.djangoproject.com/en/2.2/ref/settings/#secure-proxy-ssl-header
-#SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https')
-
-# Kerrokantasi uses JWT tokens for authentication. This settings Specifies
-# the value that must be present in the "aud"-key of the token presented
-# by a client when making an authenticated request. Kerrokantasi uses this
-# key for verifying that the token was meant for accessing this particular
-# Kerrokantasi instance (the tokens are signed, see below).
-# Does not correspond to standard Django setting
-TOKEN_AUTH_ACCEPTED_AUDIENCE=string-identifying-this-kerrokantasi-instance
-
-# This key is used by Kerrokantasi to verify the JWT token is from trusted
-# Identity Provider (OpenID terminology). The provider must have signed
-# the JWT TOKEN using this shared secret
-# Does not correspond to standard Django setting
-TOKEN_AUTH_SHARED_SECRET=abcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghacbdefg
 
 # Media root is the place in file system where Django and, by extension
 # Kerrokantasi stores "uploaded" files. For kerrokantasi this means only
@@ -107,6 +68,28 @@ MEDIA_URL=/media/
 # Django setting: STATIC_URL https://docs.djangoproject.com/en/2.2/ref/settings/#static-url
 STATIC_URL=/static/
 
+# Specifies that Django is to use `X-Forwarded-Host` as it would normally
+# use the `Host`-header. This is necessary when `Host`-header is used for
+# routing the requests in a network of reverse proxies. `X-Forwarded-Host`
+# is then used to carry the Host-header value supplied by the origin client.
+# This affects how ALLOWED_HOSTS behaves, as well.
+# Django setting: https://docs.djangoproject.com/en/2.2/ref/settings/#use-x-forwarded-host
+# TRUST_X_FORWARDED_HOST=False
+
+# Specifies a header that is trusted to indicate that the request was using
+# https while traversing over the Internet at large. This is used when
+# a proxy terminates the TLS connection and forwards the request over
+# a secure network. Specified using a tuple
+# Django setting: SECURE_PROXY_SSL_HEADER https://docs.djangoproject.com/en/2.2/ref/settings/#secure-proxy-ssl-header
+#SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Django INTERNAL_IPS setting allows some debugging aids for the addresses
+# specified here
+# DJango setting: INTERNAL_IPS https://docs.djangoproject.com/en/2.2/ref/settings/#internal-ips
+INTERNAL_IPS=127.0.0.1
+
+############# Helsinki specific Django app settings #################
+
 # Sentry is an error tracking sentry (sentry.io) that can be self hosted
 # or purchased as PaaS. SENTRY_DSN setting specifies the URL where reports
 # for this Linkedevents instance should be sent. You can find this in
@@ -116,3 +99,47 @@ STATIC_URL=/static/
 # Sentry environment is an optional tag that can be included in sentry
 # reports. It is used to separate deployments within Sentry UI
 SENTRY_ENVIRONMENT=local-development-unconfigured
+
+# Kerrokantasi uses JWT tokens for authentication. This settings Specifies
+# the value that must be present in the "aud"-key of the token presented
+# by a client when making an authenticated request. Kerrokantasi uses this
+# key for verifying that the token was meant for accessing this particular
+# Kerrokantasi instance (the tokens are signed, see below).
+# Does not correspond to standard Django setting
+TOKEN_AUTH_ACCEPTED_AUDIENCE=string-identifying-this-kerrokantasi-instance
+
+# This key is used by Kerrokantasi to verify the JWT token is from trusted
+# Identity Provider (OpenID terminology). The provider must have signed
+# the JWT TOKEN using this shared secret
+# Does not correspond to standard Django setting
+TOKEN_AUTH_SHARED_SECRET=abcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghacbdefg
+
+# Cookie prefix is added to the every cookie set by Kerrokantasi. These are
+# mostly used when accessing the internal Django admin site. This applies
+# to django session cookie and csrf cookie
+# Django setting: prepended to CSRF_COOKIE_NAME and SESSION_COOKIE_NAME
+COOKIE_PREFIX=kkdev
+
+################## Kerrokantasi specific settings ###################
+
+# Kerrrokantasi Django-admin user for low level maintenance needs to
+# generate links to an UI instance for preview purposes. This setting
+# specifies the root URL of that UI
+# Default setting is the directs to local instance of kerrokantasi-UI
+# running with default settings
+#DEMOCRACY_UI_BASE_URL=http://localhost:8086
+
+# Kerrokantasi needs to control access some files stored in the backend
+# the typical use case for these controlled files are files that are part
+# of unpublished hearing. Low level part of this is implemented using
+# sendfile library. Useful values for simple uses casese are
+# "sendfile.backends.development" for working with runserver (the default)
+# and "sendfile.backends.simple" when running a single instance
+# See: https://github.com/johnsensible/django-sendfile for more options
+# SENDFILE_BACKEND='sendfile.backends.simple'
+
+# Access controlled files (see above) are stored in this directory
+# PROTECTED_ROOT=/my/sikrit/hearing/data
+
+# Access controlled files are made available from this URL prefix
+# PROTECTED_URL=/protected_media

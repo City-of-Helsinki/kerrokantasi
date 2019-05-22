@@ -27,6 +27,7 @@ env = environ.Env(
     TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
     TOKEN_AUTH_SHARED_SECRET=(str, ''),
     COOKIE_PREFIX=(str, 'kerrokantasi'),
+    URL_PREFIX=(str, ''),
     # Kerrokantasi specific settings
     DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
     SENDFILE_BACKEND=(str, 'sendfile.backends.development'),
@@ -44,6 +45,8 @@ if os.path.exists(env_file_path):
     print(f'Reading config from {env_file_path}')
     environ.Env.read_env(env_file_path)
 
+#### Django standard settings handling ####
+
 DEBUG = env('DEBUG')
 SECRET_KEY = env('SECRET_KEY')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
@@ -53,29 +56,19 @@ DATABASES = {
     'default': env.db('DATABASE_URL')
 }
 
-JWT_AUTH = {
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET'),
-    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE')
-}
-
 MEDIA_ROOT = env('MEDIA_ROOT')
 MEDIA_URL = env('MEDIA_URL')
 
 STATIC_ROOT = env('STATIC_ROOT')
 STATIC_URL = env('STATIC_URL')
 
-SENDFILE_BACKEND = env('SENDFILE_BACKEND')
-SENDFILE_ROOT = env('PROTECTED_ROOT')
-SENDFILE_URL = env('PROTECTED_URL')
+USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
 
-# CKEDITOR_CONFIGS is in __init__.py
-CKEDITOR_UPLOAD_PATH = 'uploads/'
-CKEDITOR_IMAGE_BACKEND = 'pillow'
+INTERNAL_IPS = env('INTERNAL_IPS')
 
-# Image files should not exceed 1MB (SI)
-MAX_IMAGE_SIZE = 10**6
+#### Helsinki specific settings handling ####
 
+# SENTRY_DSN is actually standard for sentry
 if env('SENTRY_DSN'):
     RAVEN_CONFIG = {
         'dsn': env('SENTRY_DSN'),
@@ -83,16 +76,35 @@ if env('SENTRY_DSN'):
         'release': raven.fetch_git_sha(BASE_DIR),
     }
 
+JWT_AUTH = {
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
+    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET'),
+    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE')
+}
+
 CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_PATH = '/{}'.format(env('COOKIE_PREFIX'))
+SESSION_COOKIE_SECURE = False if DEBUG else True
+# Useful when kerrokantasi API is served from a sub-path of a shared
+# hostname (like api.yourorg.org)
+SESSION_COOKIE_PATH = '/{}'.format(env('URL_PREFIX'))
+
+#### Kerrokantasi specific settings handling ####
 
 DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
 
-USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
+SENDFILE_BACKEND = env('SENDFILE_BACKEND')
+SENDFILE_ROOT = env('PROTECTED_ROOT')
+SENDFILE_URL = env('PROTECTED_URL')
 
 ### Settings below do not usually need changing
+
+# CKEDITOR_CONFIGS is in __init__.py
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+
+# Image files should not exceed 1MB (SI)
+MAX_IMAGE_SIZE = 10**6
 
 INSTALLED_APPS = [
     'django.contrib.admin',

@@ -48,6 +48,8 @@ ADMINS=admin@this.kerrokantasi.instance,another-admin@this.kerrokantasi
 
 # Media root is the place in file system where Django and, by extension
 # Kerrokantasi stores "uploaded" files. For kerrokantasi this means only
+# images belonging to hearings. Everything else goes to PROTECTED_ROOT
+# which is access controlled by kerrokantasi.
 # Django setting: MEDIA_ROOT https://docs.djangoproject.com/en/2.2/ref/settings/#media-root
 #MEDIA_ROOT=/home/kerrokantasi/media
 
@@ -116,9 +118,20 @@ TOKEN_AUTH_SHARED_SECRET=abcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghac
 
 # Cookie prefix is added to the every cookie set by Kerrokantasi. These are
 # mostly used when accessing the internal Django admin site. This applies
-# to django session cookie and csrf cookie
+# to django session cookie and csrf cookie. The prefix is a convenience
+# thing to make it easy find the cookies.
 # Django setting: prepended to CSRF_COOKIE_NAME and SESSION_COOKIE_NAME
 COOKIE_PREFIX=kkdev
+
+# URL prefix for this Kerrokantasi installation. This can be used when
+# Kerrokantasi is made available at a sub-path of domain
+# (eg. api.yourorg.org/kerrokantasi). sub-paths are mostly handled
+# automatically by Django and WSGI. This setting only adds a path
+# restriction to cookies preventing them from being sent to other services
+# on the same host
+# Django setting: appended to SESSION_COOKIE_PATH and CSRF_COOKIE_PATH
+# https://docs.djangoproject.com/en/2.2/ref/settings/#session-cookie-path
+# URL_PREFIX=kerrokantasi
 
 ################## Kerrokantasi specific settings ###################
 
@@ -138,8 +151,12 @@ COOKIE_PREFIX=kkdev
 # See: https://github.com/johnsensible/django-sendfile for more options
 # SENDFILE_BACKEND='sendfile.backends.simple'
 
-# Access controlled files (see above) are stored in this directory
-# PROTECTED_ROOT=/my/sikrit/hearing/data
+# Access controlled files (see above) are stored in this directory.
+# This is relative to the working directory, thus the example below
+# would save the files in dev_protected directory below your working
+# directory.
+# (default is "protected_media" in project root)
+# PROTECTED_ROOT=/srv/kerrokantasi/user_uploads
 
 # Access controlled files are made available from this URL prefix
 # PROTECTED_URL=/protected_media

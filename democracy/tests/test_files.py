@@ -187,7 +187,7 @@ def test_PUT_file_section(john_smith_api_client, default_hearing):
     # POST new file to the section
     post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['file'] = fp
+        post_data['uploaded_file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
     file_obj_id = data['id']
     put_data = sectionfile_multipart_test_data()

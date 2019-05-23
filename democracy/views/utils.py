@@ -366,13 +366,17 @@ class TranslatableSerializer(serializers.Serializer):
                     try:
                         ret[field] = json.loads(v)
                     except json.decoder.JSONDecodeError:
-                        errors[field] = _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
+                        errors[field] = _(
+                            'Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v}
+                            )
                 elif isinstance(v, dict):
                     # as well as JSON objects
                     ret[field] = v
                 else:
-                    errors[field] = _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
-        
+                    errors[field] = _(
+                        'Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v}
+                        )
+
         if errors:
             # can't raise ValidationError here
             raise ParseError(errors)

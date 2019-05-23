@@ -56,31 +56,31 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         Uploaded files are saved to the protected storage.
         """
         data = {
-            'uploaded_file': uploaded_file,
+            'file': uploaded_file,
         }
         serializer = RootFileSerializer(data=data, context={})
         if not serializer.is_valid():
             return None
         section_file_obj = serializer.save()
 
-        filename = section_file_obj.uploaded_file.path
+        filename = section_file_obj.file.path
 
         img_name, img_format = os.path.splitext(filename)
         IMAGE_QUALITY = getattr(settings, "IMAGE_QUALITY", 60)
 
         if(str(img_format).lower() == "png"):
 
-            img = Image.open(section_file_obj.uploaded_file.path)
+            img = Image.open(section_file_obj.file.path)
             img = img.resize(img.size, Image.ANTIALIAS)
             img.save("{}.jpg".format(img_name), quality=IMAGE_QUALITY, optimize=True)
-            section_file_obj.uploaded_file.name = section_file_obj.uploaded_file.name.replace('.png', '.jpg')
-            section_file_obj.uploaded_file.save()
+            section_file_obj.file.name = section_file_obj.file.name.replace('.png', '.jpg')
+            section_file_obj.file.save()
 
         elif(str(img_format).lower() == "jpg" or str(img_format).lower() == "jpeg"):
 
             img = Image.open(uploaded_file)
             img = img.resize(img.size, Image.ANTIALIAS)
-            img.save(section_file_obj.uploaded_file.path, quality=IMAGE_QUALITY, optimize=True)
+            img.save(section_file_obj.file.path, quality=IMAGE_QUALITY, optimize=True)
 
         return section_file_obj
 

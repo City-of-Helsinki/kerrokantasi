@@ -92,7 +92,7 @@ def sectionfile_base64_test_data(title_en='Test title'):
             'en': title_en,
             'fi': 'Finnish test title',
         },
-        'uploaded_file': file_to_base64(FILES['TXT']),
+        'file': file_to_base64(FILES['TXT']),
     }
 
 def get_image_path(filename):
@@ -129,16 +129,16 @@ def get_image_path(filename):
 
 def create_file(instance, filename):
     file_class = BaseFile.find_subclass(parent_model=instance)
-    file_field = file_class._meta.get_field("uploaded_file")
+    file_field = file_class._meta.get_field("file")
     file_path = file_field.generate_filename(instance, filename)
     # Copy the file into the storage if it isn't there:
     if not file_field.storage.exists(file_path):  # pragma: no cover
         with open(os.path.join(FILE_SOURCE_PATH, filename), "rb") as infp:
             file_field.storage.save(file_path, infp)
     file_obj = file_class(title=filename, **{file_class.parent_field: instance})
-    file_obj.uploaded_file.name = file_path
+    file_obj.file.name = file_path
     file_obj.save()
-    assert file_obj.uploaded_file.name == file_path
+    assert file_obj.file.name == file_path
     return file_obj 
 
 

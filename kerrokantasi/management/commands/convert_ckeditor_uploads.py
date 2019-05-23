@@ -65,7 +65,7 @@ class Command(BaseCommand):
                             ))
                             continue
                         section_file = SectionFile(section=section)
-                        section_file.uploaded_file.name = os.path.join(
+                        section_file.file.name = os.path.join(
                             uploaded_file.year,
                             uploaded_file.month,
                             uploaded_file.filename

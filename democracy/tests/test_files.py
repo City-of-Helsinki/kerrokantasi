@@ -42,7 +42,7 @@ def test_POST_file_multipart_root_endpoint(john_smith_api_client, default_hearin
     post_data = sectionfile_multipart_test_data()
     post_data['section'] = first_section['id']
     with open(get_image_path(IMAGES['ORIGINAL']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
         # Save order of the newly created file
         ordering = data['ordering']
@@ -167,7 +167,7 @@ def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_he
     # POST new file to the section
     post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
         assert data['section'] is None
         assert data['hearing'] is None
@@ -187,7 +187,7 @@ def test_PUT_file_section(john_smith_api_client, default_hearing):
     # POST new file to the section
     post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
     file_obj_id = data['id']
     put_data = sectionfile_multipart_test_data()
@@ -242,7 +242,7 @@ def test_POST_first_file(john_smith_api_client, default_hearing):
     post_data = sectionfile_multipart_test_data()
     post_data['section'] = section.pk
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post(url, data=post_data, format='multipart'), status_code=201)
         assert data['ordering'] == 1
         assert data['section'] == section.pk

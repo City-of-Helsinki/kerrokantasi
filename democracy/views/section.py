@@ -114,7 +114,7 @@ class SectionFileSerializer(BaseFileSerializer, TranslatableSerializer):
 
     class Meta:
         model = SectionFile
-        fields = ['title', 'url', 'caption']
+        fields = ['title', 'url', 'caption', 'file']
 
 
 class SectionPollOptionSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -425,13 +425,13 @@ class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
         super().__init__(*args, **kwargs)
         # file content isn't mandatory on updates
         if self.instance:
-            self.fields['uploaded_file'].required = False
+            self.fields['file'].required = False
         if 'view' in self.context and self.context['view'].action in ('list', 'detail'):
-            del self.fields['uploaded_file']
+            del self.fields['file']
 
     class Meta:
         model = SectionFile
-        fields = ['id', 'title', 'caption', 'uploaded_file', 'ordering', 'section', 'hearing', 'url']
+        fields = ['id', 'title', 'caption', 'file', 'ordering', 'section', 'hearing', 'url']
 
     @transaction.atomic()
     def create(self, validated_data):
@@ -457,7 +457,7 @@ class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
 
 
 class RootFileBase64Serializer(RootFileSerializer):
-    uploaded_file = Base64FileField()
+    file = Base64FileField()
 
 
 class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
@@ -584,5 +584,5 @@ class ServeFileView(View, SingleObjectMixin):
         if isinstance(self.object, SectionImage):
             f = self.object.image
         elif isinstance(self.object, SectionFile):
-            f = self.object.uploaded_file
+            f = self.object.file
         return sendfile(request, f.path)

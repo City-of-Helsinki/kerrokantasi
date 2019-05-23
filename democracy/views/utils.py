@@ -289,6 +289,9 @@ class TranslatableSerializer(serializers.Serializer):
     translated_fields must be declared in the Meta class.
     By default, translation languages obtained from settings, but can be overriden
     by defining translation_lang in the Meta class.
+
+    Translated fields may be provided either as JSON objects or stringified JSON objects. This means the
+    serializer may be used for both JSON and multipart request formatting.
     """
 
     def __init__(self, *args, **kwargs):
@@ -350,11 +353,30 @@ class TranslatableSerializer(serializers.Serializer):
         return validated_data
 
     def to_internal_value(self, value):
+        """
+        Add a custom deserialization for translated fields.
+        """
         ret = super(TranslatableSerializer, self).to_internal_value(value)
+        errors = {}
         for field in self.Meta.translated_fields:
             v = value.get(field)
             if v:
-                ret[field] = v
+                if isinstance(v, str):
+                    # we support stringified JSON
+                    try:
+                        ret[field] = json.loads(v)
+                    except json.decoder.JSONDecodeError:
+                        errors[field] = _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
+                elif isinstance(v, dict):
+                    # as well as JSON objects
+                    ret[field] = v
+                else:
+                    errors[field] = _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
+        
+        if errors:
+            # can't raise ValidationError here
+            raise ParseError(errors)
+
         return ret
 
     def save(self, **kwargs):
@@ -395,26 +417,3 @@ class TranslatableSerializer(serializers.Serializer):
                 translation = instance._get_translated_model(lang_code, auto_create=True)
                 setattr(translation, field, value)
         instance.save_translations()
-
-
-class FormDataTranslatableSerializer(TranslatableSerializer):
-    """
-    A serializer for translated fields.
-
-    Variation of the base class for use with form-data instead of json payloads.
-    Translated fields are expected to be strings containing valid json with translations, such as:
-        title={"en": "A title", "fi": "Otsikko"}&content={"en": "content"}
-    """
-    def to_internal_value(self, value):
-        ret = super(TranslatableSerializer, self).to_internal_value(value)
-        for field in self.Meta.translated_fields:
-            v = value.get(field)
-            if v:
-                try:
-                    ret[field] = json.loads(v)
-                except json.decoder.JSONDecodeError:
-                    # can't raise ValidationError here
-                    raise ParseError(
-                        _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
-                    )
-        return ret

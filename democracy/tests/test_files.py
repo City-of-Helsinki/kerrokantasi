@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from democracy.models import SectionFile
-from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_test_data
+from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_multipart_test_data, sectionfile_base64_test_data
 from democracy.tests.conftest import default_lang_code
 
 
@@ -39,7 +39,7 @@ def test_POST_file_multipart_root_endpoint(john_smith_api_client, default_hearin
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     post_data['section'] = first_section['id']
     with open(get_image_path(IMAGES['ORIGINAL']), 'rb') as fp:
         post_data['uploaded_file'] = fp
@@ -64,7 +64,7 @@ def test_POST_file_base64_root_endpoint(john_smith_api_client, default_hearing):
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_base64_test_data()
     post_data['section'] = first_section['id']
     data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
     # Save order of the newly created file
@@ -165,7 +165,7 @@ def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_he
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
         post_data['uploaded_file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
@@ -185,14 +185,12 @@ def test_PUT_file_section(john_smith_api_client, default_hearing):
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
     file_obj_id = data['id']
-    put_data = sectionfile_test_data()
-    # remove base64 encoded content
-    del put_data['uploaded_file']
+    put_data = sectionfile_multipart_test_data()
     put_data['section'] = first_section['id']
     data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=put_data, format='multipart'), status_code=200)
     assert data['section'] == first_section['id']
@@ -211,9 +209,7 @@ def test_PUT_file_no_access(john_doe_api_client, default_hearing):
     File should not accept PUT from unpriviledged user
     """
     url = '/v1/file/%s/' % default_hearing.sections.first().files.first().pk
-    put_data = sectionfile_test_data()
-    # remove base64 encoded content
-    del put_data['uploaded_file']
+    put_data = sectionfile_multipart_test_data()
     data = get_data_from_response(john_doe_api_client.put(url, data=put_data, format='multipart'), status_code=403)
 
 
@@ -243,7 +239,7 @@ def test_POST_first_file(john_smith_api_client, default_hearing):
     url = '/v1/file/'
     section = default_hearing.sections.first()
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     post_data['section'] = section.pk
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
         post_data['uploaded_file'] = fp

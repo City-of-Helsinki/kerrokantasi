@@ -69,7 +69,8 @@ def sectionimage_test_json(title_en='Test title'):
     }
 
 
-def sectionfile_test_data(title_en='Test title'):
+def sectionfile_multipart_test_data(title_en='Test title'):
+    # multipart POST requires dumping subobjects as strings
     return {
         'caption': json.dumps({
             'en': 'Test',
@@ -79,9 +80,20 @@ def sectionfile_test_data(title_en='Test title'):
             'en': title_en,
             'fi': 'Finnish test title',
         }),
-        'uploaded_file': file_to_base64(FILES['TXT']),
     }
 
+def sectionfile_base64_test_data(title_en='Test title'):
+    return {
+        'caption': {
+            'en': 'Test',
+            'fi': 'Testi',
+        },
+        'title': {
+            'en': title_en,
+            'fi': 'Finnish test title',
+        },
+        'uploaded_file': file_to_base64(FILES['TXT']),
+    }
 
 def get_image_path(filename):
     return os.path.join(IMAGE_SOURCE_PATH, filename)

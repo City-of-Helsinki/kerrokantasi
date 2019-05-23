@@ -18,7 +18,7 @@ from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
 from democracy.views.utils import (
     Base64ImageField, Base64FileField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
-    compare_serialized, FormDataTranslatableSerializer
+    compare_serialized
 )
 
 
@@ -417,7 +417,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             raise PermissionDenied('Only organisation admin can delete SectionImages')
 
 
-class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
+class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
     filetype = 'sectionfile'
     hearing = serializers.CharField(source='section.hearing_id', read_only=True, allow_null=True)
 
@@ -456,7 +456,7 @@ class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
         section_file.save()
 
 
-class RootFileBase64Serializer(RootFileSerializer, TranslatableSerializer):
+class RootFileBase64Serializer(RootFileSerializer):
     uploaded_file = Base64FileField()
 
 

@@ -260,6 +260,28 @@ class Base64ImageField(serializers.ImageField):
         raise ValidationError(_('Invalid content. Expected "data:image"'))
 
 
+class Base64FileField(serializers.FileField):
+
+    def to_internal_value(self, data):
+        if isinstance(data, str) and data.startswith('data:application'):
+            # base64 encoded file - decode
+            try:
+                format, filestr = data.split(';base64,')
+            except ValueError:
+                raise ValidationError(_('Not a valid base64 file.'))
+
+            ext = format.split('/')[-1]  # guess file extension
+
+            data = ContentFile(base64.b64decode(filestr), name='%s.%s' % (get_random_string(8), ext))
+
+            # Do not limit file size if there is no settings for that
+            if data.size <= getattr(settings, 'MAX_FILE_SIZE', data.size):
+                return super().to_internal_value(data)
+            else:
+                raise ValidationError(_('File size should be smaller than {} bytes.'.format(settings.MAX_FILE_SIZE)))
+        raise ValidationError(_('Invalid content. Expected "data:application"'))
+
+
 class TranslatableSerializer(serializers.Serializer):
     """
     A serializer for translated fields.

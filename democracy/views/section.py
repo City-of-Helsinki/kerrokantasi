@@ -17,7 +17,7 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
 from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
 from democracy.views.utils import (
-    Base64ImageField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
+    Base64ImageField, Base64FileField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
     compare_serialized, FormDataTranslatableSerializer
 )
 
@@ -456,11 +456,20 @@ class RootFileSerializer(BaseFileSerializer, FormDataTranslatableSerializer):
         section_file.save()
 
 
+class RootFileBase64Serializer(RootFileSerializer, TranslatableSerializer):
+    uploaded_file = Base64FileField()
+
+
 class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     model = SectionFile
-    serializer_class = RootFileSerializer
     pagination_class = DefaultLimitPagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_serializer_class(self):
+        if (self.request.META['CONTENT_TYPE'].startswith('multipart')):
+            # multipart requests go to non-base64 serializer
+            return RootFileSerializer
+        return RootFileBase64Serializer
 
     def get_queryset(self):
         queryset = super().get_queryset()

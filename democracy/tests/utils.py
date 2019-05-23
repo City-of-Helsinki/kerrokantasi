@@ -28,10 +28,21 @@ def image_to_base64(filename):
     return 'data:image/jpg;base64,%s' % base64.b64encode(image_to_bytesio(filename).getvalue()).decode('ascii')
 
 
+def file_to_base64(filename):
+    return 'data:application/pdf;base64,%s' % base64.b64encode(file_to_bytesio(filename).getvalue()).decode('ascii')
+
+
 def image_to_bytesio(filename):
     buffered = BytesIO()
     image = Image.open(os.path.join(IMAGE_SOURCE_PATH, filename))
     image.save(buffered, format="JPEG")
+    buffered.name = filename
+    return buffered
+
+
+def file_to_bytesio(filename):
+    file = open(os.path.join(FILE_SOURCE_PATH, filename), 'rb')
+    buffered = BytesIO(file.read())
     buffered.name = filename
     return buffered
 
@@ -68,6 +79,7 @@ def sectionfile_test_data(title_en='Test title'):
             'en': title_en,
             'fi': 'Finnish test title',
         }),
+        'uploaded_file': file_to_base64(FILES['TXT']),
     }
 
 

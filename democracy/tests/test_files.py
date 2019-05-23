@@ -31,7 +31,7 @@ def test_get_files_root_endpoint(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_POST_file_root_endpoint(john_smith_api_client, default_hearing):
+def test_POST_file_multipart_root_endpoint(john_smith_api_client, default_hearing):
     # Check original file count
     data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
     assert len(data['results']) == 3
@@ -53,6 +53,28 @@ def test_POST_file_root_endpoint(john_smith_api_client, default_hearing):
         fp.seek(0)
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
         assert data['ordering'] == ordering + 1
+
+
+@pytest.mark.django_db
+def test_POST_file_base64_root_endpoint(john_smith_api_client, default_hearing):
+    # Check original file count
+    data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+    assert len(data['results']) == 3
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new file to the section
+    post_data = sectionfile_test_data()
+    post_data['section'] = first_section['id']
+    data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
+    # Save order of the newly created file
+    ordering = data['ordering']
+    # Make sure new file was created
+    data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+    assert len(data['results']) == 4
+    # Create another file and make sure it gets higher ordering than the last one
+    data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
+    assert data['ordering'] == ordering + 1
 
 
 @pytest.mark.django_db
@@ -169,6 +191,8 @@ def test_PUT_file_section(john_smith_api_client, default_hearing):
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
     file_obj_id = data['id']
     put_data = sectionfile_test_data()
+    # remove base64 encoded content
+    del put_data['uploaded_file']
     put_data['section'] = first_section['id']
     data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=put_data, format='multipart'), status_code=200)
     assert data['section'] == first_section['id']
@@ -188,6 +212,8 @@ def test_PUT_file_no_access(john_doe_api_client, default_hearing):
     """
     url = '/v1/file/%s/' % default_hearing.sections.first().files.first().pk
     put_data = sectionfile_test_data()
+    # remove base64 encoded content
+    del put_data['uploaded_file']
     data = get_data_from_response(john_doe_api_client.put(url, data=put_data, format='multipart'), status_code=403)
 
 

@@ -47,38 +47,42 @@ This applies to both development and simple production scale. Note that you won'
 
 ### Prepare database
 
-Kerro kantasi requires full access to the database, as with it will need to create database structures before
+Kerro kantasi requires full access to the database, as it will need to create database structures before
 first run (and if you change the structures). Easiest way to accomplish this is to create a database user and make this user the owner of the Kerro kantasi database. Example:
 
      createuser kerrokantasi
      createdb -l fi_FI -E utf8 -O kerrokantasi -T template0 kerrokantasi
 
-Both of these commands must be run with database superuser permissions or similar. Note the UTF8 encoding for the database.
+Both of these commands must be run with database superuser permissions or similar. Note the UTF8 encoding for the database. Locale does not need to be finnish.
 
 After creating the database, PostGIS extension must be activated:
 
      psql kerrokantasi
      create extension postgis;     
 
-This too requires superuser permissions, database ownership is not enough.
+This too requires superuser permissions, database ownership is not enough. PostGIS extension can also require the installation of package ending in -scripts, which might not be marked as mandatory.
 
 ### Choose directories for transpiled files and user uploaded files
 
 Kerro kantasi has several files that need to be directly available using HTTP. Mostly they are used for the
-internal administration interface, which allows low level access to the data. The files include a browser based editor and map viewer among others. Django calls such artifacts "static files". Django has a "collectstatic" command, which gathers all these to a single directory, which can then be served using any HTTP server software (for development, Django runserver will work). You will need to choose this directory. Conventional choices would be:
+internal administration interface, which allows low level access to the data. The files include a browser based editor and map viewer among others. Django calls such artifacts "static files".  The "collectstatic" command gathers all these to a single directory, which can then be served using any HTTP server software (for development, Django runserver will work). You will need to choose this directory. Conventional choices would be:
 
      /home/kerrokantasi-api/static or
-     /srv/kerrokantasi-api/static
+     /srv/kerrokantasi-api/static or even
+     /var/www/html/static
 
-Kerro kantasi also needs to allow hearing creators to upload images and other materials relevant to the hearings. These are usually called "media" in Django applications. Kerro kantasi has access controls for media, this used to hide materials belonging to unpublished hearings. This means that the media directory does NOT need to be shared using an HTTP server.
+Kerro kantasi also allows hearing creators to upload images and other materials relevant to the hearings. These are usually called "media" in Django applications. Access to media is controlled by Kerro kantasi code, because material belonging to unpublished hearing must by hidden. This means that the media directory must NOT be shared using an HTTP server.
+
 Location examples:
 
      /home/kerrokantasi-api/media
      /srv/kerrokantasi-api/media
 
+For development you probably want to have a common parent directory, which contains directories for static files, media files and code. Having media directory among the code might get messy.
+
 ### Choose a directory for the code
 
-Kerro kantasi can be installed anywhere in the file system. Some conventional places might be:
+Kerro kantasi code files can reside anywhere in the file system. Some conventional places might be:
 
      /home/kerrokantasi/kerrokantasi-api (data directories would be in the home directory)
      /opt/kerrokantasi-api, with data in /srv/kerrokantasi-api

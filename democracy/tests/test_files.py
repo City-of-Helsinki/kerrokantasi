@@ -177,7 +177,7 @@ def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_he
 
 
 @pytest.mark.django_db
-def test_PUT_file_section(john_smith_api_client, default_hearing):
+def test_PUT_file_multipart_section(john_smith_api_client, default_hearing):
     """
     File with empty section should be able to be updated with section data
     """
@@ -193,6 +193,24 @@ def test_PUT_file_section(john_smith_api_client, default_hearing):
     put_data = sectionfile_multipart_test_data()
     put_data['section'] = first_section['id']
     data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=put_data, format='multipart'), status_code=200)
+    assert data['section'] == first_section['id']
+    assert data['hearing'] == default_hearing.pk
+
+
+@pytest.mark.django_db
+def test_PUT_file_json_section(john_smith_api_client, default_hearing):
+    """
+    File with empty section should be able to be updated with section data
+    """
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new file to the section
+    post_data = sectionfile_base64_test_data()
+    data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
+    file_obj_id = data['id']
+    data['section'] = first_section['id']
+    data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=data), status_code=200)
     assert data['section'] == first_section['id']
     assert data['hearing'] == default_hearing.pk
 

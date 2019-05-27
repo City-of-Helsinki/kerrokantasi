@@ -371,6 +371,13 @@ class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpd
             section_image.save()
         return section_image
 
+    def to_internal_value(self, value):
+        if self.instance and 'image' in value and self.get_url(self.instance) == value['image']:
+            # do not try to save the local path in the field
+            del value['image']
+        ret = super().to_internal_value(value)
+        return ret
+
 
 class ImageFilter(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(name='section__hearing__id')
@@ -454,6 +461,20 @@ class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
         else:
             section_file.ordering = 1
         section_file.save()
+
+    def to_internal_value(self, value):
+        if self.instance and 'file' in value and self.get_url(self.instance) == value['file']:
+            # do not try to save the protected local path in the field
+            del value['file']
+        ret = super().to_internal_value(value)
+        return ret
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if 'file' in ret:
+            # do not return the protected local path
+            ret['file'] = ret['url']
+        return ret
 
 
 class RootFileBase64Serializer(RootFileSerializer):

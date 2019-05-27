@@ -218,6 +218,17 @@ def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
 
 
 @pytest.mark.django_db
+def test_PUT_image_root_endpoint(john_smith_api_client, default_hearing):
+    data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
+    section_image = data['results'][0]
+    section_image['title']['en'] = 'changed_title'
+    section_image['caption']['en'] = 'changed_caption'
+    data = get_data_from_response(john_smith_api_client.put('/v1/image/%d/' % section_image['id'], data=section_image, format='json'), status_code=200)
+    changed_section_image = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id']))
+    assert changed_section_image['title']['en'] == 'changed_title'
+
+
+@pytest.mark.django_db
 def test_PATCH_image_root_endpoint_wrong_user(john_doe_api_client, default_hearing):
     data = get_data_from_response(john_doe_api_client.get('/v1/image/'))
     section_image = data['results'][0]

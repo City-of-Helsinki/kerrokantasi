@@ -433,8 +433,6 @@ class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
         # file content isn't mandatory on updates
         if self.instance:
             self.fields['file'].required = False
-        if 'view' in self.context and self.context['view'].action in ('list', 'detail'):
-            del self.fields['file']
 
     class Meta:
         model = SectionFile

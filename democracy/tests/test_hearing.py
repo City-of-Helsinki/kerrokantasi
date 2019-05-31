@@ -46,7 +46,6 @@ def valid_hearing_json(contact_person, default_label):
             {
                 "type": "closure-info",
                 "commenting": 'none',
-                "published": True,
                 "title": {
                     "en": "Section 3",
                 },
@@ -66,7 +65,6 @@ def valid_hearing_json(contact_person, default_label):
             },
             {
                 "commenting": 'none',
-                "published": True,
                 "title": {
                     "en": "Section 1",
                 },
@@ -93,7 +91,6 @@ def valid_hearing_json(contact_person, default_label):
                 "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
                 "type": "part",
                 "commenting": 'none',
-                "published": True,
                 "title": {
                     "en": "Section 2",
                 },

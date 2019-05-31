@@ -192,7 +192,7 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting', 'voting', 'published',
+            'id', 'type', 'commenting', 'voting',
             'title', 'abstract', 'content', 'created_at', 'images', 'n_comments', 'files', 'questions',
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_fullscreen',
@@ -224,7 +224,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting', 'published',
+            'id', 'type', 'commenting',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
             'images', 'questions', 'ordering',

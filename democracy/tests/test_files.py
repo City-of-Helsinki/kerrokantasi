@@ -22,6 +22,9 @@ def check_entity_files(entity, files_field=True):
         assert 'title' in fi
         assert 'url' in fi
         assert 'download' in fi['url']
+        if files_field:
+            # don't serve the upload field when inlined, the directory is wrong anyway
+            assert 'file' not in fi
 
 
 @pytest.mark.django_db

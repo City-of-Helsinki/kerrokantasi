@@ -114,7 +114,7 @@ class SectionFileSerializer(BaseFileSerializer, TranslatableSerializer):
 
     class Meta:
         model = SectionFile
-        fields = ['title', 'url', 'caption', 'file']
+        fields = ['title', 'url', 'caption']
 
 
 class SectionPollOptionSerializer(serializers.ModelSerializer, TranslatableSerializer):

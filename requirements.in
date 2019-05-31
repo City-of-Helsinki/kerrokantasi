@@ -29,8 +29,8 @@ pytest_django
 flake8
 factory-boy>=2.8.1
 pytest-cov
-transifex-client
+#transifex-client
 Babel
 django-parler
 langdetect
-raven
+sentry_sdk

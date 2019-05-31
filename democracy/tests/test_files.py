@@ -18,6 +18,7 @@ def check_entity_files(entity, files_field=True):
     assert set(fi['title'][default_lang_code] for fi in file_list) == set(FILES.values())
 
     for fi in file_list:
+        assert 'id' in fi
         assert 'caption' in fi
         assert 'title' in fi
         assert 'url' in fi

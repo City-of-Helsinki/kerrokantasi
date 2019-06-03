@@ -150,7 +150,7 @@ class SectionFile(BaseFile, TranslatableModel):
         ordering = ('ordering',)
 
     def __str__(self):
-        return '%s - %s' % (self.pk, self.uploaded_file.name)
+        return '%s - %s' % (self.pk, self.file.name)
 
 
 @revisions.register

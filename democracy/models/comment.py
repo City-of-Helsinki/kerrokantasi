@@ -19,6 +19,7 @@ class BaseComment(BaseModel):
     geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
+    organization = models.ForeignKey("Organization", blank=True, null=True, default=None)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
     label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True)

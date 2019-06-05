@@ -162,6 +162,7 @@ class SectionComment(Commentable, BaseComment):
     comment = models.ForeignKey('self', related_name="comments", null=True)
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'), blank=True)
+    pinned = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _('section comment')

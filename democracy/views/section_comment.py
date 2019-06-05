@@ -35,7 +35,7 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SectionComment
         fields = ['section', 'comment', 'content', 'plugin_data', 'authorization_code', 'author_name',
-                  'label', 'images', 'answers', 'geojson', 'language_code']
+                  'label', 'images', 'answers', 'geojson', 'language_code', 'pinned']
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -125,7 +125,8 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'language_code', 'answers', 'comment', 'comments', 'n_comments'] + COMMENT_FIELDS
+        fields = ['section', 'language_code', 'answers', 'comment',
+                  'comments', 'n_comments', 'pinned'] + COMMENT_FIELDS
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -262,7 +263,8 @@ class CommentFilter(django_filters.rest_framework.FilterSet):
 
     class Meta:
         model = SectionComment
-        fields = ['authorization_code', 'created_at__lt', 'created_at__gt', 'section', 'hearing', 'label', 'comment']
+        fields = ['authorization_code', 'created_at__lt', 'created_at__gt', 'section',
+                  'hearing', 'label', 'comment', 'pinned']
 
 
 # root level SectionComment endpoint

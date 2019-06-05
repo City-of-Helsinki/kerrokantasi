@@ -155,10 +155,11 @@ class SectionFile(BaseFile, TranslatableModel):
 
 @revisions.register
 @recache_on_save
-class SectionComment(BaseComment):
+class SectionComment(Commentable, BaseComment):
     parent_field = "section"
     parent_model = Section
     section = models.ForeignKey(Section, related_name="comments")
+    comment = models.ForeignKey('self', related_name="comments", null=True)
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'), blank=True)
 
@@ -171,6 +172,16 @@ class SectionComment(BaseComment):
         for answer in self.poll_answers.all():
             answer.soft_delete()
         super().soft_delete(using=using)
+
+    def save(self, *args, **kwargs):
+        # we may create a comment by referring to another comment instead of section explicitly
+        if not (self.section or self.comment):
+            raise Exception('Section comment must refer to section or another section comment.')
+        if not self.section:
+            self.section = self.comment.section
+        if self.comment and self.section != self.comment.section:
+            raise Exception('Comment must belong to the same section as the original comment.')
+        super().save(*args, **kwargs)
 
 
 class SectionPoll(BasePoll):

@@ -58,7 +58,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """
     permission_classes = (permissions.AllowAny,)
     serializer_class = None
-    create_serializer_class = None
+    edit_serializer_class = None
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filter_class = BaseCommentFilter
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
@@ -66,7 +66,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     def get_serializer(self, *args, **kwargs):
         serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()
         context = kwargs['context'] = self.get_serializer_context()
-        if serializer_class is self.create_serializer_class and "data" in kwargs:  # Creating things with data?
+        if serializer_class is self.edit_serializer_class and "data" in kwargs:  # Creating things with data?
             # So inject a reference to the parent object
             data = kwargs["data"].copy()
             data[serializer_class.Meta.model.parent_field] = context["comment_parent"]
@@ -74,7 +74,8 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return serializer_class(*args, **kwargs)
 
     def get_comment_parent_id(self):
-        return self.kwargs["comment_parent_pk"]
+        # this is introduced to kwargs directly from URL!
+        return self.kwargs.get("comment_parent_pk", None)
 
     def get_comment_parent(self):
         """
@@ -125,7 +126,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return resp
 
         # Use one serializer for creation,
-        serializer = self.get_serializer(serializer_class=self.create_serializer_class, data=request.data)
+        serializer = self.get_serializer(serializer_class=self.edit_serializer_class, data=request.data)
         serializer.is_valid(raise_exception=True)
         kwargs = {}
         if self.request.user.is_authenticated():
@@ -147,14 +148,32 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 {'status': 'You may not edit a comment not owned by you'},
                 status=status.HTTP_403_FORBIDDEN
             )
-        if request.user.is_authenticated() and 'author_name' in request.data:
+        if request.user.is_authenticated and 'author_name' in request.data:
             if request.data['author_name'] != instance.author_name:
                 return response.Response(
                     {'status': 'Authenticated users cannot set author name.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
+
+        # Use one serializer for update,
+        partial = kwargs.pop('partial', False)
+        serializer = self.get_serializer(instance=instance,
+                                         serializer_class=self.edit_serializer_class,
+                                         data=request.data,
+                                         partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        instance.refresh_from_db()
+
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+
+        # and another for the response
+        serializer = self.get_serializer(instance=instance)
         self.update_related(request, instance=instance, *args, **kwargs)
-        return super().update(request, *args, **kwargs)
+        return response.Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)

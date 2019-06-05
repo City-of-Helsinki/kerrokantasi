@@ -142,6 +142,49 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
 
 
 @pytest.mark.django_db
+def test_56_add_comment_to_comment(john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    # set answered comment explicitly
+    comment_data = get_comment_data(comment=old_comment_list[0]['id'])
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+    assert 'section' in data
+    assert data['section'] == section.pk
+
+    assert 'content' in data
+    assert data['content'] == default_comment_content
+
+    assert 'geojson' in data
+    assert data['geojson'] == geojson_feature
+
+    assert 'comment' in data
+    assert data['comment'] == old_comment_list[0]['id']
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
+
+    # If pagination is used the actual data is in "results"
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    assert len(new_comment_list) == len(old_comment_list) + 1
+    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
+
+    # Comment data now contains section id too
+    comment_data['section'] = section.pk
+    assert_common_keys_equal(new_comment, comment_data)
+    assert new_comment["is_registered"] == True
+    assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("comment_content", [
     ("This is a comment", "en"),
     ("Tämä on kommentti", "fi"),
@@ -786,7 +829,9 @@ def test_get_plugin_data_for_comment(api_client, default_hearing):
         assert created_comment["plugin_data"] == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
 
 
-@pytest.mark.parametrize('data', [{'section': 'nonexistingsection'}, None])
+@pytest.mark.parametrize('data', [{'section': 'nonexistingsection', 'content': 'blah'},
+                                  {'section': None, 'content': 'blah'},
+                                  {'content': 'blah'}])
 @pytest.mark.django_db
 def test_post_to_root_endpoint_invalid_section(john_doe_api_client, default_hearing, data):
     url = '/v1/comment/'
@@ -795,11 +840,20 @@ def test_post_to_root_endpoint_invalid_section(john_doe_api_client, default_hear
     assert response.status_code == 400
     assert 'section' in response.data
 
+
+@pytest.mark.parametrize('data', [{'section': 'nonexistingsection', 'content': 'blah'},
+                                  {'section': None, 'content': 'blah'},
+                                  {'content': 'blah'}])
+@pytest.mark.django_db
+def test_put_to_root_endpoint_invalid_section(john_doe_api_client, default_hearing, data):
+    url = '/v1/comment/'
     comment = default_hearing.sections.first().comments.first()
     url = '%s%s/' % (url, comment.id)
 
     response = john_doe_api_client.put(url, data)
-    assert response.status_code == 400
+
+    # with missing or invalid section data, PUT should succeed as the comment already knows its section!
+    assert response.status_code == 200
     assert 'section' in response.data
 
 
@@ -910,6 +964,35 @@ def test_comment_patch(john_doe_api_client, default_hearing, get_detail_url):
 
     comment.refresh_from_db()
     assert comment.content == 'updated content'
+
+
+@pytest.mark.django_db
+def test_cannot_change_comment_section(john_doe_api_client, default_hearing, get_detail_url):
+    section = default_hearing.sections.all()[0]
+    second_section = default_hearing.sections.all()[1]
+    comment = section.comments.all()[0]
+    comment_data = get_comment_data(section=second_section.id)
+    url = get_detail_url(comment)
+
+    response = john_doe_api_client.put(url, data=comment_data)
+    assert response.status_code == 200
+
+    #check that the section did not change
+    assert response.data['section'] == section.id
+    comment.refresh_from_db()
+    assert comment.section == section
+
+@pytest.mark.django_db
+def test_cannot_change_comment_comment(john_doe_api_client, default_hearing, get_detail_url):
+    section = default_hearing.sections.all()[0]
+    comment = section.comments.all()[0]
+    other_comment = section.comments.all()[1]
+    comment_data = get_comment_data(comment=other_comment.id)
+    url = get_detail_url(comment)
+
+    response = john_doe_api_client.put(url, data=comment_data)
+    assert response.status_code == 400
+    assert 'comment' in response.data
 
 
 @pytest.mark.parametrize('anonymous_comment', [True, False])

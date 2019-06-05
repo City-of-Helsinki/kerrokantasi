@@ -125,7 +125,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'language_code', 'answers', 'comment', 'comments'] + COMMENT_FIELDS
+        fields = ['section', 'language_code', 'answers', 'comment', 'comments', 'n_comments'] + COMMENT_FIELDS
 
     def get_answers(self, obj):
         polls_by_id = {}

@@ -81,6 +81,8 @@ class BaseComment(BaseModel):
                                   str(self.fields_to_check_for_data))
         if not self.author_name and self.created_by_id:
             self.author_name = (self.created_by.get_display_name() or None)
+        if not self.organization and self.created_by and self.created_by.admin_organizations:
+            self.organization = self.created_by.admin_organizations.first()
         if not self.language_code and self.content:
             self._detect_lang()
         self.geometry = get_geometry_from_geojson(self.geojson)

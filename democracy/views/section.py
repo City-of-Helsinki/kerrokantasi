@@ -285,7 +285,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 try:
                     # only allow orphan files or files within this section already
                     file = SectionFile.objects.filter(
-                        Q(section=None)|(Q(section=self.instance))
+                        Q(section=None) | (Q(section=self.instance))
                         ).get(pk=pk)
                 except SectionImage.DoesNotExist:
                     raise ValidationError('No file with ID %s available in this section' % pk)

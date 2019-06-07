@@ -184,6 +184,13 @@ class SectionComment(Commentable, BaseComment):
             raise Exception('Comment must belong to the same section as the original comment.')
         super().save(*args, **kwargs)
 
+    def recache_parent_n_comments(self):
+        # comments are now commentable but the reference field is not the parent_field
+        # therefore we must also recache original comment n_comments field
+        if self.comment_id:
+            self.comment.recache_n_comments()
+        # then update the usual section and hearing n_comments fields
+        return super().recache_parent_n_comments()
 
 class SectionPoll(BasePoll):
     section = models.ForeignKey(Section, related_name='polls')

@@ -648,11 +648,26 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
 
 @pytest.mark.django_db
 def test_n_comments_updates(admin_user, default_hearing):
+    section = default_hearing.get_main_section()
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 9
-    comment = default_hearing.get_main_section().comments.create(created_by=admin_user, content="Hello")
+    assert section.n_comments == 3
+    comment = section.comments.create(created_by=admin_user, content="Hello")
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 10
+    assert section.n_comments == 4
+    assert comment.n_comments == 0
+    subcomment = comment.comments.create(created_by=admin_user,
+                                         content="Hello you!",
+                                         section=section)
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 11
+    assert section.n_comments == 5
+    assert comment.n_comments == 1
+    subcomment.soft_delete()
+    assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 10
+    assert section.n_comments == 4
+    assert comment.n_comments == 0
     comment.soft_delete()
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 9
+    assert section.n_comments == 3
 
 
 @pytest.mark.django_db

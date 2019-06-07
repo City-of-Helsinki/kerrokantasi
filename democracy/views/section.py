@@ -220,6 +220,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     # in to_representation()
     images = serializers.ListField(child=serializers.DictField(), write_only=True)
     questions = serializers.ListField(child=serializers.DictField(), write_only=True, required=False)
+    files = serializers.ListField(child=serializers.DictField(), write_only=True, required=False)
 
     class Meta:
         model = Section
@@ -227,25 +228,29 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'id', 'type', 'commenting',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
-            'images', 'questions', 'ordering',
+            'images', 'questions', 'files', 'ordering',
         ]
 
     @transaction.atomic()
     def create(self, validated_data):
         images_data = validated_data.pop('images', [])
         polls_data = validated_data.pop('questions', [])
+        files_data = validated_data.pop('files', [])
         section = super().create(validated_data)
         self._handle_images(section, images_data)
         self._handle_questions(section, polls_data)
+        self._handle_files(section, files_data)
         return section
 
     @transaction.atomic()
     def update(self, instance, validated_data):
         images_data = validated_data.pop('images', [])
         polls_data = validated_data.pop('questions', [])
+        files_data = validated_data.pop('files', [])
         section = super().update(instance, validated_data)
         self._handle_images(section, images_data)
         self._handle_questions(section, polls_data)
+        self._handle_files(section, files_data)
         return section
 
     def validate_images(self, data):
@@ -270,6 +275,31 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
         return data
 
+    def validate_files(self, data):
+        for index, file_data in enumerate(data):
+            pk = file_data.get('id')
+            file_data['ordering'] = index
+            serializer_params = {'data': file_data}
+
+            if pk:
+                try:
+                    # only allow orphan files or files within this section already
+                    file = SectionFile.objects.filter(
+                        Q(section=None)|(Q(section=self.instance))
+                        ).get(pk=pk)
+                except SectionImage.DoesNotExist:
+                    raise ValidationError('No file with ID %s available in this section' % pk)
+
+                serializer_params['instance'] = file
+
+            serializer = RootFileBase64Serializer(**serializer_params)
+            serializer.is_valid(raise_exception=True)
+
+            # save serializer in data so it can be used when handling the files
+            file_data['serializer'] = serializer
+
+        return data
+
     def _handle_images(self, section, data):
         new_image_ids = set()
 
@@ -280,6 +310,19 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
         for image in section.images.exclude(id__in=new_image_ids):
             image.soft_delete()
+
+        return section
+
+    def _handle_files(self, section, data):
+        new_file_ids = set()
+
+        for file_data in data:
+            serializer = file_data.pop('serializer')
+            file = serializer.save(section=section)
+            new_file_ids.add(file.id)
+
+        for file in section.files.exclude(id__in=new_file_ids):
+            file.soft_delete()
 
         return section
 

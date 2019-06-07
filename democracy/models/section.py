@@ -192,6 +192,7 @@ class SectionComment(Commentable, BaseComment):
         # then update the usual section and hearing n_comments fields
         return super().recache_parent_n_comments()
 
+
 class SectionPoll(BasePoll):
     section = models.ForeignKey(Section, related_name='polls')
     translations = TranslatedFields(

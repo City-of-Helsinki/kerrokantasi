@@ -20,6 +20,7 @@ COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_r
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    organization = serializers.SerializerMethodField()
     geojson = GeoJSONField()
 
     def to_representation(self, instance):
@@ -38,6 +39,11 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         if request:
             return obj.can_edit(request)
         return False
+
+    def get_organization(self, obj):
+        if obj.organization:
+            return str(obj.organization)
+        return None
 
     class Meta:
         model = BaseComment

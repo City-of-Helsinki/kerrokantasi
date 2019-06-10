@@ -66,6 +66,11 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
             raise ValidationError("Existing comment cannot be changed to comment a different comment.")
         return value
 
+    def validate_pinned(self, value):
+        if value and (self.context['request'].user.is_anonymous or not self.context['request'].user.get_default_organization()):
+            raise ValidationError("Non-admin users may not pin their comments.")
+        return value
+
     def validate(self, attrs):
         if attrs.get("plugin_data"):
             section = attrs["section"]

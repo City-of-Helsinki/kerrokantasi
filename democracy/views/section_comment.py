@@ -67,7 +67,8 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_pinned(self, value):
-        if value and (self.context['request'].user.is_anonymous or not self.context['request'].user.get_default_organization()):
+        if value and (self.context['request'].user.is_anonymous or
+                      not self.context['request'].user.get_default_organization()):
             raise ValidationError("Non-admin users may not pin their comments.")
         return value
 

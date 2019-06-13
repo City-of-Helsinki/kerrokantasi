@@ -314,7 +314,9 @@ class TranslatableSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         ret = super(TranslatableSerializer, self).to_representation(instance)
-        translations = instance.translations.filter(language_code__in=self.Meta.translation_lang)
+        # enforce consistent order of translations in the API
+        translations = instance.translations.filter(
+            language_code__in=self.Meta.translation_lang).order_by('language_code')
 
         for translation in translations:
             for field in self.Meta.translated_fields:

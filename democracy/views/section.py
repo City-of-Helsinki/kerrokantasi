@@ -279,7 +279,12 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         for index, file_data in enumerate(data):
             pk = file_data.get('id')
             file_data['ordering'] = index
-            serializer_params = {'data': file_data}
+            serializer_params = {
+                'data': file_data,
+                'context': {
+                    'request': self.context['request']
+                }
+            }
 
             if pk:
                 try:

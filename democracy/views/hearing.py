@@ -107,6 +107,9 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
             serializer_params = {
                 'data': section_data,
+                'context': {
+                    'request': self.context['request']
+                }
             }
 
             if pk and not force_create:

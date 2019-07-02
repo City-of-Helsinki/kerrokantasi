@@ -35,7 +35,7 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SectionComment
         fields = ['section', 'comment', 'content', 'plugin_data', 'authorization_code', 'author_name',
-                  'label', 'images', 'answers', 'geojson', 'language_code', 'pinned']
+                  'label', 'images', 'answers', 'geojson', 'language_code', 'pinned', 'reply_to']
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -132,7 +132,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     class Meta:
         model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned'] + COMMENT_FIELDS
+                  'comments', 'n_comments', 'pinned', 'reply_to'] + COMMENT_FIELDS
 
     def get_answers(self, obj):
         polls_by_id = {}

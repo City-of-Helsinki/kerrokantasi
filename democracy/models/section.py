@@ -126,6 +126,7 @@ class SectionImage(BaseImage, TranslatableModel):
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
+        alt_text=models.TextField(verbose_name=_('alt text'), blank=True, default=''),
     )
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 

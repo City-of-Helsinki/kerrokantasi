@@ -162,6 +162,7 @@ class SectionComment(Commentable, BaseComment):
     comment = models.ForeignKey('self', related_name="comments", null=True)
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'), blank=True)
+    reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
 
     class Meta:

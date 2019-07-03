@@ -2,7 +2,7 @@ import datetime
 import pytest
 from django.utils.timezone import now
 
-from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url, sectionimage_test_json
+from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url, sectionimage_test_json, assert_common_keys_equal
 from democracy.tests.conftest import default_lang_code
 
 
@@ -17,6 +17,7 @@ def check_entity_images(entity, images_field=True):
     for im in image_list:
         assert 'caption' in im
         assert 'title' in im
+        assert 'alt_text' in im
         assert 'width' in im
         assert 'height' in im
         assert 'url' in im
@@ -211,10 +212,12 @@ def test_POST_image_root_endpoint_wrong_user(john_doe_api_client, default_hearin
 def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
     data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
     section_image = data['results'][0]
-    post_data = {'title': {'en': 'changed_title'}, 'caption': {'en': 'changed_caption'}}
+    post_data = {'title': {'en': 'changed_title'}, 'caption': {'en': 'changed_caption'}, 'alt_text': {'en': 'changed_alt_text'}}
     data = get_data_from_response(john_smith_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'), status_code=200)
     changed_section_image = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id']))
     assert changed_section_image['title']['en'] == 'changed_title'
+    assert changed_section_image['caption']['en'] == 'changed_caption'
+    assert changed_section_image['alt_text']['en'] == 'changed_alt_text'
 
 
 @pytest.mark.django_db
@@ -223,9 +226,12 @@ def test_PUT_image_root_endpoint(john_smith_api_client, default_hearing):
     section_image = data['results'][0]
     section_image['title']['en'] = 'changed_title'
     section_image['caption']['en'] = 'changed_caption'
+    section_image['alt_text']['en'] = 'changed_alt_text'
     data = get_data_from_response(john_smith_api_client.put('/v1/image/%d/' % section_image['id'], data=section_image, format='json'), status_code=200)
     changed_section_image = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id']))
     assert changed_section_image['title']['en'] == 'changed_title'
+    assert changed_section_image['caption']['en'] == 'changed_caption'
+    assert changed_section_image['alt_text']['en'] == 'changed_alt_text'
 
 
 @pytest.mark.django_db

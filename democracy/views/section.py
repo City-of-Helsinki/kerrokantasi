@@ -92,7 +92,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
 class SectionImageSerializer(ThumbnailImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
-        fields = ['id', 'title', 'url', 'width', 'height', 'caption']
+        fields = ['id', 'title', 'url', 'width', 'height', 'caption', 'alt_text']
 
 
 class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
@@ -106,7 +106,7 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerial
 
     class Meta:
         model = SectionImage
-        fields = ['title', 'url', 'width', 'height', 'caption', 'image', 'ordering']
+        fields = ['title', 'url', 'width', 'height', 'caption', 'alt_text', 'image', 'ordering']
 
 
 class SectionFileSerializer(BaseFileSerializer, TranslatableSerializer):

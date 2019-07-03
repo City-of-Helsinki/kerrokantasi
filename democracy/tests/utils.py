@@ -65,6 +65,10 @@ def sectionimage_test_json(title_en='Test title'):
             'en': title_en,
             'fi': 'Finnish test title',
         },
+        'alt_text': {
+            'en': 'Map of the area',
+            'fi': 'Rakennettavan alueen kartta',
+        },
         'image': image_to_base64(IMAGES['ORIGINAL']),
     }
 

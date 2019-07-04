@@ -118,7 +118,13 @@ class Commentable(models.Model):
     """
     Mixin for models which can be commented.
     """
-    n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
+    n_comments = models.IntegerField(
+        verbose_name=_('number of comments'),
+        blank=True,
+        default=0,
+        editable=False,
+        db_index=True
+    )
     commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
     voting = EnumIntegerField(Commenting, verbose_name=_('voting'), default=Commenting.REGISTERED)
 

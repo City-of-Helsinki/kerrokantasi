@@ -1,33 +1,74 @@
 import os
 
 import environ
-import raven
+import sentry_sdk
+import subprocess
+from sentry_sdk.integrations.django import DjangoIntegration
 
-gettext = lambda s: s
+gettext = lambda s: s # noqa makes possible to translate strings here
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-root = environ.Path(BASE_DIR)
+CONFIG_FILE_NAME = "config_dev.toml"
 
-env = environ.Env()
 
+def get_git_revision_hash():
+    """
+    We need a way to retrieve git revision hash for sentry reports
+    I assume that if we have a git repository available we will
+    have git-the-command as well
+    """
+    try:
+        # We are not interested in gits complaints
+        git_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD'], stderr=subprocess.DEVNULL, encoding='utf8')
+    # ie. "git" was not found
+    # should we return a more generic meta hash here?
+    # like "undefined"?
+    except FileNotFoundError:
+        git_hash = "git_not_available"
+    # Ditto
+    except subprocess.CalledProcessError:
+        git_hash = "no_repository"
+    return git_hash.rstrip()
+
+
+root = environ.Path(__file__) - 3  # three levels back in hierarchy
 env = environ.Env(
+    # Common Django settings
     DEBUG=(bool, False),
     SECRET_KEY=(str, ''),
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///kerrokantasi'),
-    JWT_SECRET_KEY=(str, ''),
-    JWT_AUDIENCE=(str, ''),
     MEDIA_ROOT=(environ.Path(), root('media')),
     STATIC_ROOT=(environ.Path(), root('static')),
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
-    SENTRY_DSN=(str, ''),
-    SENTRY_ENVIRONMENT=(str,''),
-    COOKIE_PREFIX=(str, 'kerrokantasi'),
-    DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
     TRUST_X_FORWARDED_HOST=(bool, False),
+    INTERNAL_IPS=(list, []),
+    # Helsinki Django app settings
+    SENTRY_DSN=(str, ''),
+    SENTRY_ENVIRONMENT=(str, ''),
+    TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
+    TOKEN_AUTH_SHARED_SECRET=(str, ''),
+    COOKIE_PREFIX=(str, 'kerrokantasi'),
+    URL_PREFIX=(str, ''),
+    # Kerrokantasi specific settings
+    DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
+    SENDFILE_BACKEND=(str, 'sendfile.backends.development'),
+    PROTECTED_ROOT=(environ.Path(), root('protected_media')),
+    PROTECTED_URL=(str, '/protected_media/'),
 )
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = root()
+
+# Django environ has a nasty habit of complaining at level
+# WARN abount env file not being present. Here we pre-empt it.
+env_file_path = os.path.join(BASE_DIR, CONFIG_FILE_NAME)
+if os.path.exists(env_file_path):
+    print(f'Reading config from {env_file_path}')
+    environ.Env.read_env(env_file_path)
+
+#### Django standard settings handling ####
 
 DEBUG = env('DEBUG')
 SECRET_KEY = env('SECRET_KEY')
@@ -38,35 +79,56 @@ DATABASES = {
     'default': env.db('DATABASE_URL')
 }
 
-JWT_AUTH = {
-    'JWT_SECRET_KEY': env('JWT_SECRET_KEY'),
-    'JWT_AUDIENCE': env('JWT_AUDIENCE')
-}
-
 MEDIA_ROOT = env('MEDIA_ROOT')
 MEDIA_URL = env('MEDIA_URL')
 
 STATIC_ROOT = env('STATIC_ROOT')
 STATIC_URL = env('STATIC_URL')
 
-SENTRY_DSN = env('SENTRY_DSN')
+USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
 
-RAVEN_CONFIG = {
-    'dsn': env('SENTRY_DSN'),
-    'environment': env('SENTRY_ENVIRONMENT'),
-    'release': raven.fetch_git_sha(BASE_DIR),
+INTERNAL_IPS = env('INTERNAL_IPS')
+
+#### Helsinki specific settings handling ####
+
+# SENTRY_DSN is actually standard for sentry
+if env('SENTRY_DSN'):
+    sentry_sdk.init(
+        dsn=env('SENTRY_DSN'),
+        environment=env('SENTRY_ENVIRONMENT'),
+        release=get_git_revision_hash(),
+        integrations=[DjangoIntegration()]
+    )
+
+JWT_AUTH = {
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
+    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET'),
+    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE')
 }
 
 CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_PATH = '/{}'.format(env('COOKIE_PREFIX'))
+SESSION_COOKIE_SECURE = False if DEBUG else True
+# Useful when kerrokantasi API is served from a sub-path of a shared
+# hostname (like api.yourorg.org)
+SESSION_COOKIE_PATH = '/{}'.format(env('URL_PREFIX'))
+
+#### Kerrokantasi specific settings handling ####
 
 DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
 
-USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
+SENDFILE_BACKEND = env('SENDFILE_BACKEND')
+SENDFILE_ROOT = env('PROTECTED_ROOT')
+SENDFILE_URL = env('PROTECTED_URL')
 
-### Settings below do not usually need changing
+#### Settings below do not usually need changing ####
+
+# CKEDITOR_CONFIGS is in __init__.py
+CKEDITOR_UPLOAD_PATH = 'uploads/'
+CKEDITOR_IMAGE_BACKEND = 'pillow'
+
+# Image files should not exceed 1MB (SI)
+MAX_IMAGE_SIZE = 10**6
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -95,7 +157,7 @@ INSTALLED_APPS = [
     'django_filters',
 ]
 
-if RAVEN_CONFIG['dsn']:
+if env('SENTRY_DSN'):
     INSTALLED_APPS.append('raven.contrib.django.raven_compat')
 
 MIDDLEWARE_CLASSES = [
@@ -183,13 +245,4 @@ PARLER_ENABLE_CACHING = False
 
 DETECT_LANGS_MIN_PROBA = 0.3
 
-# CKEDITOR_CONFIGS is in __init__.py
-CKEDITOR_UPLOAD_PATH = 'uploads/'
-CKEDITOR_IMAGE_BACKEND = 'pillow'
-
-# Image files should not exceed 1MB (SI)
-MAX_IMAGE_SIZE = 10**6
-
-SENDFILE_BACKEND = 'sendfile.backends.development'
-SENDFILE_ROOT = os.path.join(BASE_DIR, "var", "protected")
-SENDFILE_URL = '/protected'
+FILTERS_NULL_CHOICE_LABEL = 'null'

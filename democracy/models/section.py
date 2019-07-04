@@ -126,6 +126,7 @@ class SectionImage(BaseImage, TranslatableModel):
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
+        alt_text=models.TextField(verbose_name=_('alt text'), blank=True, default=''),
     )
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
@@ -150,17 +151,20 @@ class SectionFile(BaseFile, TranslatableModel):
         ordering = ('ordering',)
 
     def __str__(self):
-        return '%s - %s' % (self.pk, self.uploaded_file.name)
+        return '%s - %s' % (self.pk, self.file.name)
 
 
 @revisions.register
 @recache_on_save
-class SectionComment(BaseComment):
+class SectionComment(Commentable, BaseComment):
     parent_field = "section"
     parent_model = Section
     section = models.ForeignKey(Section, related_name="comments")
+    comment = models.ForeignKey('self', related_name="comments", null=True)
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'), blank=True)
+    reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
+    pinned = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _('section comment')
@@ -171,6 +175,24 @@ class SectionComment(BaseComment):
         for answer in self.poll_answers.all():
             answer.soft_delete()
         super().soft_delete(using=using)
+
+    def save(self, *args, **kwargs):
+        # we may create a comment by referring to another comment instead of section explicitly
+        if not (self.section or self.comment):
+            raise Exception('Section comment must refer to section or another section comment.')
+        if not self.section:
+            self.section = self.comment.section
+        if self.comment and self.section != self.comment.section:
+            raise Exception('Comment must belong to the same section as the original comment.')
+        super().save(*args, **kwargs)
+
+    def recache_parent_n_comments(self):
+        # comments are now commentable but the reference field is not the parent_field
+        # therefore we must also recache original comment n_comments field
+        if self.comment_id:
+            self.comment.recache_n_comments()
+        # then update the usual section and hearing n_comments fields
+        return super().recache_parent_n_comments()
 
 
 class SectionPoll(BasePoll):

@@ -13,7 +13,7 @@ from democracy.models import (
 from democracy.models.utils import copy_hearing
 from democracy.tests.utils import (
     assert_common_keys_equal, assert_datetime_fuzzy_equal, get_data_from_response,
-    get_hearing_detail_url, sectionimage_test_json
+    get_hearing_detail_url, sectionimage_test_json, sectionfile_base64_test_data
 )
 from democracy.tests.conftest import default_lang_code
 
@@ -46,7 +46,6 @@ def valid_hearing_json(contact_person, default_label):
             {
                 "type": "closure-info",
                 "commenting": 'none',
-                "published": True,
                 "title": {
                     "en": "Section 3",
                 },
@@ -66,7 +65,6 @@ def valid_hearing_json(contact_person, default_label):
             },
             {
                 "commenting": 'none',
-                "published": True,
                 "title": {
                     "en": "Section 1",
                 },
@@ -93,7 +91,6 @@ def valid_hearing_json(contact_person, default_label):
                 "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
                 "type": "part",
                 "commenting": 'none',
-                "published": True,
                 "title": {
                     "en": "Section 2",
                 },
@@ -106,6 +103,9 @@ def valid_hearing_json(contact_person, default_label):
                 "created_by": None,
                 "images": [
                     sectionimage_test_json(),
+                ],
+                "files": [
+                    sectionfile_base64_test_data(),
                 ],
                 "n_comments": 0,
                 "plugin_identifier": "",
@@ -875,6 +875,11 @@ def assert_hearing_equals(data, posted, user, create=True):
             assert len(images) == len(section_posted['images'])
             for created_image, posted_image in zip(images, section_posted['images']):
                 assert created_image['title']['en'] == posted_image['title']['en']
+            files = section_created.pop('files')
+            if 'files' in section_posted:
+                assert len(files) == len(section_posted['files'])
+                for created_file, posted_file in zip (files, section_posted['files']):
+                    assert created_file['title']['en'] == posted_file['title']['en']
         assert_common_keys_equal(section_created, section_posted)
 
 

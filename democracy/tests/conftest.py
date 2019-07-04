@@ -371,6 +371,6 @@ def section_file_orphan():
     section_file = SectionFile()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
         cf = ContentFile(fp.read())
-        section_file.uploaded_file.save('test/file.txt', cf, save=False)
+        section_file.file.save('test/file.txt', cf, save=False)
     section_file.save()
     return section_file

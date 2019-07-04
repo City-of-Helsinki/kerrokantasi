@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('democracy', '0031_remove_untranslated_fields'),
         # comment.save() database operations will require a recent user model with all the fields included
-        ('kerrokantasi', '__latest__'),
+        ('kerrokantasi', '0002_user_nickname'),
     ]
 
     operations = [

@@ -19,6 +19,7 @@ class BaseComment(BaseModel):
     geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
+    organization = models.ForeignKey("Organization", blank=True, null=True, default=None)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
     label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True)
@@ -80,6 +81,8 @@ class BaseComment(BaseModel):
                                   str(self.fields_to_check_for_data))
         if not self.author_name and self.created_by_id:
             self.author_name = (self.created_by.get_display_name() or None)
+        if not self.organization and self.created_by and self.created_by.admin_organizations:
+            self.organization = self.created_by.admin_organizations.first()
         if not self.language_code and self.content:
             self._detect_lang()
         self.geometry = get_geometry_from_geojson(self.geojson)

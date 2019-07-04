@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from democracy.models import SectionFile
-from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_test_data
+from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_multipart_test_data, sectionfile_base64_test_data
 from democracy.tests.conftest import default_lang_code
 
 
@@ -18,10 +18,14 @@ def check_entity_files(entity, files_field=True):
     assert set(fi['title'][default_lang_code] for fi in file_list) == set(FILES.values())
 
     for fi in file_list:
+        assert 'id' in fi
         assert 'caption' in fi
         assert 'title' in fi
         assert 'url' in fi
         assert 'download' in fi['url']
+        if files_field:
+            # don't serve the upload field when inlined, the directory is wrong anyway
+            assert 'file' not in fi
 
 
 @pytest.mark.django_db
@@ -31,7 +35,7 @@ def test_get_files_root_endpoint(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_POST_file_root_endpoint(john_smith_api_client, default_hearing):
+def test_POST_file_multipart_root_endpoint(john_smith_api_client, default_hearing):
     # Check original file count
     data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
     assert len(data['results']) == 3
@@ -39,10 +43,10 @@ def test_POST_file_root_endpoint(john_smith_api_client, default_hearing):
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     post_data['section'] = first_section['id']
     with open(get_image_path(IMAGES['ORIGINAL']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
         # Save order of the newly created file
         ordering = data['ordering']
@@ -53,6 +57,28 @@ def test_POST_file_root_endpoint(john_smith_api_client, default_hearing):
         fp.seek(0)
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
         assert data['ordering'] == ordering + 1
+
+
+@pytest.mark.django_db
+def test_POST_file_base64_root_endpoint(john_smith_api_client, default_hearing):
+    # Check original file count
+    data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+    assert len(data['results']) == 3
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new file to the section
+    post_data = sectionfile_base64_test_data()
+    post_data['section'] = first_section['id']
+    data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
+    # Save order of the newly created file
+    ordering = data['ordering']
+    # Make sure new file was created
+    data = get_data_from_response(john_smith_api_client.get('/v1/file/'))
+    assert len(data['results']) == 4
+    # Create another file and make sure it gets higher ordering than the last one
+    data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
+    assert data['ordering'] == ordering + 1
 
 
 @pytest.mark.django_db
@@ -143,9 +169,9 @@ def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_he
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
         assert data['section'] is None
         assert data['hearing'] is None
@@ -155,7 +181,7 @@ def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_he
 
 
 @pytest.mark.django_db
-def test_PUT_file_section(john_smith_api_client, default_hearing):
+def test_PUT_file_multipart_section(john_smith_api_client, default_hearing):
     """
     File with empty section should be able to be updated with section data
     """
@@ -163,14 +189,32 @@ def test_PUT_file_section(john_smith_api_client, default_hearing):
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
     first_section = data[0]
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data, format='multipart'), status_code=201)
     file_obj_id = data['id']
-    put_data = sectionfile_test_data()
+    put_data = sectionfile_multipart_test_data()
     put_data['section'] = first_section['id']
     data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=put_data, format='multipart'), status_code=200)
+    assert data['section'] == first_section['id']
+    assert data['hearing'] == default_hearing.pk
+
+
+@pytest.mark.django_db
+def test_PUT_file_json_section(john_smith_api_client, default_hearing):
+    """
+    File with empty section should be able to be updated with section data
+    """
+    # Get some section
+    data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, 'sections')))
+    first_section = data[0]
+    # POST new file to the section
+    post_data = sectionfile_base64_test_data()
+    data = get_data_from_response(john_smith_api_client.post('/v1/file/', data=post_data), status_code=201)
+    file_obj_id = data['id']
+    data['section'] = first_section['id']
+    data = get_data_from_response(john_smith_api_client.put('/v1/file/%s/' % file_obj_id, data=data), status_code=200)
     assert data['section'] == first_section['id']
     assert data['hearing'] == default_hearing.pk
 
@@ -187,7 +231,7 @@ def test_PUT_file_no_access(john_doe_api_client, default_hearing):
     File should not accept PUT from unpriviledged user
     """
     url = '/v1/file/%s/' % default_hearing.sections.first().files.first().pk
-    put_data = sectionfile_test_data()
+    put_data = sectionfile_multipart_test_data()
     data = get_data_from_response(john_doe_api_client.put(url, data=put_data, format='multipart'), status_code=403)
 
 
@@ -217,10 +261,10 @@ def test_POST_first_file(john_smith_api_client, default_hearing):
     url = '/v1/file/'
     section = default_hearing.sections.first()
     # POST new file to the section
-    post_data = sectionfile_test_data()
+    post_data = sectionfile_multipart_test_data()
     post_data['section'] = section.pk
     with open(get_file_path(FILES['TXT']), 'rb') as fp:
-        post_data['uploaded_file'] = fp
+        post_data['file'] = fp
         data = get_data_from_response(john_smith_api_client.post(url, data=post_data, format='multipart'), status_code=201)
         assert data['ordering'] == 1
         assert data['section'] == section.pk

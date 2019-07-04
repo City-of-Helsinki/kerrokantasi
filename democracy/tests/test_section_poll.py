@@ -228,7 +228,9 @@ def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_h
 def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
+    poll2 = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
     option1, option2, option3 = poll.options.all()
+    optionyes, optionno, optiondunno = poll2.options.all()
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
@@ -236,13 +238,25 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
         'question': poll.id,
         'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
         'answers': [option1.id, option3.id],
+    },{
+        'question': poll2.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [optionyes.id],
     }]
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 201
 
     url = '/v1/hearing/%s/sections/%s/comments/%s/' % (default_hearing.id, section.id, response.data['id'])
     data = response.data
-    data['answers'][0]['answers'] = [option2.id, option3.id]
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+        'answers': [option2.id, option3.id],
+    },{
+        'question': poll2.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [optionno.id],
+    }]
     response = john_doe_api_client.patch(url, data=data)
     assert response.status_code == 200
     updated_data = get_data_from_response(response, status_code=200)
@@ -250,11 +264,66 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
     option1.refresh_from_db(fields=['n_answers'])
     option2.refresh_from_db(fields=['n_answers'])
     option3.refresh_from_db(fields=['n_answers'])
+    optionyes.refresh_from_db(fields=['n_answers'])
+    optionno.refresh_from_db(fields=['n_answers'])
     assert option1.n_answers == 0
     assert option2.n_answers == 1
     assert option3.n_answers == 1
-    assert updated_data['answers'][0]['type'] == data['answers'][0]['type']
-    assert set(updated_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
+    assert optionyes.n_answers == 0
+    assert optionno.n_answers == 1
+    for answer in data['answers']:
+        assert answer in updated_data['answers']
+
+
+@pytest.mark.django_db
+def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
+    section = default_hearing.sections.first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
+    poll2 = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option1, option2, option3 = poll.options.all()
+    optionyes, optionno, optiondunno = poll2.options.all()
+
+    url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
+    data = get_comment_data()
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+        'answers': [option1.id, option3.id],
+    },{
+        'question': poll2.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [optionyes.id],
+    }]
+    response = john_doe_api_client.post(url, data=data)
+    assert response.status_code == 201
+
+    url = '/v1/hearing/%s/sections/%s/comments/%s/' % (default_hearing.id, section.id, response.data['id'])
+    data = response.data
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+        'answers': [option2.id, option3.id],
+    },{
+        'question': poll2.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [optionno.id],
+    }]
+    response = john_doe_api_client.put(url, data=data)
+    assert response.status_code == 200
+    updated_data = get_data_from_response(response, status_code=200)
+
+    option1.refresh_from_db(fields=['n_answers'])
+    option2.refresh_from_db(fields=['n_answers'])
+    option3.refresh_from_db(fields=['n_answers'])
+    optionyes.refresh_from_db(fields=['n_answers'])
+    optionno.refresh_from_db(fields=['n_answers'])
+    assert option1.n_answers == 0
+    assert option2.n_answers == 1
+    assert option3.n_answers == 1
+    assert optionyes.n_answers == 0
+    assert optionno.n_answers == 1
+    for answer in data['answers']:
+        assert answer in updated_data['answers']
 
 
 @pytest.mark.django_db

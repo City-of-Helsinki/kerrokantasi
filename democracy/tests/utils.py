@@ -28,10 +28,21 @@ def image_to_base64(filename):
     return 'data:image/jpg;base64,%s' % base64.b64encode(image_to_bytesio(filename).getvalue()).decode('ascii')
 
 
+def file_to_base64(filename):
+    return 'data:application/pdf;base64,%s' % base64.b64encode(file_to_bytesio(filename).getvalue()).decode('ascii')
+
+
 def image_to_bytesio(filename):
     buffered = BytesIO()
     image = Image.open(os.path.join(IMAGE_SOURCE_PATH, filename))
     image.save(buffered, format="JPEG")
+    buffered.name = filename
+    return buffered
+
+
+def file_to_bytesio(filename):
+    file = open(os.path.join(FILE_SOURCE_PATH, filename), 'rb')
+    buffered = BytesIO(file.read())
     buffered.name = filename
     return buffered
 
@@ -54,11 +65,16 @@ def sectionimage_test_json(title_en='Test title'):
             'en': title_en,
             'fi': 'Finnish test title',
         },
+        'alt_text': {
+            'en': 'Map of the area',
+            'fi': 'Rakennettavan alueen kartta',
+        },
         'image': image_to_base64(IMAGES['ORIGINAL']),
     }
 
 
-def sectionfile_test_data(title_en='Test title'):
+def sectionfile_multipart_test_data(title_en='Test title'):
+    # multipart POST requires dumping subobjects as strings
     return {
         'caption': json.dumps({
             'en': 'Test',
@@ -70,6 +86,18 @@ def sectionfile_test_data(title_en='Test title'):
         }),
     }
 
+def sectionfile_base64_test_data(title_en='Test title'):
+    return {
+        'caption': {
+            'en': 'Test',
+            'fi': 'Testi',
+        },
+        'title': {
+            'en': title_en,
+            'fi': 'Finnish test title',
+        },
+        'file': file_to_base64(FILES['TXT']),
+    }
 
 def get_image_path(filename):
     return os.path.join(IMAGE_SOURCE_PATH, filename)
@@ -105,16 +133,16 @@ def get_image_path(filename):
 
 def create_file(instance, filename):
     file_class = BaseFile.find_subclass(parent_model=instance)
-    file_field = file_class._meta.get_field("uploaded_file")
+    file_field = file_class._meta.get_field("file")
     file_path = file_field.generate_filename(instance, filename)
     # Copy the file into the storage if it isn't there:
     if not file_field.storage.exists(file_path):  # pragma: no cover
         with open(os.path.join(FILE_SOURCE_PATH, filename), "rb") as infp:
             file_field.storage.save(file_path, infp)
     file_obj = file_class(title=filename, **{file_class.parent_field: instance})
-    file_obj.uploaded_file.name = file_path
+    file_obj.file.name = file_path
     file_obj.save()
-    assert file_obj.uploaded_file.name == file_path
+    assert file_obj.file.name == file_path
     return file_obj 
 
 

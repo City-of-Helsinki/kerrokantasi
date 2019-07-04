@@ -17,8 +17,6 @@ router.register(r'contact_person', ContactPersonViewSet, base_name='contact_pers
 router.register(r'project', ProjectViewSet, base_name='project')
 router.register(r'file', FileViewSet, base_name='file')
 
-hearing_comments_router = routers.NestedSimpleRouter(router, r'hearing', lookup='comment_parent')
-
 hearing_child_router = routers.NestedSimpleRouter(router, r'hearing', lookup='hearing')
 hearing_child_router.register(r'sections', SectionViewSet, base_name='sections')
 
@@ -27,7 +25,6 @@ section_comments_router.register(r'comments', SectionCommentViewSet, base_name='
 
 urlpatterns = [
     url(r'^', include(router.urls, namespace='v1')),
-    url(r'^', include(hearing_comments_router.urls, namespace='v1')),
     url(r'^', include(hearing_child_router.urls, namespace='v1')),
     url(r'^', include(section_comments_router.urls, namespace='v1')),
     url(r'^download/(?P<filetype>sectionfile|sectionimage)/(?P<pk>\d+)/$', ServeFileView.as_view(), name='serve_file'),

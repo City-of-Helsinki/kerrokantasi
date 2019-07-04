@@ -159,7 +159,8 @@ class SectionCommentViewSet(BaseCommentViewSet):
     def create_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
-            if len(answer['answers']) > 1 and SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE:
+            if (len(answer['answers']) > 1 and
+                    SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
                 raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
 
             for option_id in answer['answers']:
@@ -175,7 +176,8 @@ class SectionCommentViewSet(BaseCommentViewSet):
     def update_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
-            if len(answer['answers']) > 1 and SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE:
+            if (len(answer['answers']) > 1 and
+                    SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
                 raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
 
             option_ids = []
@@ -190,8 +192,9 @@ class SectionCommentViewSet(BaseCommentViewSet):
                         _('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)
                     ]})
             for answer in SectionPollAnswer.objects.filter(
-                option__poll=answer['question'], comment=instance
-                ).exclude(option_id__in=option_ids):
+                    option__poll=answer['question'],
+                    comment=instance
+                    ).exclude(option_id__in=option_ids):
                 answer.soft_delete()
         super().update_related(request, instance=instance, *args, **kwargs)
 

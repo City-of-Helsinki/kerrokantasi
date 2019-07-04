@@ -7,7 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 
-from democracy.models import SectionComment, Label, Section, SectionPollOption, SectionPollAnswer
+from democracy.models import SectionComment, Label, Section, SectionPoll, SectionPollOption, SectionPollAnswer
 from democracy.models.section import CommentImage
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
@@ -159,31 +159,39 @@ class SectionCommentViewSet(BaseCommentViewSet):
     def create_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
+            if len(answer['answers']) > 1 and SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE:
+                raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+
             for option_id in answer['answers']:
                 try:
-                    option = SectionPollOption.objects.get(pk=option_id)
+                    option = SectionPollOption.objects.filter(poll=answer['question']).get(pk=option_id)
                     SectionPollAnswer.objects.create(comment=instance, option=option)
                 except SectionPollOption.DoesNotExist:
                     raise ValidationError({'option': [
-                        _('Invalid id "{id}" - object does not exist.').format(id=option_id)
+                        _('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)
                     ]})
         super().create_related(request, instance=instance, *args, **kwargs)
 
     def update_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
+            if len(answer['answers']) > 1 and SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE:
+                raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+
             option_ids = []
             for option_id in answer['answers']:
                 try:
-                    option = SectionPollOption.objects.get(pk=option_id)
+                    option = SectionPollOption.objects.filter(poll=answer['question']).get(pk=option_id)
                     option_ids.append(option.pk)
                     if not SectionPollAnswer.objects.filter(comment=instance, option=option).exists():
                         SectionPollAnswer.objects.create(comment=instance, option=option)
                 except SectionPollOption.DoesNotExist:
                     raise ValidationError({'option': [
-                        _('Invalid id "{id}" - object does not exist.').format(id=option_id)
+                        _('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)
                     ]})
-            for answer in SectionPollAnswer.objects.filter(comment=instance).exclude(option_id__in=option_ids):
+            for answer in SectionPollAnswer.objects.filter(
+                option__poll=answer['question'], comment=instance
+                ).exclude(option_id__in=option_ids):
                 answer.soft_delete()
         super().update_related(request, instance=instance, *args, **kwargs)
 

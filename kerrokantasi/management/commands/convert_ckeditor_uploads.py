@@ -119,7 +119,7 @@ class Command(BaseCommand):
                                     kwargs={'filetype': 'sectionfile', 'pk': moved_file.pk}
                                 ))
                         else:
-                            new_url = self.domain + settings.MEDIA_URL + moved_file.image.name
+                            new_url = self.domain + '/media/' + moved_file.image.name
                         translation.content = translation.content.replace(uploaded_file.url, new_url)
                         self.stdout.write('* {}: Rewrote URL {} -> {}\n'.format(
                             translation.language_code, uploaded_file.url, new_url

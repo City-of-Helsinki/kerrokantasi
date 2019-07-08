@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
-from ckeditor_uploader import image_processing
+from ckeditor_uploader.backends import registry
 from ckeditor_uploader import utils
 from ckeditor_uploader.views import get_files_browse_urls, ImageUploadView, SearchForm
 from django.utils.html import escape
@@ -26,7 +26,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         """
         uploaded_file = request.FILES['upload']
 
-        backend = image_processing.get_backend()
+        backend = registry.get_backend()
         ck_func_num = escape(request.GET['CKEditorFuncNum'])
 
         # Throws an error when an non-image file are uploaded.

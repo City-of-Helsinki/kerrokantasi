@@ -56,6 +56,8 @@ env = environ.Env(
     SENDFILE_BACKEND=(str, 'sendfile.backends.development'),
     PROTECTED_ROOT=(environ.Path(), root('protected_media')),
     PROTECTED_URL=(str, '/protected_media/'),
+    DEFAULT_MAP_COORDINATES=(tuple, (60.192059, 24.945831)),  # Coordinates of Helsinki
+    DEFAULT_MAP_ZOOM=(int, 11),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -246,3 +248,7 @@ PARLER_ENABLE_CACHING = False
 DETECT_LANGS_MIN_PROBA = 0.3
 
 FILTERS_NULL_CHOICE_LABEL = 'null'
+
+# Map defaults
+DEFAULT_MAP_COORDINATES = env('DEFAULT_MAP_COORDINATES')
+DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')

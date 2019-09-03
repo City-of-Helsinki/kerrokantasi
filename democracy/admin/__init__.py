@@ -147,8 +147,8 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
 
 class HearingGeoAdmin(LeafletGeoAdmin):
     settings_overrides = {
-        'DEFAULT_CENTER': (60.192059, 24.945831),  # Helsinki
-        'DEFAULT_ZOOM': 11,
+        'DEFAULT_CENTER': settings.DEFAULT_MAP_COORDINATES,
+        'DEFAULT_ZOOM': settings.DEFAULT_MAP_ZOOM,
     }
 
 

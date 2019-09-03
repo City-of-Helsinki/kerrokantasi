@@ -160,3 +160,7 @@ COOKIE_PREFIX=kkdev
 
 # Access controlled files are made available from this URL prefix
 # PROTECTED_URL=/protected_media
+
+# Default map settings
+DEFAULT_MAP_COORDINATES=(60.192059, 24.945831)
+DEFAULT_MAP_ZOOM=11

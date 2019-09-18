@@ -159,9 +159,6 @@ INSTALLED_APPS = [
     'django_filters',
 ]
 
-if env('SENTRY_DSN'):
-    INSTALLED_APPS.append('raven.contrib.django.raven_compat')
-
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',

@@ -156,12 +156,14 @@ class SectionCommentViewSet(BaseCommentViewSet):
                        GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
 
+    def _check_single_choice_poll(self, answer):
+        if (len(answer['answers']) > 1 and
+                SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
+            raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+
     def create_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
-            if (len(answer['answers']) > 1 and
-                    SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
-                raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
 
             for option_id in answer['answers']:
                 try:
@@ -176,9 +178,6 @@ class SectionCommentViewSet(BaseCommentViewSet):
     def update_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
-            if (len(answer['answers']) > 1 and
-                    SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
-                raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
 
             option_ids = []
             for option_id in answer['answers']:

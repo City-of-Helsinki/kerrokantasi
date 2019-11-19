@@ -9,6 +9,7 @@ from democracy import urls_v1
 from democracy.views.upload import browse, upload
 
 urlpatterns = [
+    url('', include('social_django.urls', namespace='social')),
     url(r'^v1/', include(urls_v1)),
     url(r'^nested_admin/', include(nested_admin_urls)),
     url(r'^admin/', include(admin.site.urls)),

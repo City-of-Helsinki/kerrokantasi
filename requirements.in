@@ -34,3 +34,4 @@ Babel
 django-parler
 langdetect
 sentry_sdk
+social-auth-app-django

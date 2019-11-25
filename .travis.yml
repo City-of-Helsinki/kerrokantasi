@@ -7,11 +7,11 @@ services:
 language: python
 python:
   - '3.6'
-  - '3.7-dev'
+  - '3.7'
 
 matrix:
   allow_failures:
-  - python: "3.7-dev"
+  - python: "3.7"
 
 cache: pip
 
@@ -25,10 +25,10 @@ script:
   - pytest --cov=. democracy/tests
 
 addons:
-  postgresql: '9.6'
+  postgresql: '10'
   apt:
     packages:
-      postgresql-9.6-postgis-2.3
+      postgresql-10-postgis-2.5
 
 after_success:
   - codecov

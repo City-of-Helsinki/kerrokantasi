@@ -24,7 +24,7 @@ django-js-asset==1.2.2    # via django-ckeditor, django-mptt
 django-leaflet==0.24.0
 django-modeltranslation==0.13.2  # via django-munigeo
 django-mptt==0.10.0       # via django-munigeo
-django-munigeo==0.2.15
+django-munigeo==0.2.26
 django-nested-admin==3.2.3
 django-parler==1.9.2
 django-reversion==3.0.4

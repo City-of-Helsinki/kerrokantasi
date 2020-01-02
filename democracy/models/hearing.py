@@ -44,7 +44,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     organization = models.ForeignKey(
         Organization,
         verbose_name=_('organization'),
-        related_name="hearings", blank=True, null=True
+        related_name="hearings", blank=True, null=True, on_delete=models.PROTECT
     )
     labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
     followers = models.ManyToManyField(

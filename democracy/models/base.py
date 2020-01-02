@@ -42,7 +42,7 @@ class BaseModel(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'),
         null=True, blank=True, related_name="%(class)s_created",
-        editable=False
+        editable=False, on_delete=models.SET_NULL
     )
     modified_at = models.DateTimeField(
         verbose_name=_('time of last modification'), default=timezone.now, editable=False
@@ -50,7 +50,7 @@ class BaseModel(models.Model):
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('last modified by'),
         null=True, blank=True, related_name="%(class)s_modified",
-        editable=False
+        editable=False, on_delete=models.SET_NULL
     )
     published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
     deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)

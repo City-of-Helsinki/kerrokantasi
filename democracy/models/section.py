@@ -123,7 +123,7 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
 
 class SectionImage(BaseImage, TranslatableModel):
     parent_field = "section"
-    section = models.ForeignKey(Section, related_name="images")
+    section = models.ForeignKey(Section, related_name="images", on_delete=models.CASCADE)
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
@@ -139,7 +139,7 @@ class SectionImage(BaseImage, TranslatableModel):
 
 class SectionFile(BaseFile, TranslatableModel):
     parent_field = "section"
-    section = models.ForeignKey(Section, related_name="files", blank=True, null=True)
+    section = models.ForeignKey(Section, related_name="files", blank=True, null=True, on_delete=models.CASCADE)
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
         caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
@@ -160,8 +160,8 @@ class SectionFile(BaseFile, TranslatableModel):
 class SectionComment(Commentable, BaseComment):
     parent_field = "section"
     parent_model = Section
-    section = models.ForeignKey(Section, related_name="comments")
-    comment = models.ForeignKey('self', related_name="comments", null=True)
+    section = models.ForeignKey(Section, related_name="comments", on_delete=models.PROTECT)
+    comment = models.ForeignKey('self', related_name="comments", null=True, on_delete=models.SET_NULL)
     title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
@@ -197,7 +197,7 @@ class SectionComment(Commentable, BaseComment):
 
 
 class SectionPoll(BasePoll):
-    section = models.ForeignKey(Section, related_name='polls')
+    section = models.ForeignKey(Section, related_name='polls', on_delete=models.PROTECT)
     translations = TranslatedFields(
         text=models.TextField(verbose_name=_('text')),
     )
@@ -215,7 +215,7 @@ class SectionPoll(BasePoll):
 
 
 class SectionPollOption(BasePollOption):
-    poll = models.ForeignKey(SectionPoll, related_name='options')
+    poll = models.ForeignKey(SectionPoll, related_name='options', on_delete=models.PROTECT)
     translations = TranslatedFields(
         text=models.TextField(verbose_name=_('option text')),
     )
@@ -228,8 +228,8 @@ class SectionPollOption(BasePollOption):
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer):
-    comment = models.ForeignKey(SectionComment, related_name='poll_answers')
-    option = models.ForeignKey(SectionPollOption, related_name='answers')
+    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.PROTECT)
+    option = models.ForeignKey(SectionPollOption, related_name='answers', on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = _('section poll answer')
@@ -240,7 +240,7 @@ class CommentImage(BaseImage):
     title = models.CharField(verbose_name=_('title'), max_length=255, blank=True, default='')
     caption = models.TextField(verbose_name=_('caption'), blank=True, default='')
     parent_field = "sectioncomment"
-    comment = models.ForeignKey(SectionComment, related_name="images")
+    comment = models.ForeignKey(SectionComment, related_name="images", on_delete=models.CASCADE)
 
     class Meta:
         verbose_name = _('comment image')

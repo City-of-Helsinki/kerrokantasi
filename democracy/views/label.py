@@ -9,8 +9,8 @@ from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import TranslatableSerializer
 
 
-class LabelFilter(django_filters.rest_framework.FilterSet):
-    label = django_filters.CharFilter(lookup_expr='icontains', name='translations__label')
+class LabelFilterSet(django_filters.rest_framework.FilterSet):
+    label = django_filters.CharFilter(lookup_expr='icontains', field_name='translations__label')
 
     class Meta:
         model = Label
@@ -29,7 +29,7 @@ class LabelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     pagination_class = DefaultLimitPagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = LabelFilter
+    filterset_class = LabelFilterSet
 
     def create(self, request):
         if not request.user or not request.user.get_default_organization():

@@ -284,11 +284,11 @@ class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSeriali
         fields = SectionCommentCreateUpdateSerializer.Meta.fields + ['hearing']
 
 
-class CommentFilter(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(name='section__hearing__id')
-    label = django_filters.Filter(name='label__id')
-    created_at__lt = django_filters.IsoDateTimeFilter(name='created_at', lookup_expr='lt')
-    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(name='created_at', lookup_expr='gt')
+class CommentFilterSet(django_filters.rest_framework.FilterSet):
+    hearing = django_filters.CharFilter(field_name='section__hearing__id')
+    label = django_filters.Filter(field_name='label__id')
+    created_at__lt = django_filters.IsoDateTimeFilter(field_name='created_at', lookup_expr='lt')
+    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name='created_at', lookup_expr='gt')
 
     class Meta:
         model = SectionComment
@@ -301,7 +301,7 @@ class CommentViewSet(SectionCommentViewSet):
     serializer_class = RootSectionCommentSerializer
     edit_serializer_class = RootSectionCommentCreateUpdateSerializer
     pagination_class = DefaultLimitPagination
-    filter_class = CommentFilter
+    filterset_class = CommentFilterSet
 
     def get_queryset(self):
         queryset = super(BaseCommentViewSet, self).get_queryset()

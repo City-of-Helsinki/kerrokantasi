@@ -50,7 +50,7 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         fields = COMMENT_FIELDS
 
 
-class BaseCommentFilter(django_filters.rest_framework.FilterSet):
+class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
     authorization_code = django_filters.CharFilter()
 
     class Meta:
@@ -66,7 +66,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     serializer_class = None
     edit_serializer_class = None
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = BaseCommentFilter
+    filterset_class = BaseCommentFilterSet
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
 
     def get_serializer(self, *args, **kwargs):

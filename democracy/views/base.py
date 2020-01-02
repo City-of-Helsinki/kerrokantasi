@@ -89,7 +89,7 @@ class AdminsSeeUnpublishedMixin(object):
                 "%r has no request or serialization context; AdminsSeeUnpublishedMixin requires one" % self
             )
 
-        if user.is_authenticated() and user.is_superuser:
+        if user.is_authenticated and user.is_superuser:
             return self.model.objects.with_unpublished()
         else:
             return self.model.objects.public()

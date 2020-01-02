@@ -121,7 +121,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     def is_visible_for(self, user):
         if self.published and self.open_at < now():
             return True
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return False
         if user.is_superuser:
             return True

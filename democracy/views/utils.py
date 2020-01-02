@@ -11,6 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.db.models.query import QuerySet
 from django.db.models import Q
+from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
@@ -109,7 +110,7 @@ class PublicFilteredRelatedField(serializers.Field):
     def to_representation(self, queryset):
         request = self.context.get('request')
 
-        if request and request.user and request.user.is_authenticated() and request.user.is_superuser:
+        if request and request.user and request.user.is_authenticated and request.user.is_superuser:
             queryset = queryset.with_unpublished()
         else:
             queryset = queryset.public()
@@ -141,7 +142,7 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing', inclu
     filters['%sopen_at__lte' % hearing_lookup] = now()
     q = Q(**filters)
 
-    if user.is_authenticated():
+    if user.is_authenticated:
         organizations = user.admin_organizations.all()
         if organizations.exists():
             # regardless of publication status or date, admins will see everything from their organization

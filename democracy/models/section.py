@@ -1,6 +1,7 @@
 import logging
 import re
-from django.core.urlresolvers import get_resolver
+from django.urls import get_resolver
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from reversion import revisions

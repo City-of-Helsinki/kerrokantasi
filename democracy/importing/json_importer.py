@@ -89,7 +89,7 @@ def import_image(target, datum, position):
     image = ImageModel(**i_args)
     image.image.name = image_path
     if not image.image.storage.exists(image.image):  # pragma: no cover
-        log.warn("Image %s (for %r) not in storage -- continuing anyway", image_path, target)
+        log.warning("Image %s (for %r) not in storage -- continuing anyway", image_path, target)
     image.save()
     return image
 
@@ -180,7 +180,7 @@ def import_hearing(hearing_datum, force=False, patch=False):
     import_sections(hearing, hearing_datum, force)
     compact_section_ordering(hearing)
     if hearing_datum.keys():  # pragma: no cover
-        log.warn("These keys were not handled while importing %s: %s", hearing, hearing_datum.keys())
+        log.warning("These keys were not handled while importing %s: %s", hearing, hearing_datum.keys())
     return hearing
 
 

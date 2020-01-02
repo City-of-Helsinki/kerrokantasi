@@ -42,7 +42,7 @@ def copy_hearing(old_hearing, **kwargs):
 
     new_hearing.n_comments = 0
     new_hearing.save()
-    new_hearing.labels = old_hearing.labels.all()
+    new_hearing.labels.set(old_hearing.labels.all())
     _copy_translations(new_hearing, old_hearing)
 
     # create new sections, section images and section polls

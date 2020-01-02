@@ -11,7 +11,7 @@ from democracy.views.upload import browse, upload
 urlpatterns = [
     url(r'^v1/', include(urls_v1)),
     url(r'^nested_admin/', include(nested_admin_urls)),
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     url(r'^upload/', staff_member_required(upload), name='ckeditor_upload'),
     url(r'^browse/', never_cache(staff_member_required(browse)), name='ckeditor_browse'),

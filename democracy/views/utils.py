@@ -11,7 +11,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.db.models.query import QuerySet
 from django.db.models import Q
-from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _

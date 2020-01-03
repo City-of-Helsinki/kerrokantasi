@@ -88,7 +88,7 @@ def import_image(target, datum, position):
     }
     image = ImageModel(**i_args)
     image.image.name = image_path
-    if not image.image.storage.exists(image.image):  # pragma: no cover
+    if not image.image.storage.exists(str(image.image)):  # pragma: no cover
         log.warning("Image %s (for %r) not in storage -- continuing anyway", image_path, target)
     image.save()
     return image

@@ -29,7 +29,7 @@ django-nested-admin==3.2.3
 django-parler==1.9.2
 django-reversion==3.0.4
 django-sendfile==0.3.11
-django==1.11.23
+django==2.2.9
 djangorestframework-jwt==1.11.0
 djangorestframework==3.9.4
 docopt==0.6.2             # via coveralls

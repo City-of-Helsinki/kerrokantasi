@@ -16,7 +16,23 @@ default_comment_content = 'I agree with you sir Lancelot. My favourite colour is
 red_comment_content = 'Mine is red'
 green_comment_content = 'I like green'
 default_lang_code = 'en'
+default_geojson_geometry = {
+        "type": "Point",
+        "coordinates": [-104.99404, 39.75621]
+    }
 
+def get_feature_with_geometry(geometry):
+    return {
+        "type": "Feature",
+        "properties": {
+            "name": "Coors Field",
+            "amenity": "Baseball Stadium",
+            "popupContent": "This is where the Rockies play!"
+        },
+        "geometry": geometry
+    }
+
+default_geojson_feature = get_feature_with_geometry(default_geojson_geometry)
 
 def pytest_configure():
     # During tests, crypt passwords with MD5. This should make things run faster.
@@ -213,18 +229,7 @@ def api_client():
 
 @pytest.fixture()
 def geojson_feature():
-    return {
-        "type": "Feature",
-        "properties": {
-            "name": "Coors Field",
-            "amenity": "Baseball Stadium",
-            "popupContent": "This is where the Rockies play!"
-        },
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-104.99404, 39.75621]
-        }
-    }
+    return default_geojson_feature
 
 
 @pytest.fixture()

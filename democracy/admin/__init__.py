@@ -184,7 +184,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         TextField: {'widget': ShortTextAreaWidget}
     }
     form = FixedModelForm
-    actions = ("copy_as_draft", "delete_selected")
+    actions = ["copy_as_draft"] # delete_selected is built_in, should not be added
     ordering = ("slug",)
 
     def copy_as_draft(self, request, queryset):
@@ -205,18 +205,10 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             kwargs["widget"] = Select2SelectMultiple
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
-    def delete_selected(self, request, queryset):
-        if not self.has_delete_permission(request):
-            raise PermissionDenied
-
-        hearing_count = queryset.count()
-        if hearing_count:
-            for hearing in queryset:
-                hearing.soft_delete()
-            self.message_user(request, _('Successfully deleted %(count)d %(items)s.') % {
-                'count': hearing_count, 'items': model_ngettext(self.opts, hearing_count)
-            })
-    delete_selected.short_description = _('Delete selected %(verbose_name_plural)s')
+    def delete_queryset(self, request, queryset):
+        # this method is called by delete_selected and can be overridden
+        for hearing in queryset:
+            hearing.soft_delete()
 
     def save_formset(self, request, form, formset, change):
         objects = formset.save(commit=False)

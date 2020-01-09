@@ -6,8 +6,7 @@ from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models import TextField
 from django.contrib.gis.db.models import ManyToManyField
-from django.contrib.admin.utils import model_ngettext
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
@@ -184,7 +183,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         TextField: {'widget': ShortTextAreaWidget}
     }
     form = FixedModelForm
-    actions = ["copy_as_draft"] # delete_selected is built_in, should not be added
+    actions = ["copy_as_draft"]  # delete_selected is built_in, should not be added
     ordering = ("slug",)
 
     def copy_as_draft(self, request, queryset):

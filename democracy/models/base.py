@@ -42,7 +42,7 @@ class BaseModel(models.Model):
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('created by'),
         null=True, blank=True, related_name="%(class)s_created",
-        editable=False
+        editable=False, on_delete=models.SET_NULL
     )
     modified_at = models.DateTimeField(
         verbose_name=_('time of last modification'), default=timezone.now, editable=False
@@ -50,7 +50,7 @@ class BaseModel(models.Model):
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, verbose_name=_('last modified by'),
         null=True, blank=True, related_name="%(class)s_modified",
-        editable=False
+        editable=False, on_delete=models.SET_NULL
     )
     published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
     deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
@@ -144,7 +144,7 @@ class Commentable(models.Model):
         If commenting is not allowed, the function must raise a ValidationError.
         It must never return a value other than None.
         """
-        is_authenticated = request.user.is_authenticated()
+        is_authenticated = request.user.is_authenticated
         if self.commenting == Commenting.NONE:
             raise ValidationError(_("%s does not allow commenting") % self, code="commenting_none")
         elif self.commenting == Commenting.REGISTERED:
@@ -162,7 +162,7 @@ class Commentable(models.Model):
         If voting is not allowed, the function must raise a ValidationError.
         It must never return a value other than None.
         """
-        is_authenticated = request.user.is_authenticated()
+        is_authenticated = request.user.is_authenticated
         if self.voting == Commenting.NONE:
             raise ValidationError(_("%s does not allow voting") % self, code="voting_none")
         elif self.voting == Commenting.REGISTERED:

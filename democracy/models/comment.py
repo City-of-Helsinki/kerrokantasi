@@ -19,10 +19,10 @@ class BaseComment(BaseModel):
     geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
-    organization = models.ForeignKey("Organization", blank=True, null=True, default=None)
+    organization = models.ForeignKey("Organization", blank=True, null=True, default=None, on_delete=models.PROTECT)
     plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
-    label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True)
+    label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True, on_delete=models.PROTECT)
     language_code = models.CharField(verbose_name=_('language code'), blank=True, max_length=15)
     n_votes = models.IntegerField(
         verbose_name=_('vote count'),
@@ -102,7 +102,7 @@ class BaseComment(BaseModel):
         """
         Whether the given request (HTTP or DRF) is allowed to edit this Comment.
         """
-        is_authenticated = request.user.is_authenticated()
+        is_authenticated = request.user.is_authenticated
         if is_authenticated and self.created_by == request.user:
             # also make sure the hearing is still commentable
             try:

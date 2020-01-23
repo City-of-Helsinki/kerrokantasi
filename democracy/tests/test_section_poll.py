@@ -8,7 +8,6 @@ from democracy.factories.poll import SectionPollFactory, SectionPollOptionFactor
 from democracy.models import SectionPoll, SectionPollAnswer
 from democracy.tests.test_comment import get_comment_data
 from democracy.tests.test_hearing import valid_hearing_json
-from democracy.tests.test_section import create_sections
 from democracy.tests.utils import get_data_from_response, assert_common_keys_equal
 
 
@@ -222,6 +221,29 @@ def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_h
     assert option3.n_answers == 1
     assert created_data['answers'][0]['type'] == data['answers'][0]['type']
     assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
+
+
+@pytest.mark.django_db
+def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_client, default_hearing, geojson_feature):
+    section = default_hearing.sections.first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
+    option1, option2, option3 = poll.options.all()
+
+    url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
+    data = get_comment_data()
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+        'answers': [option1.id, option3.id],
+    }]
+    response = john_doe_api_client.post(url, data=data)
+    assert response.status_code == 201
+
+    response = john_doe_api_client.post(url, data=data)
+    assert response.status_code == 400
+
+    poll.refresh_from_db(fields=['n_answers'])
+    assert poll.n_answers == 1
 
 
 @pytest.mark.django_db

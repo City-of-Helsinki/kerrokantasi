@@ -94,7 +94,7 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     @atomic
     def save(self, *args, **kwargs):
         user = self.context['request'].user
-        if user and not user.is_anonymous() and self.validated_data.get('author_name'):
+        if user and not user.is_anonymous and self.validated_data.get('author_name'):
             user.nickname = self.validated_data['author_name']
             user.save(update_fields=('nickname',))
         return super().save(*args, **kwargs)
@@ -156,12 +156,26 @@ class SectionCommentViewSet(BaseCommentViewSet):
                        GeometryBboxFilterBackend)
     ordering_fields = ('created_at', 'n_votes')
 
+    def _check_single_choice_poll(self, answer):
+        if (len(answer['answers']) > 1 and
+                SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
+            raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+
+    def _check_can_vote(self, answer):
+        if not answer['answers']:
+            return None
+        poll_answers = SectionPollAnswer.objects.filter(
+            option__poll=answer['question'],
+            comment__created_by=self.request.user
+        )
+        if poll_answers:
+            raise ValidationError({'answers': [_('You have already voted.')]})
+
     def create_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
-            if (len(answer['answers']) > 1 and
-                    SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
-                raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+            self._check_single_choice_poll(answer)
+            self._check_can_vote(answer)
 
             for option_id in answer['answers']:
                 try:
@@ -176,9 +190,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
     def update_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
         for answer in answers:
-            if (len(answer['answers']) > 1 and
-                    SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
-                raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+            self._check_single_choice_poll(answer)
 
             option_ids = []
             for option_id in answer['answers']:
@@ -272,11 +284,11 @@ class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSeriali
         fields = SectionCommentCreateUpdateSerializer.Meta.fields + ['hearing']
 
 
-class CommentFilter(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(name='section__hearing__id')
-    label = django_filters.Filter(name='label__id')
-    created_at__lt = django_filters.IsoDateTimeFilter(name='created_at', lookup_expr='lt')
-    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(name='created_at', lookup_expr='gt')
+class CommentFilterSet(django_filters.rest_framework.FilterSet):
+    hearing = django_filters.CharFilter(field_name='section__hearing__id')
+    label = django_filters.Filter(field_name='label__id')
+    created_at__lt = django_filters.IsoDateTimeFilter(field_name='created_at', lookup_expr='lt')
+    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name='created_at', lookup_expr='gt')
 
     class Meta:
         model = SectionComment
@@ -289,7 +301,7 @@ class CommentViewSet(SectionCommentViewSet):
     serializer_class = RootSectionCommentSerializer
     edit_serializer_class = RootSectionCommentCreateUpdateSerializer
     pagination_class = DefaultLimitPagination
-    filter_class = CommentFilter
+    filterset_class = CommentFilterSet
 
     def get_queryset(self):
         queryset = super(BaseCommentViewSet, self).get_queryset()

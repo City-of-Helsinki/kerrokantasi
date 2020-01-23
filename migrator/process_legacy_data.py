@@ -147,7 +147,7 @@ def main():
         with open(args.geometry_json, "r", encoding="utf8") as inf:
             geometries = json.load(inf)
     else:
-        log.warn("Geometry file %s does not exist" % args.geometry_json)
+        log.warning("Geometry file %s does not exist" % args.geometry_json)
         geometries = {}
 
     tree = process_tree(tree, geometries)

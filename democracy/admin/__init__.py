@@ -1,13 +1,17 @@
 from functools import partial
+from collections import Counter
 
 from django import forms
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models import TextField
+from django.db import router
+from django.contrib.admin.utils import NestedObjects
 from django.contrib.gis.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
 from django.utils.encoding import force_text
+from django.utils.text import capfirst
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
@@ -204,10 +208,53 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             kwargs["widget"] = Select2SelectMultiple
         return super().formfield_for_manytomany(db_field, request, **kwargs)
 
+    def get_deleted_objects(self, objs, request):
+        # we override here to allow soft_delete, modified from
+        # https://github.com/django/django/blob/master/django/contrib/admin/utils.py
+        """
+        Find all objects related to ``objs`` that should also be deleted. ``objs``
+        must be a homogeneous iterable of objects (e.g. a QuerySet).
+        Return a nested list of strings suitable for display in the
+        template with the ``unordered_list`` filter.
+        """
+        try:
+            obj = objs[0]
+        except IndexError:
+            return [], {}, set(), []
+        else:
+            using = router.db_for_write(obj._meta.model)
+        collector = NestedObjects(using=using)
+        collector.collect(objs)
+
+        def format_callback(obj):
+            return '%s: %s' % (capfirst(obj._meta.verbose_name), obj)
+
+        to_delete = collector.nested(format_callback)
+        model_count = {model._meta.verbose_name_plural: len(objs) for model, objs in collector.model_objs.items()}
+        # we need to display count by model of the protected items too
+        protected = [format_callback(obj) for obj in collector.protected]
+        protected_model = {obj._meta.verbose_name_plural for obj in collector.protected}
+        protected_model_count = dict(Counter(protected_model))
+        # since we are only performing soft delete, we may soft delete the protected objects later
+        return to_delete + protected, {**model_count, **protected_model_count}, set(), []
+
     def delete_queryset(self, request, queryset):
-        # this method is called by delete_selected and can be overridden
-        for hearing in queryset:
-            hearing.soft_delete()
+        try:
+            obj = queryset[0]
+        except IndexError:
+            return
+        else:
+            using = router.db_for_write(obj._meta.model)
+        collector = NestedObjects(using=using)
+        collector.collect(queryset)
+        to_delete = []
+        for item, value in collector.model_objs.items():
+            to_delete += value
+        to_delete += collector.protected
+        # since we are only performing soft delete, we must soft_delete related objects too, if possible
+        for obj in to_delete:
+            if hasattr(obj, 'soft_delete'):
+                obj.soft_delete()
 
     def save_formset(self, request, form, formset, change):
         objects = formset.save(commit=False)

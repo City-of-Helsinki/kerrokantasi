@@ -12,6 +12,16 @@ def test_hearing_delete_action(admin_client, default_hearing):
     response = admin_client.post(change_url, data, follow=True)
 
     assert response.status_code == 200
+    assert 'Are you sure?' in response.rendered_content
+    assert 'Hearings: 1' in response.rendered_content
+    assert 'Hearing Translations: 1' in response.rendered_content
+    assert 'Hearing-contactperson relationships: 1' in response.rendered_content
+    assert 'Sections: 1' in response.rendered_content
+
+    data['post'] =' yes'
+    response = admin_client.post(change_url, data, follow=True)
+
+    assert response.status_code == 200
     assert 'Successfully deleted 1 hearing.' in response.rendered_content
 
     default_hearing = Hearing.objects.everything().get(pk=default_hearing.pk)

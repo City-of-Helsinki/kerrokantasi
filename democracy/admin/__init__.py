@@ -306,19 +306,22 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'section', 'comment', 'author_name', 'title', 'content')
+    list_display = ('id', 'section', 'author_name', 'content')
+    search_fields = ('section__id', 'author_name', 'title', 'content')
     fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson',
-    'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section')
-    readonly_fields = fields
+              'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section')
+    readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
+                       'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section')
 
     def delete_queryset(self, request, queryset):
-    # this method is called by delete_selected and can be overridden
+        # this method is called by delete_selected and can be overridden
         for comment in queryset:
             comment.soft_delete()
 
     def delete_model(self, request, obj):
-    # this method is called by the admin form and can be overridden
+        # this method is called by the admin form and can be overridden
         obj.soft_delete()
+
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

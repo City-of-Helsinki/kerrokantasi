@@ -239,6 +239,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         return to_delete + protected, {**model_count, **protected_model_count}, set(), []
 
     def delete_queryset(self, request, queryset):
+        # this method is called by delete_selected and can be overridden
         try:
             obj = queryset[0]
         except IndexError:
@@ -247,6 +248,19 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             using = router.db_for_write(obj._meta.model)
         collector = NestedObjects(using=using)
         collector.collect(queryset)
+        to_delete = []
+        for item, value in collector.model_objs.items():
+            to_delete += value
+        to_delete += collector.protected
+        # since we are only performing soft delete, we must soft_delete related objects too, if possible
+        for obj in to_delete:
+            if hasattr(obj, 'soft_delete'):
+                obj.soft_delete()
+
+    def delete_model(self, request, obj):
+        using = router.db_for_write(obj._meta.model)
+        collector = NestedObjects(using=using)
+        collector.collect([obj])
         to_delete = []
         for item, value in collector.model_objs.items():
             to_delete += value
@@ -290,6 +304,21 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     list_display = ('name', 'title', 'organization', 'phone', 'email')
     exclude = ('published',)
 
+
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'section', 'comment', 'author_name', 'title', 'content')
+    fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson',
+    'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section')
+    readonly_fields = fields
+
+    def delete_queryset(self, request, queryset):
+    # this method is called by delete_selected and can be overridden
+        for comment in queryset:
+            comment.soft_delete()
+
+    def delete_model(self, request, obj):
+    # this method is called by the admin form and can be overridden
+        obj.soft_delete()
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase
@@ -339,3 +368,4 @@ admin.site.register(models.Organization, OrganizationAdmin)
 admin.site.register(models.ContactPerson, ContactPersonAdmin)
 admin.site.register(models.Project, ProjectAdmin)
 admin.site.register(models.ProjectPhase, ProjectPhaseAdmin)
+admin.site.register(models.SectionComment, CommentAdmin)

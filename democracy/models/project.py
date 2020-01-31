@@ -29,7 +29,7 @@ class ProjectPhase(StringIdBaseModel, TranslatableModel):
         description=models.CharField(verbose_name=_('description'), max_length=2048, blank=True),
         schedule=models.CharField(verbose_name=_('schedule'), max_length=2048, blank=True),
     )
-    project = models.ForeignKey(Project, related_name='phases')
+    project = models.ForeignKey(Project, related_name='phases', on_delete=models.CASCADE)
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 

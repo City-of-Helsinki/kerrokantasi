@@ -8,7 +8,6 @@ from democracy.factories.poll import SectionPollFactory, SectionPollOptionFactor
 from democracy.models import SectionPoll, SectionPollAnswer
 from democracy.tests.test_comment import get_comment_data
 from democracy.tests.test_hearing import valid_hearing_json
-from democracy.tests.test_section import create_sections
 from democracy.tests.utils import get_data_from_response, assert_common_keys_equal
 
 

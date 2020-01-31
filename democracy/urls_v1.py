@@ -24,8 +24,8 @@ section_comments_router = routers.NestedSimpleRouter(hearing_child_router, r'sec
 section_comments_router.register(r'comments', SectionCommentViewSet, base_name='comments')
 
 urlpatterns = [
-    url(r'^', include(router.urls, namespace='v1')),
-    url(r'^', include(hearing_child_router.urls, namespace='v1')),
-    url(r'^', include(section_comments_router.urls, namespace='v1')),
+    url(r'^', include(router.urls)),
+    url(r'^', include(hearing_child_router.urls)),
+    url(r'^', include(section_comments_router.urls)),
     url(r'^download/(?P<filetype>sectionfile|sectionimage)/(?P<pk>\d+)/$', ServeFileView.as_view(), name='serve_file'),
 ]

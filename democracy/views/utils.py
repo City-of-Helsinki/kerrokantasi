@@ -109,7 +109,7 @@ class PublicFilteredRelatedField(serializers.Field):
     def to_representation(self, queryset):
         request = self.context.get('request')
 
-        if request and request.user and request.user.is_authenticated() and request.user.is_superuser:
+        if request and request.user and request.user.is_authenticated and request.user.is_superuser:
             queryset = queryset.with_unpublished()
         else:
             queryset = queryset.public()
@@ -141,7 +141,7 @@ def filter_by_hearing_visible(queryset, request, hearing_lookup='hearing', inclu
     filters['%sopen_at__lte' % hearing_lookup] = now()
     q = Q(**filters)
 
-    if user.is_authenticated():
+    if user.is_authenticated:
         organizations = user.admin_organizations.all()
         if organizations.exists():
             # regardless of publication status or date, admins will see everything from their organization

@@ -255,6 +255,8 @@ OIDC_API_TOKEN_AUTH = {
     'ISSUER': env('OIDC_API_ISSUER'),
 }
 
+OIDC_AUTH = {"OIDC_LEEWAY": 60 * 60}
+
 AUTHENTICATION_BACKENDS = (
     'helusers.tunnistamo_oidc.TunnistamoOIDCAuth',
     'django.contrib.auth.backends.ModelBackend',

@@ -196,8 +196,6 @@ TEMPLATES = [
     },
 ]
 
-LOGOUT_REDIRECT_URL = '/'
-
 WSGI_APPLICATION = 'kerrokantasi.wsgi.application'
 
 LANGUAGE_CODE = 'en'
@@ -284,7 +282,6 @@ DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')
 
 LOGIN_URL = '/'
 LOGOUT_URL = '/'
-LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 SITE_ID=1

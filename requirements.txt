@@ -30,7 +30,7 @@ django-nested-admin==3.2.3
 django-parler==1.9.2
 django-reversion==3.0.4
 django-sendfile==0.3.11
-django==2.2.9
+django==2.2.10
 djangorestframework-jwt==1.11.0
 djangorestframework==3.9.4
 docopt==0.6.2             # via coveralls
@@ -42,7 +42,7 @@ entrypoints==0.3          # via flake8
 factory-boy==2.12.0
 faker==1.0.7              # via factory-boy
 flake8==3.7.7
-future==0.17.1            # via pyjwkest, python-jose
+future==0.17.1            # via pyjwkest
 idna==2.8                 # via requests
 importlib-metadata==0.18  # via pluggy
 jsonfield==2.0.2
@@ -54,7 +54,7 @@ pillow==7.0.0
 pluggy==0.12.0            # via pytest
 psycopg2==2.8.3
 py==1.8.0                 # via pytest
-pyasn1==0.4.5             # via rsa
+pyasn1==0.4.5             # via python-jose, rsa
 pycodestyle==2.5.0        # via flake8
 pycryptodomex==3.8.2      # via pyjwkest
 pyflakes==2.1.1           # via flake8
@@ -77,6 +77,7 @@ sentry-sdk==0.10.0
 six==1.12.0               # via django-extensions, django-geojson, django-munigeo, django-nested-admin, faker, langdetect, pyjwkest, pytest, python-dateutil, python-jose, python-monkey-business, social-auth-app-django, social-auth-core
 social-auth-app-django==3.1.0
 social-auth-core==3.2.0   # via social-auth-app-django
+sqlparse==0.3.0           # via django
 text-unidecode==1.2       # via faker
 urllib3==1.25.3           # via requests, sentry-sdk
 xlsxwriter==1.1.8

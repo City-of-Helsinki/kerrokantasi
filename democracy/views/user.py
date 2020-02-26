@@ -22,6 +22,7 @@ class UserDataSerializer(serializers.ModelSerializer):
             'username', 'first_name', 'last_name', 'nickname',
             'voted_section_comments', 'followed_hearings',
             'admin_organizations', 'answered_questions',
+            'has_strong_auth',
         ]
 
     def get_answered_questions(self, obj):

@@ -151,7 +151,9 @@ class Commentable(models.Model):
             if not is_authenticated:
                 raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
         elif self.commenting == Commenting.STRONG:
-            if not is_authenticated and not request.user.has_strong_auth:
+            if not is_authenticated:
+                raise ValidationError(_("%s requires strong authentication for commenting") % self, code="commenting_registered_strong")
+            elif not request.user.has_strong_auth and not request.user.get_default_organization():
                 raise ValidationError(_("%s requires strong authentication for commenting") % self, code="commenting_registered_strong")
         elif self.commenting == Commenting.OPEN:
             return
@@ -172,7 +174,9 @@ class Commentable(models.Model):
             if not is_authenticated:
                 raise ValidationError(_("%s does not allow anonymous voting") % self, code="voting_registered")
         elif self.voting == Commenting.STRONG:
-            if not is_authenticated and not request.user.has_strong_auth:
+            if not is_authenticated:
+                raise ValidationError(_("%s requires strong authentication for voting") % self, code="voting_registered_strong")
+            elif not request.user.has_strong_auth and not request.user.get_default_organization():
                 raise ValidationError(_("%s requires strong authentication for voting") % self, code="voting_registered_strong")
         elif self.voting == Commenting.OPEN:
             return

@@ -7,11 +7,13 @@ class Commenting(Enum):
     NONE = 0
     REGISTERED = 1
     OPEN = 2
+    STRONG = 3
 
     class Labels:
         NONE = _("No commenting")
         REGISTERED = _("Registered users only")
         OPEN = _("Open commenting")
+        STRONG = _("Strong authentication only")
 
 
 class InitialSectionType:

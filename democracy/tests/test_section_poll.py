@@ -256,6 +256,7 @@ def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_cl
 
 
 @pytest.mark.skipif(isArchLinux, reason="Weird bug in http requests")
+@pytest.mark.django_db
 def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
@@ -307,6 +308,7 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
 
 
 @pytest.mark.skipif(isArchLinux, reason="Weird bug in http requests")
+@pytest.mark.django_db
 def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)

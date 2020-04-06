@@ -50,3 +50,4 @@ migrator/*.xml
 config_dev.toml
 protected_media/
 media/
+.vscode

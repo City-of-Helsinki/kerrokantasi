@@ -7,6 +7,7 @@ django-munigeo<0.3
 django-reversion
 django-cors-headers
 django-filter
+distro
 pillow
 psycopg2
 easy-thumbnails

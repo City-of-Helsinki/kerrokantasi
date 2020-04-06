@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from rest_framework.test import APIClient
 
-from democracy.enums import Commenting, InitialSectionType
+from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
 from democracy.factories.hearing import HearingFactory, LabelFactory
 from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionFile, SectionType, Organization
 from democracy.tests.utils import FILES, assert_ascending_sequence, create_default_images, create_default_files, get_file_path
@@ -70,6 +70,7 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
     Fixture for a "default" hearing with three sections (one main, two other sections).
     All objects will have the 3 default images attached.
     All objects will allow open commenting.
+    All objects will have commenting_map_tools all
     """
     hearing = Hearing.objects.create(
         title='Default test hearing One',
@@ -85,7 +86,8 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
             abstract='Section %d abstract' % x,
             hearing=hearing,
             type=SectionType.objects.get(identifier=section_type),
-            commenting=Commenting.OPEN
+            commenting=Commenting.OPEN,
+            commenting_map_tools=CommentingMapTools.ALL
         )
         create_default_images(section)
         create_default_files(section)

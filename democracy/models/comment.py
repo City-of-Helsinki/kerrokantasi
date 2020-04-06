@@ -16,6 +16,7 @@ class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
     geojson = GeoJSONField(blank=True, null=True, verbose_name=_('location'))
+    map_comment_text = models.CharField(verbose_name=_('map_comment_text'), max_length=255, blank=True, null=True)
     geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
     authorization_code = models.CharField(verbose_name=_('authorization code'),  max_length=32, blank=True)
     author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)

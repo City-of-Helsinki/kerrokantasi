@@ -308,7 +308,7 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'section', 'author_name', 'content')
     search_fields = ('section__id', 'author_name', 'title', 'content')
-    fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson',
+    fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
               'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section')

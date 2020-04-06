@@ -273,7 +273,7 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
     data['answers'] = [{
         'question': poll.id,
         'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option2.id, option3.id],
+        'answers': [option3.id, option2.id],
     },{
         'question': poll2.id,
         'type': SectionPoll.TYPE_SINGLE_CHOICE,
@@ -324,7 +324,7 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
     data['answers'] = [{
         'question': poll.id,
         'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option2.id, option3.id],
+        'answers': [option3.id, option2.id],
     },{
         'question': poll2.id,
         'type': SectionPoll.TYPE_SINGLE_CHOICE,
@@ -333,7 +333,6 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
     response = john_doe_api_client.put(url, data=data)
     assert response.status_code == 200
     updated_data = get_data_from_response(response, status_code=200)
-
     option1.refresh_from_db(fields=['n_answers'])
     option2.refresh_from_db(fields=['n_answers'])
     option3.refresh_from_db(fields=['n_answers'])

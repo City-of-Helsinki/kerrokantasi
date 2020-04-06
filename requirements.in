@@ -35,3 +35,4 @@ django-parler
 langdetect
 sentry_sdk
 social-auth-app-django
+pluggy>0.12.0

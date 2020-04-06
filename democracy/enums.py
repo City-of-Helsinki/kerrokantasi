@@ -21,3 +21,13 @@ class InitialSectionType:
     PART = "part"
     SCENARIO = "scenario"
     CLOSURE_INFO = "closure-info"
+
+class CommentingMapTools(Enum):
+    NONE = 0
+    MARKER = 1
+    ALL = 2
+
+    class Labels:
+        NONE =_("none")
+        MARKER = _("marker")
+        ALL = _("all")

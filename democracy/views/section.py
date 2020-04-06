@@ -11,7 +11,7 @@ from rest_framework import serializers, viewsets, permissions
 from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
 from sendfile import sendfile
 
-from democracy.enums import Commenting, InitialSectionType
+from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
 from democracy.models import Hearing, Section, SectionImage, SectionType, SectionPoll, SectionPollOption, SectionFile
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
@@ -187,12 +187,13 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     type_name_singular = serializers.SlugRelatedField(source='type', slug_field='name_singular', read_only=True)
     type_name_plural = serializers.SlugRelatedField(source='type', slug_field='name_plural', read_only=True)
     commenting = EnumField(enum_type=Commenting)
+    commenting_map_tools = EnumField(enum_type=CommentingMapTools)
     voting = EnumField(enum_type=Commenting)
 
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting', 'voting',
+            'id', 'type', 'commenting', 'commenting_map_tools', 'voting',
             'title', 'abstract', 'content', 'created_at', 'images', 'n_comments', 'files', 'questions',
             'type_name_singular', 'type_name_plural',
             'plugin_identifier', 'plugin_data', 'plugin_fullscreen',
@@ -215,6 +216,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     id = serializers.CharField(required=False)
     type = serializers.SlugRelatedField(slug_field='identifier', queryset=SectionType.objects.all())
     commenting = EnumField(enum_type=Commenting)
+    commenting_map_tools = EnumField(enum_type=CommentingMapTools)
 
     # this field is used only for incoming data validation, outgoing data is added manually
     # in to_representation()
@@ -225,7 +227,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting',
+            'id', 'type', 'commenting', 'commenting_map_tools',
             'title', 'abstract', 'content',
             'plugin_identifier', 'plugin_data',
             'images', 'questions', 'files', 'ordering',

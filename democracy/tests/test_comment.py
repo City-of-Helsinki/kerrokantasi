@@ -43,6 +43,7 @@ def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
         'geojson': default_geojson_feature,
+        'map_comment_text': '',
         'section': None
     }, **extra)
 

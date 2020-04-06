@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import ugettext_lazy as _
 from enumfields.fields import EnumIntegerField
-from democracy.enums import Commenting
+from democracy.enums import Commenting, CommentingMapTools
 
 ORDERING_HELP = _("The ordering position for this object. Objects with smaller numbers appear first.")
 
@@ -126,6 +126,7 @@ class Commentable(models.Model):
         db_index=True
     )
     commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
+    commenting_map_tools = EnumIntegerField(CommentingMapTools, verbose_name=_('commenting_map_tools'), default=CommentingMapTools.NONE)
     voting = EnumIntegerField(Commenting, verbose_name=_('voting'), default=Commenting.REGISTERED)
 
     def recache_n_comments(self):

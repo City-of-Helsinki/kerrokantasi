@@ -31,7 +31,7 @@ class HearingReport(object):
     def add_hearing_row(self, label, content):
         row = self.hearing_worksheet_active_row
         self.hearing_worksheet.write(row, 0, label, self.format_bold)
-        self.hearing_worksheet.write(row, 1, content)
+        self.hearing_worksheet.write(row, 1, self.mitigate_cell_formula_injection(content))
         self.hearing_worksheet_active_row += 1
 
     def _get_default_translation(self, field):
@@ -96,7 +96,7 @@ class HearingReport(object):
         self.section_worksheet_active_row = 0
         section_worksheet.write(self.section_worksheet_active_row, 0, 'Section', self.format_bold)
         self.section_worksheet_active_row += 1
-        section_worksheet.write(self.section_worksheet_active_row, 0, section_name)
+        section_worksheet.write(self.section_worksheet_active_row, 0, self.mitigate_cell_formula_injection(section_name))
         self.section_worksheet_active_row += 2
 
         # add comments
@@ -149,18 +149,19 @@ class HearingReport(object):
         # author names shouldnt be included in outgoing files unless masked somehow
         # section_worksheet.write(row, 0, comment['author_name'])
         # add content
-        section_worksheet.write(row, 0, comment['content'])
+        section_worksheet.write(row, 0, self.mitigate_cell_formula_injection(comment['content']))
         # add creation date
         section_worksheet.write(row, 1, comment['created_at'])
         # add votes
         section_worksheet.write(row, 2, comment['n_votes'])
         # add label
-        section_worksheet.write(row, 3, self._get_default_translation(comment['label'].get('label')
-                                                                            if comment['label'] else {}))
+        section_worksheet.write(row, 3, self.mitigate_cell_formula_injection(
+            self._get_default_translation(comment['label'].get('label')
+                if comment['label'] else {})))
         # add map comment
-        section_worksheet.write(row, 4, comment['map_comment_text'])
+        section_worksheet.write(row, 4, self.mitigate_cell_formula_injection(comment['map_comment_text']))
         # add geojson
-        section_worksheet.write(row, 5, json.dumps(comment['geojson']))
+        section_worksheet.write(row, 5, self.mitigate_cell_formula_injection(json.dumps(comment['geojson'])))
          # add img
         section_worksheet.write(row, 6, ','.join(
             image['url'] for image in comment['images']))
@@ -214,7 +215,7 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         question_text = self._get_default_translation(question['text'])
 
-        section_worksheet.write(row, 0, question_text)
+        section_worksheet.write(row, 0, self.mitigate_cell_formula_injection(question_text))
         section_worksheet.write(row, 1, question['type'])
         section_worksheet.write(row, 2, total_options_answers)
         section_worksheet.write(row, 3, question['n_answers'])
@@ -329,3 +330,14 @@ class HearingReport(object):
         response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(
             filename=self._get_default_translation(self.json['title']))
         return response
+
+    # Mitigate formula injection
+    # Prefix cell content starting with =, +, -, " or @ with single quote (').
+    # The prefix will make the content be read as text instead of formula.
+    def mitigate_cell_formula_injection(self, cell_content):
+        unallowed_characters = ['=', '+', '-', '"', '@']
+        if cell_content and len(cell_content) > 0:
+            if cell_content[0] in unallowed_characters:
+                return f"'{cell_content}"
+
+        return cell_content

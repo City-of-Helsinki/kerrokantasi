@@ -44,7 +44,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     organization = models.ForeignKey(
         Organization,
         verbose_name=_('organization'),
-        related_name="hearings", blank=True, null=True
+        related_name="hearings", blank=True, null=True, on_delete=models.PROTECT
     )
     labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
     followers = models.ManyToManyField(
@@ -121,7 +121,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     def is_visible_for(self, user):
         if self.published and self.open_at < now():
             return True
-        if not user.is_authenticated():
+        if not user.is_authenticated:
             return False
         if user.is_superuser:
             return True

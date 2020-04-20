@@ -427,9 +427,9 @@ class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpd
         return ret
 
 
-class ImageFilter(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(name='section__hearing__id')
-    section_type = django_filters.CharFilter(name='section__type__identifier')
+class ImageFilterSet(django_filters.rest_framework.FilterSet):
+    hearing = django_filters.CharFilter(field_name='section__hearing__id')
+    section_type = django_filters.CharFilter(field_name='section__type__identifier')
 
     class Meta:
         model = SectionImage
@@ -441,7 +441,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     model = SectionImage
     serializer_class = RootSectionImageSerializer
     pagination_class = DefaultLimitPagination
-    filter_class = ImageFilter
+    filterset_class = ImageFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
@@ -601,9 +601,9 @@ class RootSectionSerializer(SectionSerializer, TranslatableSerializer):
         fields = SectionSerializer.Meta.fields + ['hearing']
 
 
-class SectionFilter(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(name='hearing_id')
-    type = django_filters.CharFilter(name='type__identifier')
+class SectionFilterSet(django_filters.rest_framework.FilterSet):
+    hearing = django_filters.CharFilter(field_name='hearing_id')
+    type = django_filters.CharFilter(field_name='type__identifier')
 
     class Meta:
         model = Section
@@ -615,7 +615,7 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
     serializer_class = RootSectionSerializer
     model = Section
     pagination_class = DefaultLimitPagination
-    filter_class = SectionFilter
+    filterset_class = SectionFilterSet
 
     def get_queryset(self):
         queryset = super().get_queryset()

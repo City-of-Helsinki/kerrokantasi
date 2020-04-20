@@ -14,7 +14,7 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
-from democracy.tests.conftest import default_comment_content, default_lang_code, geojson_feature
+from democracy.tests.conftest import default_comment_content, default_lang_code, default_geojson_feature
 from democracy.tests.utils import (
     assert_common_keys_equal, get_data_from_response, get_hearing_detail_url, image_test_json
 )
@@ -42,7 +42,7 @@ def get_detail_url(request):
 def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
-        'geojson': geojson_feature(),
+        'geojson': default_geojson_feature,
         'section': None
     }, **extra)
 

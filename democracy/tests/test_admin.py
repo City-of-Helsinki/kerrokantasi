@@ -1,5 +1,5 @@
 import pytest
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test.utils import override_settings
 
 from democracy.models import Hearing
@@ -9,6 +9,16 @@ from democracy.models import Hearing
 def test_hearing_delete_action(admin_client, default_hearing):
     change_url = reverse('admin:democracy_hearing_changelist')
     data = {'action': 'delete_selected', '_selected_action': [default_hearing.pk]}
+    response = admin_client.post(change_url, data, follow=True)
+
+    assert response.status_code == 200
+    assert 'Are you sure?' in response.rendered_content
+    assert 'Hearings: 1' in response.rendered_content
+    assert 'Hearing Translations: 1' in response.rendered_content
+    assert 'Hearing-contactperson relationships: 1' in response.rendered_content
+    assert 'Sections: 1' in response.rendered_content
+
+    data['post'] =' yes'
     response = admin_client.post(change_url, data, follow=True)
 
     assert response.status_code == 200

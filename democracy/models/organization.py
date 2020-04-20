@@ -23,7 +23,7 @@ class Organization(StringIdBaseModel):
 
 class ContactPerson(TranslatableModel, StringIdBaseModel):
     organization = models.ForeignKey(Organization, verbose_name=_('organization'), related_name='contact_persons',
-                                     blank=True, null=True)
+                                     blank=True, null=True, on_delete=models.PROTECT)
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255),
     )

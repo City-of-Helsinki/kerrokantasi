@@ -136,13 +136,14 @@ MAX_IMAGE_SIZE = 10**6
 INSTALLED_APPS = [
     "helusers",
     "helusers.providers.helsinki_oidc",
-    'social_django',
-    'django.contrib.admin',
+    'social_django',    
+    'helusers.apps.HelusersAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'modeltranslation',
     'mptt',
     'nested_admin',
@@ -162,16 +163,16 @@ INSTALLED_APPS = [
     'django_filters',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'kerrokantasi.urls'
@@ -187,6 +188,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'helusers.context_processors.settings',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -255,6 +259,8 @@ OIDC_API_TOKEN_AUTH = {
     'ISSUER': env('OIDC_API_ISSUER'),
 }
 
+OIDC_AUTH = {"OIDC_LEEWAY": 60 * 60}
+
 AUTHENTICATION_BACKENDS = (
     'helusers.tunnistamo_oidc.TunnistamoOIDCAuth',
     'django.contrib.auth.backends.ModelBackend',
@@ -272,3 +278,10 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 # Map defaults
 DEFAULT_MAP_COORDINATES = env('DEFAULT_MAP_COORDINATES')
 DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')
+
+
+LOGIN_URL = '/'
+LOGOUT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SITE_ID=1

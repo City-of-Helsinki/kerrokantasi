@@ -1,12 +1,12 @@
 coveralls
-Django<2
+Django
 djangorestframework
 django-environ
 django-extensions
 django-munigeo<0.3
 django-reversion
 django-cors-headers
-django-filter<2.0
+django-filter
 pillow
 psycopg2
 easy-thumbnails

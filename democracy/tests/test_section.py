@@ -43,7 +43,8 @@ def get_sections_url(request):
 
 @pytest.mark.django_db
 def create_sections(hearing, n):
-    Section.objects.all().delete()
+    # just soft delete old sections to prevent them from lingering around and about
+    Section.objects.update(deleted=True)
     sections = []
     for i in range(n):
         section = Section(

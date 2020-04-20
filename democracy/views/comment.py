@@ -50,7 +50,7 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         fields = COMMENT_FIELDS
 
 
-class BaseCommentFilter(django_filters.rest_framework.FilterSet):
+class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
     authorization_code = django_filters.CharFilter()
 
     class Meta:
@@ -66,7 +66,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     serializer_class = None
     edit_serializer_class = None
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_class = BaseCommentFilter
+    filterset_class = BaseCommentFilterSet
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
 
     def get_serializer(self, *args, **kwargs):
@@ -135,7 +135,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         serializer = self.get_serializer(serializer_class=self.edit_serializer_class, data=request.data)
         serializer.is_valid(raise_exception=True)
         kwargs = {}
-        if self.request.user.is_authenticated():
+        if self.request.user.is_authenticated:
             kwargs['created_by'] = self.request.user
         comment = serializer.save(**kwargs)
         # and another for the response
@@ -208,7 +208,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return resp
         comment = self.get_object()
 
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             # If the check went through, anonymous voting is allowed
             comment.n_unregistered_votes += 1
             comment.recache_n_votes()
@@ -226,7 +226,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def unvote(self, request, **kwargs):
         # Return 403 if user is not authenticated
-        if not request.user.is_authenticated():
+        if not request.user.is_authenticated:
             return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
 
         comment = self.get_object()

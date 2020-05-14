@@ -1,5 +1,5 @@
 coveralls
-Django
+Django<3
 djangorestframework
 django-environ
 django-extensions

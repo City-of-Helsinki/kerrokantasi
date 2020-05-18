@@ -92,7 +92,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     def preview_url(self):
         if not (self.preview_code and hasattr(settings, 'DEMOCRACY_UI_BASE_URL')):
             return None
-        url = urljoin(settings.DEMOCRACY_UI_BASE_URL, '/hearing/%s/?preview=%s' % (self.pk, self.preview_code))
+        url = urljoin(settings.DEMOCRACY_UI_BASE_URL, '/%s/?preview=%s' % (self.pk, self.preview_code))
         return url
 
     def save(self, *args, **kwargs):

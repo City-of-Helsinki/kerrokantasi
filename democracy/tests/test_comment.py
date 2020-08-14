@@ -43,6 +43,7 @@ def get_comment_data(**extra):
     return dict({
         'content': default_comment_content,
         'geojson': default_geojson_feature,
+        'map_comment_text': '',
         'section': None
     }, **extra)
 
@@ -102,6 +103,45 @@ def test_56_add_comment_to_section_without_authentication_with_reply_to(api_clie
     assert response.status_code == 201
     assert response.data['reply_to'] == 'Previous commenter'
 
+@pytest.mark.django_db
+def test_56_add_comment_to_section_requiring_strong_auth_without_authentication(api_client,
+    strong_auth_hearing, get_comments_url_and_data):
+
+    section = strong_auth_hearing.sections.first()
+    url, data = get_comments_url_and_data(strong_auth_hearing, section)
+    response = api_client.post(url, data=data)
+    # expect request to not go through
+    assert response.status_code == 403
+
+@pytest.mark.django_db
+def test_56_add_comment_to_section_requiring_strong_auth_with_weak_auth(john_doe_api_client,
+    strong_auth_hearing, get_comments_url_and_data):
+
+    section = strong_auth_hearing.sections.first()
+    url, data = get_comments_url_and_data(strong_auth_hearing, section)
+    response = john_doe_api_client.post(url, data=data)
+    # expect request to not go through
+    assert response.status_code == 403
+
+@pytest.mark.django_db
+def test_56_add_comment_to_section_requiring_strong_auth_with_strong_auth(stark_doe_api_client,
+    strong_auth_hearing, get_comments_url_and_data):
+
+    section = strong_auth_hearing.sections.first()
+    url, data = get_comments_url_and_data(strong_auth_hearing, section)
+    response = stark_doe_api_client.post(url, data=data)
+    # expect request to go through
+    assert response.status_code == 201
+
+@pytest.mark.django_db
+def test_56_add_comment_to_section_requiring_strong_auth_with_organization(john_smith_api_client,
+    strong_auth_hearing, get_comments_url_and_data):
+
+    section = strong_auth_hearing.sections.first()
+    url, data = get_comments_url_and_data(strong_auth_hearing, section)
+    response = john_smith_api_client.post(url, data=data)
+    # expect request to go through
+    assert response.status_code == 201
 
 @pytest.mark.django_db
 def test_56_add_comment_to_section_without_data(api_client, default_hearing, get_comments_url_and_data):

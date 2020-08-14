@@ -124,6 +124,11 @@ SOCIAL_AUTH_TUNNISTAMO_KEY=https://auth.example.com/kerrokantasi
 SOCIAL_AUTH_TUNNISTAMO_SECRET=your-tunnistamo-secret
 SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=https://tunnistamo.example.com/openid
 
+# Comma separated list of authentication providers which provide strong
+# authentication e.g. Suomi.fi. User's auth provider name comes from oidc
+# api token's amr (authentication methods references) field.
+STRONG_AUTH_PROVIDERS=
+
 # URL prefix for this Kerrokantasi installation. This can be used when
 # Kerrokantasi is made available at a sub-path of domain
 # (eg. api.yourorg.org/kerrokantasi). sub-paths are mostly handled

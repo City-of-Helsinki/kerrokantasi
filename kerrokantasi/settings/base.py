@@ -65,6 +65,7 @@ env = environ.Env(
     SOCIAL_AUTH_TUNNISTAMO_KEY=(str, ''),
     SOCIAL_AUTH_TUNNISTAMO_SECRET=(str, ''),
     SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
+    STRONG_AUTH_PROVIDERS=(list, []),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -214,7 +215,7 @@ CORS_URLS_REGEX = r'^/[a-z0-9-]*/?v1/.*$'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'helusers.oidc.ApiTokenAuthentication',
+        'kerrokantasi.oidc.ApiTokenAuthentication',
         'django.contrib.auth.backends.ModelBackend',
     ),
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
@@ -260,6 +261,7 @@ OIDC_API_TOKEN_AUTH = {
 }
 
 OIDC_AUTH = {"OIDC_LEEWAY": 60 * 60}
+STRONG_AUTH_PROVIDERS = env('STRONG_AUTH_PROVIDERS')
 
 AUTHENTICATION_BACKENDS = (
     'helusers.tunnistamo_oidc.TunnistamoOIDCAuth',

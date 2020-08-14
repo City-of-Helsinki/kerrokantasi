@@ -46,6 +46,7 @@ def valid_hearing_json(contact_person, default_label):
             {
                 "type": "closure-info",
                 "commenting": 'none',
+                "commenting_map_tools": 'none',
                 "title": {
                     "en": "Section 3",
                 },
@@ -65,6 +66,7 @@ def valid_hearing_json(contact_person, default_label):
             },
             {
                 "commenting": 'none',
+                "commenting_map_tools": 'none',
                 "title": {
                     "en": "Section 1",
                 },
@@ -91,6 +93,7 @@ def valid_hearing_json(contact_person, default_label):
                 "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
                 "type": "part",
                 "commenting": 'none',
+                "commenting_map_tools": 'none',
                 "title": {
                     "en": "Section 2",
                 },
@@ -760,7 +763,7 @@ def test_hearing_copy(default_hearing, random_label):
 ])
 @pytest.mark.django_db
 def test_hearing_open_at_filtering(default_hearing, request, client, expected):
-    api_client = request.getfuncargvalue(client)
+    api_client = request.getfixturevalue(client)
 
     default_hearing.open_at = now() + datetime.timedelta(hours=1)
     default_hearing.save(update_fields=('open_at',))

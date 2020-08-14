@@ -96,7 +96,7 @@ def test_get_section_with_files(api_client, default_hearing):
 ])
 @pytest.mark.django_db
 def test_unpublished_section_files_excluded(client, expected, request, default_hearing):
-    api_client = request.getfuncargvalue(client)
+    api_client = request.getfixturevalue(client)
 
     file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES['TXT'])
     file_obj.published = False

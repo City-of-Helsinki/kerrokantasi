@@ -1,5 +1,5 @@
 coveralls
-Django
+Django<3
 djangorestframework
 django-environ
 django-extensions
@@ -7,6 +7,7 @@ django-munigeo<0.3
 django-reversion
 django-cors-headers
 django-filter
+distro
 pillow
 psycopg2
 easy-thumbnails
@@ -35,3 +36,4 @@ django-parler
 langdetect
 sentry_sdk
 social-auth-app-django
+pluggy>0.12.0

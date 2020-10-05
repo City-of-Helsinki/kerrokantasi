@@ -37,6 +37,11 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         # do not return ordering explicitly
         self.fields.pop('ordering')
         data = super().to_representation(instance)
+        
+        # include is_active when updating a hearing with a project
+        if self.context['request'].method in ['PUT', 'PATCH']:
+            data['is_active'] = self.context['view'].get_object().project_phase_id == instance.pk
+        
         if 'hearing' in self.context:
             data['is_active'] = self.context['hearing'].project_phase_id == instance.pk
         return data

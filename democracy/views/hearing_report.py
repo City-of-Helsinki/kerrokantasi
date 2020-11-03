@@ -1,5 +1,5 @@
 import io
-
+import re
 import xlsxwriter
 import json
 from django.conf import settings
@@ -327,8 +327,9 @@ class HearingReport(object):
             self.get_xlsx(),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
+        # remove special characters from filename to avoid potential file naming issues
         response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(
-            filename=self._get_default_translation(self.json['title']))
+            filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json['title'])))
         return response
 
     # Mitigate formula injection

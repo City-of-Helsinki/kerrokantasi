@@ -4,6 +4,7 @@ from collections import Counter
 from django import forms
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db.models import TextField
 from django.db import router
@@ -14,6 +15,7 @@ from django.utils.encoding import force_text
 from django.utils.text import capfirst
 from django.utils.html import format_html
 from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from djgeojson.fields import GeoJSONFormField
 from leaflet.admin import LeafletGeoAdmin
@@ -307,11 +309,23 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'section', 'author_name', 'content')
+    list_filter = ('section__hearing__slug',)
     search_fields = ('section__id', 'author_name', 'title', 'content')
     fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
-              'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section')
+              'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section', 'created_by_user')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
-                       'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section')
+                       'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section', 'created_by_user')
+
+    def created_by_user(self, obj):
+        # returns a link to the user that created the comment.
+        if obj.created_by_id and get_user_model().objects.get(id=obj.created_by_id):
+            user_url = reverse("admin:app_list", args=['kerrokantasi'])
+            user_url += "user/{}/change/".format(obj.created_by_id)
+            user_info = "{} - {}".format(obj.created_by.get_display_name(), get_user_model().objects.get(id=obj.created_by_id).email)
+            return format_html(
+                '<a href="{}">{}</a>', user_url, user_info
+            )
+        
 
     def delete_queryset(self, request, queryset):
         # this method is called by delete_selected and can be overridden

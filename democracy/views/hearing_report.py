@@ -81,7 +81,8 @@ class HearingReport(object):
         if self.xlsdoc.get_worksheet_by_name(section_name) != None:
             section_name = f"{section_name[:28]}({section_index})"
 
-        section_worksheet = self.xlsdoc.add_worksheet(section_name[:31])
+        # remove special characters from worksheet names to avoid potential naming issues
+        section_worksheet = self.xlsdoc.add_worksheet(re.sub(r"\W+|_", " ", section_name[:31]))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
         section_worksheet.set_column('B:B', 15)

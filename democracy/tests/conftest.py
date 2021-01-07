@@ -101,6 +101,34 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
 
     return hearing
 
+@pytest.fixture()
+def hearing_without_comments(contact_person, default_organization, default_project):
+    """
+    Fixture for a simple hearing with one main section and no existing comments.
+    Commenting is open for everyone.
+    """
+    hearing = Hearing.objects.create(
+        title='Simple hearing without comments',
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        slug='simple-hearing-slug',
+        organization=default_organization,
+        project_phase=default_project.phases.all()[0],
+    )
+
+    section_type = InitialSectionType.MAIN
+    Section.objects.create(
+        abstract='Section abstract for simple hearing',
+        hearing=hearing,
+        type=SectionType.objects.get(identifier=section_type),
+        commenting=Commenting.OPEN
+    )
+
+    assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
+    hearing.contact_persons.add(contact_person)
+
+    return hearing
+
 
 @pytest.fixture()
 def strong_auth_hearing(john_doe, contact_person, default_organization, default_project):

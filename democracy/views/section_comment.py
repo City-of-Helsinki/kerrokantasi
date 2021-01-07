@@ -128,11 +128,12 @@ class SectionCommentSerializer(BaseCommentSerializer):
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
+    creator_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = SectionComment
+        model = SectionComment        
         fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned', 'reply_to'] + COMMENT_FIELDS
+                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name'] + COMMENT_FIELDS
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -146,6 +147,18 @@ class SectionCommentSerializer(BaseCommentSerializer):
             polls_by_id[answer.option.poll.id]['answers'].append(answer.option_id)
         return list(polls_by_id.values())
 
+    def get_creator_name(self, obj):
+        if obj.created_by and not obj.created_by.is_anonymous:
+            return obj.created_by.get_full_name()
+        else:
+            return 'Anonymous'
+    
+    def to_representation(self, instance):
+        data = super(SectionCommentSerializer, self).to_representation(instance)
+        if not self.context['request'].user.is_staff and not self.context['request'].user.is_superuser:
+            del data['creator_name']
+
+        return data
 
 class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment

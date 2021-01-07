@@ -112,9 +112,9 @@ class HearingReport(object):
     
     def add_section_comments(self, section, section_worksheet):
         '''
-        Content        | Created | Votes | Label   | Map comment        | Geojson      | Images
-        "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
+        Author  |  Content        | Created | Votes | Label   | Map comment        | Geojson      | Images
+        "name"  |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
+        "name"  |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
         '''
 
         # add comments title
@@ -124,15 +124,26 @@ class HearingReport(object):
 
         # add column headers
         row = self.section_worksheet_active_row
-        # author names shouldnt be included in outgoing files unless masked somehow
-        #section_worksheet.write(row, 0, 'Author', self.format_bold)
-        section_worksheet.write(row, 0, 'Content', self.format_bold)
-        section_worksheet.write(row, 1, 'Created', self.format_bold)
-        section_worksheet.write(row, 2, 'Votes', self.format_bold)
-        section_worksheet.write(row, 3, 'Label', self.format_bold)
-        section_worksheet.write(row, 4, 'Map comment', self.format_bold)
-        section_worksheet.write(row, 5, 'Geojson', self.format_bold)
-        section_worksheet.write(row, 6, 'Images', self.format_bold)
+        col_index = 0
+
+        # include Author only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):  
+            section_worksheet.write(row, col_index, 'Author', self.format_bold)
+            col_index += 1
+        
+        section_worksheet.write(row, col_index, 'Content', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Created', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Votes', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Label', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Map comment', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Geojson', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Images', self.format_bold)
 
         self.section_worksheet_active_row += 1
 
@@ -144,28 +155,41 @@ class HearingReport(object):
 
     def add_comment_row(self, comment, section_worksheet):
         '''
-        "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
+        "name" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
         '''
         row = self.section_worksheet_active_row
-        # author names shouldnt be included in outgoing files unless masked somehow
+        col_index = 0
+        
+        # include Author only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):  
+            name = comment.get('creator_name')
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
+            col_index += 1
         # section_worksheet.write(row, 0, comment['author_name'])
         # add content
-        section_worksheet.write(row, 0, self.mitigate_cell_formula_injection(comment['content']))
+        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
+        col_index += 1
         # add creation date
-        section_worksheet.write(row, 1, comment['created_at'])
+        section_worksheet.write(row, col_index, comment['created_at'])
+        col_index += 1
         # add votes
-        section_worksheet.write(row, 2, comment['n_votes'])
+        section_worksheet.write(row, col_index, comment['n_votes'])
+        col_index += 1
         # add label
-        section_worksheet.write(row, 3, self.mitigate_cell_formula_injection(
+        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(
             self._get_default_translation(comment['label'].get('label')
                 if comment['label'] else {})))
+        col_index += 1
         # add map comment
-        section_worksheet.write(row, 4, self.mitigate_cell_formula_injection(comment['map_comment_text']))
+        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['map_comment_text']))
+        col_index += 1
         # add geojson
-        section_worksheet.write(row, 5, self.mitigate_cell_formula_injection(json.dumps(comment['geojson'])))
+        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(json.dumps(comment['geojson'])))
+        col_index += 1
          # add img
-        section_worksheet.write(row, 6, ','.join(
+        section_worksheet.write(row, col_index, ','.join(
             image['url'] for image in comment['images']))
+        col_index += 1
         self.section_worksheet_active_row += 1
 
     def add_section_polls(self, section, section_worksheet):

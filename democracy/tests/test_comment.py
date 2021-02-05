@@ -727,6 +727,55 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
     assert 'n_comments' in data['sections'][0]
     assert data['sections'][0]['n_comments'] == 1
 
+@pytest.mark.django_db
+def test_get_section_comment_creator_name_property_without_authorization(john_doe_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check no section comment has creator_name when not authorized
+    for comment in data:
+        assert not "creator_name" in comment
+    
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_name_property_with_authorization(admin_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = admin_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check all section comments have creator_name when authorized
+    for comment in data:
+        assert "creator_name" in comment
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_name_when_posted_by_anon(admin_api_client, hearing_without_comments):
+    section = hearing_without_comments.sections.first()
+    section.comments.create(created_by=None, content="Anon content")
+    url = get_hearing_detail_url(hearing_without_comments.id, 'sections/%s/comments' % section.id)
+    response = admin_api_client.get(url)
+    data = get_data_from_response(response, 200)
+
+    assert "creator_name" in data[0]
+    assert data[0].get('creator_name') == 'Anonymous'
+
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_name_when_posted_by_registered_user(admin_api_client, hearing_without_comments,
+                                                                        john_doe):
+    john_doe.first_name = 'John'
+    john_doe.last_name = 'Doe'
+    john_doe.save()
+    
+    section = hearing_without_comments.sections.first()
+    section.comments.create(created_by=john_doe, content="john doe's content")
+    url = get_hearing_detail_url(hearing_without_comments.id, 'sections/%s/comments' % section.id)
+    response = admin_api_client.get(url)
+    data = get_data_from_response(response, 200)
+
+    assert "creator_name" in data[0]
+    assert data[0].get('creator_name') == john_doe.get_full_name()
+
 
 @pytest.mark.django_db
 def test_n_comments_updates(admin_user, default_hearing):

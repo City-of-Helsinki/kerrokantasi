@@ -40,7 +40,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     )
     servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
     geojson = GeoJSONField(blank=True, null=True, verbose_name=_('area'))
-    geometry = models.GeometryField(blank=True, null=True, verbose_name=_('area geometry'))
+    geometry = models.GeometryCollectionField(blank=True, null=True, verbose_name=_('area geometry'))
     organization = models.ForeignKey(
         Organization,
         verbose_name=_('organization'),

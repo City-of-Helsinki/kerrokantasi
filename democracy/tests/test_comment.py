@@ -1050,26 +1050,6 @@ def test_root_endpoint_timestamp_filters(api_client, default_hearing):
     assert len(response_data['results']) == comment_count - 1
 
 
-@pytest.mark.django_db
-def test_root_endpoint_bbox_filtering(api_client, default_hearing, geojson_feature, bbox_containing_feature, bbox_containing_geometries):
-    url = '/v1/comment/'
-    section = default_hearing.sections.first()
-    comment = section.comments.first()
-    comment.geojson = geojson_feature
-    comment.save()
-
-    containing_query = '?bbox=%s' % bbox_containing_feature
-    not_containing_query = '?bbox=%s' % bbox_containing_geometries
-
-    response = api_client.get(url + containing_query)
-    response_data = get_data_from_response(response)
-    assert len(response_data['results']) == 1
-
-    response = api_client.get(url + not_containing_query)
-    response_data = get_data_from_response(response)
-    assert len(response_data['results']) == 0
-
-
 @pytest.mark.parametrize('hearing_update', [
     ('deleted', True),
     ('published', False),

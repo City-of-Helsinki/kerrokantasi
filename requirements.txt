@@ -60,7 +60,7 @@ django-reversion==3.0.7
     # via -r requirements.in
 django-sendfile==0.3.11
     # via -r requirements.in
-django==2.2.12
+django==2.2.18
     # via
     #   -r requirements.in
     #   django-cors-headers

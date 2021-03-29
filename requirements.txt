@@ -112,7 +112,7 @@ mccabe==0.6.1
     # via flake8
 more-itertools==8.2.0
     # via pytest
-pillow==7.1.2
+pillow==8.1.1
     # via
     #   -r requirements.in
     #   easy-thumbnails

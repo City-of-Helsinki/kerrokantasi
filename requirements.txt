@@ -169,7 +169,7 @@ requests==2.23.0
     #   django-munigeo
     #   pyjwkest
     #   requests-cache
-rsa==4.0
+rsa==4.1
     # via python-jose
 sentry-sdk==0.14.4
     # via -r requirements.in

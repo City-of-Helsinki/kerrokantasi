@@ -158,7 +158,7 @@ pytz==2020.1
     #   -r requirements.in
     #   babel
     #   django
-pyyaml==5.3.1
+pyyaml==5.4
     # via django-munigeo
 requests-cache==0.5.2
     # via django-munigeo

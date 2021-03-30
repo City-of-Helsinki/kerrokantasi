@@ -55,14 +55,8 @@ env = environ.Env(
     SECURE_PROXY_SSL_HEADER=(tuple, None),
     # Helsinki Django app settings
     SENTRY_DSN=(str, ''),
-<<<<<<< HEAD
     SENTRY_ENVIRONMENT=(str, 'development'),
     INSTANCE_NAME=(str, "Kerrokantasi"),
-    TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
-    TOKEN_AUTH_SHARED_SECRET=(str, ''),
-=======
-    SENTRY_ENVIRONMENT=(str, ''),
->>>>>>> 14769e235ac60241ac343e379474ef06a8651b1e
     COOKIE_PREFIX=(str, 'kerrokantasi'),
     URL_PREFIX=(str, ''),
     EXTRA_INSTALLED_APPS=(list, []),
@@ -260,9 +254,6 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
-<<<<<<< HEAD
-JWT_AUTH['JWT_PAYLOAD_GET_USER_ID_HANDLER'] = 'helusers.jwt.get_user_id_from_payload_handler'
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -293,8 +284,6 @@ LOGGING = {
     },
 }
 
-=======
->>>>>>> 14769e235ac60241ac343e379474ef06a8651b1e
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
     "mapdon-ksv": "democracy.plugins.Plugin",
@@ -350,7 +339,6 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 DEFAULT_MAP_COORDINATES = env('DEFAULT_MAP_COORDINATES')
 DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')
 
-<<<<<<< HEAD
 # Specifies a header that is trusted to indicate that the request was using
 # https while traversing over the Internet at large. This is used when
 # a proxy terminates the TLS connection and forwards the request over
@@ -380,11 +368,9 @@ if not SECRET_KEY:
             for i in range(64)
         ]
     )
-=======
 
 LOGIN_URL = '/'
 LOGOUT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
 SITE_ID=1
->>>>>>> 14769e235ac60241ac343e379474ef06a8651b1e

@@ -12,8 +12,8 @@ psycopg2
 easy-thumbnails
 drf-nested-routers
 xlsxwriter
-django-helusers
-djangorestframework-jwt
+django-helusers<0.6
+#djangorestframework-jwt
 pyjwt
 django-enumfields>=0.8
 pytz

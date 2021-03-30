@@ -7,7 +7,7 @@ from django.db import transaction
 from django.db.models import Prefetch
 from django.utils import timezone
 from rest_framework import filters, permissions, response, serializers, status, viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.settings import api_settings
 
@@ -455,7 +455,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj)
         return obj
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def follow(self, request, pk=None):
         hearing = self.get_object()
 
@@ -469,7 +469,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         # return success
         return response.Response({'status': 'You follow a hearing now'}, status=status.HTTP_201_CREATED)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def unfollow(self, request, pk=None):
         hearing = self.get_object()
 
@@ -479,13 +479,13 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         return response.Response({'status': 'You are not following this hearing'}, status=status.HTTP_304_NOT_MODIFIED)
 
-    @detail_route(methods=['get'])
+    @action(detail=True, methods=['get'])
     def report(self, request, pk=None):
         context = self.get_serializer_context()
         report = HearingReport(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
 
-    @list_route(methods=['get'])
+    @action(detail=False, methods=['get'])
     def map(self, request):
         queryset = self.filter_queryset(self.get_queryset())
 

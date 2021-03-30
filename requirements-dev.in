@@ -1,5 +1,5 @@
 coveralls
-pytest<4.0
+pytest
 pytest_django
 flake8
 factory-boy>=2.8.1

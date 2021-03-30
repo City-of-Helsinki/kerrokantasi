@@ -126,7 +126,8 @@ class Commentable(models.Model):
         db_index=True
     )
     commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
-    commenting_map_tools = EnumIntegerField(CommentingMapTools, verbose_name=_('commenting_map_tools'), default=CommentingMapTools.NONE)
+    commenting_map_tools = EnumIntegerField(CommentingMapTools, verbose_name=_('commenting_map_tools'),
+                                            default=CommentingMapTools.NONE)
     voting = EnumIntegerField(Commenting, verbose_name=_('voting'), default=Commenting.REGISTERED)
 
     def recache_n_comments(self):
@@ -153,9 +154,11 @@ class Commentable(models.Model):
                 raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
         elif self.commenting == Commenting.STRONG:
             if not is_authenticated:
-                raise ValidationError(_("%s requires strong authentication for commenting") % self, code="commenting_registered_strong")
+                raise ValidationError(_("%s requires strong authentication for commenting") % self,
+                                      code="commenting_registered_strong")
             elif not request.user.has_strong_auth and not request.user.get_default_organization():
-                raise ValidationError(_("%s requires strong authentication for commenting") % self, code="commenting_registered_strong")
+                raise ValidationError(_("%s requires strong authentication for commenting") % self,
+                                      code="commenting_registered_strong")
         elif self.commenting == Commenting.OPEN:
             return
         else:  # pragma: no cover
@@ -176,9 +179,11 @@ class Commentable(models.Model):
                 raise ValidationError(_("%s does not allow anonymous voting") % self, code="voting_registered")
         elif self.voting == Commenting.STRONG:
             if not is_authenticated:
-                raise ValidationError(_("%s requires strong authentication for voting") % self, code="voting_registered_strong")
+                raise ValidationError(_("%s requires strong authentication for voting") % self,
+                                      code="voting_registered_strong")
             elif not request.user.has_strong_auth and not request.user.get_default_organization():
-                raise ValidationError(_("%s requires strong authentication for voting") % self, code="voting_registered_strong")
+                raise ValidationError(_("%s requires strong authentication for voting") % self,
+                                      code="voting_registered_strong")
         elif self.voting == Commenting.OPEN:
             return
         else:  # pragma: no cover

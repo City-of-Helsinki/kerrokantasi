@@ -25,7 +25,7 @@ django-nested-admin==3.3.0  # via -r requirements.in
 django-parler==2.0.1      # via -r requirements.in
 django-reversion==3.0.7   # via -r requirements.in
 django-sendfile==0.3.11   # via -r requirements.in
-django==2.2.12            # via -r requirements.in, django-cors-headers, django-filter, django-geojson, django-helusers, django-leaflet, django-modeltranslation, django-mptt, django-munigeo, django-reversion, django-sendfile, drf-nested-routers, drf-oidc-auth, easy-thumbnails, jsonfield
+django==2.2.18            # via -r requirements.in, django-cors-headers, django-filter, django-geojson, django-helusers, django-leaflet, django-modeltranslation, django-mptt, django-munigeo, django-reversion, django-sendfile, drf-nested-routers, drf-oidc-auth, easy-thumbnails, jsonfield
 djangorestframework-jwt==1.11.0  # via -r requirements.in
 djangorestframework==3.9.4  # via -r requirements.in, drf-nested-routers, drf-oidc-auth
 drf-nested-routers==0.91  # via -r requirements.in

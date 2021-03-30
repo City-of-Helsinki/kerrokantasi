@@ -1,9 +1,11 @@
-from .util import get_settings, load_local_settings, load_secret_key
+from .util import get_settings, load_local_settings
 from . import base
 
+print('reading settings')
 settings = get_settings(base)
+print('read base settings')
 load_local_settings(settings, "local_settings")
-load_secret_key(settings)
+print('read local settings')
 
 if not settings["DEBUG"] and settings["JWT_AUTH"]["JWT_SECRET_KEY"] == "kerrokantasi":
     raise ValueError("Refusing to run out of DEBUG mode with insecure JWT secret key.")

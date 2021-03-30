@@ -55,10 +55,14 @@ env = environ.Env(
     SECURE_PROXY_SSL_HEADER=(tuple, None),
     # Helsinki Django app settings
     SENTRY_DSN=(str, ''),
+<<<<<<< HEAD
     SENTRY_ENVIRONMENT=(str, 'development'),
     INSTANCE_NAME=(str, "Kerrokantasi"),
     TOKEN_AUTH_ACCEPTED_AUDIENCE=(str, ''),
     TOKEN_AUTH_SHARED_SECRET=(str, ''),
+=======
+    SENTRY_ENVIRONMENT=(str, ''),
+>>>>>>> 14769e235ac60241ac343e379474ef06a8651b1e
     COOKIE_PREFIX=(str, 'kerrokantasi'),
     URL_PREFIX=(str, ''),
     EXTRA_INSTALLED_APPS=(list, []),
@@ -70,6 +74,16 @@ env = environ.Env(
     PROTECTED_URL=(str, '/protected_media/'),
     DEFAULT_MAP_COORDINATES=(tuple, (60.192059, 24.945831)),  # Coordinates of Helsinki
     DEFAULT_MAP_ZOOM=(int, 11),
+    # Authentication settings
+    OIDC_API_AUDIENCE=(str, ''),
+    OIDC_API_SCOPE_PREFIX=(str, ''),
+    OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=(bool, True),
+    OIDC_API_ISSUER=(str, ''),
+    OIDC_API_AUTHORIZATION_FIELD=(str, ''),
+    SOCIAL_AUTH_TUNNISTAMO_KEY=(str, ''),
+    SOCIAL_AUTH_TUNNISTAMO_SECRET=(str, ''),
+    SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
+    STRONG_AUTH_PROVIDERS=(list, []),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -117,12 +131,6 @@ if env('SENTRY_DSN'):
         integrations=[DjangoIntegration()]
     )
 
-JWT_AUTH = {
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
-    'JWT_SECRET_KEY': env('TOKEN_AUTH_SHARED_SECRET'),
-    'JWT_AUDIENCE': env('TOKEN_AUTH_ACCEPTED_AUDIENCE')
-}
-
 CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_SECURE = False if DEBUG else True
@@ -151,7 +159,10 @@ CKEDITOR_IMAGE_BACKEND = 'pillow'
 MAX_IMAGE_SIZE = 10**6
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
+    "helusers",
+    "helusers.providers.helsinki_oidc",
+    'social_django',    
+    'helusers.apps.HelusersAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -159,6 +170,7 @@ INSTALLED_APPS = [
     # disable Django’s development server static file handling
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'modeltranslation',
     'mptt',
     'nested_admin',
@@ -171,7 +183,6 @@ INSTALLED_APPS = [
     'leaflet',
     'ckeditor',
     'ckeditor_uploader',
-    'helusers',
     'munigeo',
     'kerrokantasi',  # User model is project-wide
     'democracy',  # Reusable participatory democracy app
@@ -192,6 +203,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
 
 # django-extensions is a set of developer friendly tools
@@ -211,6 +223,9 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'helusers.context_processors.settings',
+                'social_django.context_processors.backends',
+                'social_django.context_processors.login_redirect',
             ],
         },
     },
@@ -223,7 +238,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-AUTH_USER_MODEL = 'kerrokantasi.User'
 LANGUAGES = (
     ('fi', gettext('Finnish')),
     ('sv', gettext('Swedish')),
@@ -235,7 +249,8 @@ CORS_URLS_REGEX = r'^/[a-z0-9-]*/?v1/.*$'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'helusers.jwt.JWTAuthentication',
+        'kerrokantasi.oidc.ApiTokenAuthentication',
+        'django.contrib.auth.backends.ModelBackend',
     ),
     'DEFAULT_FILTER_BACKENDS': ('django_filters.rest_framework.DjangoFilterBackend',),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
@@ -245,6 +260,7 @@ REST_FRAMEWORK = {
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
 }
 
+<<<<<<< HEAD
 JWT_AUTH['JWT_PAYLOAD_GET_USER_ID_HANDLER'] = 'helusers.jwt.get_user_id_from_payload_handler'
 
 LOGGING = {
@@ -277,6 +293,8 @@ LOGGING = {
     },
 }
 
+=======
+>>>>>>> 14769e235ac60241ac343e379474ef06a8651b1e
 DEMOCRACY_PLUGINS = {
     "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
     "mapdon-ksv": "democracy.plugins.Plugin",
@@ -303,10 +321,36 @@ DETECT_LANGS_MIN_PROBA = 0.3
 
 FILTERS_NULL_CHOICE_LABEL = 'null'
 
+OIDC_API_TOKEN_AUTH = {
+    'AUDIENCE': env('OIDC_API_AUDIENCE'),
+    'API_SCOPE_PREFIX': env('OIDC_API_SCOPE_PREFIX'),
+    'API_AUTHORIZATION_FIELD': env('OIDC_API_AUTHORIZATION_FIELD'),
+    'REQUIRE_API_SCOPE_FOR_AUTHENTICATION': env('OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION'),
+    'ISSUER': env('OIDC_API_ISSUER'),
+}
+
+OIDC_AUTH = {"OIDC_LEEWAY": 60 * 60}
+STRONG_AUTH_PROVIDERS = env('STRONG_AUTH_PROVIDERS')
+
+AUTHENTICATION_BACKENDS = (
+    'helusers.tunnistamo_oidc.TunnistamoOIDCAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)
+
+AUTH_USER_MODEL = 'kerrokantasi.User'
+LOGIN_REDIRECT_URL = '/'
+
+SOCIAL_AUTH_TUNNISTAMO_KEY = env('SOCIAL_AUTH_TUNNISTAMO_KEY')
+SOCIAL_AUTH_TUNNISTAMO_SECRET = env('SOCIAL_AUTH_TUNNISTAMO_SECRET')
+SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT = env('SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT')
+
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
 # Map defaults
 DEFAULT_MAP_COORDINATES = env('DEFAULT_MAP_COORDINATES')
 DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')
 
+<<<<<<< HEAD
 # Specifies a header that is trusted to indicate that the request was using
 # https while traversing over the Internet at large. This is used when
 # a proxy terminates the TLS connection and forwards the request over
@@ -336,3 +380,11 @@ if not SECRET_KEY:
             for i in range(64)
         ]
     )
+=======
+
+LOGIN_URL = '/'
+LOGOUT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
+SITE_ID=1
+>>>>>>> 14769e235ac60241ac343e379474ef06a8651b1e

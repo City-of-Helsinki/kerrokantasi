@@ -46,6 +46,7 @@ def valid_hearing_json(contact_person, default_label):
             {
                 "type": "closure-info",
                 "commenting": 'none',
+                "commenting_map_tools": 'none',
                 "title": {
                     "en": "Section 3",
                 },
@@ -65,6 +66,7 @@ def valid_hearing_json(contact_person, default_label):
             },
             {
                 "commenting": 'none',
+                "commenting_map_tools": 'none',
                 "title": {
                     "en": "Section 1",
                 },
@@ -91,6 +93,7 @@ def valid_hearing_json(contact_person, default_label):
                 "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
                 "type": "part",
                 "commenting": 'none',
+                "commenting_map_tools": 'none',
                 "title": {
                     "en": "Section 2",
                 },
@@ -760,7 +763,7 @@ def test_hearing_copy(default_hearing, random_label):
 ])
 @pytest.mark.django_db
 def test_hearing_open_at_filtering(default_hearing, request, client, expected):
-    api_client = request.getfuncargvalue(client)
+    api_client = request.getfixturevalue(client)
 
     default_hearing.open_at = now() + datetime.timedelta(hours=1)
     default_hearing.save(update_fields=('open_at',))
@@ -1203,6 +1206,25 @@ def test_PUT_hearing_success(valid_hearing_json, john_smith_api_client):
     assert updated_data['created_at'] == created_at
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
 
+# Test that updating hearing with project returns a response with phases' is_active value
+@pytest.mark.django_db
+def test_PUT_hearing_with_project_phase_is_active(valid_hearing_json_with_project, john_smith_api_client):
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json_with_project, format='json')
+    data = get_data_from_response(response, status_code=201)
+    _update_hearing_data(data)
+
+    # add is_active which is not included in POST response
+    phases = valid_hearing_json_with_project['project']['phases']
+    for index, phase in enumerate(phases):
+        data['project']['phases'][index]['is_active'] = phase['is_active']
+
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
+    updated_data = get_data_from_response(response, status_code=200)
+
+    for index, phase in enumerate(phases):
+        assert updated_data['project']['phases'][index]['is_active'] == phase['is_active']
+
+    assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
 
 # Test that a user cannot PUT a hearing without the translation
 @pytest.mark.django_db
@@ -1449,6 +1471,27 @@ def test_PATCH_hearing(valid_hearing_json, john_smith_api_client):
     response = john_smith_api_client.patch('%s%s/' % (endpoint, data['id']), data={'close_at': before}, format='json')
     data = get_data_from_response(response, status_code=200)
     assert data['closed'] == True
+
+# Test that updating hearing with project returns a response with phases' is_active value
+@pytest.mark.django_db
+def test_PATCH_hearing_with_project_phase_is_active(valid_hearing_json_with_project, john_smith_api_client):
+    valid_hearing_json_with_project['close_at'] = datetime.datetime.now() + datetime.timedelta(days=1)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json_with_project, format='json')
+    data = get_data_from_response(response, status_code=201)
+
+    # add is_active which is not included in POST response
+    phases = valid_hearing_json_with_project['project']['phases']
+    for index, phase in enumerate(phases):
+        data['project']['phases'][index]['is_active'] = phase['is_active']
+
+    assert data['closed'] == False
+    before = datetime.datetime.now() - datetime.timedelta(days=1)
+    response = john_smith_api_client.patch('%s%s/' % (endpoint, data['id']), data={'close_at': before}, format='json')
+    data = get_data_from_response(response, status_code=200)
+
+    assert data['closed'] == True
+    for index, phase in enumerate(phases):
+        assert data['project']['phases'][index]['is_active'] == phase['is_active']
 
 
 # Test that a user cannot PATCH a hearing without the translation

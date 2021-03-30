@@ -14,7 +14,7 @@ from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
 from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
-                  'geojson', 'images', 'label', 'organization']
+                  'geojson', 'map_comment_text','images', 'label', 'organization']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):

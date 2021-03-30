@@ -6,6 +6,7 @@ django-munigeo<0.3
 django-reversion
 django-cors-headers
 django-filter
+distro
 pillow
 psycopg2
 easy-thumbnails
@@ -29,3 +30,5 @@ django-parler
 langdetect
 sentry_sdk
 whitenoise
+social-auth-app-django
+pluggy>0.12.0

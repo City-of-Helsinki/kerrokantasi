@@ -102,26 +102,32 @@ INTERNAL_IPS=127.0.0.1
 # reports. It is used to separate deployments within Sentry UI
 SENTRY_ENVIRONMENT=local-development-unconfigured
 
-# Kerrokantasi uses JWT tokens for authentication. This settings Specifies
-# the value that must be present in the "aud"-key of the token presented
-# by a client when making an authenticated request. Kerrokantasi uses this
-# key for verifying that the token was meant for accessing this particular
-# Kerrokantasi instance (the tokens are signed, see below).
-# Does not correspond to standard Django setting
-TOKEN_AUTH_ACCEPTED_AUDIENCE=string-identifying-this-kerrokantasi-instance
-
-# This key is used by Kerrokantasi to verify the JWT token is from trusted
-# Identity Provider (OpenID terminology). The provider must have signed
-# the JWT TOKEN using this shared secret
-# Does not correspond to standard Django setting
-TOKEN_AUTH_SHARED_SECRET=abcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghacbdefgabcdefghacbdefg
-
 # Cookie prefix is added to the every cookie set by Kerrokantasi. These are
 # mostly used when accessing the internal Django admin site. This applies
 # to django session cookie and csrf cookie. The prefix is a convenience
 # thing to make it easy find the cookies.
 # Django setting: prepended to CSRF_COOKIE_NAME and SESSION_COOKIE_NAME
 COOKIE_PREFIX=kkdev
+
+# Settings needed to configure django-helusers to use Tunnistamo as a auth
+# provider and API authentication. More information can be found from Github
+# https://github.com/City-of-Helsinki/django-helusers
+# But in short these configuration can be found from Tunnistamo or are related
+# to Tunnistamo instance.
+OIDC_API_AUDIENCE=https://auth.example.com/kerrokantasi
+OIDC_API_SCOPE_PREFIX=kerrokantasi
+OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=True
+OIDC_API_ISSUER=https://tunnistamo.example.com/openid
+OIDC_API_AUTHORIZATION_FIELD=https://auth.example.com
+
+SOCIAL_AUTH_TUNNISTAMO_KEY=https://auth.example.com/kerrokantasi
+SOCIAL_AUTH_TUNNISTAMO_SECRET=your-tunnistamo-secret
+SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=https://tunnistamo.example.com/openid
+
+# Comma separated list of authentication providers which provide strong
+# authentication e.g. Suomi.fi. User's auth provider name comes from oidc
+# api token's amr (authentication methods references) field.
+STRONG_AUTH_PROVIDERS=
 
 # URL prefix for this Kerrokantasi installation. This can be used when
 # Kerrokantasi is made available at a sub-path of domain

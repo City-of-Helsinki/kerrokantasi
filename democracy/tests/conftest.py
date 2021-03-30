@@ -6,7 +6,7 @@ from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from rest_framework.test import APIClient
 
-from democracy.enums import Commenting, InitialSectionType
+from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
 from democracy.factories.hearing import HearingFactory, LabelFactory
 from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionFile, SectionType, Organization
 from democracy.tests.utils import FILES, assert_ascending_sequence, create_default_images, create_default_files, get_file_path
@@ -70,6 +70,7 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
     Fixture for a "default" hearing with three sections (one main, two other sections).
     All objects will have the 3 default images attached.
     All objects will allow open commenting.
+    All objects will have commenting_map_tools all
     """
     hearing = Hearing.objects.create(
         title='Default test hearing One',
@@ -85,7 +86,8 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
             abstract='Section %d abstract' % x,
             hearing=hearing,
             type=SectionType.objects.get(identifier=section_type),
-            commenting=Commenting.OPEN
+            commenting=Commenting.OPEN,
+            commenting_map_tools=CommentingMapTools.ALL
         )
         create_default_images(section)
         create_default_files(section)
@@ -95,6 +97,63 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
+    hearing.contact_persons.add(contact_person)
+
+    return hearing
+
+@pytest.fixture()
+def hearing_without_comments(contact_person, default_organization, default_project):
+    """
+    Fixture for a simple hearing with one main section and no existing comments.
+    Commenting is open for everyone.
+    """
+    hearing = Hearing.objects.create(
+        title='Simple hearing without comments',
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        slug='simple-hearing-slug',
+        organization=default_organization,
+        project_phase=default_project.phases.all()[0],
+    )
+
+    section_type = InitialSectionType.MAIN
+    Section.objects.create(
+        abstract='Section abstract for simple hearing',
+        hearing=hearing,
+        type=SectionType.objects.get(identifier=section_type),
+        commenting=Commenting.OPEN
+    )
+
+    assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
+    hearing.contact_persons.add(contact_person)
+
+    return hearing
+
+
+@pytest.fixture()
+def strong_auth_hearing(john_doe, contact_person, default_organization, default_project):
+    """
+    Fixture for a "strong auth requiring" hearing with one main section.
+    Commenting requires strong auth.
+    """
+    hearing = Hearing.objects.create(
+        title='Strong auth test hearing',
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        slug='strong-auth-hearing-slug',
+        organization=default_organization,
+        project_phase=default_project.phases.all()[0],
+    )
+
+    section_type = InitialSectionType.MAIN
+    Section.objects.create(
+        abstract='Section abstract for strong auth',
+        hearing=hearing,
+        type=SectionType.objects.get(identifier=section_type),
+        commenting=Commenting.STRONG
+    )
+
+    assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
     hearing.contact_persons.add(contact_person)
 
     return hearing
@@ -179,6 +238,28 @@ def jane_doe_api_client(jane_doe):
     api_client.user = jane_doe
     return api_client
 
+@pytest.fixture()
+def stark_doe():
+    """
+    Stark Doe is another average registered user.
+    """
+    user = get_user_model().objects.filter(username="stark_doe").first()
+    if not user:  # pragma: no branch
+        user = get_user_model().objects.create_user("stark_doe", "stark@example.com", password="password")
+    return user
+
+
+@pytest.fixture()
+def stark_doe_api_client(stark_doe):
+    """
+    Stark Doe is another average registered user; this is his API client.
+    Stark uses strong authentication.
+    """
+    api_client = APIClient()
+    api_client.force_authenticate(user=stark_doe)
+    api_client.user = stark_doe
+    api_client.user.has_strong_auth = True
+    return api_client
 
 @pytest.fixture()
 def john_smith(default_organization):

@@ -4,54 +4,153 @@
 #
 #    pip-compile requirements.in
 #
-babel==2.8.0              # via -r requirements.in
-certifi==2020.4.5.1       # via requests, sentry-sdk
-chardet==3.0.4            # via requests
-django-autoslug==1.9.7    # via -r requirements.in
-django-ckeditor==5.9.0    # via -r requirements.in
-django-cors-headers==3.2.1  # via -r requirements.in
-django-enumfields==2.0.0  # via -r requirements.in
-django-environ==0.4.5     # via -r requirements.in
-django-extensions==2.2.9  # via -r requirements.in
-django-filter==2.2.0      # via -r requirements.in
-django-geojson==3.0.0     # via -r requirements.in
-django-helusers==0.5.6    # via -r requirements.in
-django-js-asset==1.2.2    # via django-ckeditor, django-mptt
-django-leaflet==0.26.0    # via -r requirements.in
-django-modeltranslation==0.15  # via django-munigeo
-django-mptt==0.11.0       # via django-munigeo
-django-munigeo==0.2.26    # via -r requirements.in
-django-nested-admin==3.3.0  # via -r requirements.in
-django-parler==2.0.1      # via -r requirements.in
-django-reversion==3.0.7   # via -r requirements.in
-django-sendfile==0.3.11   # via -r requirements.in
-django==2.2.18            # via -r requirements.in, django-cors-headers, django-filter, django-geojson, django-helusers, django-leaflet, django-modeltranslation, django-mptt, django-munigeo, django-reversion, django-sendfile, drf-nested-routers, drf-oidc-auth, easy-thumbnails, jsonfield
-djangorestframework-jwt==1.11.0  # via -r requirements.in
-djangorestframework==3.9.4  # via -r requirements.in, drf-nested-routers, drf-oidc-auth
-drf-nested-routers==0.91  # via -r requirements.in
-drf-oidc-auth==0.10.0     # via django-helusers
-easy-thumbnails==2.7      # via -r requirements.in
-ecdsa==0.15               # via python-jose
-future==0.18.2            # via pyjwkest
-idna==2.9                 # via requests
-jsonfield==3.1.0          # via -r requirements.in
-langdetect==1.0.8         # via -r requirements.in
-pillow==8.1.1             # via -r requirements.in, easy-thumbnails
-psycopg2==2.8.5           # via -r requirements.in
-pyasn1==0.4.8             # via python-jose, rsa
-pycryptodomex==3.9.7      # via pyjwkest
-pyjwkest==1.4.2           # via drf-oidc-auth
-pyjwt==1.7.1              # via -r requirements.in, djangorestframework-jwt
-python-jose==3.1.0        # via django-helusers
-python-monkey-business==1.0.0  # via django-nested-admin
-pytz==2020.1              # via -r requirements.in, babel, django
-pyyaml==5.3.1             # via django-munigeo
-requests-cache==0.5.2     # via django-munigeo
-requests==2.23.0          # via django-helusers, django-munigeo, pyjwkest, requests-cache
-rsa==4.0                  # via python-jose
-sentry-sdk==0.14.4        # via -r requirements.in
-six==1.14.0               # via django-extensions, django-geojson, django-modeltranslation, django-munigeo, django-nested-admin, django-parler, ecdsa, langdetect, pyjwkest, python-jose, python-monkey-business
-sqlparse==0.3.1           # via django
-urllib3==1.25.9           # via requests, sentry-sdk
-whitenoise==5.2.0         # via -r requirements.in
-xlsxwriter==1.2.8         # via -r requirements.in
+babel==2.8.0
+    # via -r requirements.in
+certifi==2020.4.5.1
+    # via
+    #   requests
+    #   sentry-sdk
+chardet==3.0.4
+    # via requests
+django-autoslug==1.9.7
+    # via -r requirements.in
+django-ckeditor==5.9.0
+    # via -r requirements.in
+django-cors-headers==3.2.1
+    # via -r requirements.in
+django-enumfields==2.0.0
+    # via -r requirements.in
+django-environ==0.4.5
+    # via -r requirements.in
+django-extensions==2.2.9
+    # via -r requirements.in
+django-filter==2.2.0
+    # via -r requirements.in
+django-geojson==3.0.0
+    # via -r requirements.in
+django-helusers==0.5.6
+    # via -r requirements.in
+django-js-asset==1.2.2
+    # via
+    #   django-ckeditor
+    #   django-mptt
+django-leaflet==0.26.0
+    # via -r requirements.in
+django-modeltranslation==0.15
+    # via django-munigeo
+django-mptt==0.11.0
+    # via django-munigeo
+django-munigeo==0.2.26
+    # via -r requirements.in
+django-nested-admin==3.3.0
+    # via -r requirements.in
+django-parler==2.0.1
+    # via -r requirements.in
+django-reversion==3.0.7
+    # via -r requirements.in
+django-sendfile==0.3.11
+    # via -r requirements.in
+django==2.2.18
+    # via
+    #   -r requirements.in
+    #   django-cors-headers
+    #   django-filter
+    #   django-geojson
+    #   django-helusers
+    #   django-leaflet
+    #   django-modeltranslation
+    #   django-mptt
+    #   django-munigeo
+    #   django-reversion
+    #   django-sendfile
+    #   drf-nested-routers
+    #   drf-oidc-auth
+    #   easy-thumbnails
+    #   jsonfield
+djangorestframework-jwt==1.11.0
+    # via -r requirements.in
+djangorestframework==3.9.4
+    # via
+    #   -r requirements.in
+    #   drf-nested-routers
+    #   drf-oidc-auth
+drf-nested-routers==0.91
+    # via -r requirements.in
+drf-oidc-auth==0.10.0
+    # via django-helusers
+easy-thumbnails==2.7
+    # via -r requirements.in
+ecdsa==0.15
+    # via python-jose
+future==0.18.2
+    # via pyjwkest
+idna==2.9
+    # via requests
+jsonfield==3.1.0
+    # via -r requirements.in
+langdetect==1.0.8
+    # via -r requirements.in
+pillow==8.1.1
+    # via
+    #   -r requirements.in
+    #   easy-thumbnails
+psycopg2==2.8.5
+    # via -r requirements.in
+pyasn1==0.4.8
+    # via
+    #   python-jose
+    #   rsa
+pycryptodomex==3.9.7
+    # via pyjwkest
+pyjwkest==1.4.2
+    # via drf-oidc-auth
+pyjwt==1.7.1
+    # via
+    #   -r requirements.in
+    #   djangorestframework-jwt
+python-jose==3.1.0
+    # via django-helusers
+python-monkey-business==1.0.0
+    # via django-nested-admin
+pytz==2020.1
+    # via
+    #   -r requirements.in
+    #   babel
+    #   django
+pyyaml==5.4
+    # via django-munigeo
+requests-cache==0.5.2
+    # via django-munigeo
+requests==2.23.0
+    # via
+    #   django-helusers
+    #   django-munigeo
+    #   pyjwkest
+    #   requests-cache
+rsa==4.0
+    # via python-jose
+sentry-sdk==0.14.4
+    # via -r requirements.in
+six==1.14.0
+    # via
+    #   django-extensions
+    #   django-geojson
+    #   django-modeltranslation
+    #   django-munigeo
+    #   django-nested-admin
+    #   django-parler
+    #   ecdsa
+    #   langdetect
+    #   pyjwkest
+    #   python-jose
+    #   python-monkey-business
+sqlparse==0.3.1
+    # via django
+urllib3==1.25.9
+    # via
+    #   requests
+    #   sentry-sdk
+whitenoise==5.2.0
+    # via -r requirements.in
+xlsxwriter==1.2.8
+    # via -r requirements.in

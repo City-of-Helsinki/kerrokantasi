@@ -33,7 +33,7 @@ django-sendfile==0.3.11   # via -r requirements.in
 django==2.2.20            # via -r requirements.in, django-cors-headers, django-filter, django-geojson, django-helusers, django-leaflet, django-modeltranslation, django-mptt, django-munigeo, django-reversion, django-sendfile, djangorestframework, drf-nested-routers, drf-oidc-auth, easy-thumbnails, jsonfield
 djangorestframework==3.12.4  # via -r requirements.in, drf-nested-routers, drf-oidc-auth
 drf-nested-routers==0.93.3  # via -r requirements.in
-drf-oidc-auth==1.0.0      # via django-helusers
+drf-oidc-auth==0.10.0      # via django-helusers
 easy-thumbnails==2.7.1    # via -r requirements.in
 ecdsa==0.14.1             # via python-jose
 idna==2.10                # via requests

@@ -12,7 +12,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, Project
+from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, Project, Organization
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
@@ -165,6 +165,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         sections_data = validated_data.pop('sections')
         project_data = validated_data.pop('project', None)
         validated_data['organization'] = self.context['request'].user.get_default_organization()
+        validated_data['created_by_id'] = self.context['request'].user.id
         hearing = super().create(validated_data)
         self._create_or_update_sections(hearing, sections_data, force_create=True)
         self._create_or_update_project(hearing, project_data)
@@ -188,6 +189,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
         sections_data = validated_data.pop('sections')
         project_data = validated_data.pop('project', None)
+        validated_data['modified_by_id'] = self.context['request'].user.id
         hearing = super().update(instance, validated_data)
         sections = self._create_or_update_sections(hearing, sections_data)
         self._create_or_update_project(hearing, project_data)
@@ -410,6 +412,20 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     def filter_queryset(self, queryset):
         next_closing = self.request.query_params.get('next_closing', None)
         open = self.request.query_params.get('open', None)
+        created_by = self.request.query_params.get('created_by', None)
+
+        if created_by is not None and self.request.user:
+            if created_by.lower() == 'me':
+                queryset = queryset.filter(created_by_id=self.request.user.id)
+            else:
+                try:
+                    organizationObject = Organization.objects.get(name=created_by)
+                except Organization.DoesNotExist:
+                    organizationObject = None
+                
+                if organizationObject is not None:
+                    queryset = queryset.filter(organization=organizationObject.id)
+
         if next_closing is not None:
             # sliced querysets cannot be filtered or ordered further
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]

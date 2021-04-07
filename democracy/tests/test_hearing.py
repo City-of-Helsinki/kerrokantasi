@@ -264,6 +264,27 @@ def create_hearings(n, organization=None):
         )
     return hearings
 
+def create_hearings_created_by(n, organization=None, user=None):
+    '''
+    Existing hearings are not deleted as this function is used multiple
+    times in a specific test with multiple users/organzations.
+    '''
+    hearings = []
+
+    # Depending on the database backend, created_at dates (which are used for ordering)
+    # may be truncated to the closest second, so we purposefully backdate these
+    # to ensure ordering on all platforms.
+    for i in range(n):
+        hearings.append(
+            Hearing.objects.create(
+                title='Test purpose created hearing title %s' % (i + 1),
+                created_at=now() - datetime.timedelta(seconds=1 + (n - i)),
+                organization=organization,
+                created_by_id=user.id
+            )
+        )
+    return hearings
+
 
 @pytest.mark.django_db
 def test_list_all_hearings_no_objects(api_client):
@@ -323,6 +344,81 @@ def test_filter_hearings_by_title(api_client):
     data = get_data_from_response(response)
     assert len(data['results']) == 1
     assert data['results'][0]['title'][default_lang_code] == hearings[0].title
+
+@pytest.mark.django_db
+def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_doe_api_client, stark_doe_api_client):
+    # Retrieves hearings that are created by the user
+    main_organization = Organization.objects.create(name='main organization')
+
+    second_organization = Organization.objects.create(name='second organization')
+
+    # John is a member of the main organization
+    john_smith_api_client.user.admin_organizations.add(main_organization)
+    # Jane is a member of the main organization
+    jane_doe_api_client.user.admin_organizations.add(main_organization)
+    # Stark is a member of the second organization
+    stark_doe_api_client.user.admin_organizations.add(second_organization)
+
+    '''Create hearings'''
+    # Jane creates 6 hearings
+    jane_hearings = create_hearings_created_by(6,main_organization, jane_doe_api_client.user)
+    # John creates 3 hearings
+    john_hearings = create_hearings_created_by(3,main_organization, john_smith_api_client.user)
+    # Stark creates 1 hearing
+    stark_hearings = create_hearings_created_by(1,second_organization, stark_doe_api_client.user)
+
+    
+    '''Filtering with me'''
+    # Jane should get 6 results when filtering with 'me'
+    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": "me"})
+    jane_data = get_data_from_response(jane_response)
+    assert len(jane_data['results']) == 6
+
+    # John should get 3 results when filtering with 'me'
+    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": "me"})
+    john_data = get_data_from_response(john_response)
+    assert len(john_data['results']) == 3
+
+    # Stark should get 1 result when filtering with 'me'
+    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": "me"})
+    stark_data = get_data_from_response(stark_response)
+    assert len(stark_data['results']) == 1
+
+
+    '''Filtering with main_organization.name'''
+    # Jane should get 9 results when filtering with main_organization id
+    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    jane_data = get_data_from_response(jane_response)
+    assert len(jane_data['results']) == 9
+
+    # John should get 9 results when filtering with main_organization id
+    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    john_data = get_data_from_response(john_response)
+    assert len(john_data['results']) == 9
+
+    # Stark should get 9 results when filtering with main_organization id
+    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    stark_data = get_data_from_response(stark_response)
+    assert len(stark_data['results']) == 9
+
+
+    '''Filtering with second_organization.name'''
+    # Jane should get 1 result when filtering with second_organization id
+    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    jane_data = get_data_from_response(jane_response)
+    assert len(jane_data['results']) == 1
+
+    # John should get 1 result when filtering with second_organization id
+    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    john_data = get_data_from_response(john_response)
+    assert len(john_data['results']) == 1
+
+    # Stark should get 1 result when filtering with second_organization id
+    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    stark_data = get_data_from_response(stark_response)
+    assert len(stark_data['results']) == 1
+    
+    
 
 
 @pytest.mark.parametrize('plugin_fullscreen', [

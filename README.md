@@ -56,7 +56,8 @@ configuring the dev environment with a local file.
 
 ### Production
 
-Production setup will require a separate PostGIS database server (see "Prepare database") below. Once you have a
+Production setup will require a separate PostGIS database server (see "Prepare database" below) and file storage for
+uploaded files. Once you have a
 PostGIS database server running,
 
 ```

@@ -36,8 +36,11 @@ git clone https://github.com/City-of-Helsinki/kerrokantasi.git
 cd kerrokantasi
 ```
 
+Uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/master/docker-compose.yml#L29 to activate
+configuring the dev environment with a local file.
+
 Copy the development config file example `config_dev.env.example`
-to `config_dev.env` (read "Configuration" below):
+to `config_dev.env` (read [Configuration](#configuration) below):
 ```
 cp config_dev.env.example config_dev.env
 docker-compose up dev
@@ -51,12 +54,9 @@ Run tests with
 docker-compose run dev test
 ```
 
-Also, uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/master/docker-compose.yml#L29 to activate
-configuring the dev environment with a local file.
-
 ### Production
 
-Production setup will require a separate PostGIS database server (see "Prepare database" below) and file storage for
+Production setup will require a separate PostGIS database server (see [Prepare database](#prepare-database) below) and file storage for
 uploaded files. Once you have a
 PostGIS database server running,
 
@@ -65,7 +65,7 @@ docker run kerrokantasi
 ```
 
 In production, configuration is done with corresponding environment variables. See `config_dev.env.example`
-for the environment variables needed to set in production and read "Configuration" below.
+for the environment variables needed to set in production and read [Configuration](#configuration) below.
 
 Local development quickstart
 ----------------------

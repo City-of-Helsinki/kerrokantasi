@@ -26,7 +26,7 @@ services:
             - WAIT_FOR_IT_ADDRESS=postgis:5432
         # Uncomment this if you want to configure development instance with the external file
         # env_file:
-        #     - config_dev.env
+        #     - config_dev.toml
         volumes:
             - .:/kerrokantasi:cached
             - $HOME/maintenance:/maintenance

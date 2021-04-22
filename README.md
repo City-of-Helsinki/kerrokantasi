@@ -24,7 +24,47 @@ Kerro kantasi has been designed to allow for anonymous participation in hearings
 
 Authentication is handled using JWT tokens. All API requests requiring a login must include `Authorization` header containing a signed JWT token. A request including a JWT token with valid signature is processed with the permissions of the user indicated in the token. If the user does not yet exist, an account is created for them. This means that Kerro kantasi is only loosely coupled to the authentication provider.
 
-Development quickstart
+Docker Installation
+-------------------
+
+### Development
+
+The easiest way to develop is
+
+```
+git clone https://github.com/City-of-Helsinki/kerrokantasi.git
+cd kerrokantasi
+```
+
+Copy the development config file example `config_dev.env.example`
+to `config_dev.env` (feel free to edit the configuration file if you have any settings you wish to change):
+```
+cp config_dev.env.example config_dev.env
+docker-compose up dev
+```
+
+and open your browser to http://127.0.0.1:8000/.
+
+Run tests with 
+
+```
+docker-compose run dev test
+```
+
+Also, uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/master/docker-compose.yml#L29 to activate
+configuring the dev environment with a local file.
+
+### Production
+
+Correspondingly, production container can be brought up with
+
+```
+docker-compose run deploy
+```
+
+In production, configuration is done with corresponding environment variables.
+
+Local development quickstart
 ----------------------
 0. Check you have "Prequisites" listed below
 1. Create database `kerrokantasi` with PostGIS (see "Prepare database" below)

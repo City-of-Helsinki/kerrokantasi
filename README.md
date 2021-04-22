@@ -39,10 +39,10 @@ cd kerrokantasi
 Uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/master/docker-compose.yml#L29 to activate
 configuring the dev environment with a local file.
 
-Copy the development config file example `config_dev.env.example`
-to `config_dev.env` (read [Configuration](#configuration) below):
+Copy the development config file example `config_dev.toml.example`
+to `config_dev.toml` (read [Configuration](#configuration) below):
 ```
-cp config_dev.env.example config_dev.env
+cp config_dev.toml.example config_dev.toml
 docker-compose up dev
 ```
 

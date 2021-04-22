@@ -37,7 +37,7 @@ cd kerrokantasi
 ```
 
 Copy the development config file example `config_dev.env.example`
-to `config_dev.env` (feel free to edit the configuration file if you have any settings you wish to change):
+to `config_dev.env` (read "Configuration" below):
 ```
 cp config_dev.env.example config_dev.env
 docker-compose up dev
@@ -65,7 +65,7 @@ docker run kerrokantasi
 ```
 
 In production, configuration is done with corresponding environment variables. See `config_dev.env.example`
-for the environment variables needed to set in production.
+for the environment variables needed to set in production and read "Configuration" below.
 
 Local development quickstart
 ----------------------

@@ -56,13 +56,15 @@ configuring the dev environment with a local file.
 
 ### Production
 
-Correspondingly, production container can be brought up with
+Production setup will require a separate PostGIS database server (see "Prepare database") below. Once you have a
+PostGIS database server running,
 
 ```
-docker-compose run deploy
+docker run kerrokantasi
 ```
 
-In production, configuration is done with corresponding environment variables.
+In production, configuration is done with corresponding environment variables. See `config_dev.env.example`
+for the environment variables needed to set in production.
 
 Local development quickstart
 ----------------------

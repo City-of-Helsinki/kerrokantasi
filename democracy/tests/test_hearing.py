@@ -264,6 +264,27 @@ def create_hearings(n, organization=None):
         )
     return hearings
 
+def create_hearings_created_by(n, organization=None, user=None):
+    '''
+    Existing hearings are not deleted as this function is used multiple
+    times in a specific test with multiple users/organzations.
+    '''
+    hearings = []
+
+    # Depending on the database backend, created_at dates (which are used for ordering)
+    # may be truncated to the closest second, so we purposefully backdate these
+    # to ensure ordering on all platforms.
+    for i in range(n):
+        hearings.append(
+            Hearing.objects.create(
+                title='Test purpose created hearing title %s' % (i + 1),
+                created_at=now() - datetime.timedelta(seconds=1 + (n - i)),
+                organization=organization,
+                created_by_id=user.id
+            )
+        )
+    return hearings
+
 
 @pytest.mark.django_db
 def test_list_all_hearings_no_objects(api_client):
@@ -323,6 +344,81 @@ def test_filter_hearings_by_title(api_client):
     data = get_data_from_response(response)
     assert len(data['results']) == 1
     assert data['results'][0]['title'][default_lang_code] == hearings[0].title
+
+@pytest.mark.django_db
+def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_doe_api_client, stark_doe_api_client):
+    # Retrieves hearings that are created by the user
+    main_organization = Organization.objects.create(name='main organization')
+
+    second_organization = Organization.objects.create(name='second organization')
+
+    # John is a member of the main organization
+    john_smith_api_client.user.admin_organizations.add(main_organization)
+    # Jane is a member of the main organization
+    jane_doe_api_client.user.admin_organizations.add(main_organization)
+    # Stark is a member of the second organization
+    stark_doe_api_client.user.admin_organizations.add(second_organization)
+
+    '''Create hearings'''
+    # Jane creates 6 hearings
+    jane_hearings = create_hearings_created_by(6,main_organization, jane_doe_api_client.user)
+    # John creates 3 hearings
+    john_hearings = create_hearings_created_by(3,main_organization, john_smith_api_client.user)
+    # Stark creates 1 hearing
+    stark_hearings = create_hearings_created_by(1,second_organization, stark_doe_api_client.user)
+
+    
+    '''Filtering with me'''
+    # Jane should get 6 results when filtering with 'me'
+    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": "me"})
+    jane_data = get_data_from_response(jane_response)
+    assert len(jane_data['results']) == 6
+
+    # John should get 3 results when filtering with 'me'
+    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": "me"})
+    john_data = get_data_from_response(john_response)
+    assert len(john_data['results']) == 3
+
+    # Stark should get 1 result when filtering with 'me'
+    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": "me"})
+    stark_data = get_data_from_response(stark_response)
+    assert len(stark_data['results']) == 1
+
+
+    '''Filtering with main_organization.name'''
+    # Jane should get 9 results when filtering with main_organization id
+    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    jane_data = get_data_from_response(jane_response)
+    assert len(jane_data['results']) == 9
+
+    # John should get 9 results when filtering with main_organization id
+    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    john_data = get_data_from_response(john_response)
+    assert len(john_data['results']) == 9
+
+    # Stark should get 9 results when filtering with main_organization id
+    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    stark_data = get_data_from_response(stark_response)
+    assert len(stark_data['results']) == 9
+
+
+    '''Filtering with second_organization.name'''
+    # Jane should get 1 result when filtering with second_organization id
+    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    jane_data = get_data_from_response(jane_response)
+    assert len(jane_data['results']) == 1
+
+    # John should get 1 result when filtering with second_organization id
+    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    john_data = get_data_from_response(john_response)
+    assert len(john_data['results']) == 1
+
+    # Stark should get 1 result when filtering with second_organization id
+    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    stark_data = get_data_from_response(stark_response)
+    assert len(stark_data['results']) == 1
+    
+    
 
 
 @pytest.mark.parametrize('plugin_fullscreen', [
@@ -618,7 +714,7 @@ def test_hearing_geojson_feature(request, john_smith_api_client, valid_hearing_j
     hearing_geometry = json.loads(hearing.geometry.geojson)
     assert hearing.geojson == feature
     assert hearing_data['geojson'] == feature
-    assert hearing_data['geojson']['geometry'] == hearing_geometry
+    assert hearing_data['geojson']['geometry'] == hearing_geometry['geometries'][0]
     geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {'format': 'geojson'}))
     assert geojson_data['id'] == hearing.pk
     assert_common_keys_equal(geojson_data['geometry'], feature['geometry'])
@@ -646,7 +742,7 @@ def test_hearing_geojson_geometry_only(request, john_smith_api_client, valid_hea
     hearing_geometry = json.loads(hearing.geometry.geojson)
     assert hearing.geojson == geojson_geometry
     assert hearing_data['geojson'] == geojson_geometry
-    assert hearing_data['geojson'] == hearing_geometry
+    assert hearing_data['geojson'] == hearing_geometry['geometries'][0]
     geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {'format': 'geojson'}))
     assert geojson_data['id'] == hearing.pk
     assert_common_keys_equal(geojson_data['geometry'], geojson_geometry)
@@ -654,11 +750,30 @@ def test_hearing_geojson_geometry_only(request, john_smith_api_client, valid_hea
     map_data = get_data_from_response(john_smith_api_client.get(list_endpoint + 'map/'))
     assert map_data['results'][0]['geojson'] == geojson_geometry
 
+@pytest.mark.django_db
+@pytest.mark.parametrize('geometry_fixture_name', [
+    'geojson_featurecollection',
+])
+def test_hearing_geojson_featurecollection_only(request, john_smith_api_client, valid_hearing_json, geometry_fixture_name):
+    geojson_geometry = request.getfixturevalue(geometry_fixture_name)
+    valid_hearing_json['geojson'] = geojson_geometry
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
+    hearing_data = get_data_from_response(response, status_code=201)
+    hearing = Hearing.objects.get(pk=hearing_data['id'])
+    hearing_geometry = json.loads(hearing.geometry.geojson)
+    assert hearing.geojson == geojson_geometry
+    assert hearing_data['geojson'] == geojson_geometry
+    assert hearing_data['geojson']['features'][0]['geometry'] == hearing_geometry['geometries'][0]
+    geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {'format': 'geojson'}))
+    assert geojson_data['id'] == hearing.pk
+    assert_common_keys_equal(geojson_data, geojson_geometry)
+    assert_common_keys_equal(geojson_data['properties'], hearing_data)
+    map_data = get_data_from_response(john_smith_api_client.get(list_endpoint + 'map/'))
+    assert map_data['results'][0]['geojson'] == geojson_geometry
 
 @pytest.mark.django_db
 @pytest.mark.parametrize('geojson_fixture_name', [
     'geojson_geometrycollection',
-    'geojson_featurecollection',
 ])
 def test_hearing_geojson_unsupported_types(request, john_smith_api_client, valid_hearing_json, geojson_fixture_name):
     geojson = request.getfixturevalue(geojson_fixture_name)
@@ -666,48 +781,6 @@ def test_hearing_geojson_unsupported_types(request, john_smith_api_client, valid
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
     data = get_data_from_response(response, status_code=400)
     assert data['geojson'][0].startswith('Invalid geojson format. Type is not supported.')
-
-
-@pytest.mark.django_db
-def test_hearing_bbox_filtering(
-        request, api_client, random_hearing, geojson_feature,
-        bbox_containing_feature, bbox_containing_geometries, bbox_all):
-    random_hearing.geojson = geojson_feature
-    random_hearing.save()
-    containing_query = '?bbox=%s' % bbox_containing_feature
-    not_containing_query = '?bbox=%s' % bbox_containing_geometries
-    bbox_all_query = '?bbox=%s' % bbox_all
-    data = get_data_from_response(api_client.get(list_endpoint + containing_query))
-    assert len(data['results']) == 1
-    assert data['results'][0]['id'] == random_hearing.pk
-    data = get_data_from_response(api_client.get(list_endpoint + not_containing_query))
-    assert len(data['results']) == 0
-    data = get_data_from_response(api_client.get(list_endpoint + bbox_all_query))
-    assert len(data['results']) == 1
-    assert data['results'][0]['id'] == random_hearing.pk
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize('geometry_fixture_name', [
-    'geojson_point',
-    'geojson_multipoint',
-    'geojson_polygon',
-    'geojson_polygon_with_hole',
-    'geojson_multipolygon',
-    'geojson_linestring',
-    'geojson_multilinestring',
-])
-def test_hearing_bbox_filtering_geometries(
-        request, api_client, random_hearing,
-        geometry_fixture_name, bbox_containing_geometries):
-    geometry = request.getfixturevalue(geometry_fixture_name)
-    feature = get_feature_with_geometry(geometry)
-    random_hearing.geojson = feature
-    random_hearing.save()
-    bbox_query = '?bbox=%s' % bbox_containing_geometries
-    data = get_data_from_response(api_client.get(list_endpoint + bbox_query))
-    assert len(data['results']) == 1
-    assert data['results'][0]['id'] == random_hearing.pk
 
 
 @pytest.mark.django_db

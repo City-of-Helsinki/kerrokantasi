@@ -66,6 +66,7 @@ env = environ.Env(
     SOCIAL_AUTH_TUNNISTAMO_SECRET=(str, ''),
     SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
     STRONG_AUTH_PROVIDERS=(list, []),
+    LOGOUT_REDIRECT_URL=(str, '/')
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -284,6 +285,6 @@ DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')
 
 LOGIN_URL = '/'
 LOGOUT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = env('LOGOUT_REDIRECT_URL')
 
 SITE_ID=1

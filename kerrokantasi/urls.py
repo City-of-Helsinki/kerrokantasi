@@ -1,6 +1,8 @@
 from nested_admin import urls as nested_admin_urls
 from django.conf import settings
 from django.conf.urls import include, url
+from django.urls import path
+from django.views.generic.base import RedirectView
 from django.conf.urls.static import static
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.cache import never_cache
@@ -18,6 +20,7 @@ urlpatterns = [
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
     url(r'^upload/', staff_member_required(upload), name='ckeditor_upload'),
     url(r'^browse/', never_cache(staff_member_required(browse)), name='ckeditor_browse'),
+    path('', RedirectView.as_view(url='v1/'))
 ]
 
 if settings.DEBUG:

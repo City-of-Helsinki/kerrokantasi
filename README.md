@@ -24,7 +24,50 @@ Kerro kantasi has been designed to allow for anonymous participation in hearings
 
 Authentication is handled using JWT tokens. All API requests requiring a login must include `Authorization` header containing a signed JWT token. A request including a JWT token with valid signature is processed with the permissions of the user indicated in the token. If the user does not yet exist, an account is created for them. This means that Kerro kantasi is only loosely coupled to the authentication provider.
 
-Development quickstart
+Docker Installation
+-------------------
+
+### Development
+
+The easiest way to develop is
+
+```
+git clone https://github.com/City-of-Helsinki/kerrokantasi.git
+cd kerrokantasi
+```
+
+Uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/master/docker-compose.yml#L29 to activate
+configuring the dev environment with a local file.
+
+Copy the development config file example `config_dev.toml.example`
+to `config_dev.toml` (read [Configuration](#configuration) below):
+```
+cp config_dev.toml.example config_dev.toml
+docker-compose up dev
+```
+
+and open your browser to http://127.0.0.1:8000/.
+
+Run tests with 
+
+```
+docker-compose run dev test
+```
+
+### Production
+
+Production setup will require a separate PostGIS database server (see [Prepare database](#prepare-database) below) and file storage for
+uploaded files. Once you have a
+PostGIS database server running,
+
+```
+docker run kerrokantasi
+```
+
+In production, configuration is done with corresponding environment variables. See `config_dev.env.example`
+for the environment variables needed to set in production and read [Configuration](#configuration) below.
+
+Local development quickstart
 ----------------------
 0. Check you have "Prequisites" listed below
 1. Create database `kerrokantasi` with PostGIS (see "Prepare database" below)

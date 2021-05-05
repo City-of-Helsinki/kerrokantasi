@@ -131,7 +131,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     creator_name = serializers.SerializerMethodField()
 
     class Meta:
-        model = SectionComment        
+        model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
                   'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name'] + COMMENT_FIELDS
 
@@ -152,13 +152,14 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return obj.created_by.get_full_name()
         else:
             return 'Anonymous'
-    
+
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
         if not self.context['request'].user.is_staff and not self.context['request'].user.is_superuser:
             del data['creator_name']
 
         return data
+
 
 class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment

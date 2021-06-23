@@ -8,6 +8,7 @@ from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 
 from democracy.models import SectionComment, Label, Section, SectionPoll, SectionPollOption, SectionPollAnswer
+from democracy.enums import Commenting
 from democracy.models.section import CommentImage
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
 from democracy.views.label import LabelSerializer
@@ -178,12 +179,15 @@ class SectionCommentViewSet(BaseCommentViewSet):
     def _check_can_vote(self, answer):
         if not answer['answers']:
             return None
-        poll_answers = SectionPollAnswer.objects.filter(
-            option__poll=answer['question'],
-            comment__created_by=self.request.user
-        )
-        if poll_answers:
-            raise ValidationError({'answers': [_('You have already voted.')]})
+        
+        # Authenticated users can only have one answer per poll.
+        if self.request.user.is_authenticated:
+            poll_answers = SectionPollAnswer.objects.filter(
+                option__poll=answer['question'],
+                comment__created_by=self.request.user
+            )
+            if poll_answers:
+                raise ValidationError({'answers': [_('You have already voted.')]})
 
     def create_related(self, request, instance=None, *args, **kwargs):
         answers = request.data.pop('answers', [])
@@ -270,9 +274,15 @@ class SectionCommentViewSet(BaseCommentViewSet):
             raise ValidationError({'section': [
                 _('The comment section has to be specified in URL or by JSON section or comment field.')
             ]})
-        if len(request.data.get('answers', [])) > 0 and not request.user.is_authenticated:
+
+        '''
+        Unauthenticated user can answer polls in hearings that have open commenting.
+        The following if statement should never be true as unauthenticated users can't post comments if 
+        the hearing doesn't have open commenting.
+        '''
+        if len(request.data.get('answers', [])) > 0 and not request.user.is_authenticated and parent.commenting != Commenting.OPEN:
             return response.Response(
-                {'status': 'Unauthenticated users cannot answer polls.'},
+                {'status': 'Unauthenticated users cannot answer polls in hearings that do not have open commenting.'},
                 status=status.HTTP_403_FORBIDDEN
             )
         return super()._check_may_comment(request)

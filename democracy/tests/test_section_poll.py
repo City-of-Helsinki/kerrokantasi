@@ -9,6 +9,7 @@ from democracy.models import SectionPoll, SectionPollAnswer
 from democracy.tests.test_comment import get_comment_data
 from democracy.tests.test_hearing import valid_hearing_json
 from democracy.tests.utils import get_data_from_response, assert_common_keys_equal
+from democracy.enums import Commenting
 
 from sys import platform
 
@@ -170,17 +171,43 @@ def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_c
     update_response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
     assert update_response.status_code == 400
 
-
+@pytest.mark.parametrize("commenting_restriction", (Commenting.NONE, Commenting.REGISTERED, Commenting.STRONG))
 @pytest.mark.django_db
-def test_post_section_poll_answer_unauthenticated(api_client, default_hearing, geojson_feature):
-    section = default_hearing.sections.first()
-    SectionPollFactory(section=section, option_count=3)
-    url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
+def test_post_section_poll_answer_unauthenticated_but_not_allowed(api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction):
+    section = hearing__with_4_different_commenting.sections.filter(commenting=commenting_restriction).first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option = poll.options.all().first()
+    url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{}]
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [option.id],
+    }]
     response = api_client.post(url, data=data)
     assert response.status_code == 403
 
+@pytest.mark.django_db
+def test_post_section_poll_answer_unauthenticated_single_choice(api_client, hearing__with_4_different_commenting, geojson_feature):
+    section = hearing__with_4_different_commenting.sections.filter(commenting=Commenting.OPEN).first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option = poll.options.all().first()
+
+    url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
+    data = get_comment_data()
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [option.id],
+    }]
+    response = api_client.post(url, data=data)
+    created_data = get_data_from_response(response, status_code=201)
+    poll.refresh_from_db(fields=['n_answers'])
+    option.refresh_from_db(fields=['n_answers'])
+    assert poll.n_answers == 1
+    assert option.n_answers == 1
+    assert created_data['answers'][0]['type'] == data['answers'][0]['type']
+    assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
 @pytest.mark.django_db
 def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hearing, geojson_feature):
@@ -204,6 +231,43 @@ def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hea
     assert created_data['answers'][0]['type'] == data['answers'][0]['type']
     assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
+@pytest.mark.parametrize("commenting_restriction", (Commenting.NONE, Commenting.STRONG))
+@pytest.mark.django_db
+def test_post_section_poll_answer_authenticated_but_not_allowed(john_doe_api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction):
+    section = hearing__with_4_different_commenting.sections.filter(commenting=commenting_restriction).first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option = poll.options.all().first()
+    url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
+    data = get_comment_data()
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [option.id],
+    }]
+    response = john_doe_api_client.post(url, data=data)
+    assert response.status_code == 403
+
+@pytest.mark.django_db
+def test_post_section_poll_answer_authenticated_open_commenting(john_doe_api_client, hearing__with_4_different_commenting, geojson_feature):
+    section = hearing__with_4_different_commenting.sections.filter(commenting=Commenting.OPEN).first()
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option = poll.options.all().first()
+
+    url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
+    data = get_comment_data()
+    data['answers'] = [{
+        'question': poll.id,
+        'type': SectionPoll.TYPE_SINGLE_CHOICE,
+        'answers': [option.id],
+    }]
+    response = john_doe_api_client.post(url, data=data)
+    created_data = get_data_from_response(response, status_code=201)
+    poll.refresh_from_db(fields=['n_answers'])
+    option.refresh_from_db(fields=['n_answers'])
+    assert poll.n_answers == 1
+    assert option.n_answers == 1
+    assert created_data['answers'][0]['type'] == data['answers'][0]['type']
+    assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
 @pytest.mark.django_db
 def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_hearing, geojson_feature):

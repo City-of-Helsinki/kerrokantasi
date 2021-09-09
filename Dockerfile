@@ -1,17 +1,70 @@
+# Dockerfile for Kerrokantasi backend
+# Attemps to provide for both local development and server usage
 
-FROM python:3.6
+FROM python:3.7-buster as appbase
 
-WORKDIR /usr/src/app
+RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
 
-ENV APP_NAME respa
+WORKDIR /kerrokantasi
 
-RUN apt-get update && apt-get install -y libgdal20 libpq-dev
+# Can be used to inquire about running app
+# eg. by running `echo $APP_NAME`
+ENV APP_NAME kerrokantasi
+# This is server out by Django itself, but aided
+# by whitenoise by adding cache headers and also delegating
+# much of the work to WSGI-server
+ENV STATIC_ROOT /srv/static
+# For some reason python output buffering buffers much longer
+# while in Docker. Maybe the buffer is larger?
+ENV PYTHONUNBUFFERED True
 
-COPY requirements.txt .
-COPY deploy/requirements.txt ./deploy/requirements.txt
+# less & netcat-openbsd are there for in-container manual debugging
+# kerrokantasi needs gdal
+RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python-gdal python3-gdal
 
-RUN pip install --no-cache-dir -r deploy/requirements.txt
+# we need the Finnish locale built
+RUN sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen
+RUN locale-gen
+
+RUN pip install --no-cache-dir uwsgi
+
+# Sentry CLI for sending events from non-Python processes to Sentry
+# eg. https://docs.sentry.io/cli/send-event/#bash-hook
+RUN curl -sL https://sentry.io/get-cli/ | bash
+
+# Copy requirements files to image for preloading dependencies
+# in their own layer
+COPY requirements.txt ./
+
+# deploy/requirements.txt must reference the base requirements
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["deploy/server.sh"]
+# Statics are kept inside container image for serving using whitenoise
+ENV DEBUG=True
+RUN mkdir -p /srv/static && python manage.py collectstatic
+
+# Keep media in its own directory outside home, in case home
+# directory forms some sort of attack route
+# Usually this would be some sort of volume
+# RUN mkdir -p /srv/media && chown hauki:hauki /srv/media
+
+ENTRYPOINT ["deploy/entrypoint.sh"]
+
+# Both production and dev servers listen on port 8000
+EXPOSE 8000
+
+# Next, the development & testing extras
+FROM appbase as development
+
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+USER kerrokantasi
+
+# And the production image
+FROM appbase as production
+
+ENV DEBUG=False
+
+USER kerrokantasi

@@ -7,21 +7,21 @@ from democracy.views import (
 )
 
 router = routers.DefaultRouter()
-router.register(r'hearing', HearingViewSet, base_name='hearing')
-router.register(r'users', UserDataViewSet, base_name='users')
-router.register(r'comment', CommentViewSet, base_name='comment')
-router.register(r'image', ImageViewSet, base_name='image')
-router.register(r'section', RootSectionViewSet, base_name='section')
-router.register(r'label', LabelViewSet, base_name='label')
-router.register(r'contact_person', ContactPersonViewSet, base_name='contact_person')
-router.register(r'project', ProjectViewSet, base_name='project')
-router.register(r'file', FileViewSet, base_name='file')
+router.register(r'hearing', HearingViewSet, basename='hearing')
+router.register(r'users', UserDataViewSet, basename='users')
+router.register(r'comment', CommentViewSet, basename='comment')
+router.register(r'image', ImageViewSet, basename='image')
+router.register(r'section', RootSectionViewSet, basename='section')
+router.register(r'label', LabelViewSet, basename='label')
+router.register(r'contact_person', ContactPersonViewSet, basename='contact_person')
+router.register(r'project', ProjectViewSet, basename='project')
+router.register(r'file', FileViewSet, basename='file')
 
 hearing_child_router = routers.NestedSimpleRouter(router, r'hearing', lookup='hearing')
-hearing_child_router.register(r'sections', SectionViewSet, base_name='sections')
+hearing_child_router.register(r'sections', SectionViewSet, basename='sections')
 
 section_comments_router = routers.NestedSimpleRouter(hearing_child_router, r'sections', lookup='comment_parent')
-section_comments_router.register(r'comments', SectionCommentViewSet, base_name='comments')
+section_comments_router.register(r'comments', SectionCommentViewSet, basename='comments')
 
 urlpatterns = [
     url(r'^', include(router.urls)),

@@ -1,0 +1,51 @@
+version: "3.7"
+
+services:
+    postgis:
+        image: "postgis/postgis:12-2.5-alpine"
+        environment:
+            POSTGRES_USER: kerrokantasi
+            POSTGRES_PASSWORD: kerrokantasi
+            POSTGRES_DB: kerrokantasi
+        ports:
+            - "127.0.0.1:5555:5432"
+        volumes:
+            - postgres-data-volume:/var/lib/postgresql/data
+
+    dev:
+        image: kerrokantasi_dev
+        depends_on:
+            - postgis
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+            target: development
+        environment:
+            - DEBUG=true
+            - DATABASE_URL=postgis://kerrokantasi:kerrokantasi@postgis/kerrokantasi
+            - WAIT_FOR_IT_ADDRESS=postgis:5432
+        # Uncomment this if you want to configure development instance with the external file
+        # env_file:
+        #     - config_dev.toml
+        volumes:
+            - .:/kerrokantasi:cached
+            - $HOME/maintenance:/maintenance
+            - $HOME/kerrokantasi_logs:/logs
+        command: ["start_django_development_server"]
+        ports:
+            - "127.0.0.1:8000:8000"
+
+    deploy:
+        image: kerrokantasi
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+            target: production
+        command: "e echo Not running deploy image from compose"
+
+volumes:
+    postgres-data-volume:
+
+networks:
+    default:
+        name: helsinki

@@ -1,9 +1,11 @@
-from .util import get_settings, load_local_settings, load_secret_key
+from .util import get_settings, load_local_settings
 from . import base
 
+print('reading settings')
 settings = get_settings(base)
+print('read base settings')
 load_local_settings(settings, "local_settings")
-load_secret_key(settings)
+print('read local settings')
 
 settings['CKEDITOR_CONFIGS'] = {
     'default': {

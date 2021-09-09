@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 from reversion import revisions
 
@@ -14,7 +14,7 @@ from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
 from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
-                  'geojson', 'map_comment_text','images', 'label', 'organization']
+                  'geojson', 'map_comment_text', 'images', 'label', 'organization']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
@@ -201,7 +201,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         with transaction.atomic(), revisions.create_revision():
             super().perform_update(serializer)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def vote(self, request, **kwargs):
         resp = self._check_may_vote(request)
         if resp:
@@ -223,7 +223,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         # return success
         return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
 
-    @detail_route(methods=['post'])
+    @action(detail=True, methods=['post'])
     def unvote(self, request, **kwargs):
         # Return 403 if user is not authenticated
         if not request.user.is_authenticated:

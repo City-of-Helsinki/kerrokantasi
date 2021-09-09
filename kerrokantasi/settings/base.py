@@ -1,3 +1,4 @@
+import logging
 import os
 
 import environ
@@ -8,6 +9,10 @@ from sentry_sdk.integrations.django import DjangoIntegration
 gettext = lambda s: s # noqa makes possible to translate strings here
 
 CONFIG_FILE_NAME = "config_dev.toml"
+
+# This will get default settings, as Django has not yet initialized
+# logging when importing this file
+logger = logging.getLogger(__name__)
 
 
 def get_git_revision_hash():
@@ -34,21 +39,28 @@ root = environ.Path(__file__) - 3  # three levels back in hierarchy
 env = environ.Env(
     # Common Django settings
     DEBUG=(bool, False),
+    DJANGO_LOG_LEVEL=(str, "INFO"),
     SECRET_KEY=(str, ''),
+    CONN_MAX_AGE=(int, 0),
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, 'postgis:///kerrokantasi'),
+    TEST_DATABASE_URL=(str, ""),
     MEDIA_ROOT=(environ.Path(), root('media')),
     STATIC_ROOT=(environ.Path(), root('static')),
     MEDIA_URL=(str, '/media/'),
     STATIC_URL=(str, '/static/'),
     TRUST_X_FORWARDED_HOST=(bool, False),
     INTERNAL_IPS=(list, []),
+    SECURE_PROXY_SSL_HEADER=(tuple, None),
     # Helsinki Django app settings
     SENTRY_DSN=(str, ''),
-    SENTRY_ENVIRONMENT=(str, ''),
+    SENTRY_ENVIRONMENT=(str, 'development'),
+    INSTANCE_NAME=(str, "Kerrokantasi"),
     COOKIE_PREFIX=(str, 'kerrokantasi'),
     URL_PREFIX=(str, ''),
+    EXTRA_INSTALLED_APPS=(list, []),
+    ENABLE_DJANGO_EXTENSIONS=(bool, False),
     # Kerrokantasi specific settings
     DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
     SENDFILE_BACKEND=(str, 'sendfile.backends.development'),
@@ -66,6 +78,7 @@ env = environ.Env(
     SOCIAL_AUTH_TUNNISTAMO_SECRET=(str, ''),
     SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
     STRONG_AUTH_PROVIDERS=(list, []),
+    LOGOUT_REDIRECT_URL=(str, '/')
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -88,6 +101,9 @@ ADMINS = env('ADMINS')
 DATABASES = {
     'default': env.db('DATABASE_URL')
 }
+
+if env.db("TEST_DATABASE_URL"):
+    DATABASES["default"]["TEST"] = env.db("TEST_DATABASE_URL")
 
 MEDIA_ROOT = env('MEDIA_ROOT')
 MEDIA_URL = env('MEDIA_URL')
@@ -117,6 +133,9 @@ SESSION_COOKIE_SECURE = False if DEBUG else True
 # hostname (like api.yourorg.org)
 SESSION_COOKIE_PATH = '/{}'.format(env('URL_PREFIX'))
 
+# shown in the browsable API
+INSTANCE_NAME = env("INSTANCE_NAME")
+
 #### Kerrokantasi specific settings handling ####
 
 DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
@@ -143,6 +162,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # disable Django’s development server static file handling
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django.contrib.sites',
     'modeltranslation',
@@ -162,19 +183,27 @@ INSTALLED_APPS = [
     'democracy',  # Reusable participatory democracy app
     'parler',
     'django_filters',
-]
+] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [
-    'django.contrib.sessions.middleware.SessionMiddleware',
+    # CorsMiddleware should be placed as high as possible and above WhiteNoiseMiddleware
+    # in particular
     'corsheaders.middleware.CorsMiddleware',
+    # Ditto for securitymiddleware
+    'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django.middleware.security.SecurityMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
 ]
+
+# django-extensions is a set of developer friendly tools
+if env("ENABLE_DJANGO_EXTENSIONS"):
+    INSTALLED_APPS.append("django_extensions")
 
 ROOT_URLCONF = 'kerrokantasi.urls'
 
@@ -224,6 +253,36 @@ REST_FRAMEWORK = {
     'DEFAULT_VERSION': '1',
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.NamespaceVersioning',
     'TEST_REQUEST_DEFAULT_FORMAT': 'json',
+}
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "timestamped_named": {
+            "format": "%(asctime)s %(name)s %(levelname)s: %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "timestamped_named",
+        },
+        # Just for reference, not used
+        "blackhole": {
+            "class": "logging.NullHandler",
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        },
+        "django": {
+            "handlers": ["console"],
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+        },
+    },
 }
 
 DEMOCRACY_PLUGINS = {
@@ -281,9 +340,38 @@ SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 DEFAULT_MAP_COORDINATES = env('DEFAULT_MAP_COORDINATES')
 DEFAULT_MAP_ZOOM = env('DEFAULT_MAP_ZOOM')
 
+# Specifies a header that is trusted to indicate that the request was using
+# https while traversing over the Internet at large. This is used when
+# a proxy terminates the TLS connection and forwards the request over
+# a secure network. Specified using a tuple.
+# https://docs.djangoproject.com/en/3.0/ref/settings/#secure-proxy-ssl-header
+SECURE_PROXY_SSL_HEADER = env("SECURE_PROXY_SSL_HEADER")
+
+# Django SECRET_KEY setting, used for password reset links and such
+SECRET_KEY = env("SECRET_KEY")
+if not DEBUG and not SECRET_KEY:
+    raise Exception("In production, SECRET_KEY must be provided in the environment.")
+# If a secret key was not supplied elsewhere, generate a random one and print
+# a warning (logging is not configured yet?). This means that any functionality
+# expecting SECRET_KEY to stay same will break upon restart. Should not be a
+# problem for development.
+if not SECRET_KEY:
+    logger.warn(
+        "SECRET_KEY was not defined in configuration."
+        " Generating a temporary key for dev."
+    )
+    import random
+
+    system_random = random.SystemRandom()
+    SECRET_KEY = "".join(
+        [
+            system_random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)")
+            for i in range(64)
+        ]
+    )
 
 LOGIN_URL = '/'
 LOGOUT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = env('LOGOUT_REDIRECT_URL')
 
 SITE_ID=1

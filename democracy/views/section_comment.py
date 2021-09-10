@@ -130,11 +130,12 @@ class SectionCommentSerializer(BaseCommentSerializer):
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
     creator_name = serializers.SerializerMethodField()
+    creator_email = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name'] + COMMENT_FIELDS
+                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name', 'creator_email'] + COMMENT_FIELDS
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -154,10 +155,17 @@ class SectionCommentSerializer(BaseCommentSerializer):
         else:
             return 'Anonymous'
 
+    def get_creator_email(self, obj):
+        if obj.created_by and not obj.created_by.is_anonymous:
+            return obj.created_by.email
+        else:
+            return ''
+
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
         if not self.context['request'].user.is_staff and not self.context['request'].user.is_superuser:
             del data['creator_name']
+            del data['creator_email']
 
         return data
 

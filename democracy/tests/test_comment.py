@@ -778,6 +778,28 @@ def test_get_section_comment_creator_name_when_posted_by_registered_user(admin_a
 
 
 @pytest.mark.django_db
+def test_get_section_comment_creator_email_property_without_authorization(john_doe_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check no section comment has creator_email when not authorized
+    for comment in data:
+        assert not "creator_email" in comment
+
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_email_property_with_authorization(admin_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = admin_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check all section comments have creator_email when authorized
+    for comment in data:
+        assert "creator_email" in comment
+
+
+@pytest.mark.django_db
 def test_n_comments_updates(admin_user, default_hearing):
     section = default_hearing.get_main_section()
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 9

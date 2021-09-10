@@ -85,13 +85,14 @@ class HearingReport(object):
         section_worksheet = self.xlsdoc.add_worksheet(re.sub(r"\W+|_", " ", section_name[:31]))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
-        section_worksheet.set_column('B:B', 15)
-        section_worksheet.set_column('C:C', 10)
-        section_worksheet.set_column('D:D', 5)
-        section_worksheet.set_column('E:E', 50)
-        section_worksheet.set_column('F:F', 200)
-        section_worksheet.set_column('G:G', 100)
+        section_worksheet.set_column('B:B', 20)
+        section_worksheet.set_column('C:C', 15)
+        section_worksheet.set_column('D:D', 10)
+        section_worksheet.set_column('E:E', 5)
+        section_worksheet.set_column('F:F', 50)
+        section_worksheet.set_column('G:G', 200)
         section_worksheet.set_column('H:H', 100)
+        section_worksheet.set_column('I:I', 100)
 
         # add section title
         self.section_worksheet_active_row = 0
@@ -112,9 +113,9 @@ class HearingReport(object):
 
     def add_section_comments(self, section, section_worksheet):
         '''
-        Author  |  Content        | Created | Votes | Label   | Map comment        | Geojson      | Images
-        "name"  |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        "name"  |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
+        Author  |  Email  |     Content     | Created | Votes | Label   | Map comment        | Geojson      | Images
+        "name"  | "email" |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
+        "name"  | "email" |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
         '''
 
         # add comments title
@@ -129,6 +130,11 @@ class HearingReport(object):
         # include Author only if requesting user is staff
         if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
             section_worksheet.write(row, col_index, 'Author', self.format_bold)
+            col_index += 1
+
+        # include Email only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+            section_worksheet.write(row, col_index, 'Email', self.format_bold)
             col_index += 1
 
         section_worksheet.write(row, col_index, 'Content', self.format_bold)
@@ -155,7 +161,7 @@ class HearingReport(object):
 
     def add_comment_row(self, comment, section_worksheet):
         '''
-        "name" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
+        "name" | "email" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
         '''
         row = self.section_worksheet_active_row
         col_index = 0
@@ -166,6 +172,12 @@ class HearingReport(object):
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
             col_index += 1
         # section_worksheet.write(row, 0, comment['author_name'])
+
+        # include Email only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+            email = comment.get('creator_email')
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
+            col_index += 1
         # add content
         section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
         col_index += 1

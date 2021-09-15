@@ -1208,6 +1208,32 @@ def test_cannot_delete_others_comments(api_client, jane_doe_api_client, default_
     assert comment.deleted is False
 
 
+@pytest.mark.parametrize('anonymous_comment', [True, False])
+@pytest.mark.django_db
+def test_hearing_creator_can_delete_others_comments(api_client, steve_staff_api_client, default_hearing, get_detail_url,
+                                       anonymous_comment):
+    default_hearing.created_by_id = steve_staff_api_client.user.id
+    default_hearing.save()
+    comment = default_hearing.get_main_section().comments.all()[0]
+
+    if anonymous_comment:
+        comment.created_by = None
+        comment.save(update_fields=('created_by',))
+
+    url = get_detail_url(comment)
+
+    # anonymous user
+    response = api_client.delete(url)
+    assert response.status_code == 403
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is False
+
+    # staff/hearing creator user
+    response = steve_staff_api_client.delete(url)
+    assert response.status_code == 204
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is True
+
 @pytest.mark.parametrize('ordering, expected_order', [
     ('created_at', [0, 1, 2]),
     ('-created_at', [2, 1, 0]),

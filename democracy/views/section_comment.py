@@ -14,7 +14,7 @@ from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseComm
 from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
-from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField
+from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField, get_translation_list
 from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend
 
 
@@ -103,6 +103,9 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     @atomic
     def create(self, validated_data):
         images = validated_data.pop('images', [])
+        user = self.context['request'].user
+        if user and not user.is_anonymous:
+            validated_data['created_by_id'] = self.context['request'].user.id
         comment = SectionComment.objects.create(**validated_data)
         for image in images:
             CommentImage.objects.get_or_create(comment=comment, **image)
@@ -301,9 +304,31 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
     Serializer for root level comment endpoint /v1/comment/
     """
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+    hearing_data = serializers.SerializerMethodField()
 
     class Meta(SectionCommentSerializer.Meta):
-        fields = SectionCommentSerializer.Meta.fields + ['hearing']
+        fields = SectionCommentSerializer.Meta.fields + ['hearing','hearing_data']
+
+    def get_hearing_data(self, obj):
+        '''
+        This is only used by comments on the profile page.
+        Returns dict containing data from the hearing that the comment was made to.
+        '''
+        request = self.context.get('request', None)
+        user = request.user
+        created_by_me = request.query_params.get('created_by', None)
+        
+        if created_by_me is not None and not user.is_anonymous:
+            translations = {
+                t.language_code: t.title for t in
+                get_translation_list(obj.section.hearing)
+            }
+            
+            return {'slug': obj.section.hearing.slug, 'title': translations, 'closed': obj.section.hearing.closed}
+            
+        
+        return False
+
 
 
 class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSerializer):
@@ -338,4 +363,9 @@ class CommentViewSet(SectionCommentViewSet):
     def get_queryset(self):
         queryset = super(BaseCommentViewSet, self).get_queryset()
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+        created_by = self.request.query_params.get('created_by', None)
+        if created_by is not None and not self.request.user.is_anonymous:
+            if created_by.lower() == 'me':
+                queryset = queryset.filter(created_by_id=self.request.user.id)
+
         return queryset

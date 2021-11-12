@@ -419,6 +419,42 @@ def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_d
     assert len(stark_data['results']) == 1
     
     
+@pytest.mark.django_db
+def test_filter_hearings_by_following(john_doe_api_client):
+    # We create three hearings
+    first_hearing = Hearing.objects.create(title='First Hearing')
+    second_hearing = Hearing.objects.create(title='Second Hearing')
+    third_hearing = Hearing.objects.create(title='Third Hearing')
+
+    # John starts following the first hearing
+    response = john_doe_api_client.post(get_hearing_detail_url(first_hearing.id, 'follow'))
+    assert response.status_code == 201
+    # John fetches hearings that he follows, only 1 hearing is returned.
+    response = john_doe_api_client.get(list_endpoint, data={"following": True})
+    data = get_data_from_response(response)
+    assert data['results'][0]['title'][default_lang_code] == first_hearing.title
+    assert len(data['results']) == 1
+
+    # John starts following the second hearing
+    response = john_doe_api_client.post(get_hearing_detail_url(second_hearing.id, 'follow'))
+    assert response.status_code == 201
+    # John fetches hearings that he follows, 2 hearings are returned.
+    response = john_doe_api_client.get(list_endpoint, data={"following": True})
+    data = get_data_from_response(response)
+    assert data['results'][0]['title'][default_lang_code] == second_hearing.title
+    assert data['results'][1]['title'][default_lang_code] == first_hearing.title
+    assert len(data['results']) == 2
+
+    # John starts following the third hearing
+    response = john_doe_api_client.post(get_hearing_detail_url(third_hearing.id, 'follow'))
+    assert response.status_code == 201
+    # John fetches hearings that he follows, 3 hearings are returned.
+    response = john_doe_api_client.get(list_endpoint, data={"following": True})
+    data = get_data_from_response(response)
+    assert data['results'][0]['title'][default_lang_code] == third_hearing.title
+    assert data['results'][1]['title'][default_lang_code] == second_hearing.title
+    assert data['results'][2]['title'][default_lang_code] == first_hearing.title
+    assert len(data['results']) == 3
 
 
 @pytest.mark.parametrize('plugin_fullscreen', [

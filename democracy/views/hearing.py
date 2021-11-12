@@ -413,6 +413,10 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         next_closing = self.request.query_params.get('next_closing', None)
         open = self.request.query_params.get('open', None)
         created_by = self.request.query_params.get('created_by', None)
+        following = self.request.query_params.get('following', None)
+
+        if following is not None and self.request.user:
+            queryset = queryset.filter(followers=self.request.user)
 
         if created_by is not None and self.request.user:
             if created_by.lower() == 'me':

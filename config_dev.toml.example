@@ -38,6 +38,10 @@ DEBUG=True
 # Django setting: ADMINS https://docs.djangoproject.com/en/2.2/ref/settings/#admins
 ADMINS=admin@this.kerrokantasi.instance,another-admin@this.kerrokantasi
 
+# Url where to redirect users after logout. Can be full url or url path.
+# Default setting is "/" if no value is given.
+#LOGOUT_REDIRECT_URL=/admin
+
 # Configures database for Kerrokantasi using URL style. Format is:
 # postgis://USER:PASSWORD@HOST:PORT/NAME
 # Unused components may be left out, only Postgis is supported

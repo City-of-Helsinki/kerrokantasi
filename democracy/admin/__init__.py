@@ -179,7 +179,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             "fields": ("published", "open_at", "close_at", "force_closed")
         }),
         (_("Area"), {
-            "fields": ("geojson",)
+            "fields": ("geometry",)
         }),
         (_("Contact info"), {
             "fields": ("contact_persons",)

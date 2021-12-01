@@ -102,6 +102,44 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
     return hearing
 
 @pytest.fixture()
+def hearing__with_4_different_commenting(john_doe, contact_person, default_organization, default_project):
+    """
+    Fixture for a "default" hearing with four sections (one main, three other sections).
+    All objects will have the 3 default images attached.
+    All objects will have commenting_map_tools all.
+    Each section will have a different commenting rule.
+    """
+    commenting_restrictions = [Commenting.NONE, Commenting.OPEN, Commenting.REGISTERED, Commenting.STRONG]
+    hearing = Hearing.objects.create(
+        title='Default test hearing One',
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        slug='default-hearing-slug',
+        organization=default_organization,
+        project_phase=default_project.phases.all()[0],
+    )
+    for x in range(1, 5):
+        section_type = (InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO)
+        section = Section.objects.create(
+            abstract='Section %d abstract' % x,
+            hearing=hearing,
+            type=SectionType.objects.get(identifier=section_type),
+            commenting=commenting_restrictions[x-1],
+            commenting_map_tools=CommentingMapTools.ALL
+        )
+        create_default_images(section)
+        create_default_files(section)
+        section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+        section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
+        section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
+
+    assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
+
+    hearing.contact_persons.add(contact_person)
+
+    return hearing
+
+@pytest.fixture()
 def hearing_without_comments(contact_person, default_organization, default_project):
     """
     Fixture for a simple hearing with one main section and no existing comments.

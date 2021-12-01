@@ -95,8 +95,19 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return context
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
+        """
+        This method is used  when fetching reply comments only.
+        Returns all sub-comments, including deleted ones
+        """
+
+        queryset = self.model.objects.everything()
+        queryset = queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
+
+        user = self._get_user_from_request_or_context()
+        if user.is_authenticated and user.is_superuser:
+            return queryset
+        else:
+            return queryset.exclude(published=False)
 
     def create_related(self, request, instance=None, *args, **kwargs):
         pass

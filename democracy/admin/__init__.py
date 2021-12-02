@@ -308,8 +308,8 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'section', 'author_name', 'content')
-    list_filter = ('section__hearing__slug',)
+    list_display = ('id', 'section', 'author_name', 'content', 'deleted')
+    list_filter = ('section__hearing__slug', 'deleted')
     search_fields = ('section__id', 'author_name', 'title', 'content')
     fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
               'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
@@ -338,6 +338,13 @@ class CommentAdmin(admin.ModelAdmin):
         # this method is called by the admin form and can be overridden
         obj.soft_delete()
 
+    def get_queryset(self, request):
+        """Override parent's method in order to return even deleted comments"""
+        qs = self.model._default_manager.everything()
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

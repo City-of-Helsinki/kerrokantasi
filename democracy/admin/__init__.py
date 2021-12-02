@@ -11,6 +11,7 @@ from django.db import router
 from django.contrib.admin.utils import NestedObjects
 from django.contrib.gis.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
 from django.utils.html import format_html
@@ -352,6 +353,16 @@ class CommentAdmin(admin.ModelAdmin):
         if "_undeleteobject" in request.POST:
             obj.undelete()
         return super().response_change(request, obj)
+
+    def changelist_view(self, request, extra_context=None):
+        """Use deleted=False filter by default"""
+        if (
+            not request.META['QUERY_STRING']
+            and not request.META.get('HTTP_REFERER', '').startswith(request.build_absolute_uri())
+        ):
+            return HttpResponseRedirect(request.path + "?deleted__exact=0")
+        return super().changelist_view(request, extra_context=extra_context)
+
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

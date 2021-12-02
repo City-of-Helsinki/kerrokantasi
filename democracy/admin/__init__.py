@@ -317,6 +317,7 @@ class CommentAdmin(admin.ModelAdmin):
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',
                        'created_by_user')
+    change_form_template = 'admin/comment_change_form.html'
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.
@@ -345,6 +346,12 @@ class CommentAdmin(admin.ModelAdmin):
         if ordering:
             qs = qs.order_by(*ordering)
         return qs
+
+    def response_change(self, request, obj):
+        # Handle undeleting of comment
+        if "_undeleteobject" in request.POST:
+            obj.undelete()
+        return super().response_change(request, obj)
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

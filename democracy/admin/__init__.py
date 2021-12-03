@@ -312,13 +312,22 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'deleted')
     list_filter = ('section__hearing__slug', 'deleted')
     search_fields = ('section__id', 'author_name', 'title', 'content')
-    fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
-              'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
-              'created_by_user')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',
-                       'created_by_user')
+                       'created_by_user', 'deleted_at', 'deleted_by')
     change_form_template = 'admin/comment_change_form.html'
+
+    def get_fields(self, request, obj=None):
+        """Display deleted-related fields only if comment is deleted"""
+        
+        fields = [
+            'title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
+            'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
+            'created_by_user'
+        ]
+        if obj and obj.deleted:
+            fields += ['deleted_at', 'deleted_by']
+        return fields
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.

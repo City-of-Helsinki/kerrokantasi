@@ -309,7 +309,7 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'section', 'author_name', 'content', 'deleted')
+    list_display = ('id', 'section', 'author_name', 'content', 'is_published')
     list_filter = ('section__hearing__slug', 'deleted')
     search_fields = ('section__id', 'author_name', 'title', 'content')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
@@ -328,6 +328,13 @@ class CommentAdmin(admin.ModelAdmin):
         if obj and obj.deleted:
             fields += ['deleted_at', 'deleted_by']
         return fields
+
+    def is_published(self, obj):
+        """Invert deleted field for readability in admin"""
+
+        return not obj.deleted
+
+    is_published.boolean = True  # Make field use green/red icons in list view
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.

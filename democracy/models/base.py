@@ -53,6 +53,14 @@ class BaseModel(models.Model):
         editable=False, on_delete=models.SET_NULL
     )
     published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
+    deleted_at = models.DateTimeField(
+        verbose_name=_('time of deletion'), default=None, editable=False, null=True, blank=True
+    )
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('deleted by'),
+        null=True, blank=True, related_name="%(class)s_deleted",
+        editable=False, on_delete=models.SET_NULL
+    )
     deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
     objects = BaseModelManager()
 

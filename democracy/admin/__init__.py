@@ -323,7 +323,7 @@ class CommentAdmin(admin.ModelAdmin):
         fields = [
             'title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
             'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
-            'created_by_user'
+            'created_by_user', 'delete_reason'
         ]
         if obj and obj.deleted:
             fields += ['deleted_at', 'deleted_by']

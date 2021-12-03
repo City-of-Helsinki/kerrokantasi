@@ -165,6 +165,7 @@ class SectionComment(Commentable, BaseComment):
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
+    delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
 
     class Meta:
         verbose_name = _('section comment')

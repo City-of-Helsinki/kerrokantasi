@@ -78,13 +78,18 @@ class BaseModel(models.Model):
             self.modified_at = timezone.now()
         super().save(*args, **kwargs)
 
-    def soft_delete(self, using=None):
+    def soft_delete(self, using=None, user=None):
         self.deleted = True
-        self.save(update_fields=("deleted",), using=using)
+        self.deleted_at = timezone.now()
+        if user is not None and user.pk:
+            self.deleted_by = user
+        self.save(update_fields=("deleted", "deleted_at", "deleted_by"), using=using)
 
     def undelete(self, using=None):
         self.deleted = False
-        self.save(update_fields=("deleted",), using=using)
+        self.deleted_at = None
+        self.deleted_by = None
+        self.save(update_fields=("deleted", "deleted_at", "deleted_by"), using=using)
 
     def delete(self, using=None):
         raise NotImplementedError("This model does not support hard deletion")

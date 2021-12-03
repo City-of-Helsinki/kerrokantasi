@@ -258,7 +258,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         # since we are only performing soft delete, we must soft_delete related objects too, if possible
         for obj in to_delete:
             if hasattr(obj, 'soft_delete'):
-                obj.soft_delete()
+                obj.soft_delete(user=request.user)
 
     def delete_model(self, request, obj):
         using = router.db_for_write(obj._meta.model)
@@ -334,11 +334,11 @@ class CommentAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         # this method is called by delete_selected and can be overridden
         for comment in queryset:
-            comment.soft_delete()
+            comment.soft_delete(user=request.user)
 
     def delete_model(self, request, obj):
         # this method is called by the admin form and can be overridden
-        obj.soft_delete()
+        obj.soft_delete(user=request.user)
 
     def get_queryset(self, request):
         """Override parent's method in order to return even deleted comments"""

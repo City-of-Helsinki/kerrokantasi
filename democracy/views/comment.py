@@ -194,7 +194,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        instance.soft_delete()
+        instance.soft_delete(user=request.user)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_update(self, serializer):

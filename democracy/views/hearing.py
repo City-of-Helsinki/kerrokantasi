@@ -536,5 +536,5 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         if hearing.n_comments > 0:
             return response.Response({'status': 'Cannot DELETE hearing with comments.'},
                                      status=status.HTTP_403_FORBIDDEN)
-        hearing.soft_delete()
+        hearing.soft_delete(user=request.user)
         return response.Response({'status': 'Hearing deleted'}, status=status.HTTP_200_OK)

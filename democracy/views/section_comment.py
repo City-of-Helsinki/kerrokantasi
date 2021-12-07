@@ -132,11 +132,21 @@ class SectionCommentSerializer(BaseCommentSerializer):
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
     creator_name = serializers.SerializerMethodField()
+    content = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name'] + COMMENT_FIELDS
+                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name',
+                  'deleted', 'deleted_at'] + COMMENT_FIELDS
+
+    def get_content(self, obj):
+        # Hide content if comment was deleted
+
+        if not obj.deleted:
+            return obj.content
+        return f"Viesti on poistettu {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}, " \
+               f"koska se ei noudattanut Kerrokantasi-palvelun sääntöjä https://kerrokantasi.hel.fi/info"
 
     def get_answers(self, obj):
         polls_by_id = {}

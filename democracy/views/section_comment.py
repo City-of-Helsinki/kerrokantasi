@@ -32,6 +32,8 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageCreateSerializer(required=False, many=True)
     answers = serializers.SerializerMethodField()  # this makes the field read-only, create answers manually
+    comment = serializers.PrimaryKeyRelatedField(queryset=SectionComment.objects.everything(),
+                                                 required=False, allow_null=True)
 
     class Meta:
         model = SectionComment

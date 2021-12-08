@@ -1,5 +1,6 @@
 import django_filters
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import F
 from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers, status, response
@@ -145,6 +146,10 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
         if not obj.deleted:
             return obj.content
+
+        if obj.deleted_by_id == obj.created_by_id:
+            return "Kirjoittaja poisti oman viestinsä."
+
         return f"Viesti on poistettu {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}, " \
                f"koska se ei noudattanut Kerrokantasi-palvelun sääntöjä https://kerrokantasi.hel.fi/info"
 

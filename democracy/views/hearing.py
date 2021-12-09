@@ -166,6 +166,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         project_data = validated_data.pop('project', None)
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         validated_data['created_by_id'] = self.context['request'].user.id
+        validated_data['published'] = False  # Force new hearings to be unpublished initially
         hearing = super().create(validated_data)
         self._create_or_update_sections(hearing, sections_data, force_create=True)
         self._create_or_update_project(hearing, project_data)

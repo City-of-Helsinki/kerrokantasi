@@ -309,12 +309,12 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'section', 'author_name', 'content', 'is_published')
-    list_filter = ('section__hearing__slug', 'deleted')
+    list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
+    list_filter = ('section__hearing__slug', 'deleted', 'flagged_at')
     search_fields = ('section__id', 'author_name', 'title', 'content')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',
-                       'created_by_user', 'deleted_at', 'deleted_by')
+                       'created_by_user', 'deleted_at', 'deleted_by', 'flagged_at', 'flagged_by')
     change_form_template = 'admin/comment_change_form.html'
 
     def get_fields(self, request, obj=None):
@@ -325,6 +325,8 @@ class CommentAdmin(admin.ModelAdmin):
             'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
             'created_by_user', 'delete_reason'
         ]
+        if obj and obj.flagged_at:
+            fields += ['flagged_at', 'flagged_by']
         if obj and obj.deleted:
             fields += ['deleted_at', 'deleted_by']
         return fields

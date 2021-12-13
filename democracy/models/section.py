@@ -165,16 +165,17 @@ class SectionComment(Commentable, BaseComment):
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
+    delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
 
     class Meta:
         verbose_name = _('section comment')
         verbose_name_plural = _('section comments')
         ordering = ('-created_at',)
 
-    def soft_delete(self, using=None):
+    def soft_delete(self, using=None, user=None):
         for answer in self.poll_answers.all():
-            answer.soft_delete()
-        super().soft_delete(using=using)
+            answer.soft_delete(user=user)
+        super().soft_delete(using=using, user=user)
 
     def save(self, *args, **kwargs):
         # we may create a comment by referring to another comment instead of section explicitly

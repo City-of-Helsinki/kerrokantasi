@@ -11,6 +11,7 @@ from django.db import router
 from django.contrib.admin.utils import NestedObjects
 from django.contrib.gis.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
+from django.http import HttpResponseRedirect
 from django.utils.encoding import force_text
 from django.utils.text import capfirst
 from django.utils.html import format_html
@@ -257,7 +258,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         # since we are only performing soft delete, we must soft_delete related objects too, if possible
         for obj in to_delete:
             if hasattr(obj, 'soft_delete'):
-                obj.soft_delete()
+                obj.soft_delete(user=request.user)
 
     def delete_model(self, request, obj):
         using = router.db_for_write(obj._meta.model)
@@ -308,15 +309,32 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('id', 'section', 'author_name', 'content')
-    list_filter = ('section__hearing__slug',)
+    list_display = ('id', 'section', 'author_name', 'content', 'is_published')
+    list_filter = ('section__hearing__slug', 'deleted')
     search_fields = ('section__id', 'author_name', 'title', 'content')
-    fields = ('title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
-              'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
-              'created_by_user')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',
-                       'created_by_user')
+                       'created_by_user', 'deleted_at', 'deleted_by')
+    change_form_template = 'admin/comment_change_form.html'
+
+    def get_fields(self, request, obj=None):
+        """Display deleted-related fields only if comment is deleted"""
+        
+        fields = [
+            'title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
+            'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
+            'created_by_user', 'delete_reason'
+        ]
+        if obj and obj.deleted:
+            fields += ['deleted_at', 'deleted_by']
+        return fields
+
+    def is_published(self, obj):
+        """Invert deleted field for readability in admin"""
+
+        return not obj.deleted
+
+    is_published.boolean = True  # Make field use green/red icons in list view
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.
@@ -332,11 +350,34 @@ class CommentAdmin(admin.ModelAdmin):
     def delete_queryset(self, request, queryset):
         # this method is called by delete_selected and can be overridden
         for comment in queryset:
-            comment.soft_delete()
+            comment.soft_delete(user=request.user)
 
     def delete_model(self, request, obj):
         # this method is called by the admin form and can be overridden
-        obj.soft_delete()
+        obj.soft_delete(user=request.user)
+
+    def get_queryset(self, request):
+        """Override parent's method in order to return even deleted comments"""
+        qs = self.model._default_manager.everything()
+        ordering = self.get_ordering(request)
+        if ordering:
+            qs = qs.order_by(*ordering)
+        return qs
+
+    def response_change(self, request, obj):
+        # Handle undeleting of comment
+        if "_undeleteobject" in request.POST:
+            obj.undelete()
+        return super().response_change(request, obj)
+
+    def changelist_view(self, request, extra_context=None):
+        """Use deleted=False filter by default"""
+        if (
+            not request.META['QUERY_STRING']
+            and not request.META.get('HTTP_REFERER', '').startswith(request.build_absolute_uri())
+        ):
+            return HttpResponseRedirect(request.path + "?deleted__exact=0")
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):

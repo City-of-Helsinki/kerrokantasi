@@ -1,5 +1,6 @@
 import django_filters
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import F
 from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
 from rest_framework import filters, serializers, status, response
@@ -32,6 +33,8 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageCreateSerializer(required=False, many=True)
     answers = serializers.SerializerMethodField()  # this makes the field read-only, create answers manually
+    comment = serializers.PrimaryKeyRelatedField(queryset=SectionComment.objects.everything(),
+                                                 required=False, allow_null=True)
 
     class Meta:
         model = SectionComment
@@ -130,11 +133,25 @@ class SectionCommentSerializer(BaseCommentSerializer):
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
     creator_name = serializers.SerializerMethodField()
+    content = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name'] + COMMENT_FIELDS
+                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name',
+                  'deleted', 'deleted_at'] + COMMENT_FIELDS
+
+    def get_content(self, obj):
+        # Hide content if comment was deleted
+
+        if not obj.deleted:
+            return obj.content
+
+        if obj.deleted_by_id == obj.created_by_id:
+            return "Kirjoittaja poisti oman viestinsä."
+
+        return f"Viesti on poistettu {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}, " \
+               f"koska se ei noudattanut Kerrokantasi-palvelun sääntöjä https://kerrokantasi.hel.fi/info"
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -240,7 +257,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
         if 'pk' in self.kwargs:
             # the parent id might be indicated by the direct URL
             comment_id = self.kwargs["pk"]
-            parent_id = SectionComment.objects.get(pk=comment_id).parent.id
+            parent_id = SectionComment.objects.everything().get(pk=comment_id).parent.id
         if not parent_id:
             # or the parent id might lurk in the nested URL
             parent_id = super().get_comment_parent_id()
@@ -251,7 +268,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
             # the parent id might be found out from the parent of the original comment
             comment_id = data.get('comment') if 'comment' in data else None
             if comment_id:
-                parent_id = SectionComment.objects.get(pk=comment_id).parent.id
+                parent_id = SectionComment.objects.everything().get(pk=comment_id).parent.id
 
         return parent_id
 
@@ -313,6 +330,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
     label = django_filters.Filter(field_name='label__id')
     created_at__lt = django_filters.IsoDateTimeFilter(field_name='created_at', lookup_expr='lt')
     created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name='created_at', lookup_expr='gt')
+    comment = django_filters.ModelChoiceFilter(queryset=SectionComment.objects.everything())
 
     class Meta:
         model = SectionComment
@@ -328,6 +346,13 @@ class CommentViewSet(SectionCommentViewSet):
     filterset_class = CommentFilterSet
 
     def get_queryset(self):
-        queryset = super(BaseCommentViewSet, self).get_queryset()
+        """Returns all root-level comments, including deleted ones"""
+
+        queryset = self.model.objects.everything()
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
-        return queryset
+
+        user = self._get_user_from_request_or_context()
+        if user.is_authenticated and user.is_superuser:
+            return queryset
+        else:
+            return queryset.exclude(published=False)

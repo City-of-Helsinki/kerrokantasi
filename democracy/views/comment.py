@@ -14,13 +14,14 @@ from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
 from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
-                  'geojson', 'map_comment_text', 'images', 'label', 'organization']
+                  'geojson', 'map_comment_text', 'images', 'label', 'organization', 'flagged']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    flagged = serializers.SerializerMethodField()
     geojson = GeoJSONField()
 
     def to_representation(self, instance):
@@ -44,6 +45,9 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         if obj.organization:
             return str(obj.organization)
         return None
+
+    def get_flagged(self, obj):
+        return bool(obj.flagged_at)
 
     class Meta:
         model = BaseComment

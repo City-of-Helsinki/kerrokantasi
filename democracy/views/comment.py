@@ -2,6 +2,7 @@
 import django_filters
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -237,6 +238,23 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         comment.recache_n_votes()
         # return success
         return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def flag(self, request, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        # Only hearing organization admins can flag comments
+        if instance.section.hearing.organization not in user.admin_organizations.all():
+            return response.Response(
+                {'status': "You don't have authorization to flag this comment"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if instance.flagged_at:
+            return response.Response({'status': 'Already flagged'}, status=status.HTTP_304_NOT_MODIFIED)
+
+        instance.flagged_at = timezone.now()
+        instance.flagged_by = request.user
+        instance.save()
+        return response.Response({'status': 'comment flagged'})
 
     @action(detail=True, methods=['post'])
     def unvote(self, request, **kwargs):

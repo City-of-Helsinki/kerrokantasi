@@ -151,7 +151,11 @@ class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer)
             serializer_params = {'data': option_data}
             if pk:
                 try:
-                    option = self.instance.options.get(pk=pk)
+                    if self.instance.pk:
+                        option = self.instance.options.get(pk=pk)
+                    else:  # Creating a copy of the hearing
+                        option = SectionPollOption.objects.get(pk=pk)
+                        option.pk = None
                 except SectionPollOption.DoesNotExist:
                     raise ValidationError('The Poll does not have an option with ID %s' % repr(pk))
                 serializer_params['instance'] = option
@@ -263,10 +267,13 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
             if pk:
                 try:
-                    image = self.instance.images.get(pk=pk)
+                    if self.instance is not None:
+                        image = self.instance.images.get(pk=pk)
+                    else:  # Creating a copy of the hearing
+                        image = SectionImage.objects.get(pk=pk)
+                        image.pk = None
                 except SectionImage.DoesNotExist:
                     raise ValidationError('The Section does not have an image with ID %s' % pk)
-
                 serializer_params['instance'] = image
 
             serializer = SectionImageCreateUpdateSerializer(**serializer_params)
@@ -290,10 +297,12 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
             if pk:
                 try:
-                    # only allow orphan files or files within this section already
-                    file = SectionFile.objects.filter(
-                        Q(section=None) | (Q(section=self.instance))
-                        ).get(pk=pk)
+                    if self.instance is not None:
+                        # only allow orphan files or files within this section already
+                        file = SectionFile.objects.filter(Q(section=None) | (Q(section=self.instance))).get(pk=pk)
+                    else:  # Creating a copy of the hearing
+                        file = SectionFile.objects.get(pk=pk)
+                        file.pk = None
                 except SectionImage.DoesNotExist:
                     raise ValidationError('No file with ID %s available in this section' % pk)
 
@@ -353,7 +362,12 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             serializer_params = {'data': poll_data}
             if pk:
                 try:
-                    poll = self.instance.polls.get(pk=pk)
+                    if self.instance is not None:
+                        poll = self.instance.polls.get(pk=pk)
+                    else:  # Creating a copy of the hearing
+                        poll = SectionPoll.objects.get(pk=pk)
+                        poll.pk = None
+                        poll.n_answers = 0
                 except SectionPoll.DoesNotExist:
                     raise ValidationError('The Section does not have a poll with ID %s' % repr(pk))
                 self._validate_question_update(poll_data, poll)

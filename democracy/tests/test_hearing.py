@@ -36,7 +36,7 @@ def valid_hearing_json(contact_person, default_label):
             "sv": "Rooperi",
         },
         "n_comments": 0,
-        "published": True,
+        "published": False,
         "labels": [{"id": default_label.id, "label": {default_lang_code: default_label.label}}],
         "open_at": "2016-09-29T11:39:12Z",
         "close_at": "2016-09-29T11:39:12Z",
@@ -1260,6 +1260,7 @@ def test_PUT_hearing_other_organization_hearing(valid_hearing_json, john_smith_a
     data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.first()
     hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
+    hearing.published = True
     hearing.save()
     _update_hearing_data(data)
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
@@ -1344,6 +1345,7 @@ def test_PUT_hearing_no_organization(valid_hearing_json, john_smith_api_client):
     _update_hearing_data(data)
     hearing = Hearing.objects.filter(id=data['id']).first()
     hearing.organization = None
+    hearing.published = True
     hearing.save()
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
     data = get_data_from_response(response, status_code=403)

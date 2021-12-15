@@ -1,5 +1,7 @@
 import logging
 import re
+
+from django.conf import settings
 from django.urls import get_resolver
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -166,6 +168,12 @@ class SectionComment(Commentable, BaseComment):
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
     delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
+    flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
+    flagged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True, related_name="%(class)s_flagged",
+        editable=False, on_delete=models.SET_NULL
+    )
 
     class Meta:
         verbose_name = _('section comment')

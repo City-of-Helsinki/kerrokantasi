@@ -216,7 +216,15 @@ class SectionPoll(BasePoll):
         ordering = ['ordering']
 
     def recache_n_answers(self):
-        n_answers = SectionPollAnswer.objects.filter(option__poll_id=self.pk).values('comment_id').distinct().count()
+        n_answers = (
+            SectionPollAnswer.objects
+            .everything()
+            .filter(option__poll_id=self.pk)
+            .exclude(option__poll__deleted=True)
+            .values('comment_id')
+            .distinct()
+            .count()
+        )
         if n_answers != self.n_answers:
             self.n_answers = n_answers
             self.save(update_fields=('n_answers',))

@@ -310,7 +310,7 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
-    list_filter = ('section__hearing__slug', 'deleted', 'flagged_at')
+    list_filter = ('deleted', 'flagged_at', 'section__hearing__slug', )
     search_fields = ('section__id', 'author_name', 'title', 'content')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',

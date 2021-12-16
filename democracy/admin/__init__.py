@@ -361,6 +361,12 @@ class CommentAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Override parent's method in order to return even deleted comments"""
         qs = self.model._default_manager.everything()
+
+        if not request.user.is_superuser:
+            # Only show comments for user's organizations hearings
+            organizations = request.user.admin_organizations.all()
+            qs = qs.filter(section__hearing__organization__in=organizations)
+
         ordering = self.get_ordering(request)
         if ordering:
             qs = qs.order_by(*ordering)

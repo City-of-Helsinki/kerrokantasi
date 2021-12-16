@@ -236,7 +236,7 @@ class SectionPollOption(BasePollOption):
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer):
-    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.PROTECT)
+    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.CASCADE)
     option = models.ForeignKey(SectionPollOption, related_name='answers', on_delete=models.PROTECT)
 
     class Meta:

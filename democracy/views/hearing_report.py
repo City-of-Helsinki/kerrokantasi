@@ -130,8 +130,13 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         col_index = 0
 
+        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is disabled,
         # include Author only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if (
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            or self.context['request'].user.is_staff
+            or self.context['request'].user.is_superuser
+        ):
             section_worksheet.write(row, col_index, 'Author', self.format_bold)
             col_index += 1
 
@@ -173,8 +178,13 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         col_index = 0
 
+        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is disabled,
         # include Author only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if (
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            or self.context['request'].user.is_staff
+            or self.context['request'].user.is_superuser
+        ):
             name = comment.get('creator_name')
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
             col_index += 1

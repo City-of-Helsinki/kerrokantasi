@@ -310,7 +310,7 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
-    list_filter = ('section__hearing__slug', 'deleted', 'flagged_at')
+    list_filter = ('deleted', 'flagged_at', 'section__hearing__slug', )
     search_fields = ('section__id', 'author_name', 'title', 'content')
     readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
                        'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',
@@ -361,6 +361,12 @@ class CommentAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         """Override parent's method in order to return even deleted comments"""
         qs = self.model._default_manager.everything()
+
+        if not request.user.is_superuser:
+            # Only show comments for user's organizations hearings
+            organizations = request.user.admin_organizations.all()
+            qs = qs.filter(section__hearing__organization__in=organizations)
+
         ordering = self.get_ordering(request)
         if ordering:
             qs = qs.order_by(*ordering)

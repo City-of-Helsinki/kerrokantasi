@@ -216,7 +216,15 @@ class SectionPoll(BasePoll):
         ordering = ['ordering']
 
     def recache_n_answers(self):
-        n_answers = SectionPollAnswer.objects.filter(option__poll_id=self.pk).values('comment_id').distinct().count()
+        n_answers = (
+            SectionPollAnswer.objects
+            .everything()
+            .filter(option__poll_id=self.pk)
+            .exclude(option__poll__deleted=True)
+            .values('comment_id')
+            .distinct()
+            .count()
+        )
         if n_answers != self.n_answers:
             self.n_answers = n_answers
             self.save(update_fields=('n_answers',))
@@ -236,7 +244,7 @@ class SectionPollOption(BasePollOption):
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer):
-    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.PROTECT)
+    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.CASCADE)
     option = models.ForeignKey(SectionPollOption, related_name='answers', on_delete=models.PROTECT)
 
     class Meta:

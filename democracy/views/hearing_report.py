@@ -378,7 +378,7 @@ class HearingReport(object):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         # remove special characters from filename to avoid potential file naming issues
-        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(
+        response['Content-Disposition'] = 'attachment; filename="{filename}.xlsx"'.format(
             filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json['title'])))
         return response
 

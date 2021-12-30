@@ -246,7 +246,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         # Only hearing organization admins can flag comments
         if instance.section.hearing.organization not in user.admin_organizations.all():
             return response.Response(
-                {'status': "You don't have authorization to flag this comment"}, status=status.HTTP_400_BAD_REQUEST
+                {'status': "You don't have authorization to flag this comment"}, status=status.HTTP_403_FORBIDDEN
             )
         if instance.flagged_at:
             return response.Response({'status': 'Already flagged'}, status=status.HTTP_304_NOT_MODIFIED)

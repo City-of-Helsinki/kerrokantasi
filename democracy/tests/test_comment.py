@@ -728,15 +728,30 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
     assert data['sections'][0]['n_comments'] == 1
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_name_property_without_authorization(john_doe_api_client, default_hearing):
+def test_get_section_comment_creator_name_without_auth_not_public(john_doe_api_client, default_hearing, settings):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
+
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
     response = john_doe_api_client.get(url)
     data = get_data_from_response(response, 200)
-    # check no section comment has creator_name when not authorized
+    # check no section comment has creator_name when not authorized and the setting is disabled
     for comment in data:
         assert not "creator_name" in comment
-    
+
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_name_without_auth_public(john_doe_api_client, default_hearing, settings):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
+
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check section comment has creator_name when not authorized and the setting is enabled
+    for comment in data:
+        assert "creator_name" in comment
+
 
 @pytest.mark.django_db
 def test_get_section_comment_creator_name_property_with_authorization(admin_api_client, default_hearing):

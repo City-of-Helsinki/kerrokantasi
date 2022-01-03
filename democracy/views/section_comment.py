@@ -1,4 +1,5 @@
 import django_filters
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.models import F
 from django.db.transaction import atomic
@@ -173,7 +174,11 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
-        if not self.context['request'].user.is_staff and not self.context['request'].user.is_superuser:
+        if (
+            not settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            and not self.context['request'].user.is_staff
+            and not self.context['request'].user.is_superuser
+        ):
             del data['creator_name']
 
         return data

@@ -151,7 +151,8 @@ class SectionCommentSerializer(BaseCommentSerializer):
         if obj.deleted_by_id == obj.created_by_id:
             return "Kirjoittaja poisti oman viestinsä."
 
-        return f"Viesti on poistettu {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}, " \
+        deleted_time = f" {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}" if obj.deleted_at is not None else ""
+        return f"Viesti on poistettu{deleted_time}, " \
                f"koska se ei noudattanut Kerrokantasi-palvelun sääntöjä https://kerrokantasi.hel.fi/info"
 
     def get_answers(self, obj):

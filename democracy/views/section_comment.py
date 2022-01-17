@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -135,25 +137,26 @@ class SectionCommentSerializer(BaseCommentSerializer):
     answers = serializers.SerializerMethodField()
     creator_name = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
+    deleted_by_type = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
                   'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name',
-                  'deleted', 'deleted_at'] + COMMENT_FIELDS
+                  'deleted', 'deleted_at', 'deleted_by_type'] + COMMENT_FIELDS
 
     def get_content(self, obj):
         # Hide content if comment was deleted
 
         if not obj.deleted:
             return obj.content
-
-        if obj.deleted_by_id == obj.created_by_id:
+        elif obj.deleted_by_id is not None and obj.deleted_by_id == obj.created_by_id:
             return "Kirjoittaja poisti oman viestinsä."
-
-        deleted_time = f" {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}" if obj.deleted_at is not None else ""
-        return f"Viesti on poistettu{deleted_time}, " \
-               f"koska se ei noudattanut Kerrokantasi-palvelun sääntöjä https://kerrokantasi.hel.fi/info"
+        elif obj.deleted_at:
+            deleted_time = f" {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}" if obj.deleted_at is not None else ""
+            return f"Viesti on poistettu{deleted_time}, koska se ei noudattanut Kerrokantasi-palvelun sääntöjä " \
+                   f"{urljoin(settings.DEMOCRACY_UI_BASE_URL, '/info')}"
+        return "Viesti on poistettu."
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -172,6 +175,20 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return obj.created_by.get_full_name()
         else:
             return 'Anonymous'
+
+    def get_deleted_by_type(self, obj):
+        # Used to display a different message in the frontend if comment was deleted by its creator
+
+        if not obj.deleted:
+            # Not deleted
+            return None
+        elif obj.deleted_by_id is not None and obj.deleted_by_id == obj.created_by_id:
+            # Deleted by user themselves
+            return "self"
+        elif obj.deleted_by_id is not None and obj.deleted_at is not None:
+            return "moderator"
+        # No information about who deleted the comment
+        return "unknown"
 
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)

@@ -1270,7 +1270,7 @@ def test_deleted_comments_data_returned(john_doe_api_client, default_hearing):
     assert comment_data["deleted_at"] is not None
     assert (
         SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
-        and "https://kerrokantasi.hel.fi/info" in comment_data["content"]
+        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" in comment_data["content"]
     )
 
 
@@ -1289,7 +1289,7 @@ def test_deleted_comments_data_returned_author_self_deleted(john_doe_api_client,
     assert comment_data["deleted_at"] is not None
     assert (
         SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
-        and "https://kerrokantasi.hel.fi/info" not in comment_data["content"]
+        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" not in comment_data["content"]
     )
 
 

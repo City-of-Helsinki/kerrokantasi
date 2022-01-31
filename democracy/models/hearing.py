@@ -130,9 +130,9 @@ class Hearing(StringIdBaseModel, TranslatableModel):
             return False
         return self.organization in user.admin_organizations.all()
 
-    def soft_delete(self, using=None):
+    def soft_delete(self, using=None, user=None):
         # we want deleted hearings to give way to new ones, the original slug from a deleted hearing
         # is now free to use
         self.slug += '-deleted'
         self.save()
-        super().soft_delete(using=using)
+        super().soft_delete(using=using, user=user)

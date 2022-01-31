@@ -52,6 +52,10 @@ def get_main_comments_url(hearing, lookup_field='id'):
     return '/v1/hearing/%s/sections/%s/comments/' % (getattr(hearing, lookup_field), hearing.get_main_section().id)
 
 
+def get_section_comment_flag_url(hearing_id, section_id, comment_id):
+    return get_hearing_detail_url(hearing_id, 'sections/%s/comments/%s/flag' % (section_id, comment_id))
+
+
 @pytest.fixture(params=['nested_by_id', 'nested_by_slug', 'root'])
 def get_comments_url_and_data(request):
     """
@@ -264,6 +268,34 @@ def test_56_add_comment_to_comment(john_doe_api_client, default_hearing, get_com
     assert_common_keys_equal(new_comment, comment_data)
     assert new_comment["is_registered"] == True
     assert new_comment["author_name"] is None
+
+
+@pytest.mark.django_db
+def test_add_comment_to_deleted_comment(john_doe_api_client, default_hearing, get_comments_url_and_data):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+    # If pagination is used the actual data is in "results"
+    if 'results' in old_comment_list:
+        old_comment_list = old_comment_list['results']
+
+    SectionComment.objects.get(id=old_comment_list[0]['id']).soft_delete()
+
+    # set answered comment explicitly
+    comment_data = get_comment_data(comment=old_comment_list[0]['id'])
+    response = john_doe_api_client.post(url, data=comment_data)
+
+    data = get_data_from_response(response, status_code=201)
+    assert data['section'] == section.pk
+    assert data['content'] == default_comment_content
+    assert data['comment'] == old_comment_list[0]['id']
+
+    # Check that the comment is available in the comment endpoint now
+    new_comment_list = get_data_from_response(john_doe_api_client.get(f"{url}?comment={old_comment_list[0]['id']}"))
+    if 'results' in new_comment_list:
+        new_comment_list = new_comment_list['results']
+
+    assert len(new_comment_list) == len(old_comment_list) + 1
 
 
 @pytest.mark.django_db
@@ -728,15 +760,30 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
     assert data['sections'][0]['n_comments'] == 1
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_name_property_without_authorization(john_doe_api_client, default_hearing):
+def test_get_section_comment_creator_name_without_auth_not_public(john_doe_api_client, default_hearing, settings):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
+
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
     response = john_doe_api_client.get(url)
     data = get_data_from_response(response, 200)
-    # check no section comment has creator_name when not authorized
+    # check no section comment has creator_name when not authorized and the setting is disabled
     for comment in data:
         assert not "creator_name" in comment
-    
+
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_name_without_auth_public(john_doe_api_client, default_hearing, settings):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
+
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check section comment has creator_name when not authorized and the setting is enabled
+    for comment in data:
+        assert "creator_name" in comment
+
 
 @pytest.mark.django_db
 def test_get_section_comment_creator_name_property_with_authorization(admin_api_client, default_hearing):
@@ -1319,3 +1366,61 @@ def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, 
 
 
     
+def test_deleted_comments_data_returned(john_doe_api_client, default_hearing):
+    """Deleted comment is returned, with contents censored"""
+
+    section = default_hearing.sections.first()
+    section.comments.first().soft_delete()
+
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    data = get_data_from_response(john_doe_api_client.get(url), 200)
+
+    comment_data = data[0]
+    assert comment_data["deleted"]
+    assert comment_data["deleted_at"] is not None
+    assert (
+        SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
+        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" in comment_data["content"]
+    )
+
+
+@pytest.mark.django_db
+def test_deleted_comments_data_returned_author_self_deleted(john_doe_api_client, default_hearing):
+    """Comments deleted by their creator show a different message"""
+
+    section = default_hearing.sections.first()
+    section.comments.first().soft_delete(user=john_doe_api_client.user)
+
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    data = get_data_from_response(john_doe_api_client.get(url), 200)
+
+    comment_data = data[0]
+    assert comment_data["deleted"]
+    assert comment_data["deleted_at"] is not None
+    assert (
+        SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
+        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" not in comment_data["content"]
+    )
+
+
+@pytest.mark.django_db
+def test_section_comment_flag_without_proper_authentication(john_doe_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    comment = section.comments.first()
+    url = get_section_comment_flag_url(default_hearing.id, section.id, comment.id)
+    response = john_doe_api_client.post(url)
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_section_comment_flag_with_proper_authentication(john_smith_api_client, default_hearing):
+    """User with the same organization as the hearing can flag a comment"""
+    section = default_hearing.sections.first()
+    comment = section.comments.first()
+    url = get_section_comment_flag_url(default_hearing.id, section.id, comment.id)
+    response = john_smith_api_client.post(url)
+    assert response.status_code == 200
+
+    # Already flagged, nothing is done
+    response = john_smith_api_client.post(url)
+    assert response.status_code == 304

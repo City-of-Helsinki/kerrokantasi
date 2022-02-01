@@ -2,6 +2,7 @@
 import django_filters
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -16,13 +17,14 @@ from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
 from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
-                  'geojson', 'map_comment_text', 'images', 'label', 'organization']
+                  'geojson', 'map_comment_text', 'images', 'label', 'organization', 'flagged']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    flagged = serializers.SerializerMethodField()
     geojson = GeoJSONField()
 
     def to_representation(self, instance):
@@ -61,6 +63,9 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         if obj.organization:
             return str(obj.organization)
         return None
+
+    def get_flagged(self, obj):
+        return bool(obj.flagged_at)
 
     class Meta:
         model = BaseComment
@@ -112,8 +117,19 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return context
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
+        """
+        This method is used  when fetching reply comments only.
+        Returns all sub-comments, including deleted ones
+        """
+
+        queryset = self.model.objects.everything()
+        queryset = queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
+
+        user = self._get_user_from_request_or_context()
+        if user.is_authenticated and user.is_superuser:
+            return queryset
+        else:
+            return queryset.exclude(published=False)
 
     def create_related(self, request, instance=None, *args, **kwargs):
         pass
@@ -236,7 +252,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        instance.soft_delete()
+        instance.soft_delete(user=request.user)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_update(self, serializer):
@@ -264,6 +280,23 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         comment.recache_n_votes()
         # return success
         return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def flag(self, request, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        # Only hearing organization admins can flag comments
+        if instance.section.hearing.organization not in user.admin_organizations.all():
+            return response.Response(
+                {'status': "You don't have authorization to flag this comment"}, status=status.HTTP_403_FORBIDDEN
+            )
+        if instance.flagged_at:
+            return response.Response({'status': 'Already flagged'}, status=status.HTTP_304_NOT_MODIFIED)
+
+        instance.flagged_at = timezone.now()
+        instance.flagged_by = request.user
+        instance.save()
+        return response.Response({'status': 'comment flagged'})
 
     @action(detail=True, methods=['post'])
     def unvote(self, request, **kwargs):

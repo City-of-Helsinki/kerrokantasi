@@ -1,5 +1,7 @@
 import logging
 import re
+
+from django.conf import settings
 from django.urls import get_resolver
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
@@ -165,16 +167,23 @@ class SectionComment(Commentable, BaseComment):
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
+    delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
+    flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
+    flagged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True, blank=True, related_name="%(class)s_flagged",
+        editable=False, on_delete=models.SET_NULL
+    )
 
     class Meta:
         verbose_name = _('section comment')
         verbose_name_plural = _('section comments')
         ordering = ('-created_at',)
 
-    def soft_delete(self, using=None):
+    def soft_delete(self, using=None, user=None):
         for answer in self.poll_answers.all():
-            answer.soft_delete()
-        super().soft_delete(using=using)
+            answer.soft_delete(user=user)
+        super().soft_delete(using=using, user=user)
 
     def save(self, *args, **kwargs):
         # we may create a comment by referring to another comment instead of section explicitly
@@ -207,7 +216,15 @@ class SectionPoll(BasePoll):
         ordering = ['ordering']
 
     def recache_n_answers(self):
-        n_answers = SectionPollAnswer.objects.filter(option__poll_id=self.pk).values('comment_id').distinct().count()
+        n_answers = (
+            SectionPollAnswer.objects
+            .everything()
+            .filter(option__poll_id=self.pk)
+            .exclude(option__poll__deleted=True)
+            .values('comment_id')
+            .distinct()
+            .count()
+        )
         if n_answers != self.n_answers:
             self.n_answers = n_answers
             self.save(update_fields=('n_answers',))
@@ -227,7 +244,7 @@ class SectionPollOption(BasePollOption):
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer):
-    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.PROTECT)
+    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.CASCADE)
     option = models.ForeignKey(SectionPollOption, related_name='answers', on_delete=models.PROTECT)
 
     class Meta:

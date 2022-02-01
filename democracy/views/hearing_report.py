@@ -1,11 +1,14 @@
 import io
-import re
-import xlsxwriter
 import json
-from django.conf import settings
-from django.http import HttpResponse
+import re
 
+import xlsxwriter
+from django.conf import settings
+from django.db.models import F
+from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from xlsxwriter.utility import xl_rowcol_to_cell
+
 from democracy.models import SectionComment
 
 from .section_comment import SectionCommentSerializer
@@ -85,14 +88,15 @@ class HearingReport(object):
         section_worksheet = self.xlsdoc.add_worksheet(re.sub(r"\W+|_", " ", section_name[:31]))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
-        section_worksheet.set_column('B:B', 20)
-        section_worksheet.set_column('C:C', 15)
-        section_worksheet.set_column('D:D', 10)
-        section_worksheet.set_column('E:E', 5)
-        section_worksheet.set_column('F:F', 50)
-        section_worksheet.set_column('G:G', 200)
-        section_worksheet.set_column('H:H', 100)
+        section_worksheet.set_column('B:B', 50)
+        section_worksheet.set_column('C:C', 50)
+        section_worksheet.set_column('D:D', 15)
+        section_worksheet.set_column('E:E', 10)
+        section_worksheet.set_column('F:F', 5)
+        section_worksheet.set_column('G:G', 50)
+        section_worksheet.set_column('H:H', 200)
         section_worksheet.set_column('I:I', 100)
+        section_worksheet.set_column('J:J', 100)
 
         # add section title
         self.section_worksheet_active_row = 0
@@ -112,11 +116,11 @@ class HearingReport(object):
         self.add_section_polls(section, section_worksheet)
 
     def add_section_comments(self, section, section_worksheet):
-        '''
-        Author  |  Email  |     Content     | Created | Votes | Label   | Map comment        | Geojson      | Images
-        "name"  | "email" |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        "name"  | "email" |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        '''
+        """
+        Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
+        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        """
 
         # add comments title
         row = self.section_worksheet_active_row
@@ -127,8 +131,13 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         col_index = 0
 
+        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is disabled,
         # include Author only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if (
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            or self.context['request'].user.is_staff
+            or self.context['request'].user.is_superuser
+        ):
             section_worksheet.write(row, col_index, 'Author', self.format_bold)
             col_index += 1
 
@@ -138,6 +147,8 @@ class HearingReport(object):
             col_index += 1
 
         section_worksheet.write(row, col_index, 'Content', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Subcontent', self.format_bold)
         col_index += 1
         section_worksheet.write(row, col_index, 'Created', self.format_bold)
         col_index += 1
@@ -154,20 +165,32 @@ class HearingReport(object):
         self.section_worksheet_active_row += 1
 
         # loop through comments in current section
-        comments = [SectionCommentSerializer(c, context=self.context).data
-                    for c in SectionComment.objects.filter(section=section['id'])]
+        comments = [
+            SectionCommentSerializer(c, context=self.context).data
+            for c in (
+                SectionComment.objects
+                .filter(section=section['id'])
+                .annotate(parent_created_at=Coalesce(F("comment__created_at"), "created_at"))
+                .order_by("-parent_created_at", "created_at")
+            )
+        ]
         for comment in comments:
             self.add_comment_row(comment, section_worksheet)
 
     def add_comment_row(self, comment, section_worksheet):
-        '''
-        "name" | "email" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        '''
+        """
+        "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
+        """
         row = self.section_worksheet_active_row
         col_index = 0
 
+        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is disabled,
         # include Author only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if (
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            or self.context['request'].user.is_staff
+            or self.context['request'].user.is_superuser
+        ):
             name = comment.get('creator_name')
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
             col_index += 1
@@ -179,7 +202,12 @@ class HearingReport(object):
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
             col_index += 1
         # add content
-        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
+        if not comment["comment"]:
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
+        col_index += 1
+        # add Subcontent
+        if comment["comment"]:
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
         col_index += 1
         # add creation date
         section_worksheet.write(row, col_index, comment['created_at'])
@@ -362,7 +390,7 @@ class HearingReport(object):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         # remove special characters from filename to avoid potential file naming issues
-        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(
+        response['Content-Disposition'] = 'attachment; filename="{filename}.xlsx"'.format(
             filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json['title'])))
         return response
 

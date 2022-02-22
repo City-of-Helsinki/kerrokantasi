@@ -1365,7 +1365,7 @@ def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, 
     assert data['results'][0]['content'] == 'Jane created this comment'
 
 
-    
+@pytest.mark.django_db
 def test_deleted_comments_data_returned(john_doe_api_client, default_hearing):
     """Deleted comment is returned, with contents censored"""
 

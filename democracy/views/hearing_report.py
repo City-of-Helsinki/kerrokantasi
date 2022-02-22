@@ -66,6 +66,21 @@ class HearingReport(object):
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
 
+
+    def _get_formatted_sheet_name(self, section_name: str, section_index: int) -> str:
+        '''
+        Returns a sheet name with correct char length, without special chars
+        and numbering for subsections to avoid duplicate name errors.
+        '''
+        # worksheet name must be <= 31 chars and cannot have certain special chars
+        formatted_name = re.sub(r"\W+|_", " ", section_name[:31]).capitalize()
+        if section_index > 0:
+            index = str(section_index)
+            return f'{formatted_name[:31-len(index)]}{index}'
+
+        return formatted_name
+
+
     def add_section_worksheet(self, section, section_index):
         section_name = ""
         # main section name is always type name
@@ -79,13 +94,8 @@ class HearingReport(object):
             else:
                 section_name = section['type_name_singular']
 
-        # worksheet name must be <= 31 chars and doc cannot have duplicate sheet names
-        # duplicates are named like "sheetname(n)"
-        if self.xlsdoc.get_worksheet_by_name(section_name) is not None:
-            section_name = f"{section_name[:28]}({section_index})"
-
-        # remove special characters from worksheet names to avoid potential naming issues
-        section_worksheet = self.xlsdoc.add_worksheet(re.sub(r"\W+|_", " ", section_name[:31]))
+        section_worksheet = self.xlsdoc.add_worksheet(
+            self._get_formatted_sheet_name(section_name, section_index))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
         section_worksheet.set_column('B:B', 50)

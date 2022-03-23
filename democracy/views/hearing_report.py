@@ -58,7 +58,7 @@ class HearingReport(object):
         self.add_hearing_row('Close', self.json['close_at'])
         # self.add_hearing_row('Author', self.json['created_by'])
         for lang, abstract in self.json['abstract'].items():
-            self.add_hearing_row('Abstract (%s)' % lang, abstract)
+            self.add_hearing_row('Abstract (%s)' % lang, self.strip_html_tags(abstract))
         for lang, borough in self.json['borough'].items():
             self.add_hearing_row('Borough (%s)' % lang, borough)
         self.add_hearing_row('Labels', str('%s' % ', '.join([self._get_default_translation(label['label']) for label in
@@ -414,3 +414,9 @@ class HearingReport(object):
                 return f"'{cell_content}"
 
         return cell_content
+
+
+    def strip_html_tags(self, text: str) -> str:
+        """Strips html tags from given text and returns the result"""
+        strip = re.compile('<.*?>')
+        return re.sub(strip, '', text)

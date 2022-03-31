@@ -11,6 +11,7 @@ from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
+from democracy.enums import InitialSectionType
 from democracy.models.section import SectionComment
 
 from democracy.views.reports_v2.utils import (get_default_translation,
@@ -188,7 +189,8 @@ class HearingReportPowerPoint():
     def _get_pptx(self):
         sections = self.json['sections']
         for section in sections:
-            self._add_section(section)
+            if section['type'] != InitialSectionType.CLOSURE_INFO:
+                self._add_section(section)
 
         self.prs.save(self.buffer)
         return self.buffer.getvalue()

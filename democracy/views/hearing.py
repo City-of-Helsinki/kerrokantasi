@@ -19,6 +19,7 @@ from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.project import ProjectSerializer, ProjectFieldSerializer, ProjectCreateUpdateSerializer
+from democracy.views.reports_v2.hearing_report_powerpoint import HearingReportPowerPoint
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
@@ -505,6 +506,20 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         context = self.get_serializer_context()
         report = HearingReport(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
+
+
+    @action(detail=True, methods=['get'])
+    def report_pptx(self, request, pk=None):
+        user = request.user
+        if not user or not user.is_authenticated or not user.get_default_organization():
+            return response.Response(
+                {'status': 'User without organization cannot GET report pptx.'},
+                status=status.HTTP_403_FORBIDDEN)
+        context = self.get_serializer_context()
+        report = HearingReportPowerPoint(HearingSerializer(
+            self.get_object(), context=context).data, context=context)
+        return report.get_response()
+
 
     @action(detail=False, methods=['get'])
     def map(self, request):

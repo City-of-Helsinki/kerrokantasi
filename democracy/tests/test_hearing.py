@@ -636,6 +636,27 @@ def test_24_get_report(api_client, default_hearing):
 
 
 @pytest.mark.django_db
+def test_get_report_pptx_anonymous(api_client, default_hearing):
+    response = api_client.get('%s%s/report_pptx/' % (endpoint, default_hearing.id))
+    assert response.status_code == 403
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_get_report_pptx_user_without_organization(john_doe_api_client, default_hearing):
+    response = john_doe_api_client.get('%s%s/report_pptx/' % (endpoint, default_hearing.id))
+    assert response.status_code == 403
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_get_report_pptx_user_with_organization(john_smith_api_client, default_hearing):
+    response = john_smith_api_client.get('%s%s/report_pptx/' % (endpoint, default_hearing.id))
+    assert response.status_code == 200
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
 def test_get_hearing_check_section_type(api_client, default_hearing):
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
     data = get_data_from_response(response)

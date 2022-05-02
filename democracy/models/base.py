@@ -53,6 +53,14 @@ class BaseModel(models.Model):
         editable=False, on_delete=models.SET_NULL
     )
     published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
+    deleted_at = models.DateTimeField(
+        verbose_name=_('time of deletion'), default=None, editable=False, null=True, blank=True
+    )
+    deleted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name=_('deleted by'),
+        null=True, blank=True, related_name="%(class)s_deleted",
+        editable=False, on_delete=models.SET_NULL
+    )
     deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
     objects = BaseModelManager()
 
@@ -70,13 +78,18 @@ class BaseModel(models.Model):
             self.modified_at = timezone.now()
         super().save(*args, **kwargs)
 
-    def soft_delete(self, using=None):
+    def soft_delete(self, using=None, user=None):
         self.deleted = True
-        self.save(update_fields=("deleted",), using=using)
+        self.deleted_at = timezone.now()
+        if user is not None and user.pk:
+            self.deleted_by = user
+        self.save(update_fields=("deleted", "deleted_at", "deleted_by"), using=using)
 
     def undelete(self, using=None):
         self.deleted = False
-        self.save(update_fields=("deleted",), using=using)
+        self.deleted_at = None
+        self.deleted_by = None
+        self.save(update_fields=("deleted", "deleted_at", "deleted_by"), using=using)
 
     def delete(self, using=None):
         raise NotImplementedError("This model does not support hard deletion")

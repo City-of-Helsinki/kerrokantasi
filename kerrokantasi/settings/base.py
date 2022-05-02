@@ -78,7 +78,9 @@ env = environ.Env(
     SOCIAL_AUTH_TUNNISTAMO_SECRET=(str, ''),
     SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
     STRONG_AUTH_PROVIDERS=(list, []),
-    LOGOUT_REDIRECT_URL=(str, '/')
+    LOGOUT_REDIRECT_URL=(str, '/'),
+    HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, True),
+    HEARING_REPORT_THEME=(str, 'whitelabel'),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -375,3 +377,6 @@ LOGOUT_URL = '/'
 LOGOUT_REDIRECT_URL = env('LOGOUT_REDIRECT_URL')
 
 SITE_ID=1
+
+HEARING_REPORT_PUBLIC_AUTHOR_NAMES = env('HEARING_REPORT_PUBLIC_AUTHOR_NAMES')
+HEARING_REPORT_THEME = env('HEARING_REPORT_THEME')

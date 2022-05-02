@@ -19,6 +19,7 @@ from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.project import ProjectSerializer, ProjectFieldSerializer, ProjectCreateUpdateSerializer
+from democracy.views.reports_v2.hearing_report_powerpoint import HearingReportPowerPoint
 from democracy.views.section import (
     SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
 )
@@ -166,6 +167,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         project_data = validated_data.pop('project', None)
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         validated_data['created_by_id'] = self.context['request'].user.id
+        validated_data['published'] = False  # Force new hearings to be unpublished initially
         hearing = super().create(validated_data)
         self._create_or_update_sections(hearing, sections_data, force_create=True)
         self._create_or_update_project(hearing, project_data)
@@ -413,6 +415,10 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         next_closing = self.request.query_params.get('next_closing', None)
         open = self.request.query_params.get('open', None)
         created_by = self.request.query_params.get('created_by', None)
+        following = self.request.query_params.get('following', None)
+
+        if following is not None and self.request.user:
+            queryset = queryset.filter(followers=self.request.user)
 
         if created_by is not None and self.request.user:
             if created_by.lower() == 'me':
@@ -501,6 +507,20 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         report = HearingReport(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
 
+
+    @action(detail=True, methods=['get'])
+    def report_pptx(self, request, pk=None):
+        user = request.user
+        if not user or not user.is_authenticated or not user.get_default_organization():
+            return response.Response(
+                {'status': 'User without organization cannot GET report pptx.'},
+                status=status.HTTP_403_FORBIDDEN)
+        context = self.get_serializer_context()
+        report = HearingReportPowerPoint(HearingSerializer(
+            self.get_object(), context=context).data, context=context)
+        return report.get_response()
+
+
     @action(detail=False, methods=['get'])
     def map(self, request):
         queryset = self.filter_queryset(self.get_queryset())
@@ -536,5 +556,5 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         if hearing.n_comments > 0:
             return response.Response({'status': 'Cannot DELETE hearing with comments.'},
                                      status=status.HTTP_403_FORBIDDEN)
-        hearing.soft_delete()
+        hearing.soft_delete(user=request.user)
         return response.Response({'status': 'Hearing deleted'}, status=status.HTTP_200_OK)

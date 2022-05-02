@@ -2,6 +2,7 @@
 import django_filters
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -9,18 +10,21 @@ from rest_framework.settings import api_settings
 from reversion import revisions
 
 from democracy.models.comment import BaseComment
+from democracy.models.section import Section
+from democracy.models.hearing import Hearing
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
 from democracy.renderers import GeoJSONRenderer
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
-                  'geojson', 'map_comment_text', 'images', 'label', 'organization']
+                  'geojson', 'map_comment_text', 'images', 'label', 'organization', 'flagged']
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
+    flagged = serializers.SerializerMethodField()
     geojson = GeoJSONField()
 
     def to_representation(self, instance):
@@ -36,6 +40,21 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
 
     def get_can_edit(self, obj):
         request = self.context.get('request', None)
+        '''
+        Users that have is_staff and that are the creators of the hearing can edit/delete comments
+        as long as the hearing is commentable.
+        '''
+        # If user.is_staff then we check if user is also the creator of the hearing
+        if request.user.is_staff and Section.objects.get(id=obj.section_id) is not None:
+            specific_section = Section.objects.get(id=obj.section_id)
+            specific_hearing = Hearing.objects.get(id=specific_section.hearing_id)
+            if request.user.id == specific_hearing.created_by_id:
+                try:
+                    obj.parent.check_commenting(request)
+                except ValidationError:
+                    return False
+                return True
+
         if request:
             return obj.can_edit(request)
         return False
@@ -44,6 +63,9 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
         if obj.organization:
             return str(obj.organization)
         return None
+
+    def get_flagged(self, obj):
+        return bool(obj.flagged_at)
 
     class Meta:
         model = BaseComment
@@ -95,8 +117,19 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return context
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
+        """
+        This method is used  when fetching reply comments only.
+        Returns all sub-comments, including deleted ones
+        """
+
+        queryset = self.model.objects.everything()
+        queryset = queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
+
+        user = self._get_user_from_request_or_context()
+        if user.is_authenticated and user.is_superuser:
+            return queryset
+        else:
+            return queryset.exclude(published=False)
 
     def create_related(self, request, instance=None, *args, **kwargs):
         pass
@@ -125,6 +158,24 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 {'status': force_text(verr), 'code': verr.code},
                 status=status.HTTP_403_FORBIDDEN
             )
+    
+    def _check_hearing_creator(self, request):
+        '''
+        Returns boolean based on if request.user has is_staff rights, is the creator of the hearing
+        and if the hearing is commentable.
+        '''
+        obj = self.get_object()
+        if request.user.is_staff and Section.objects.get(id=obj.section_id) is not None:
+            specific_section = Section.objects.get(id=obj.section_id)
+            specific_hearing = Hearing.objects.get(id=specific_section.hearing_id)
+            if request.user.id == specific_hearing.created_by_id:
+                try:
+                    obj.parent.check_commenting(request)
+                except ValidationError:
+                    return False
+                return True
+        return False
+
 
     def create(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)
@@ -149,9 +200,13 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return resp
 
         instance = self.get_object()
-        if self.request.user != instance.created_by:
+        '''
+        Comment editing is only possible if the comment is created by user OR
+        if the user has is_staff rights AND is the creator of the hearing that this comment is in.
+        '''
+        if not self._check_hearing_creator(request) and self.request.user != instance.created_by:
             return response.Response(
-                {'status': 'You may not edit a comment not owned by you'},
+                {'status': 'You do not have sufficient rights to edit a comment not owned by you.'},
                 status=status.HTTP_403_FORBIDDEN
             )
         if request.user.is_authenticated and 'author_name' in request.data:
@@ -187,14 +242,17 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return resp
 
         instance = self.get_object()
-
-        if self.request.user != instance.created_by:
+        '''
+        Comment deletion is only possible if the comment is created by user OR
+        if the user has is_staff rights AND is the creator of the hearing that this comment is in.
+        '''
+        if not self._check_hearing_creator(request) and self.request.user != instance.created_by:
             return response.Response(
-                {'status': 'You may not delete a comment not owned by you'},
+                {'status': 'You do not have sufficient rights to delete a comment not owned by you.'},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        instance.soft_delete()
+        instance.soft_delete(user=request.user)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_update(self, serializer):
@@ -222,6 +280,23 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         comment.recache_n_votes()
         # return success
         return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=['post'])
+    def flag(self, request, **kwargs):
+        instance = self.get_object()
+        user = request.user
+        # Only hearing organization admins can flag comments
+        if instance.section.hearing.organization not in user.admin_organizations.all():
+            return response.Response(
+                {'status': "You don't have authorization to flag this comment"}, status=status.HTTP_403_FORBIDDEN
+            )
+        if instance.flagged_at:
+            return response.Response({'status': 'Already flagged'}, status=status.HTTP_304_NOT_MODIFIED)
+
+        instance.flagged_at = timezone.now()
+        instance.flagged_by = request.user
+        instance.save()
+        return response.Response({'status': 'comment flagged'})
 
     @action(detail=True, methods=['post'])
     def unvote(self, request, **kwargs):

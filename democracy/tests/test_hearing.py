@@ -36,7 +36,7 @@ def valid_hearing_json(contact_person, default_label):
             "sv": "Rooperi",
         },
         "n_comments": 0,
-        "published": True,
+        "published": False,
         "labels": [{"id": default_label.id, "label": {default_lang_code: default_label.label}}],
         "open_at": "2016-09-29T11:39:12Z",
         "close_at": "2016-09-29T11:39:12Z",
@@ -419,6 +419,42 @@ def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_d
     assert len(stark_data['results']) == 1
     
     
+@pytest.mark.django_db
+def test_filter_hearings_by_following(john_doe_api_client):
+    # We create three hearings
+    first_hearing = Hearing.objects.create(title='First Hearing')
+    second_hearing = Hearing.objects.create(title='Second Hearing')
+    third_hearing = Hearing.objects.create(title='Third Hearing')
+
+    # John starts following the first hearing
+    response = john_doe_api_client.post(get_hearing_detail_url(first_hearing.id, 'follow'))
+    assert response.status_code == 201
+    # John fetches hearings that he follows, only 1 hearing is returned.
+    response = john_doe_api_client.get(list_endpoint, data={"following": True})
+    data = get_data_from_response(response)
+    assert data['results'][0]['title'][default_lang_code] == first_hearing.title
+    assert len(data['results']) == 1
+
+    # John starts following the second hearing
+    response = john_doe_api_client.post(get_hearing_detail_url(second_hearing.id, 'follow'))
+    assert response.status_code == 201
+    # John fetches hearings that he follows, 2 hearings are returned.
+    response = john_doe_api_client.get(list_endpoint, data={"following": True})
+    data = get_data_from_response(response)
+    assert data['results'][0]['title'][default_lang_code] == second_hearing.title
+    assert data['results'][1]['title'][default_lang_code] == first_hearing.title
+    assert len(data['results']) == 2
+
+    # John starts following the third hearing
+    response = john_doe_api_client.post(get_hearing_detail_url(third_hearing.id, 'follow'))
+    assert response.status_code == 201
+    # John fetches hearings that he follows, 3 hearings are returned.
+    response = john_doe_api_client.get(list_endpoint, data={"following": True})
+    data = get_data_from_response(response)
+    assert data['results'][0]['title'][default_lang_code] == third_hearing.title
+    assert data['results'][1]['title'][default_lang_code] == second_hearing.title
+    assert data['results'][2]['title'][default_lang_code] == first_hearing.title
+    assert len(data['results']) == 3
 
 
 @pytest.mark.parametrize('plugin_fullscreen', [
@@ -595,6 +631,27 @@ def test_7_get_detail_servicemap(api_client):
 @pytest.mark.django_db
 def test_24_get_report(api_client, default_hearing):
     response = api_client.get('%s%s/report/' % (endpoint, default_hearing.id))
+    assert response.status_code == 200
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_get_report_pptx_anonymous(api_client, default_hearing):
+    response = api_client.get('%s%s/report_pptx/' % (endpoint, default_hearing.id))
+    assert response.status_code == 403
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_get_report_pptx_user_without_organization(john_doe_api_client, default_hearing):
+    response = john_doe_api_client.get('%s%s/report_pptx/' % (endpoint, default_hearing.id))
+    assert response.status_code == 403
+    assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_get_report_pptx_user_with_organization(john_smith_api_client, default_hearing):
+    response = john_smith_api_client.get('%s%s/report_pptx/' % (endpoint, default_hearing.id))
     assert response.status_code == 200
     assert len(response.content) > 0
 
@@ -1260,6 +1317,7 @@ def test_PUT_hearing_other_organization_hearing(valid_hearing_json, john_smith_a
     data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.first()
     hearing.organization = Organization.objects.create(name='The department for squirrel warfare')
+    hearing.published = True
     hearing.save()
     _update_hearing_data(data)
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
@@ -1344,6 +1402,7 @@ def test_PUT_hearing_no_organization(valid_hearing_json, john_smith_api_client):
     _update_hearing_data(data)
     hearing = Hearing.objects.filter(id=data['id']).first()
     hearing.organization = None
+    hearing.published = True
     hearing.save()
     response = john_smith_api_client.put('%s%s/' % (endpoint, data['id']), data=data, format='json')
     data = get_data_from_response(response, status_code=403)

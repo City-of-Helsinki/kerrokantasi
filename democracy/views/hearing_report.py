@@ -1,11 +1,14 @@
 import io
-import re
-import xlsxwriter
 import json
-from django.conf import settings
-from django.http import HttpResponse
+import re
 
+import xlsxwriter
+from django.conf import settings
+from django.db.models import F
+from django.db.models.functions import Coalesce
+from django.http import HttpResponse
 from xlsxwriter.utility import xl_rowcol_to_cell
+
 from democracy.models import SectionComment
 
 from .section_comment import SectionCommentSerializer
@@ -55,13 +58,28 @@ class HearingReport(object):
         self.add_hearing_row('Close', self.json['close_at'])
         # self.add_hearing_row('Author', self.json['created_by'])
         for lang, abstract in self.json['abstract'].items():
-            self.add_hearing_row('Abstract (%s)' % lang, abstract)
+            self.add_hearing_row('Abstract (%s)' % lang, self.strip_html_tags(abstract))
         for lang, borough in self.json['borough'].items():
             self.add_hearing_row('Borough (%s)' % lang, borough)
         self.add_hearing_row('Labels', str('%s' % ', '.join([self._get_default_translation(label['label']) for label in
                                                             self.json['labels']])))
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
+
+
+    def _get_formatted_sheet_name(self, section_name: str, section_index: int) -> str:
+        '''
+        Returns a sheet name with correct char length, without special chars
+        and numbering for subsections to avoid duplicate name errors.
+        '''
+        # worksheet name must be <= 31 chars and cannot have certain special chars
+        formatted_name = re.sub(r"\W+|_", " ", section_name[:31]).capitalize()
+        if section_index > 0:
+            index = str(section_index)
+            return f'{formatted_name[:31-len(index)]}{index}'
+
+        return formatted_name
+
 
     def add_section_worksheet(self, section, section_index):
         section_name = ""
@@ -76,22 +94,19 @@ class HearingReport(object):
             else:
                 section_name = section['type_name_singular']
 
-        # worksheet name must be <= 31 chars and doc cannot have duplicate sheet names
-        # duplicates are named like "sheetname(n)"
-        if self.xlsdoc.get_worksheet_by_name(section_name) is not None:
-            section_name = f"{section_name[:28]}({section_index})"
-
-        # remove special characters from worksheet names to avoid potential naming issues
-        section_worksheet = self.xlsdoc.add_worksheet(re.sub(r"\W+|_", " ", section_name[:31]))
+        section_worksheet = self.xlsdoc.add_worksheet(
+            self._get_formatted_sheet_name(section_name, section_index))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
-        section_worksheet.set_column('B:B', 15)
-        section_worksheet.set_column('C:C', 10)
-        section_worksheet.set_column('D:D', 5)
-        section_worksheet.set_column('E:E', 50)
-        section_worksheet.set_column('F:F', 200)
-        section_worksheet.set_column('G:G', 100)
-        section_worksheet.set_column('H:H', 100)
+        section_worksheet.set_column('B:B', 50)
+        section_worksheet.set_column('C:C', 50)
+        section_worksheet.set_column('D:D', 15)
+        section_worksheet.set_column('E:E', 10)
+        section_worksheet.set_column('F:F', 5)
+        section_worksheet.set_column('G:G', 50)
+        section_worksheet.set_column('H:H', 200)
+        section_worksheet.set_column('I:I', 100)
+        section_worksheet.set_column('J:J', 100)
 
         # add section title
         self.section_worksheet_active_row = 0
@@ -111,11 +126,11 @@ class HearingReport(object):
         self.add_section_polls(section, section_worksheet)
 
     def add_section_comments(self, section, section_worksheet):
-        '''
-        Author  |  Content        | Created | Votes | Label   | Map comment        | Geojson      | Images
-        "name"  |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        "name"  |  "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        '''
+        """
+        Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
+        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        """
 
         # add comments title
         row = self.section_worksheet_active_row
@@ -126,12 +141,24 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         col_index = 0
 
+        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is disabled,
         # include Author only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if (
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            or self.context['request'].user.is_staff
+            or self.context['request'].user.is_superuser
+        ):
             section_worksheet.write(row, col_index, 'Author', self.format_bold)
             col_index += 1
 
+        # include Email only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+            section_worksheet.write(row, col_index, 'Email', self.format_bold)
+            col_index += 1
+
         section_worksheet.write(row, col_index, 'Content', self.format_bold)
+        col_index += 1
+        section_worksheet.write(row, col_index, 'Subcontent', self.format_bold)
         col_index += 1
         section_worksheet.write(row, col_index, 'Created', self.format_bold)
         col_index += 1
@@ -148,26 +175,49 @@ class HearingReport(object):
         self.section_worksheet_active_row += 1
 
         # loop through comments in current section
-        comments = [SectionCommentSerializer(c, context=self.context).data
-                    for c in SectionComment.objects.filter(section=section['id'])]
+        comments = [
+            SectionCommentSerializer(c, context=self.context).data
+            for c in (
+                SectionComment.objects
+                .filter(section=section['id'])
+                .annotate(parent_created_at=Coalesce(F("comment__created_at"), "created_at"))
+                .order_by("-parent_created_at", "created_at")
+            )
+        ]
         for comment in comments:
             self.add_comment_row(comment, section_worksheet)
 
     def add_comment_row(self, comment, section_worksheet):
-        '''
-        "name" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data"   | "url"
-        '''
+        """
+        "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
+        """
         row = self.section_worksheet_active_row
         col_index = 0
 
+        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is disabled,
         # include Author only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if (
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            or self.context['request'].user.is_staff
+            or self.context['request'].user.is_superuser
+        ):
             name = comment.get('creator_name')
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
             col_index += 1
         # section_worksheet.write(row, 0, comment['author_name'])
+
+        # include Email only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+            email = comment.get('creator_email')
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
+            col_index += 1
         # add content
-        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
+        if not comment["comment"]:
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
+        col_index += 1
+        # add Subcontent
+        if comment["comment"]:
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
         col_index += 1
         # add creation date
         section_worksheet.write(row, col_index, comment['created_at'])
@@ -350,7 +400,7 @@ class HearingReport(object):
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         # remove special characters from filename to avoid potential file naming issues
-        response['Content-Disposition'] = 'attachment; filename={filename}.xlsx'.format(
+        response['Content-Disposition'] = 'attachment; filename="{filename}.xlsx"'.format(
             filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json['title'])))
         return response
 
@@ -364,3 +414,9 @@ class HearingReport(object):
                 return f"'{cell_content}"
 
         return cell_content
+
+
+    def strip_html_tags(self, text: str) -> str:
+        """Strips html tags from given text and returns the result"""
+        strip = re.compile('<.*?>')
+        return re.sub(strip, '', text)

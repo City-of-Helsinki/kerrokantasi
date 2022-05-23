@@ -825,6 +825,28 @@ def test_get_section_comment_creator_name_when_posted_by_registered_user(admin_a
 
 
 @pytest.mark.django_db
+def test_get_section_comment_creator_email_property_without_authorization(john_doe_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check no section comment has creator_email when not authorized
+    for comment in data:
+        assert not "creator_email" in comment
+
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_email_property_with_authorization(admin_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = admin_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    # check all section comments have creator_email when authorized
+    for comment in data:
+        assert "creator_email" in comment
+
+
+@pytest.mark.django_db
 def test_n_comments_updates(admin_user, default_hearing):
     section = default_hearing.get_main_section()
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 9
@@ -1233,6 +1255,32 @@ def test_cannot_delete_others_comments(api_client, jane_doe_api_client, default_
     assert comment.deleted is False
 
 
+@pytest.mark.parametrize('anonymous_comment', [True, False])
+@pytest.mark.django_db
+def test_hearing_creator_can_delete_others_comments(api_client, steve_staff_api_client, default_hearing, get_detail_url,
+                                       anonymous_comment):
+    default_hearing.created_by_id = steve_staff_api_client.user.id
+    default_hearing.save()
+    comment = default_hearing.get_main_section().comments.all()[0]
+
+    if anonymous_comment:
+        comment.created_by = None
+        comment.save(update_fields=('created_by',))
+
+    url = get_detail_url(comment)
+
+    # anonymous user
+    response = api_client.delete(url)
+    assert response.status_code == 403
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is False
+
+    # staff/hearing creator user
+    response = steve_staff_api_client.delete(url)
+    assert response.status_code == 204
+    comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.deleted is True
+
 @pytest.mark.parametrize('ordering, expected_order', [
     ('created_at', [0, 1, 2]),
     ('-created_at', [2, 1, 0]),
@@ -1253,6 +1301,68 @@ def test_comment_ordering(api_client, ordering, expected_order, default_hearing)
 
     n_votes_list = [comment['n_votes'] for comment in results]
     assert n_votes_list == expected_order
+
+
+@pytest.mark.django_db
+def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, get_comments_url_and_data):
+    hearings = []
+    sections = []
+    # Create 3 hearings with a section that can be commented.
+    for i in range(3):
+        hearings.append(
+            Hearing.objects.create(
+                title='Test hearing title %s' % (i + 1),
+                open_at=now() - datetime.timedelta(days=1),
+                close_at=now() + datetime.timedelta(days=1)
+            )
+        )
+        sections.append(
+            Section.objects.create(
+                title='Hearing %s Section to comment' % (i + 1),
+                hearing=hearings[i],
+                commenting=Commenting.OPEN,
+                type=SectionType.objects.get(identifier=InitialSectionType.PART)
+            )
+        )
+    
+    # John comments on each hearing.
+    expected_john_comment_content = []
+    for i in range(len(hearings)):
+        url, data = get_comments_url_and_data(hearings[i], sections[i])
+        comment_data = get_comment_data(section=sections[i].pk, author_name='John', content='Comment for Hearing %s' % (i + 1))
+        expected_john_comment_content.insert(0, 'Comment for Hearing %s' % (i + 1))
+        john_doe_api_client.post(url, data=comment_data)
+
+
+    # Jane comments on the first hearing.
+    comment_data = get_comment_data(section=sections[0].pk, author_name='Jane', content='Jane created this comment')
+    jane_doe_api_client.post(url, data=comment_data)
+
+    # John fetches all comments he has made.
+    response = john_doe_api_client.get(root_list_url, data={"created_by": "me"})
+    assert response.status_code == 200
+    data = get_data_from_response(response)
+    
+    assert len(data['results']) == len(hearings)
+
+    # Hearing slug values are added to a list as they are used to test that the comments belong to correct hearings.
+    expected_slug_values = []
+    for i in range(len(hearings)):
+        expected_slug_values.insert(0, hearings[i].slug)
+
+
+    # Each comment has the expected content and hearing slug.
+    for i in range(len(data['results'])):
+        assert data['results'][i]['content'] == expected_john_comment_content[i]
+        assert data['results'][i]['hearing_data']['slug'] == expected_slug_values[i]
+
+    # Jane fetches all comments she has made.
+    response = jane_doe_api_client.get(root_list_url, data={"created_by": "me"})
+    assert response.status_code == 200
+    data = get_data_from_response(response)
+    
+    assert len(data['results']) == 1
+    assert data['results'][0]['content'] == 'Jane created this comment'
 
 
 @pytest.mark.django_db

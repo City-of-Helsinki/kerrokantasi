@@ -58,13 +58,28 @@ class HearingReport(object):
         self.add_hearing_row('Close', self.json['close_at'])
         # self.add_hearing_row('Author', self.json['created_by'])
         for lang, abstract in self.json['abstract'].items():
-            self.add_hearing_row('Abstract (%s)' % lang, abstract)
+            self.add_hearing_row('Abstract (%s)' % lang, self.strip_html_tags(abstract))
         for lang, borough in self.json['borough'].items():
             self.add_hearing_row('Borough (%s)' % lang, borough)
         self.add_hearing_row('Labels', str('%s' % ', '.join([self._get_default_translation(label['label']) for label in
                                                             self.json['labels']])))
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
+
+
+    def _get_formatted_sheet_name(self, section_name: str, section_index: int) -> str:
+        '''
+        Returns a sheet name with correct char length, without special chars
+        and numbering for subsections to avoid duplicate name errors.
+        '''
+        # worksheet name must be <= 31 chars and cannot have certain special chars
+        formatted_name = re.sub(r"\W+|_", " ", section_name[:31]).capitalize()
+        if section_index > 0:
+            index = str(section_index)
+            return f'{formatted_name[:31-len(index)]}{index}'
+
+        return formatted_name
+
 
     def add_section_worksheet(self, section, section_index):
         section_name = ""
@@ -79,23 +94,19 @@ class HearingReport(object):
             else:
                 section_name = section['type_name_singular']
 
-        # worksheet name must be <= 31 chars and doc cannot have duplicate sheet names
-        # duplicates are named like "sheetname(n)"
-        if self.xlsdoc.get_worksheet_by_name(section_name) is not None:
-            section_name = f"{section_name[:28]}({section_index})"
-
-        # remove special characters from worksheet names to avoid potential naming issues
-        section_worksheet = self.xlsdoc.add_worksheet(re.sub(r"\W+|_", " ", section_name[:31]))
+        section_worksheet = self.xlsdoc.add_worksheet(
+            self._get_formatted_sheet_name(section_name, section_index))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
         section_worksheet.set_column('B:B', 50)
-        section_worksheet.set_column('C:C', 15)
-        section_worksheet.set_column('D:D', 10)
-        section_worksheet.set_column('E:E', 5)
-        section_worksheet.set_column('F:F', 50)
-        section_worksheet.set_column('G:G', 200)
-        section_worksheet.set_column('H:H', 100)
+        section_worksheet.set_column('C:C', 50)
+        section_worksheet.set_column('D:D', 15)
+        section_worksheet.set_column('E:E', 10)
+        section_worksheet.set_column('F:F', 5)
+        section_worksheet.set_column('G:G', 50)
+        section_worksheet.set_column('H:H', 200)
         section_worksheet.set_column('I:I', 100)
+        section_worksheet.set_column('J:J', 100)
 
         # add section title
         self.section_worksheet_active_row = 0
@@ -116,9 +127,9 @@ class HearingReport(object):
 
     def add_section_comments(self, section, section_worksheet):
         """
-        Author | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
-        "name" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
-        "name" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
+        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
         """
 
         # add comments title
@@ -138,6 +149,11 @@ class HearingReport(object):
             or self.context['request'].user.is_superuser
         ):
             section_worksheet.write(row, col_index, 'Author', self.format_bold)
+            col_index += 1
+
+        # include Email only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+            section_worksheet.write(row, col_index, 'Email', self.format_bold)
             col_index += 1
 
         section_worksheet.write(row, col_index, 'Content', self.format_bold)
@@ -173,7 +189,7 @@ class HearingReport(object):
 
     def add_comment_row(self, comment, section_worksheet):
         """
-        "name" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
+        "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
         """
         row = self.section_worksheet_active_row
         col_index = 0
@@ -189,6 +205,12 @@ class HearingReport(object):
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
             col_index += 1
         # section_worksheet.write(row, 0, comment['author_name'])
+
+        # include Email only if requesting user is staff
+        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+            email = comment.get('creator_email')
+            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
+            col_index += 1
         # add content
         if not comment["comment"]:
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))
@@ -392,3 +414,9 @@ class HearingReport(object):
                 return f"'{cell_content}"
 
         return cell_content
+
+
+    def strip_html_tags(self, text: str) -> str:
+        """Strips html tags from given text and returns the result"""
+        strip = re.compile('<.*?>')
+        return re.sub(strip, '', text)

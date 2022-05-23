@@ -80,6 +80,7 @@ env = environ.Env(
     STRONG_AUTH_PROVIDERS=(list, []),
     LOGOUT_REDIRECT_URL=(str, '/'),
     HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, True),
+    HEARING_REPORT_THEME=(str, 'whitelabel'),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -378,3 +379,4 @@ LOGOUT_REDIRECT_URL = env('LOGOUT_REDIRECT_URL')
 SITE_ID=1
 
 HEARING_REPORT_PUBLIC_AUTHOR_NAMES = env('HEARING_REPORT_PUBLIC_AUTHOR_NAMES')
+HEARING_REPORT_THEME = env('HEARING_REPORT_THEME')

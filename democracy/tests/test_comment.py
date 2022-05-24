@@ -1,24 +1,21 @@
 # -*- coding: utf-8 -*-
 import datetime
-from copy import deepcopy
-import urllib
-
 import pytest
+import urllib
+from copy import deepcopy
 from django.test.utils import override_settings
 from django.utils.encoding import force_text
 from django.utils.timezone import now
-from reversion import revisions
 from reversion.models import Version
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
-from democracy.tests.conftest import default_comment_content, default_lang_code, default_geojson_feature
+from democracy.tests.conftest import default_comment_content, default_geojson_feature, default_lang_code
 from democracy.tests.utils import (
     assert_common_keys_equal, get_data_from_response, get_hearing_detail_url, image_test_json
 )
-
 
 root_list_url = '/v1/comment/'
 
@@ -808,8 +805,14 @@ def test_get_section_comment_creator_name_when_posted_by_anon(admin_api_client, 
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_name_when_posted_by_registered_user(admin_api_client, hearing_without_comments,
-                                                                        john_doe):
+def test_get_section_comment_creator_name_when_posted_by_registered_user(
+    admin_api_client,
+    hearing_without_comments,
+    john_doe,
+    settings,
+):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
+
     john_doe.first_name = 'John'
     john_doe.last_name = 'Doe'
     john_doe.save()
@@ -825,7 +828,13 @@ def test_get_section_comment_creator_name_when_posted_by_registered_user(admin_a
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_email_property_without_authorization(john_doe_api_client, default_hearing):
+def test_get_section_comment_creator_email_property_without_authorization(
+    john_doe_api_client,
+    default_hearing,
+    settings
+):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
+
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
     response = john_doe_api_client.get(url)

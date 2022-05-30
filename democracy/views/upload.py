@@ -3,7 +3,7 @@ import os
 from PIL import Image
 from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template import RequestContext
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -122,4 +122,4 @@ def browse(request):
         'files': files,
         'form': form
     })
-    return render_to_response('ckeditor/browse.html', context)
+    return render(request, 'ckeditor/browse.html', context)

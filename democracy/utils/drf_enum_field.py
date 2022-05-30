@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.utils import six
 from django.utils.encoding import force_text
 from rest_framework.fields import ChoiceField
 
@@ -30,7 +29,7 @@ class EnumField(ChoiceField):
         if not value:
             return None
         # If the enum value is an int, assume the name (lowercased in case of CONSTANTS) is more representative:
-        if isinstance(value.value, six.integer_types):
+        if isinstance(value.value, int):
             return value.name.lower()
         else:
             return value.value

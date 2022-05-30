@@ -100,6 +100,8 @@ SECRET_KEY = env('SECRET_KEY')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
 
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 DATABASES = {
     'default': env.db('DATABASE_URL')
 }
@@ -156,9 +158,9 @@ CKEDITOR_IMAGE_BACKEND = 'pillow'
 MAX_IMAGE_SIZE = 10**6
 
 INSTALLED_APPS = [
-    "helusers",
+    'social_django',
     "helusers.providers.helsinki_oidc",
-    'social_django',    
+    "helusers.apps.HelusersConfig",
     'helusers.apps.HelusersAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -168,7 +170,6 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'modeltranslation',
     'mptt',
     'nested_admin',
     'rest_framework',

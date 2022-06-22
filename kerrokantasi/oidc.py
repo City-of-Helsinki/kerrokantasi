@@ -1,5 +1,6 @@
-from helusers.oidc import ApiTokenAuthentication as HelApiTokenAuth
 from django.conf import settings
+from helusers.oidc import ApiTokenAuthentication as HelApiTokenAuth
+
 
 class ApiTokenAuthentication(HelApiTokenAuth):
     def __init__(self, *args, **kwargs):

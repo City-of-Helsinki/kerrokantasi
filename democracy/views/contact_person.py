@@ -1,9 +1,9 @@
-from rest_framework import serializers, viewsets, permissions, mixins, response, status
+from rest_framework import mixins, permissions, response, serializers, status, viewsets
+from rest_framework.exceptions import PermissionDenied
 
 from democracy.models import ContactPerson
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import TranslatableSerializer
-from rest_framework.exceptions import PermissionDenied
 
 
 class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerializer):

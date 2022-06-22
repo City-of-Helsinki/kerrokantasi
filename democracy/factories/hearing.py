@@ -1,9 +1,8 @@
+import factory
+import factory.fuzzy
 import logging
 import random
 from datetime import timedelta
-
-import factory
-import factory.fuzzy
 from django.utils.timezone import now
 
 from democracy.enums import Commenting

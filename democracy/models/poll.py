@@ -3,7 +3,8 @@ from django.db.models import Max
 from django.db.models.signals import post_save, pre_delete
 from django.utils.translation import ugettext_lazy as _
 from parler.models import TranslatableModel
-from .base import ORDERING_HELP, BaseModel
+
+from democracy.models.base import ORDERING_HELP, BaseModel
 
 
 class BasePoll(BaseModel, TranslatableModel):

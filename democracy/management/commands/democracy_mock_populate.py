@@ -1,8 +1,7 @@
-from optparse import make_option
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.core.management.base import BaseCommand
+from optparse import make_option
 
 from democracy.factories.hearing import HearingFactory, LabelFactory
 from democracy.factories.user import UserFactory

@@ -1,8 +1,5 @@
-from rest_framework import permissions
-from rest_framework import response
-from rest_framework import serializers, viewsets, mixins
 import django_filters
-from rest_framework import status
+from rest_framework import mixins, permissions, response, serializers, status, viewsets
 
 from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination

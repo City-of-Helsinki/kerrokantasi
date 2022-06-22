@@ -1,8 +1,8 @@
 import pytest
 
-from democracy.views.section import SectionSerializer
 from democracy.enums import InitialSectionType
 from democracy.models import SectionType
+from democracy.views.section import SectionSerializer
 
 
 @pytest.mark.django_db

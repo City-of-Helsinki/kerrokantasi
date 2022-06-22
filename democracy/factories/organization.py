@@ -1,6 +1,7 @@
 
 import factory
 import factory.fuzzy
+
 from democracy.models import Organization
 
 

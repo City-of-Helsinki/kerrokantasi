@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, serializers, viewsets
+
 from democracy.models import SectionPollAnswer
 
 

@@ -1,8 +1,8 @@
 import argparse
 import json
 import logging
-import xml.etree.ElementTree as ET
 import os
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 log = logging.getLogger("importer")

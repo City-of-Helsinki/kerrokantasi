@@ -9,11 +9,11 @@ from rest_framework.settings import api_settings
 from reversion import revisions
 
 from democracy.models.comment import BaseComment
-from democracy.models.section import Section
 from democracy.models.hearing import Hearing
-from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
-from democracy.views.utils import GeoJSONField, AbstractSerializerMixin
+from democracy.models.section import Section
 from democracy.renderers import GeoJSONRenderer
+from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
+from democracy.views.utils import AbstractSerializerMixin, GeoJSONField
 
 COMMENT_FIELDS = ['id', 'content', 'author_name', 'n_votes', 'created_at', 'is_registered', 'can_edit',
                   'geojson', 'map_comment_text', 'images', 'label', 'organization', 'flagged']

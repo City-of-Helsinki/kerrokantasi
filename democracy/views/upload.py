@@ -1,16 +1,16 @@
 import os
-
-from PIL import Image
+from ckeditor_uploader import utils
+from ckeditor_uploader.backends import registry
+from ckeditor_uploader.views import ImageUploadView, SearchForm, get_files_browse_urls
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import RequestContext
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
-from ckeditor_uploader.backends import registry
-from ckeditor_uploader import utils
-from ckeditor_uploader.views import get_files_browse_urls, ImageUploadView, SearchForm
 from django.utils.html import escape
+from django.views.decorators.csrf import csrf_exempt
+from PIL import Image
+
 from democracy.views.section import RootFileSerializer
 
 

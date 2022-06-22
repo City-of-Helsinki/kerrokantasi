@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models import ImageField
 from django.utils.translation import ugettext_lazy as _
 
-from .base import ORDERING_HELP, BaseModel
+from democracy.models.base import ORDERING_HELP, BaseModel
 
 
 class BaseImage(BaseModel):

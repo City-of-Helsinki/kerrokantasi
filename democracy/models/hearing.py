@@ -1,25 +1,23 @@
-from urllib.parse import urljoin
-
+from autoslug import AutoSlugField
+from autoslug.utils import generate_unique_slug
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONField
-from autoslug import AutoSlugField
-from autoslug.utils import generate_unique_slug
-from parler.models import TranslatedFields, TranslatableModel
 from parler.managers import TranslatableQuerySet
+from parler.models import TranslatableModel, TranslatedFields
+from urllib.parse import urljoin
 
 from democracy.enums import InitialSectionType
-from democracy.utils.hmac_hash import get_hmac_b64_encoded
+from democracy.models.base import BaseModelManager, StringIdBaseModel
+from democracy.models.organization import ContactPerson, Organization
+from democracy.models.project import ProjectPhase
 from democracy.utils.geo import get_geometry_from_geojson
-
-from .base import BaseModelManager, StringIdBaseModel
-from .organization import ContactPerson, Organization
-from .project import ProjectPhase
+from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
 
 class HearingQueryset(TranslatableQuerySet):

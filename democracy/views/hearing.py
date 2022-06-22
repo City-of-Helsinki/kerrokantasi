@@ -1,7 +1,6 @@
-from collections import defaultdict
-import django_filters
 import datetime
-
+import django_filters
+from collections import defaultdict
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch
@@ -12,20 +11,29 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Label, Section, SectionImage, Project, Organization
+from democracy.models import ContactPerson, Hearing, Label, Organization, Project, Section, SectionImage
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
+from democracy.views.hearing_report import HearingReport
 from democracy.views.label import LabelSerializer
-from democracy.views.project import ProjectSerializer, ProjectFieldSerializer, ProjectCreateUpdateSerializer
+from democracy.views.project import ProjectCreateUpdateSerializer, ProjectFieldSerializer, ProjectSerializer
 from democracy.views.reports_v2.hearing_report_powerpoint import HearingReportPowerPoint
 from democracy.views.section import (
-    SectionCreateUpdateSerializer, SectionFieldSerializer, SectionImageSerializer, SectionSerializer
+    SectionCreateUpdateSerializer,
+    SectionFieldSerializer,
+    SectionImageSerializer,
+    SectionSerializer,
 )
-from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend, TranslatableSerializer, get_translation_list
-from .hearing_report import HearingReport
-from .utils import NestedPKRelatedField, filter_by_hearing_visible
+from democracy.views.utils import (
+    GeoJSONField,
+    GeometryBboxFilterBackend,
+    NestedPKRelatedField,
+    TranslatableSerializer,
+    filter_by_hearing_visible,
+    get_translation_list,
+)
 
 
 class HearingFilterSet(django_filters.rest_framework.FilterSet):

@@ -1,10 +1,10 @@
-from .contact_person import ContactPersonViewSet
-from .hearing import HearingViewSet
-from .label import LabelViewSet
-from .project import ProjectViewSet
-from .section import ImageViewSet, SectionViewSet, RootSectionViewSet, FileViewSet, ServeFileView
-from .section_comment import SectionCommentViewSet, CommentViewSet
-from .user import UserDataViewSet
+from democracy.views.contact_person import ContactPersonViewSet
+from democracy.views.hearing import HearingViewSet
+from democracy.views.label import LabelViewSet
+from democracy.views.project import ProjectViewSet
+from democracy.views.section import FileViewSet, ImageViewSet, RootSectionViewSet, SectionViewSet, ServeFileView
+from democracy.views.section_comment import CommentViewSet, SectionCommentViewSet
+from democracy.views.user import UserDataViewSet
 
 __all__ = [
     "ContactPersonViewSet",

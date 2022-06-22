@@ -4,8 +4,8 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from democracy.models.base import BaseModel
-from democracy.models.images import BaseImage
 from democracy.models.files import BaseFile
+from democracy.models.images import BaseImage
 from democracy.views.utils import AbstractSerializerMixin
 
 

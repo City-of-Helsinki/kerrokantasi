@@ -1,7 +1,6 @@
 
 import json
-
-from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
+from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 
 
 def get_geometry_from_geojson(geojson):

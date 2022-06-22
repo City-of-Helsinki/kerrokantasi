@@ -2,8 +2,15 @@ import datetime
 import pytest
 from django.utils.timezone import now
 
-from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url, sectionimage_test_json, assert_common_keys_equal
 from democracy.tests.conftest import default_lang_code
+from democracy.tests.utils import (
+    IMAGES,
+    assert_common_keys_equal,
+    create_default_images,
+    get_data_from_response,
+    get_hearing_detail_url,
+    sectionimage_test_json,
+)
 
 
 def check_entity_images(entity, images_field=True):

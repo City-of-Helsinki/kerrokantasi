@@ -1,9 +1,8 @@
 import pytest
 
-from democracy.enums import InitialSectionType, Commenting
+from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Section, SectionComment, SectionType
 from democracy.tests.test_images import get_hearing_detail_url
-
 
 default_content = 'Awesome comment to vote.'
 comment_data = {

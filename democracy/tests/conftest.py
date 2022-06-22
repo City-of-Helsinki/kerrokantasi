@@ -1,16 +1,30 @@
 import datetime
-
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from rest_framework.test import APIClient
 
-from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
+from democracy.enums import Commenting, CommentingMapTools, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionFile, SectionType, Organization
-from democracy.tests.utils import FILES, assert_ascending_sequence, create_default_images, create_default_files, get_file_path
-
+from democracy.models import (
+    ContactPerson,
+    Hearing,
+    Label,
+    Organization,
+    Project,
+    ProjectPhase,
+    Section,
+    SectionFile,
+    SectionType,
+)
+from democracy.tests.utils import (
+    FILES,
+    assert_ascending_sequence,
+    create_default_files,
+    create_default_images,
+    get_file_path,
+)
 
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
 red_comment_content = 'Mine is red'

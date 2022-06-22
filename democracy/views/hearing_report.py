@@ -1,7 +1,6 @@
 import io
 import json
 import re
-
 import xlsxwriter
 from django.conf import settings
 from django.db.models import F
@@ -10,8 +9,7 @@ from django.http import HttpResponse
 from xlsxwriter.utility import xl_rowcol_to_cell
 
 from democracy.models import SectionComment
-
-from .section_comment import SectionCommentSerializer
+from democracy.views.section_comment import SectionCommentSerializer
 
 
 class HearingReport(object):

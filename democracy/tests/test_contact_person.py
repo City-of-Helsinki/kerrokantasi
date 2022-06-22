@@ -1,8 +1,8 @@
 import pytest
 
 from democracy.factories.organization import OrganizationFactory
-from democracy.tests.utils import assert_common_keys_equal, get_data_from_response
 from democracy.tests.conftest import default_lang_code
+from democracy.tests.utils import assert_common_keys_equal, get_data_from_response
 
 endpoint = '/v1/contact_person/'
 list_endpoint = endpoint

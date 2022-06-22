@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 
 from democracy.models import Project, ProjectPhase
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.utils import TranslatableSerializer, NestedPKRelatedField, filter_by_hearing_visible
+from democracy.views.utils import NestedPKRelatedField, TranslatableSerializer, filter_by_hearing_visible
 
 
 class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer):

@@ -1,9 +1,17 @@
-from .hearing import Hearing
-from .label import Label
-from .section import Section, SectionComment, SectionImage, SectionFile, SectionType
-from .section import SectionPoll, SectionPollOption, SectionPollAnswer
-from .organization import ContactPerson, Organization
-from .project import Project, ProjectPhase
+from democracy.models.hearing import Hearing
+from democracy.models.label import Label
+from democracy.models.organization import ContactPerson, Organization
+from democracy.models.project import Project, ProjectPhase
+from democracy.models.section import (
+    Section,
+    SectionComment,
+    SectionFile,
+    SectionImage,
+    SectionPoll,
+    SectionPollAnswer,
+    SectionPollOption,
+    SectionType,
+)
 
 __all__ = [
     "ContactPerson",

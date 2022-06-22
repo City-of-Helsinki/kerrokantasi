@@ -1,7 +1,7 @@
-from typing import Union
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from pptx.util import Pt
+from typing import Union
 
 
 def get_default_translation(field: dict, lang_code: str):

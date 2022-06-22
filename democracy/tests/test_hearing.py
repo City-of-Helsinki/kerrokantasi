@@ -1,6 +1,5 @@
 import datetime
 import json
-
 import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
@@ -8,14 +7,26 @@ from django.utils.timezone import now
 from democracy.enums import InitialSectionType
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
-    Hearing, Label, Organization, Project, ProjectPhase, Section, SectionComment, SectionImage, SectionType
+    Hearing,
+    Label,
+    Organization,
+    Project,
+    ProjectPhase,
+    Section,
+    SectionComment,
+    SectionImage,
+    SectionType,
 )
 from democracy.models.utils import copy_hearing
-from democracy.tests.utils import (
-    assert_common_keys_equal, assert_datetime_fuzzy_equal, get_data_from_response,
-    get_hearing_detail_url, sectionimage_test_json, sectionfile_base64_test_data
-)
 from democracy.tests.conftest import default_lang_code, get_feature_with_geometry
+from democracy.tests.utils import (
+    assert_common_keys_equal,
+    assert_datetime_fuzzy_equal,
+    get_data_from_response,
+    get_hearing_detail_url,
+    sectionfile_base64_test_data,
+    sectionimage_test_json,
+)
 
 endpoint = '/v1/hearing/'
 list_endpoint = endpoint

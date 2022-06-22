@@ -1,6 +1,7 @@
 
 
 import pytest
+
 from democracy.tests.utils import get_data_from_response
 
 

@@ -1,28 +1,27 @@
-from functools import partial
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from collections import Counter
-
 from django import forms
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.db.models import TextField
-from django.db import router
 from django.contrib.admin.utils import NestedObjects
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
+from django.db import router
+from django.db.models import TextField
 from django.http import HttpResponseRedirect
-from django.utils.encoding import force_text
-from django.utils.text import capfirst
-from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
+from django.utils.encoding import force_text
+from django.utils.html import format_html
+from django.utils.text import capfirst
+from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
+from functools import partial
 from leaflet.admin import LeafletGeoAdmin
 from nested_admin.nested import NestedModelAdminMixin, NestedStackedInline
 from parler.admin import TranslatableAdmin, TranslatableStackedInline
-from parler.forms import TranslatableModelForm, TranslatableBaseInlineFormSet
+from parler.forms import TranslatableBaseInlineFormSet, TranslatableModelForm
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget

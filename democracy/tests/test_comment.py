@@ -14,7 +14,10 @@ from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment
 from democracy.tests.conftest import default_comment_content, default_geojson_feature, default_lang_code
 from democracy.tests.utils import (
-    assert_common_keys_equal, get_data_from_response, get_hearing_detail_url, image_test_json
+    assert_common_keys_equal,
+    get_data_from_response,
+    get_hearing_detail_url,
+    image_test_json,
 )
 
 root_list_url = '/v1/comment/'

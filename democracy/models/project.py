@@ -2,9 +2,9 @@ import logging
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from parler.managers import TranslatableQuerySet
-from parler.models import TranslatedFields, TranslatableModel
+from parler.models import TranslatableModel, TranslatedFields
 
-from .base import BaseModelManager, StringIdBaseModel, ORDERING_HELP
+from democracy.models.base import ORDERING_HELP, BaseModelManager, StringIdBaseModel
 
 LOG = logging.getLogger(__name__)
 

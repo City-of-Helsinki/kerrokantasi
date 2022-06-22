@@ -1,7 +1,6 @@
+import environ
 import logging
 import os
-
-import environ
 import sentry_sdk
 import subprocess
 from sentry_sdk.integrations.django import DjangoIntegration

@@ -1,8 +1,8 @@
 import pytest
 
 from democracy.models import Label
-from democracy.tests.utils import get_data_from_response
 from democracy.tests.conftest import default_lang_code
+from democracy.tests.utils import get_data_from_response
 
 endpoint = '/v1/label/'
 list_endpoint = endpoint

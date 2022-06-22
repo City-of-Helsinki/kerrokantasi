@@ -7,9 +7,8 @@ from djgeojson.fields import GeoJSONField
 from langdetect import detect_langs
 from langdetect.lang_detect_exception import LangDetectException
 
+from democracy.models.base import BaseModel
 from democracy.utils.geo import get_geometry_from_geojson
-
-from .base import BaseModel
 
 
 class BaseComment(BaseModel):

@@ -1,7 +1,8 @@
 # Please ignore the mess.
-from copy import deepcopy
 
+# Please ignore the mess.
 import pytest
+from copy import deepcopy
 from django.utils.crypto import get_random_string
 
 from democracy.enums import InitialSectionType

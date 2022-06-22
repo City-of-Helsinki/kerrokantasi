@@ -1,24 +1,23 @@
 import base64
-from collections import OrderedDict
-from functools import lru_cache
 import json
-
+from collections import OrderedDict
 from django.conf import settings
-from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
 from django.contrib.gis.gdal.error import GDALException
+from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
-from django.db.models.query import QuerySet
 from django.db.models import Q
+from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
-from rest_framework import serializers
-from rest_framework.exceptions import ValidationError, ParseError
-from rest_framework.filters import BaseFilterBackend
-from rest_framework.relations import ManyRelatedField, MANY_RELATION_KWARGS, PrimaryKeyRelatedField
-from rest_framework.utils import encoders
+from functools import lru_cache
 from munigeo.api import build_bbox_filter, srid_to_srs
+from rest_framework import serializers
+from rest_framework.exceptions import ParseError, ValidationError
+from rest_framework.filters import BaseFilterBackend
+from rest_framework.relations import MANY_RELATION_KWARGS, ManyRelatedField, PrimaryKeyRelatedField
+from rest_framework.utils import encoders
 
 
 def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.PARLER_LANGUAGES[None]]):

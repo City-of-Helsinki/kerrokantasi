@@ -3,11 +3,12 @@ from pptx.util import Pt
 
 # pylint: disable=import-error
 from democracy.views.reports_v2.utils import (
-        get_default_translation,
-        get_formatted_hearing_timerange,
-        get_powerpoint_title_font_size,
-        get_selected_language,
-    )
+    get_default_translation,
+    get_formatted_hearing_timerange,
+    get_powerpoint_title_font_size,
+    get_selected_language,
+)
+
 
 @pytest.mark.parametrize('lang_code, expected', [
     ('fi', 'fi_test'),

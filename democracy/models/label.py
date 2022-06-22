@@ -1,9 +1,9 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from parler.models import TranslatedFields, TranslatableModel
 from parler.managers import TranslatableQuerySet
+from parler.models import TranslatableModel, TranslatedFields
 
-from .base import BaseModel, BaseModelManager
+from democracy.models.base import BaseModel, BaseModelManager
 
 
 class Label(BaseModel, TranslatableModel):

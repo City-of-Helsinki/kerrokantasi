@@ -5,8 +5,18 @@ from django.urls import reverse
 from django.utils.timezone import now
 
 from democracy.models import SectionFile
-from democracy.tests.utils import IMAGES, FILES, get_data_from_response, get_image_path, get_file_path, get_image_path, get_hearing_detail_url, get_sectionfile_download_url, sectionfile_multipart_test_data, sectionfile_base64_test_data
 from democracy.tests.conftest import default_lang_code
+from democracy.tests.utils import (
+    FILES,
+    IMAGES,
+    get_data_from_response,
+    get_file_path,
+    get_hearing_detail_url,
+    get_image_path,
+    get_sectionfile_download_url,
+    sectionfile_base64_test_data,
+    sectionfile_multipart_test_data,
+)
 
 
 def check_entity_files(entity, files_field=True):

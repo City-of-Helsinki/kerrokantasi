@@ -1,24 +1,28 @@
 import django_filters
-from django.db.models import Q, Max
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
+from django.db.models import Max, Q
 from django.utils.timezone import now
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
-from django.core.exceptions import ImproperlyConfigured
 from easy_thumbnails.files import get_thumbnailer
 from functools import lru_cache
-from rest_framework import serializers, viewsets, permissions
-from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
+from rest_framework import permissions, serializers, viewsets
+from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
 from sendfile import sendfile
 
-from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
-from democracy.models import Hearing, Section, SectionImage, SectionType, SectionPoll, SectionPollOption, SectionFile
+from democracy.enums import Commenting, CommentingMapTools, InitialSectionType
+from democracy.models import Hearing, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
-from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
+from democracy.views.base import AdminsSeeUnpublishedMixin, BaseFileSerializer, BaseImageSerializer
 from democracy.views.utils import (
-    Base64ImageField, Base64FileField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
-    compare_serialized
+    Base64FileField,
+    Base64ImageField,
+    PublicFilteredRelatedField,
+    TranslatableSerializer,
+    compare_serialized,
+    filter_by_hearing_visible,
 )
 
 

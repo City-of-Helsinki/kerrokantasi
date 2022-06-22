@@ -1,13 +1,12 @@
 import base64
 import json
 import os
-from io import BytesIO
-
 from django.utils.dateparse import parse_datetime
+from io import BytesIO
 from PIL import Image
 
-from democracy.models.images import BaseImage
 from democracy.models.files import BaseFile
+from democracy.models.images import BaseImage
 
 IMAGES = {
     "ORIGINAL": 'original.jpg',

@@ -13,4 +13,4 @@ class BaseImage(BaseModel):
 
     class Meta:
         abstract = True
-        ordering = ("ordering")
+        ordering = "ordering"

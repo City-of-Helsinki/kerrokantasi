@@ -5,7 +5,7 @@ import sentry_sdk
 import subprocess
 from sentry_sdk.integrations.django import DjangoIntegration
 
-gettext = lambda s: s # noqa makes possible to translate strings here
+gettext = lambda s: s  # noqa makes possible to translate strings here
 
 CONFIG_FILE_NAME = "config_dev.toml"
 
@@ -92,7 +92,7 @@ if os.path.exists(env_file_path):
     print(f'Reading config from {env_file_path}')
     environ.Env.read_env(env_file_path)
 
-#### Django standard settings handling ####
+# Django standard settings handling
 
 DEBUG = env('DEBUG')
 SECRET_KEY = env('SECRET_KEY')
@@ -102,7 +102,7 @@ ADMINS = env('ADMINS')
 DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 DATABASES = {
-    'default': env.db('DATABASE_URL')
+    'default': env.db('DATABASE_URL'),
 }
 
 if env.db("TEST_DATABASE_URL"):
@@ -118,7 +118,7 @@ USE_X_FORWARDED_HOST = env('TRUST_X_FORWARDED_HOST')
 
 INTERNAL_IPS = env('INTERNAL_IPS')
 
-#### Helsinki specific settings handling ####
+# Helsinki specific settings handling
 
 # SENTRY_DSN is actually standard for sentry
 if env('SENTRY_DSN'):
@@ -126,7 +126,7 @@ if env('SENTRY_DSN'):
         dsn=env('SENTRY_DSN'),
         environment=env('SENTRY_ENVIRONMENT'),
         release=get_git_revision_hash(),
-        integrations=[DjangoIntegration()]
+        integrations=[DjangoIntegration()],
     )
 
 CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
@@ -139,7 +139,7 @@ SESSION_COOKIE_PATH = '/{}'.format(env('URL_PREFIX'))
 # shown in the browsable API
 INSTANCE_NAME = env("INSTANCE_NAME")
 
-#### Kerrokantasi specific settings handling ####
+# Kerrokantasi specific settings handling
 
 DEMOCRACY_UI_BASE_URL = env('DEMOCRACY_UI_BASE_URL')
 
@@ -147,7 +147,7 @@ SENDFILE_BACKEND = env('SENDFILE_BACKEND')
 SENDFILE_ROOT = env('PROTECTED_ROOT')
 SENDFILE_URL = env('PROTECTED_URL')
 
-#### Settings below do not usually need changing ####
+# Settings below do not usually need changing
 
 # CKEDITOR_CONFIGS is in __init__.py
 CKEDITOR_UPLOAD_PATH = 'uploads/'
@@ -292,20 +292,26 @@ DEMOCRACY_PLUGINS = {
     "mapdon-ksv": "democracy.plugins.Plugin",
     "mapdon-ksv-visualize": "democracy.plugins.Plugin",
     "map-bikeracks": "democracy.plugins.Plugin",
-    "map-winterbiking": "democracy.plugins.Plugin"
+    "map-winterbiking": "democracy.plugins.Plugin",
 }
 
 PARLER_DEFAULT_LANGUAGE_CODE = 'en'
 PARLER_LANGUAGES = {
     None: (
-        {'code': 'en', },
-        {'code': 'fi', },
-        {'code': 'sv', },
+        {
+            'code': 'en',
+        },
+        {
+            'code': 'fi',
+        },
+        {
+            'code': 'sv',
+        },
     ),
     'default': {
         'hide_untranslated': False,
         'fallbacks': ['fi', 'en', 'sv'],
-    }
+    },
 }
 PARLER_ENABLE_CACHING = False
 
@@ -358,25 +364,19 @@ if not DEBUG and not SECRET_KEY:
 # expecting SECRET_KEY to stay same will break upon restart. Should not be a
 # problem for development.
 if not SECRET_KEY:
-    logger.warn(
-        "SECRET_KEY was not defined in configuration."
-        " Generating a temporary key for dev."
-    )
+    logger.warn("SECRET_KEY was not defined in configuration. Generating a temporary key for dev.")
     import random
 
     system_random = random.SystemRandom()
     SECRET_KEY = "".join(
-        [
-            system_random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)")
-            for i in range(64)
-        ]
+        [system_random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(64)]
     )
 
 LOGIN_URL = '/'
 LOGOUT_URL = '/'
 LOGOUT_REDIRECT_URL = env('LOGOUT_REDIRECT_URL')
 
-SITE_ID=1
+SITE_ID = 1
 
 HEARING_REPORT_PUBLIC_AUTHOR_NAMES = env('HEARING_REPORT_PUBLIC_AUTHOR_NAMES')
 HEARING_REPORT_THEME = env('HEARING_REPORT_THEME')

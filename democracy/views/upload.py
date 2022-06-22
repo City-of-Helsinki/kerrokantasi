@@ -34,10 +34,14 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
             try:
                 backend.image_verify(uploaded_file)
             except utils.NotAnImageException:
-                return HttpResponse("""
+                return HttpResponse(
+                    """
                     <script type='text/javascript'>
                     window.parent.CKEDITOR.tools.callFunction({0}, '', 'Invalid file type.');
-                    </script>""".format(ck_func_num))
+                    </script>""".format(
+                        ck_func_num
+                    )
+                )
 
         section_file = self._save_file(request, uploaded_file)
 
@@ -45,10 +49,14 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         url = request.build_absolute_uri(url)
 
         # Respond with Javascript sending ckeditor upload url.
-        return HttpResponse("""
+        return HttpResponse(
+            """
         <script type='text/javascript'>
             window.parent.CKEDITOR.tools.callFunction({0}, '{1}');
-        </script>""".format(ck_func_num, url))
+        </script>""".format(
+                ck_func_num, url
+            )
+        )
 
     @staticmethod
     def _save_file(request, uploaded_file):
@@ -68,7 +76,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         img_name, img_format = os.path.splitext(filename)
         IMAGE_QUALITY = getattr(settings, "IMAGE_QUALITY", 60)
 
-        if(str(img_format).lower() == "png"):
+        if str(img_format).lower() == "png":
 
             img = Image.open(section_file_obj.file.path)
             img = img.resize(img.size, Image.ANTIALIAS)
@@ -76,7 +84,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
             section_file_obj.file.name = section_file_obj.file.name.replace('.png', '.jpg')
             section_file_obj.file.save()
 
-        elif(str(img_format).lower() == "jpg" or str(img_format).lower() == "jpeg"):
+        elif str(img_format).lower() == "jpg" or str(img_format).lower() == "jpeg":
 
             img = Image.open(uploaded_file)
             img = img.resize(img.size, Image.ANTIALIAS)
@@ -116,10 +124,5 @@ def browse(request):
     for f in files:
         f['src'] = request.build_absolute_uri(f['src'])
 
-    context = RequestContext(request, {
-        'show_dirs': show_dirs,
-        'dirs': dir_list,
-        'files': files,
-        'form': form
-    })
+    context = RequestContext(request, {'show_dirs': show_dirs, 'dirs': dir_list, 'files': files, 'form': form})
     return render(request, 'ckeditor/browse.html', context)

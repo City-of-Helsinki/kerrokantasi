@@ -29,10 +29,10 @@ def get_translation_list(obj, language_codes=[lang['code'] for lang in settings.
     :return: QuerySet or list containing the desired translations, if not the default
     """
     prefetched_translations = getattr(obj, 'translation_list', [])
-    filtered_prefetched = [translation for translation in prefetched_translations if
-                           translation.language_code in language_codes]
-    return filtered_prefetched if prefetched_translations else obj.translations.filter(
-        language_code__in=language_codes)
+    filtered_prefetched = [
+        translation for translation in prefetched_translations if translation.language_code in language_codes
+    ]
+    return filtered_prefetched if prefetched_translations else obj.translations.filter(language_code__in=language_codes)
 
 
 def compare_serialized(a, b):
@@ -58,14 +58,17 @@ class AbstractFieldSerializer(serializers.RelatedField):
 
 
 class AbstractSerializerMixin(object):
-
     @classmethod
     @lru_cache()
     def get_field_serializer_class(cls, many_field_class=ManyRelatedField):
-        return type('%sFieldSerializer' % cls.Meta.model, (AbstractFieldSerializer,), {
-            "parent_serializer_class": cls,
-            "many_field_class": many_field_class,
-        })
+        return type(
+            '%sFieldSerializer' % cls.Meta.model,
+            (AbstractFieldSerializer,),
+            {
+                "parent_serializer_class": cls,
+                "many_field_class": many_field_class,
+            },
+        )
 
     @classmethod
     def get_field_serializer(cls, **kwargs):
@@ -81,6 +84,7 @@ class IOErrorIgnoringManyRelatedField(ManyRelatedField):
     on the server (where constructing them requires accessing them to populate the width
     and height fields).
     """
+
     def to_representation(self, iterable):
         out = []
         if isinstance(iterable, QuerySet):
@@ -97,7 +101,6 @@ class IOErrorIgnoringManyRelatedField(ManyRelatedField):
 
 
 class PublicFilteredRelatedField(serializers.Field):
-
     def __init__(self, *args, **kwargs):
         self.serializer_class = kwargs.pop('serializer_class', None)
         if not self.serializer_class:
@@ -196,7 +199,6 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
 
 
 class GeoJSONField(serializers.JSONField):
-
     def to_internal_value(self, data):
         if not data:
             return None
@@ -207,15 +209,20 @@ class GeoJSONField(serializers.JSONField):
             raise ValidationError('Invalid geojson format. "type" field is required. Got %(data)s' % {'data': data})
 
         supported_types = [
-            'Feature', 'Point', 'LineString', 'Polygon', 'MultiPoint',
-            'MultiLineString', 'MultiPolygon', 'FeatureCollection',
+            'Feature',
+            'Point',
+            'LineString',
+            'Polygon',
+            'MultiPoint',
+            'MultiLineString',
+            'MultiPolygon',
+            'FeatureCollection',
         ]
         if data['type'] not in supported_types:
-            raise ValidationError('Invalid geojson format. Type is not supported.'
-                                  'Supported types are %(types)s. Got %(data)s' % {
-                                      'types': ', '.join(supported_types),
-                                      'data': data
-                                  })
+            raise ValidationError(
+                'Invalid geojson format. Type is not supported.'
+                'Supported types are %(types)s. Got %(data)s' % {'types': ', '.join(supported_types), 'data': data}
+            )
 
         try:
             if data.get('features'):
@@ -223,13 +230,13 @@ class GeoJSONField(serializers.JSONField):
                     feature_geometry = feature.get('geometry')
                     feature_GEOS = GEOSGeometry(json.dumps(feature_geometry))
                     gc.append(feature_GEOS)
-                    
+
             else:
                 GEOSGeometry(json.dumps(geometry))
 
         except GDALException:
             raise ValidationError('Invalid geojson format: %(data)s' % {'data': data})
-        
+
         return super(GeoJSONField, self).to_internal_value(data)
 
 
@@ -237,6 +244,7 @@ class GeometryBboxFilterBackend(BaseFilterBackend):
     """
     Filter ViewSets with a geometry field by bounding box
     """
+
     def filter_queryset(self, request, queryset, view):
         srs = srid_to_srs(request.query_params.get('srid', None))
         bbox = request.query_params.get('bbox', None)
@@ -247,7 +255,6 @@ class GeometryBboxFilterBackend(BaseFilterBackend):
 
 
 class Base64ImageField(serializers.ImageField):
-
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             # base64 encoded image - decode
@@ -269,7 +276,6 @@ class Base64ImageField(serializers.ImageField):
 
 
 class Base64FileField(serializers.FileField):
-
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:application'):
             # base64 encoded file - decode
@@ -323,8 +329,9 @@ class TranslatableSerializer(serializers.Serializer):
     def to_representation(self, instance):
         ret = super(TranslatableSerializer, self).to_representation(instance)
         # enforce consistent order of translations in the API
-        translations = instance.translations.filter(
-            language_code__in=self.Meta.translation_lang).order_by('language_code')
+        translations = instance.translations.filter(language_code__in=self.Meta.translation_lang).order_by(
+            'language_code'
+        )
 
         for translation in translations:
             for field in self.Meta.translated_fields:
@@ -336,14 +343,20 @@ class TranslatableSerializer(serializers.Serializer):
         if data is None:
             return
         if not isinstance(data, dict):
-            raise ValidationError(_('Not a valid translation format. Expecting {"lang_code": %(data)s}' %
-                                    {'data': data}))
+            raise ValidationError(
+                _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': data})
+            )
         for lang in data:
             if lang not in self.Meta.translation_lang:
-                raise ValidationError(_('%(lang)s is not a supported languages (%(allowed)s)' % {
-                    'lang': lang,
-                    'allowed': self.Meta.translation_lang,
-                }))
+                raise ValidationError(
+                    _(
+                        '%(lang)s is not a supported languages (%(allowed)s)'
+                        % {
+                            'lang': lang,
+                            'allowed': self.Meta.translation_lang,
+                        }
+                    )
+                )
 
     def validate(self, data):
         """
@@ -378,14 +391,12 @@ class TranslatableSerializer(serializers.Serializer):
                     except json.decoder.JSONDecodeError:
                         errors[field] = _(
                             'Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v}
-                            )
+                        )
                 elif isinstance(v, dict):
                     # as well as JSON objects
                     ret[field] = v
                 else:
-                    errors[field] = _(
-                        'Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v}
-                        )
+                    errors[field] = _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {'data': v})
 
         if errors:
             # can't raise ValidationError here

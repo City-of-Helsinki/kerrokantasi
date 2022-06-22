@@ -18,7 +18,6 @@ def generate_id():
 
 
 class BaseModelManager(models.Manager):
-
     def get_queryset(self):
         return super().get_queryset().exclude(deleted=True)
 
@@ -40,26 +39,38 @@ class BaseModel(models.Model):
         verbose_name=_('time of creation'), default=timezone.now, editable=False, db_index=True
     )
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('created by'),
-        null=True, blank=True, related_name="%(class)s_created",
-        editable=False, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('created by'),
+        null=True,
+        blank=True,
+        related_name="%(class)s_created",
+        editable=False,
+        on_delete=models.SET_NULL,
     )
     modified_at = models.DateTimeField(
         verbose_name=_('time of last modification'), default=timezone.now, editable=False
     )
     modified_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('last modified by'),
-        null=True, blank=True, related_name="%(class)s_modified",
-        editable=False, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('last modified by'),
+        null=True,
+        blank=True,
+        related_name="%(class)s_modified",
+        editable=False,
+        on_delete=models.SET_NULL,
     )
     published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
     deleted_at = models.DateTimeField(
         verbose_name=_('time of deletion'), default=None, editable=False, null=True, blank=True
     )
     deleted_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, verbose_name=_('deleted by'),
-        null=True, blank=True, related_name="%(class)s_deleted",
-        editable=False, on_delete=models.SET_NULL
+        settings.AUTH_USER_MODEL,
+        verbose_name=_('deleted by'),
+        null=True,
+        blank=True,
+        related_name="%(class)s_deleted",
+        editable=False,
+        on_delete=models.SET_NULL,
     )
     deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
     objects = BaseModelManager()
@@ -116,12 +127,7 @@ class BaseModel(models.Model):
 
 
 class StringIdBaseModel(BaseModel):
-    id = models.CharField(
-        verbose_name=_('identifier'),
-        primary_key=True,
-        max_length=32,
-        editable=False
-    )
+    id = models.CharField(verbose_name=_('identifier'), primary_key=True, max_length=32, editable=False)
 
     class Meta:
         abstract = True
@@ -131,16 +137,14 @@ class Commentable(models.Model):
     """
     Mixin for models which can be commented.
     """
+
     n_comments = models.IntegerField(
-        verbose_name=_('number of comments'),
-        blank=True,
-        default=0,
-        editable=False,
-        db_index=True
+        verbose_name=_('number of comments'), blank=True, default=0, editable=False, db_index=True
     )
     commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
-    commenting_map_tools = EnumIntegerField(CommentingMapTools, verbose_name=_('commenting_map_tools'),
-                                            default=CommentingMapTools.NONE)
+    commenting_map_tools = EnumIntegerField(
+        CommentingMapTools, verbose_name=_('commenting_map_tools'), default=CommentingMapTools.NONE
+    )
     voting = EnumIntegerField(Commenting, verbose_name=_('voting'), default=Commenting.REGISTERED)
 
     def recache_n_comments(self):
@@ -167,11 +171,13 @@ class Commentable(models.Model):
                 raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
         elif self.commenting == Commenting.STRONG:
             if not is_authenticated:
-                raise ValidationError(_("%s requires strong authentication for commenting") % self,
-                                      code="commenting_registered_strong")
+                raise ValidationError(
+                    _("%s requires strong authentication for commenting") % self, code="commenting_registered_strong"
+                )
             elif not request.user.has_strong_auth and not request.user.get_default_organization():
-                raise ValidationError(_("%s requires strong authentication for commenting") % self,
-                                      code="commenting_registered_strong")
+                raise ValidationError(
+                    _("%s requires strong authentication for commenting") % self, code="commenting_registered_strong"
+                )
         elif self.commenting == Commenting.OPEN:
             return
         else:  # pragma: no cover
@@ -192,11 +198,13 @@ class Commentable(models.Model):
                 raise ValidationError(_("%s does not allow anonymous voting") % self, code="voting_registered")
         elif self.voting == Commenting.STRONG:
             if not is_authenticated:
-                raise ValidationError(_("%s requires strong authentication for voting") % self,
-                                      code="voting_registered_strong")
+                raise ValidationError(
+                    _("%s requires strong authentication for voting") % self, code="voting_registered_strong"
+                )
             elif not request.user.has_strong_auth and not request.user.get_default_organization():
-                raise ValidationError(_("%s requires strong authentication for voting") % self,
-                                      code="voting_registered_strong")
+                raise ValidationError(
+                    _("%s requires strong authentication for voting") % self, code="voting_registered_strong"
+                )
         elif self.voting == Commenting.OPEN:
             return
         else:  # pragma: no cover

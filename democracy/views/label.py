@@ -30,6 +30,7 @@ class LabelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
 
     def create(self, request):
         if not request.user or not request.user.get_default_organization():
-            return response.Response({'status': 'User without organization cannot POST labels.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'User without organization cannot POST labels.'}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().create(request)

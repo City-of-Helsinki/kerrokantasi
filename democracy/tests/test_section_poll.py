@@ -1,4 +1,3 @@
-
 import datetime
 import pytest
 from copy import deepcopy
@@ -15,6 +14,7 @@ isArchLinux = False
 
 if platform == 'linux':
     import distro
+
     if distro.linux_distribution()[0].lower() in ['arch linux', 'manjaro linux']:
         isArchLinux = True
 
@@ -141,7 +141,9 @@ def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_c
     option_id = data['sections'][0]['questions'][0]['options'][0]['id']
     data = get_comment_data()
     data['answers'] = [{'question': poll_id, 'type': SectionPoll.TYPE_MULTIPLE_CHOICE, 'answers': [option_id]}]
-    comment_response = john_doe_api_client.post('/v1/hearing/%s/sections/%s/comments/' % (hearing_id, section_id), data=data)
+    comment_response = john_doe_api_client.post(
+        '/v1/hearing/%s/sections/%s/comments/' % (hearing_id, section_id), data=data
+    )
     assert comment_response.status_code == 201
 
     # Edit question
@@ -169,35 +171,45 @@ def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_c
     update_response = john_smith_api_client.put('/v1/hearing/%s/' % data['id'], data=data, format='json')
     assert update_response.status_code == 400
 
+
 @pytest.mark.parametrize("commenting_restriction", (Commenting.NONE, Commenting.REGISTERED, Commenting.STRONG))
 @pytest.mark.django_db
-def test_post_section_poll_answer_unauthenticated_but_not_allowed(api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction):
+def test_post_section_poll_answer_unauthenticated_but_not_allowed(
+    api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction
+):
     section = hearing__with_4_different_commenting.sections.filter(commenting=commenting_restriction).first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
     option = poll.options.all().first()
     url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [option.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [option.id],
+        }
+    ]
     response = api_client.post(url, data=data)
     assert response.status_code == 403
 
+
 @pytest.mark.django_db
-def test_post_section_poll_answer_unauthenticated_single_choice(api_client, hearing__with_4_different_commenting, geojson_feature):
+def test_post_section_poll_answer_unauthenticated_single_choice(
+    api_client, hearing__with_4_different_commenting, geojson_feature
+):
     section = hearing__with_4_different_commenting.sections.filter(commenting=Commenting.OPEN).first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
     option = poll.options.all().first()
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [option.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [option.id],
+        }
+    ]
     response = api_client.post(url, data=data)
     created_data = get_data_from_response(response, status_code=201)
     poll.refresh_from_db(fields=['n_answers'])
@@ -206,6 +218,7 @@ def test_post_section_poll_answer_unauthenticated_single_choice(api_client, hear
     assert option.n_answers == 1
     assert created_data['answers'][0]['type'] == data['answers'][0]['type']
     assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
+
 
 @pytest.mark.django_db
 def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hearing, geojson_feature):
@@ -215,11 +228,13 @@ def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hea
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [option.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [option.id],
+        }
+    ]
     response = john_doe_api_client.post(url, data=data)
     created_data = get_data_from_response(response, status_code=201)
     poll.refresh_from_db(fields=['n_answers'])
@@ -229,35 +244,45 @@ def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hea
     assert created_data['answers'][0]['type'] == data['answers'][0]['type']
     assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
 
+
 @pytest.mark.parametrize("commenting_restriction", (Commenting.NONE, Commenting.STRONG))
 @pytest.mark.django_db
-def test_post_section_poll_answer_authenticated_but_not_allowed(john_doe_api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction):
+def test_post_section_poll_answer_authenticated_but_not_allowed(
+    john_doe_api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction
+):
     section = hearing__with_4_different_commenting.sections.filter(commenting=commenting_restriction).first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
     option = poll.options.all().first()
     url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [option.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [option.id],
+        }
+    ]
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 403
 
+
 @pytest.mark.django_db
-def test_post_section_poll_answer_authenticated_open_commenting(john_doe_api_client, hearing__with_4_different_commenting, geojson_feature):
+def test_post_section_poll_answer_authenticated_open_commenting(
+    john_doe_api_client, hearing__with_4_different_commenting, geojson_feature
+):
     section = hearing__with_4_different_commenting.sections.filter(commenting=Commenting.OPEN).first()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
     option = poll.options.all().first()
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (hearing__with_4_different_commenting.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [option.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [option.id],
+        }
+    ]
     response = john_doe_api_client.post(url, data=data)
     created_data = get_data_from_response(response, status_code=201)
     poll.refresh_from_db(fields=['n_answers'])
@@ -266,6 +291,7 @@ def test_post_section_poll_answer_authenticated_open_commenting(john_doe_api_cli
     assert option.n_answers == 1
     assert created_data['answers'][0]['type'] == data['answers'][0]['type']
     assert set(created_data['answers'][0]['answers']) == set(data['answers'][0]['answers'])
+
 
 @pytest.mark.django_db
 def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_hearing, geojson_feature):
@@ -275,11 +301,13 @@ def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_h
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option1.id, option3.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+            'answers': [option1.id, option3.id],
+        }
+    ]
     response = john_doe_api_client.post(url, data=data)
     created_data = get_data_from_response(response, status_code=201)
     poll.refresh_from_db(fields=['n_answers'])
@@ -302,11 +330,13 @@ def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_cl
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option1.id, option3.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+            'answers': [option1.id, option3.id],
+        }
+    ]
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 201
 
@@ -316,15 +346,18 @@ def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_cl
     poll.refresh_from_db(fields=['n_answers'])
     assert poll.n_answers == 1
 
+
 # Arch based distros (arch vanilla/manjaro) seem to handle http get/post request response order differently compared to other distros,
 # if not skipped then it fails like below:
-# AssertionError: assert {'answers': [33, 34], 'question': 14, 'type': 'multiple-choice'} in 
+# AssertionError: assert {'answers': [33, 34], 'question': 14, 'type': 'multiple-choice'} in
 # [{'answers': [34, 33], 'question': 14, 'type': 'multiple-choice'}, {'answers': [36], 'question': 15, 'type': 'single-choice'}]
-# 
+#
 # As we were unable to determine the cause of this behaviour and it only affects 2 tests(both in this file) we skip them.
 #
 # This does not affect kerrokantasi normal operation.
-@pytest.mark.skipif(isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed")
+@pytest.mark.skipif(
+    isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed"
+)
 @pytest.mark.django_db
 def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
@@ -335,29 +368,35 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option1.id, option3.id],
-    },{
-        'question': poll2.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [optionyes.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+            'answers': [option1.id, option3.id],
+        },
+        {
+            'question': poll2.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [optionyes.id],
+        },
+    ]
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 201
 
     url = '/v1/hearing/%s/sections/%s/comments/%s/' % (default_hearing.id, section.id, response.data['id'])
     data = response.data
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option2.id, option3.id],
-    },{
-        'question': poll2.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [optionno.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+            'answers': [option2.id, option3.id],
+        },
+        {
+            'question': poll2.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [optionno.id],
+        },
+    ]
     response = john_doe_api_client.patch(url, data=data)
     assert response.status_code == 200
     updated_data = get_data_from_response(response, status_code=200)
@@ -378,13 +417,15 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
 
 # Arch based distros (arch vanilla/manjaro) seem to handle http get/post request response order differently compared to other distros,
 # if not skipped then it fails like below:
-# AssertionError: assert {'answers': [2, 3], 'question': 1, 'type': 'multiple-choice'} in 
+# AssertionError: assert {'answers': [2, 3], 'question': 1, 'type': 'multiple-choice'} in
 # [{'answers': [3, 2], 'question': 1, 'type': 'multiple-choice'}, {'answers': [5], 'question': 2, 'type': 'single-choice'}]
-# 
+#
 # As we were unable to determine the cause of this behaviour and it only affects 2 tests(both in this file) we skip them.
 #
 # This does not affect kerrokantasi normal operation.
-@pytest.mark.skipif(isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed")
+@pytest.mark.skipif(
+    isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed"
+)
 @pytest.mark.django_db
 def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
@@ -395,29 +436,35 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
 
     url = '/v1/hearing/%s/sections/%s/comments/' % (default_hearing.id, section.id)
     data = get_comment_data()
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option1.id, option3.id],
-    },{
-        'question': poll2.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [optionyes.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+            'answers': [option1.id, option3.id],
+        },
+        {
+            'question': poll2.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [optionyes.id],
+        },
+    ]
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 201
 
     url = '/v1/hearing/%s/sections/%s/comments/%s/' % (default_hearing.id, section.id, response.data['id'])
     data = response.data
-    data['answers'] = [{
-        'question': poll.id,
-        'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-        'answers': [option2.id, option3.id],
-    },{
-        'question': poll2.id,
-        'type': SectionPoll.TYPE_SINGLE_CHOICE,
-        'answers': [optionno.id],
-    }]
+    data['answers'] = [
+        {
+            'question': poll.id,
+            'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
+            'answers': [option2.id, option3.id],
+        },
+        {
+            'question': poll2.id,
+            'type': SectionPoll.TYPE_SINGLE_CHOICE,
+            'answers': [optionno.id],
+        },
+    ]
     response = john_doe_api_client.put(url, data=data)
     assert response.status_code == 200
     updated_data = get_data_from_response(response, status_code=200)

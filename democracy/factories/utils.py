@@ -1,4 +1,3 @@
-
 from django.contrib.auth import get_user_model
 
 from democracy.factories.user import UserFactory

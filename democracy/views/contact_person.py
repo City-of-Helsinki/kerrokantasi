@@ -17,11 +17,18 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
         if 'organization' in value:
             if value['organization'] not in map(str, self.context['request'].user.admin_organizations.all()):
                 raise serializers.ValidationError(
-                    {'organization': ("Setting organization to %(given)s " +
-                                      "is not allowed for your organization. The organization" +
-                                      " must be left blank or set to %(required)s.") %
-                        {'given': value['organization'],
-                         'required': self.context['request'].user.get_default_organization()}})
+                    {
+                        'organization': (
+                            "Setting organization to %(given)s "
+                            + "is not allowed for your organization. The organization"
+                            + " must be left blank or set to %(required)s."
+                        )
+                        % {
+                            'given': value['organization'],
+                            'required': self.context['request'].user.get_default_organization(),
+                        }
+                    }
+                )
         return super().to_internal_value(value)
 
     def create(self, validated_data):
@@ -43,12 +50,14 @@ class ContactPersonViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixi
 
     def create(self, request):
         if not request.user or not request.user.get_default_organization():
-            return response.Response({'status': 'User without organization cannot POST contact persons.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'User without organization cannot POST contact persons.'}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().create(request)
 
     def update(self, request, pk=None, partial=False):
         if not request.user or not request.user.get_default_organization():
-            return response.Response({'status': 'User without organization cannot PUT contact persons.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'User without organization cannot PUT contact persons.'}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().update(request, pk=pk, partial=partial)

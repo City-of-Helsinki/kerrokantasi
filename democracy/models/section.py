@@ -169,8 +169,11 @@ class SectionComment(Commentable, BaseComment):
     flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
     flagged_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, blank=True, related_name="%(class)s_flagged",
-        editable=False, on_delete=models.SET_NULL
+        null=True,
+        blank=True,
+        related_name="%(class)s_flagged",
+        editable=False,
+        on_delete=models.SET_NULL,
     )
 
     class Meta:
@@ -215,8 +218,7 @@ class SectionPoll(BasePoll):
 
     def recache_n_answers(self):
         n_answers = (
-            SectionPollAnswer.objects
-            .everything()
+            SectionPollAnswer.objects.everything()
             .filter(option__poll_id=self.pk)
             .exclude(option__poll__deleted=True)
             .values('comment_id')

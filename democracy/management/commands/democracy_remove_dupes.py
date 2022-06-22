@@ -13,18 +13,22 @@ class Command(BaseCommand):
 
     def _remove_dupes(self, klass):
         # detect the dupes primarily by content
-        potential_dupes = klass.objects.values('content',)\
-            .exclude(deleted=True).annotate(Count('content'))\
-            .filter(content__count__gt=1).order_by('-content__count')
+        potential_dupes = (
+            klass.objects.values('content')
+            .exclude(deleted=True)
+            .annotate(Count('content'))
+            .filter(content__count__gt=1)
+            .order_by('-content__count')
+        )
 
         # further filter by creation time, parent hearing and plugin data
         for d in potential_dupes:
             objs = list(klass.objects.filter(content=d['content']).order_by('created_at'))
             first = objs.pop(0)
-            print("%s %s\n%s\n%s" % (getattr(first, klass.parent_field),
-                                     first.created_at,
-                                     first.content,
-                                     first.plugin_data))
+            print(
+                "%s %s\n%s\n%s"
+                % (getattr(first, klass.parent_field), first.created_at, first.content, first.plugin_data)
+            )
             for other in objs:
                 if other.plugin_data != first.plugin_data:
                     print("\tplugin data differs %s" % other)

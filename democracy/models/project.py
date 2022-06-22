@@ -17,7 +17,7 @@ class Project(StringIdBaseModel, TranslatableModel):
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     def __str__(self):
-        return (self.title or self.pk)
+        return self.title or self.pk
 
 
 class ProjectPhase(StringIdBaseModel, TranslatableModel):

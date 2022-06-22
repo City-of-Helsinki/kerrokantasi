@@ -10,7 +10,6 @@ from democracy.views.utils import AbstractSerializerMixin
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = get_user_model()
 
@@ -31,6 +30,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
     """
     Serializer for Image objects.
     """
+
     url = serializers.SerializerMethodField()
 
     class Meta:
@@ -57,6 +57,7 @@ class BaseFileSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
     """
     Serializer for File objects.
     """
+
     url = serializers.SerializerMethodField()
     filetype = None
 

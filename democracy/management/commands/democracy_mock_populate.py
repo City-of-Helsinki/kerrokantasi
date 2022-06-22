@@ -11,7 +11,11 @@ from democracy.models import Hearing, Label
 
 class Command(BaseCommand):
     option_list = BaseCommand.option_list + (
-        make_option("--nuke", dest="nuke", action="store_true"),
+        make_option(
+            "--nuke",
+            dest="nuke",
+            action="store_true",
+        ),
     )
 
     def handle(self, *args, **options):

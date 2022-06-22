@@ -40,8 +40,9 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(field_name='open_at', lookup_expr='lte')
     open_at_gt = django_filters.IsoDateTimeFilter(field_name='open_at', lookup_expr='gt')
     title = django_filters.CharFilter(lookup_expr='icontains', field_name='translations__title', distinct=True)
-    label = django_filters.Filter(field_name='labels__id', lookup_expr='in', distinct=True,
-                                  widget=django_filters.widgets.CSVWidget)
+    label = django_filters.Filter(
+        field_name='labels__id', lookup_expr='in', distinct=True, widget=django_filters.widgets.CSVWidget
+    )
 
     class Meta:
         model = Hearing
@@ -55,25 +56,35 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     # in to_representation()
     sections = serializers.ListField(child=serializers.DictField(), write_only=True)
 
-    contact_persons = NestedPKRelatedField(queryset=ContactPerson.objects.all(), many=True, expanded=True,
-                                           serializer=ContactPersonSerializer)
+    contact_persons = NestedPKRelatedField(
+        queryset=ContactPerson.objects.all(), many=True, expanded=True, serializer=ContactPersonSerializer
+    )
     labels = NestedPKRelatedField(queryset=Label.objects.all(), many=True, expanded=True, serializer=LabelSerializer)
 
-    organization = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
+    organization = serializers.SlugRelatedField(read_only=True, slug_field='name')
     project = serializers.DictField(write_only=True, required=False, allow_null=True)
     slug = serializers.SlugField()
 
     class Meta:
         model = Hearing
         fields = [
-            'title', 'id', 'borough', 'force_closed',
-            'published', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'sections',
-            'closed', 'geojson', 'organization', 'slug',
-            'contact_persons', 'labels', 'project',
+            'title',
+            'id',
+            'borough',
+            'force_closed',
+            'published',
+            'open_at',
+            'close_at',
+            'created_at',
+            'servicemap_url',
+            'sections',
+            'closed',
+            'geojson',
+            'organization',
+            'slug',
+            'contact_persons',
+            'labels',
+            'project',
         ]
 
     def __init__(self, *args, **kwargs):
@@ -114,12 +125,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             section_data['ordering'] = index
             pk = section_data.pop('id', None)
 
-            serializer_params = {
-                'data': section_data,
-                'context': {
-                    'request': self.context['request']
-                }
-            }
+            serializer_params = {'data': section_data, 'context': {'request': self.context['request']}}
 
             if pk and not force_create:
                 try:
@@ -247,16 +253,9 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['sections'] = SectionSerializer(
-            instance=instance.sections.all(),
-            many=True,
-            context=self.context
-        ).data
+        data['sections'] = SectionSerializer(instance=instance.sections.all(), many=True, context=self.context).data
         if instance.project_phase:
-            data['project'] = ProjectSerializer(
-                instance=instance.project_phase.project,
-                context=self.context
-            ).data
+            data['project'] = ProjectSerializer(instance=instance.project_phase.project, context=self.context).data
         else:
             data['project'] = None
         return data
@@ -266,10 +265,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = GeoJSONField()
-    organization = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name'
-    )
+    organization = serializers.SlugRelatedField(read_only=True, slug_field='name')
     main_image = serializers.SerializerMethodField()
     abstract = serializers.SerializerMethodField()
     preview_url = serializers.SerializerMethodField()
@@ -286,8 +282,8 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         if not main_section:
             return ''
         translations = {
-            t.language_code: t.abstract for t in
-            get_translation_list(main_section, language_codes=self.Meta.translation_lang)
+            t.language_code: t.abstract
+            for t in get_translation_list(main_section, language_codes=self.Meta.translation_lang)
         }
         abstract = {}
         for lang_code, translation in translations.items():
@@ -342,17 +338,33 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     class Meta:
         model = Hearing
         fields = [
-            'abstract', 'title', 'id', 'borough', 'n_comments',
-            'published', 'labels', 'open_at', 'close_at', 'created_at',
-            'servicemap_url', 'sections', 'preview_url', 'project',
-            'closed', 'geojson', 'organization', 'slug', 'main_image', 'contact_persons', 'default_to_fullscreen',
+            'abstract',
+            'title',
+            'id',
+            'borough',
+            'n_comments',
+            'published',
+            'labels',
+            'open_at',
+            'close_at',
+            'created_at',
+            'servicemap_url',
+            'sections',
+            'preview_url',
+            'project',
+            'closed',
+            'geojson',
+            'organization',
+            'slug',
+            'main_image',
+            'contact_persons',
+            'default_to_fullscreen',
         ]
         read_only_fields = ['preview_url']
         translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
 
 
 class HearingListSerializer(HearingSerializer):
-
     def get_fields(self):
         fields = super(HearingListSerializer, self).get_fields()
         # Elide section, contact person and geo data when listing hearings; one can get to them via detail routes
@@ -360,8 +372,9 @@ class HearingListSerializer(HearingSerializer):
         fields.pop("contact_persons")
         request = self.context.get('request', None)
         if request:
-            if not request.GET.get('include', None) == 'geojson'\
-                    and not isinstance(request.accepted_renderer, GeoJSONRenderer):
+            if not request.GET.get('include', None) == 'geojson' and not isinstance(
+                request.accepted_renderer, GeoJSONRenderer
+            ):
                 fields.pop("geojson")
         return fields
 
@@ -371,9 +384,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
 
     class Meta:
         model = Hearing
-        fields = [
-            'id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug'
-        ]
+        fields = ['id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug']
 
 
 hearing_prefetches = (
@@ -381,32 +392,35 @@ hearing_prefetches = (
         'sections',
         queryset=Section.objects.filter(type__identifier='main').prefetch_related(
             Prefetch('translations', to_attr='translation_list'),
-            Prefetch('images',
-                     queryset=SectionImage.objects.filter(section__type__identifier='main').
-                     prefetch_related('translations'))
+            Prefetch(
+                'images',
+                queryset=SectionImage.objects.filter(section__type__identifier='main').prefetch_related('translations'),
+            ),
         ),
-        to_attr='main_section_list'
+        to_attr='main_section_list',
     ),
-    Prefetch(
-        'labels',
-        queryset=Label.objects.prefetch_related('translations')
-    ),
-    'translations'
-    )
+    Prefetch('labels', queryset=Label.objects.prefetch_related('translations')),
+    'translations',
+)
 
 
 class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     """
     API endpoint for hearings.
     """
+
     model = Hearing
-    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,
-                       filters.OrderingFilter,
-                       GeometryBboxFilterBackend)
+    filter_backends = (
+        django_filters.rest_framework.DjangoFilterBackend,
+        filters.OrderingFilter,
+        GeometryBboxFilterBackend,
+    )
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
     serializer_class = HearingListSerializer
-    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [GeoJSONRenderer, ]
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES + [
+        GeoJSONRenderer,
+    ]
 
     ordering_fields = ('created_at', 'close_at', 'open_at', 'n_comments')
     ordering = ('-created_at',)
@@ -436,7 +450,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                     organizationObject = Organization.objects.get(name=created_by)
                 except Organization.DoesNotExist:
                     organizationObject = None
-                
+
                 if organizationObject is not None:
                     queryset = queryset.filter(organization=organizationObject.id)
 
@@ -445,18 +459,24 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
         if open is not None:
             if open.lower() == 'false' or open == 0:
-                queryset = (queryset.filter(close_at__lt=datetime.datetime.now()) |
-                            queryset.filter(open_at__gt=datetime.datetime.now()) |
-                            queryset.filter(force_closed=True)).distinct()
+                queryset = (
+                    queryset.filter(close_at__lt=datetime.datetime.now())
+                    | queryset.filter(open_at__gt=datetime.datetime.now())
+                    | queryset.filter(force_closed=True)
+                ).distinct()
             else:
-                queryset = queryset.filter(close_at__gt=datetime.datetime.now()).\
-                    filter(open_at__lt=datetime.datetime.now()).filter(force_closed=False)
+                queryset = (
+                    queryset.filter(close_at__gt=datetime.datetime.now())
+                    .filter(open_at__lt=datetime.datetime.now())
+                    .filter(force_closed=False)
+                )
         queryset = super().filter_queryset(queryset)
         return queryset
 
     def get_queryset(self):
-        queryset = filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request,
-                                             hearing_lookup='').prefetch_related(*hearing_prefetches)
+        queryset = filter_by_hearing_visible(
+            Hearing.objects.with_unpublished(), self.request, hearing_lookup=''
+        ).prefetch_related(*hearing_prefetches)
         return queryset
 
     def get_object(self):
@@ -515,19 +535,16 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         report = HearingReport(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
 
-
     @action(detail=True, methods=['get'])
     def report_pptx(self, request, pk=None):
         user = request.user
         if not user or not user.is_authenticated or not user.get_default_organization():
             return response.Response(
-                {'status': 'User without organization cannot GET report pptx.'},
-                status=status.HTTP_403_FORBIDDEN)
+                {'status': 'User without organization cannot GET report pptx.'}, status=status.HTTP_403_FORBIDDEN
+            )
         context = self.get_serializer_context()
-        report = HearingReportPowerPoint(HearingSerializer(
-            self.get_object(), context=context).data, context=context)
+        report = HearingReportPowerPoint(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
-
 
     @action(detail=False, methods=['get'])
     def map(self, request):
@@ -543,26 +560,29 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def create(self, request):
         if not request.user or not request.user.get_default_organization():
-            return response.Response({'status': 'User without organization cannot POST hearings.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'User without organization cannot POST hearings.'}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().create(request)
 
     def update(self, request, pk=None, partial=False):
         if not request.user or not request.user.get_default_organization():
-            return response.Response({'status': 'User without organization cannot PUT hearings.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'User without organization cannot PUT hearings.'}, status=status.HTTP_403_FORBIDDEN
+            )
         return super().update(request, pk=pk, partial=partial)
 
     def destroy(self, request, pk=None):
         if not request.user or not request.user.get_default_organization():
-            return response.Response({'status': 'User without organization cannot DELETE hearings.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'User without organization cannot DELETE hearings.'}, status=status.HTTP_403_FORBIDDEN
+            )
         hearing = self.get_object()
         if hearing.published:
-            return response.Response({'status': 'Cannot DELETE published hearing.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response({'status': 'Cannot DELETE published hearing.'}, status=status.HTTP_403_FORBIDDEN)
         if hearing.n_comments > 0:
-            return response.Response({'status': 'Cannot DELETE hearing with comments.'},
-                                     status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {'status': 'Cannot DELETE hearing with comments.'}, status=status.HTTP_403_FORBIDDEN
+            )
         hearing.soft_delete(user=request.user)
         return response.Response({'status': 'Hearing deleted'}, status=status.HTTP_200_OK)

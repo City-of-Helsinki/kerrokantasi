@@ -9,7 +9,6 @@ from democracy.management.utils import nuke
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument("input_file", type=argparse.FileType("r", encoding="utf8"), nargs=1)
         parser.add_argument("--hearing", nargs=1)
@@ -30,10 +29,12 @@ class Command(BaseCommand):
         hearing = options.pop("hearing")
         if hearing:
             hearing = hearing[0]
-        self.do_import(input_file[0],
-                       hearing=hearing,
-                       force=options.pop("force", False),
-                       patch=options.pop("patch", False))
+        self.do_import(
+            input_file[0],
+            hearing=hearing,
+            force=options.pop("force", False),
+            patch=options.pop("patch", False),
+        )
 
     @atomic
     def do_import(self, filename, hearing=None, force=False, patch=False):

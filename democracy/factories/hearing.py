@@ -13,7 +13,6 @@ LOG = logging.getLogger(__name__)
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
-
     class Meta:
         model = Label
 
@@ -21,20 +20,20 @@ class LabelFactory(factory.django.DjangoModelFactory):
 
 
 class SectionCommentFactory(BaseCommentFactory):
-
     class Meta:
         model = SectionComment
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
-
     class Meta:
         model = Hearing
 
-    close_at = factory.LazyAttribute(lambda obj: factory.fuzzy.FuzzyDateTime(
-        start_dt=now() + timedelta(days=5),
-        end_dt=now() + timedelta(days=150),
-    ).fuzz())
+    close_at = factory.LazyAttribute(
+        lambda obj: factory.fuzzy.FuzzyDateTime(
+            start_dt=now() + timedelta(days=5),
+            end_dt=now() + timedelta(days=150),
+        ).fuzz()
+    )
     title = factory.Faker("sentence")
     borough = factory.Faker("city")
 
@@ -55,7 +54,6 @@ class HearingFactory(factory.django.DjangoModelFactory):
 
 
 class SectionFactory(factory.django.DjangoModelFactory):
-
     class Meta:
         model = Section
 

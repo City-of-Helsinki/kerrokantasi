@@ -10,7 +10,9 @@ list_endpoint = endpoint
 
 @pytest.fixture
 def valid_label_json(default_label):
-    return {"label": {default_lang_code: default_label.label}, }
+    return {
+        "label": {default_lang_code: default_label.label},
+    }
 
 
 def test_label_str():

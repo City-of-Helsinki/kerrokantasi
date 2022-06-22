@@ -19,4 +19,4 @@ class BaseCommentFactory(factory.django.DjangoModelFactory):
         # Can't be done in a lazy attribute because they have no access to the concrete factory's model class,
         # for `parent_field`...
         obj.created_at = getattr(obj, obj.parent_field).created_at + timedelta(seconds=random.randint(120, 600))
-        obj.save(update_fields=("created_at", ))
+        obj.save(update_fields=("created_at",))

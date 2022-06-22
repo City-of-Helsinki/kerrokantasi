@@ -27,8 +27,8 @@ settings['CKEDITOR_CONFIGS'] = {
             ['Image', 'Video', 'Iframe', 'Flash', 'Table', 'HorizontalRule'],
             ['TextColor', 'BGColor'],
             ['Smiley', 'SpecialChar'],
-            ['Source']
-        ]
+            ['Source'],
+        ],
     },
 }
 

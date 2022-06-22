@@ -11,7 +11,7 @@ from democracy.models.images import BaseImage
 IMAGES = {
     "ORIGINAL": 'original.jpg',
     "SMALL": 'small.jpg',
-    "THUMBNAIL": 'thumbnail.jpg'
+    "THUMBNAIL": 'thumbnail.jpg',
 }
 
 FILES = {
@@ -74,15 +74,20 @@ def sectionimage_test_json(title_en='Test title'):
 def sectionfile_multipart_test_data(title_en='Test title'):
     # multipart POST requires dumping subobjects as strings
     return {
-        'caption': json.dumps({
-            'en': 'Test',
-            'fi': 'Testi',
-        }),
-        'title': json.dumps({
-            'en': title_en,
-            'fi': 'Finnish test title',
-        }),
+        'caption': json.dumps(
+            {
+                'en': 'Test',
+                'fi': 'Testi',
+            }
+        ),
+        'title': json.dumps(
+            {
+                'en': title_en,
+                'fi': 'Finnish test title',
+            }
+        ),
     }
+
 
 def sectionfile_base64_test_data(title_en='Test title'):
     return {
@@ -96,6 +101,7 @@ def sectionfile_base64_test_data(title_en='Test title'):
         },
         'file': file_to_base64(FILES['TXT']),
     }
+
 
 def get_image_path(filename):
     return os.path.join(IMAGE_SOURCE_PATH, filename)
@@ -141,7 +147,7 @@ def create_file(instance, filename):
     file_obj.file.name = file_path
     file_obj.save()
     assert file_obj.file.name == file_path
-    return file_obj 
+    return file_obj
 
 
 def create_default_files(instance):
@@ -151,8 +157,9 @@ def create_default_files(instance):
 
 def get_data_from_response(response, status_code=200):
     if status_code:  # pragma: no branch
-        assert response.status_code == status_code, (
-            "Status code mismatch (%s is not the expected %s)" % (response.status_code, status_code)
+        assert response.status_code == status_code, "Status code mismatch (%s is not the expected %s)" % (
+            response.status_code,
+            status_code,
         )
     return json.loads(response.content.decode('utf-8'))
 
@@ -197,4 +204,3 @@ def assert_common_keys_equal(dict1, dict2):
             'v1': dict1[key],
             'v2': dict2[key],
         }
-

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 # Please ignore the mess.
 from copy import deepcopy
 

@@ -1,6 +1,3 @@
-
-# -*- coding: utf-8 -*-
-
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 

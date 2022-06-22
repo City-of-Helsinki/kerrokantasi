@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib import admin
 

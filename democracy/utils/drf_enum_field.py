@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.utils.encoding import force_text
 from rest_framework.fields import ChoiceField
 

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import django_filters
 from django.core.exceptions import ValidationError
 from django.db import transaction

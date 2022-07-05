@@ -134,7 +134,7 @@ pycryptodomex==3.14.1
     # via pyjwkest
 pyjwkest==1.4.2
     # via drf-oidc-auth
-pyjwt==2.0.1
+pyjwt==2.4.0
     # via
     #   -r requirements.in
     #   social-auth-core
@@ -186,8 +186,6 @@ social-auth-core==4.1.0
     # via social-auth-app-django
 sqlparse==0.4.2
     # via django
-typing-extensions==4.2.0
-    # via asgiref
 urllib3==1.26.5
     # via
     #   requests

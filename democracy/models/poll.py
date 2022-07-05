@@ -3,7 +3,8 @@ from django.db.models import Max
 from django.db.models.signals import post_save, pre_delete
 from django.utils.translation import ugettext_lazy as _
 from parler.models import TranslatableModel
-from .base import ORDERING_HELP, BaseModel
+
+from democracy.models.base import ORDERING_HELP, BaseModel
 
 
 class BasePoll(BaseModel, TranslatableModel):
@@ -17,8 +18,9 @@ class BasePoll(BaseModel, TranslatableModel):
     type = models.CharField(verbose_name=_('poll type'), choices=TYPE_CHOICES, max_length=255)
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
     is_independent_poll = models.BooleanField(verbose_name=_('poll may be used independently'), default=False)
-    n_answers = models.IntegerField(verbose_name=_('answer count'),
-                                    help_text=_('number of answers given to this poll'), default=0, editable=False)
+    n_answers = models.IntegerField(
+        verbose_name=_("answer count"), help_text=_("number of answers given to this poll"), default=0, editable=False
+    )
 
     class Meta:
         abstract = True
@@ -35,8 +37,12 @@ class BasePollOption(BaseModel, TranslatableModel):
     # with related name `options`
     poll = None
     ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
-    n_answers = models.IntegerField(verbose_name=_('answer count'),
-                                    help_text=_('number of answers given with this option'), default=0, editable=False)
+    n_answers = models.IntegerField(
+        verbose_name=_("answer count"),
+        help_text=_("number of answers given with this option"),
+        default=0,
+        editable=False,
+    )
 
     class Meta:
         abstract = True

@@ -1,7 +1,6 @@
 import io
 import json
 import re
-
 import xlsxwriter
 from django.conf import settings
 from django.db.models import F
@@ -10,12 +9,10 @@ from django.http import HttpResponse
 from xlsxwriter.utility import xl_rowcol_to_cell
 
 from democracy.models import SectionComment
-
-from .section_comment import SectionCommentSerializer
+from democracy.views.section_comment import SectionCommentSerializer
 
 
 class HearingReport(object):
-
     def __init__(self, json, context=None):
         self.json = json
         self.buffer = io.BytesIO()
@@ -61,17 +58,18 @@ class HearingReport(object):
             self.add_hearing_row('Abstract (%s)' % lang, self.strip_html_tags(abstract))
         for lang, borough in self.json['borough'].items():
             self.add_hearing_row('Borough (%s)' % lang, borough)
-        self.add_hearing_row('Labels', str('%s' % ', '.join([self._get_default_translation(label['label']) for label in
-                                                            self.json['labels']])))
+        self.add_hearing_row(
+            'Labels',
+            str('%s' % ', '.join([self._get_default_translation(label['label']) for label in self.json['labels']])),
+        )
         self.add_hearing_row('Comments', str(self.json['n_comments']))
         self.add_hearing_row('Sections', str(len(self.json['sections'])))
 
-
     def _get_formatted_sheet_name(self, section_name: str, section_index: int) -> str:
-        '''
+        """
         Returns a sheet name with correct char length, without special chars
         and numbering for subsections to avoid duplicate name errors.
-        '''
+        """
         # worksheet name must be <= 31 chars and cannot have certain special chars
         formatted_name = re.sub(r"\W+|_", " ", section_name[:31]).capitalize()
         if section_index > 0:
@@ -79,7 +77,6 @@ class HearingReport(object):
             return f'{formatted_name[:31-len(index)]}{index}'
 
         return formatted_name
-
 
     def add_section_worksheet(self, section, section_index):
         section_name = ""
@@ -94,8 +91,7 @@ class HearingReport(object):
             else:
                 section_name = section['type_name_singular']
 
-        section_worksheet = self.xlsdoc.add_worksheet(
-            self._get_formatted_sheet_name(section_name, section_index))
+        section_worksheet = self.xlsdoc.add_worksheet(self._get_formatted_sheet_name(section_name, section_index))
         section_worksheet.set_landscape()
         section_worksheet.set_column('A:A', 50)
         section_worksheet.set_column('B:B', 50)
@@ -112,8 +108,9 @@ class HearingReport(object):
         self.section_worksheet_active_row = 0
         section_worksheet.write(self.section_worksheet_active_row, 0, 'Section', self.format_bold)
         self.section_worksheet_active_row += 1
-        section_worksheet.write(self.section_worksheet_active_row,
-                                0, self.mitigate_cell_formula_injection(section_name))
+        section_worksheet.write(
+            self.section_worksheet_active_row, 0, self.mitigate_cell_formula_injection(section_name)
+        )
         self.section_worksheet_active_row += 2
 
         # add comments
@@ -127,6 +124,7 @@ class HearingReport(object):
 
     def add_section_comments(self, section, section_worksheet):
         """
+        # noqa: E501
         Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
         "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
         "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
@@ -152,7 +150,7 @@ class HearingReport(object):
             col_index += 1
 
         # include Email only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if self.context['request'].user.is_staff or self.context['request'].user.is_superuser:
             section_worksheet.write(row, col_index, 'Email', self.format_bold)
             col_index += 1
 
@@ -178,8 +176,7 @@ class HearingReport(object):
         comments = [
             SectionCommentSerializer(c, context=self.context).data
             for c in (
-                SectionComment.objects
-                .filter(section=section['id'])
+                SectionComment.objects.filter(section=section['id'])
                 .annotate(parent_created_at=Coalesce(F("comment__created_at"), "created_at"))
                 .order_by("-parent_created_at", "created_at")
             )
@@ -189,6 +186,7 @@ class HearingReport(object):
 
     def add_comment_row(self, comment, section_worksheet):
         """
+        # noqa: E501
         "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
         """
         row = self.section_worksheet_active_row
@@ -207,7 +205,7 @@ class HearingReport(object):
         # section_worksheet.write(row, 0, comment['author_name'])
 
         # include Email only if requesting user is staff
-        if(self.context['request'].user.is_staff or self.context['request'].user.is_superuser):
+        if self.context['request'].user.is_staff or self.context['request'].user.is_superuser:
             email = comment.get('creator_email')
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
             col_index += 1
@@ -226,9 +224,13 @@ class HearingReport(object):
         section_worksheet.write(row, col_index, comment['n_votes'])
         col_index += 1
         # add label
-        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(
-            self._get_default_translation(comment['label'].get('label')
-                                          if comment['label'] else {})))
+        section_worksheet.write(
+            row,
+            col_index,
+            self.mitigate_cell_formula_injection(
+                self._get_default_translation(comment['label'].get('label') if comment['label'] else {})
+            ),
+        )
         col_index += 1
         # add map comment
         section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['map_comment_text']))
@@ -237,20 +239,19 @@ class HearingReport(object):
         section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(json.dumps(comment['geojson'])))
         col_index += 1
         # add img
-        section_worksheet.write(row, col_index, ','.join(
-            image['url'] for image in comment['images']))
+        section_worksheet.write(row, col_index, ','.join(image['url'] for image in comment['images']))
         col_index += 1
         self.section_worksheet_active_row += 1
 
     def add_section_polls(self, section, section_worksheet):
-        '''
+        """
         Poll question | Poll type | Total votes | How many people answered the question
         "question?"   | "type"    | num         | num
         Options       | Votes     | Votes %
         "1) option"   | 1         | 10%
         "2) option"   | 9         | 90%
         -- empty rows after each question --
-        '''
+        """
         questions = section['questions']
 
         # add polls title if polls exist
@@ -266,10 +267,10 @@ class HearingReport(object):
             self.section_worksheet_active_row += 2
 
     def add_poll_question_rows(self, question, section_worksheet):
-        '''
+        """
         Poll question | Poll type | Total votes | how many people answered the question
         "question?"   | "type"    | num         | num
-        '''
+        """
         row = self.section_worksheet_active_row
         chart_location = (row, 5)  # set chart to start on the same row as headers
         # headers
@@ -298,21 +299,21 @@ class HearingReport(object):
         self.section_worksheet_active_row += 1
 
         # add option rows, store option cell info
-        option_cells = self.add_poll_question_option_rows(options, total_answers_cell,
-                                                          section_worksheet)
+        option_cells = self.add_poll_question_option_rows(options, total_answers_cell, section_worksheet)
 
         # add space after options to make room for chart (2 rows per option)
         empty_rows_after_options = len(options) * 2
         self.section_worksheet_active_row += empty_rows_after_options
         # add chart
-        self.add_poll_question_chart(question_text, option_cells, chart_location,
-                                     section_worksheet, empty_rows_after_options)
+        self.add_poll_question_chart(
+            question_text, option_cells, chart_location, section_worksheet, empty_rows_after_options
+        )
 
     def add_poll_question_option_rows(self, options, total_answers_cell, section_worksheet):
-        '''
+        """
         Options     | Votes | Votes %
         "1) option" | 1     | 10 %
-        '''
+        """
         row = self.section_worksheet_active_row
         # headers
         section_worksheet.write(row, 0, 'Options', self.format_bold)
@@ -332,8 +333,8 @@ class HearingReport(object):
             self.section_worksheet_active_row += 1
 
         # store category and value end locations for later calculations
-        categories_end = (self.section_worksheet_active_row-1, 0)  # -1 row to not include empty row
-        values_end = (self.section_worksheet_active_row-1, 2)  # -1 row to not include empty row
+        categories_end = (self.section_worksheet_active_row - 1, 0)  # -1 row to not include empty row
+        values_end = (self.section_worksheet_active_row - 1, 2)  # -1 row to not include empty row
 
         # return dict containing option cell info
         return {
@@ -341,37 +342,58 @@ class HearingReport(object):
             'values_start': values_start,
             'categories_end': categories_end,
             'values_end': values_end,
-            'option_count': len(options)
-            }
+            'option_count': len(options),
+        }
 
-    def add_poll_question_chart(self, question_text, option_cells, chart_location,
-                                section_worksheet, empty_rows_after_options=0, ):
+    def add_poll_question_chart(
+        self,
+        question_text,
+        option_cells,
+        chart_location,
+        section_worksheet,
+        empty_rows_after_options=0,
+    ):
         chart = self.xlsdoc.add_chart({'type': 'bar'})
         # Configure the series.
         # [sheetname, first_row, first_col, last_row, last_col]
         section_name = section_worksheet.get_name()
-        chart.add_series({
-            'categories': [section_name, option_cells['categories_start'][0], option_cells['categories_start'][1],
-                           option_cells['categories_end'][0], option_cells['categories_end'][1]],
-            'values':     [section_name, option_cells['values_start'][0], option_cells['values_start'][1],
-                           option_cells['values_end'][0], option_cells['values_end'][1]],
-        })
+        chart.add_series(
+            {
+                'categories': [
+                    section_name,
+                    option_cells['categories_start'][0],
+                    option_cells['categories_start'][1],
+                    option_cells['categories_end'][0],
+                    option_cells['categories_end'][1],
+                ],
+                'values': [
+                    section_name,
+                    option_cells['values_start'][0],
+                    option_cells['values_start'][1],
+                    option_cells['values_end'][0],
+                    option_cells['values_end'][1],
+                ],
+            }
+        )
 
         # Add a chart title and remove series title
-        chart.set_title({
-            'name': question_text,
-            'name_font': {'name': 'Calibri', 'size': 14, 'bold': False}
-        })  # poll question
+        chart.set_title(
+            {'name': question_text, 'name_font': {'name': 'Calibri', 'size': 14, 'bold': False}}
+        )  # poll question
         chart.set_legend({'none': True})  # removes "series 1" chart title
 
         # chart and axis styles
-        chart.set_x_axis({
-            'max': 1,  # percent scale to always be up to 100%
-            'num_font': {'name': 'Calibri', 'size': 9},
-        })
-        chart.set_y_axis({
-            'num_font': {'name': 'Calibri', 'size': 9},
-        })
+        chart.set_x_axis(
+            {
+                'max': 1,  # percent scale to always be up to 100%
+                'num_font': {'name': 'Calibri', 'size': 9},
+            }
+        )
+        chart.set_y_axis(
+            {
+                'num_font': {'name': 'Calibri', 'size': 9},
+            }
+        )
 
         # calculate chart height
         # standard row pixel height is 20px
@@ -396,12 +418,12 @@ class HearingReport(object):
 
     def get_response(self):
         response = HttpResponse(
-            self.get_xlsx(),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            self.get_xlsx(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         # remove special characters from filename to avoid potential file naming issues
         response['Content-Disposition'] = 'attachment; filename="{filename}.xlsx"'.format(
-            filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json['title'])))
+            filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json['title']))
+        )
         return response
 
     # Mitigate formula injection
@@ -414,7 +436,6 @@ class HearingReport(object):
                 return f"'{cell_content}"
 
         return cell_content
-
 
     def strip_html_tags(self, text: str) -> str:
         """Strips html tags from given text and returns the result"""

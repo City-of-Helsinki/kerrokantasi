@@ -1,17 +1,17 @@
-from .base import StringIdBaseModel
-from django.db import models
 from django.conf import settings
+from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from parler.models import TranslatedFields, TranslatableModel
+from parler.models import TranslatableModel, TranslatedFields
+
+from democracy.models.base import StringIdBaseModel
 
 
 class Organization(StringIdBaseModel):
     name = models.CharField(verbose_name=_('name'), max_length=255, unique=True)
-    admin_users = models.ManyToManyField(
-        settings.AUTH_USER_MODEL, blank=True, related_name='admin_organizations'
+    admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations")
+    parent = models.ForeignKey(
+        "Organization", on_delete=models.SET_NULL, blank=True, null=True, related_name="children"
     )
-    parent = models.ForeignKey('Organization', on_delete=models.SET_NULL,
-                               blank=True, null=True, related_name='children')
 
     class Meta:
         verbose_name = _('organization')
@@ -22,8 +22,14 @@ class Organization(StringIdBaseModel):
 
 
 class ContactPerson(TranslatableModel, StringIdBaseModel):
-    organization = models.ForeignKey(Organization, verbose_name=_('organization'), related_name='contact_persons',
-                                     blank=True, null=True, on_delete=models.PROTECT)
+    organization = models.ForeignKey(
+        Organization,
+        verbose_name=_("organization"),
+        related_name="contact_persons",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_('title'), max_length=255),
     )

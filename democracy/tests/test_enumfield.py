@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import pytest
 from enumfields import Enum
 from rest_framework.exceptions import ValidationError

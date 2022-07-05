@@ -1,5 +1,4 @@
 import datetime
-
 import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
@@ -18,8 +17,7 @@ hearing_list_endpoint = hearing_endpoint
 @pytest.fixture()
 def closure_info_section(default_hearing):
     return Section.objects.create(
-        type=SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO),
-        hearing=default_hearing
+        type=SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO), hearing=default_hearing
     )
 
 
@@ -37,7 +35,7 @@ def get_sections_url(request):
     """
     return {
         'nested': lambda hearing: '/v1/hearing/%s/sections/' % hearing.id,
-        'root': lambda hearing: '/v1/section/?hearing=%s' % hearing.id
+        'root': lambda hearing: '/v1/section/?hearing=%s' % hearing.id,
     }[request.param]
 
 
@@ -51,7 +49,7 @@ def create_sections(hearing, n):
             abstract='Test section abstract %s' % str(i + 1),
             content='Test section content %s' % str(i + 1),
             hearing=hearing,
-            type=SectionType.objects.get(identifier=InitialSectionType.PART)
+            type=SectionType.objects.get(identifier=InitialSectionType.PART),
         )
         section.save()
         sections.append(section)
@@ -157,10 +155,7 @@ def test_45_get_hearing_with_one_section_check_fields(api_client, default_hearin
 
     data = get_data_from_response(response)
     section = data['sections'][0]
-    assert all(
-        key in section
-        for key in SectionSerializer.Meta.fields
-    )
+    assert all(key in section for key in SectionSerializer.Meta.fields)
 
 
 @pytest.mark.django_db
@@ -209,7 +204,11 @@ def test_45_get_hearing_with_many_sections_check_amount(api_client, default_hear
 def test_45_get_hearing_with_many_sections_check_abstract(api_client, default_hearing):
     sections = create_sections(default_hearing, 3)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, ))
+    response = api_client.get(
+        get_hearing_detail_url(
+            default_hearing.id,
+        )
+    )
 
     data = get_data_from_response(response)
     abstracts = [s['abstract'][default_lang_code] for s in data['sections']]
@@ -226,7 +225,11 @@ def test_45_get_hearing_with_many_sections_check_abstract(api_client, default_he
 def test_45_get_hearing_with_many_sections_check_content(api_client, default_hearing):
     sections = create_sections(default_hearing, 3)
 
-    response = api_client.get(get_hearing_detail_url(default_hearing.id, ))
+    response = api_client.get(
+        get_hearing_detail_url(
+            default_hearing.id,
+        )
+    )
 
     data = get_data_from_response(response)
     contents = [s['content'][default_lang_code] for s in data['sections']]
@@ -354,11 +357,9 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     assert len(response_data['results']) == 1
 
 
-@pytest.mark.parametrize('hearing_update', [
-    ('deleted', True),
-    ('published', False),
-    ('open_at', now() + datetime.timedelta(days=1))
-])
+@pytest.mark.parametrize(
+    'hearing_update', [('deleted', True), ('published', False), ('open_at', now() + datetime.timedelta(days=1))]
+)
 @pytest.mark.django_db
 def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
     setattr(default_hearing, hearing_update[0], hearing_update[1])

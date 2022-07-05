@@ -1,31 +1,35 @@
-from urllib.parse import urljoin
-
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import F
 from django.db.transaction import atomic
 from django.utils.translation import ugettext as _
-from rest_framework import filters, serializers, status, response
+from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
+from urllib.parse import urljoin
 
-from democracy.models import SectionComment, Label, Section, SectionPoll, SectionPollOption, SectionPollAnswer
 from democracy.enums import Commenting
+from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption
 from democracy.models.section import CommentImage
-from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseCommentSerializer
-from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
-from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField, get_translation_list
-from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend
+from democracy.views.label import LabelSerializer
+from democracy.views.utils import (
+    GeoJSONField,
+    GeometryBboxFilterBackend,
+    NestedPKRelatedField,
+    filter_by_hearing_visible,
+    get_translation_list,
+)
 
 
 class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for comments creation.
     """
+
     label = NestedPKRelatedField(
         queryset=Label.objects.all(),
         serializer=LabelSerializer,
@@ -36,13 +40,28 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageCreateSerializer(required=False, many=True)
     answers = serializers.SerializerMethodField()  # this makes the field read-only, create answers manually
-    comment = serializers.PrimaryKeyRelatedField(queryset=SectionComment.objects.everything(),
-                                                 required=False, allow_null=True)
+    comment = serializers.PrimaryKeyRelatedField(
+        queryset=SectionComment.objects.everything(), required=False, allow_null=True
+    )
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'comment', 'content', 'plugin_data', 'authorization_code', 'author_name',
-                  'label', 'images', 'answers', 'geojson', 'language_code', 'pinned', 'reply_to', 'map_comment_text']
+        fields = [
+            'section',
+            'comment',
+            'content',
+            'plugin_data',
+            'authorization_code',
+            'author_name',
+            'label',
+            'images',
+            'answers',
+            'geojson',
+            'language_code',
+            'pinned',
+            'reply_to',
+            'map_comment_text',
+        ]
 
     def get_answers(self, obj):
         polls_by_id = {}
@@ -74,8 +93,9 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_pinned(self, value):
-        if value and (self.context['request'].user.is_anonymous or
-                      not self.context['request'].user.get_default_organization()):
+        if value and (
+            self.context['request'].user.is_anonymous or not self.context['request'].user.get_default_organization()
+        ):
             raise ValidationError("Non-admin users may not pin their comments.")
         return value
 
@@ -94,8 +114,10 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
                 raise ValidationError(detail=detail)
             attrs["plugin_identifier"] = section.plugin_identifier
         if not any([attrs.get(field) for field in SectionComment.fields_to_check_for_data]):
-            raise ValidationError("You must supply at least one of the following data in a comment: " +
-                                  str(SectionComment.fields_to_check_for_data))
+            raise ValidationError(
+                "You must supply at least one of the following data in a comment: "
+                + str(SectionComment.fields_to_check_for_data)
+            )
         return attrs
 
     @atomic
@@ -134,6 +156,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     """
     Serializer for comment added to section.
     """
+
     label = LabelSerializer(read_only=True)
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
@@ -145,9 +168,21 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     class Meta:
         model = SectionComment
-        fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name', 'creator_email',
-                  'deleted', 'deleted_at', 'deleted_by_type'] + COMMENT_FIELDS
+        fields = [
+            'section',
+            'language_code',
+            'answers',
+            'comment',
+            'comments',
+            'n_comments',
+            'pinned',
+            'reply_to',
+            'creator_name',
+            'creator_email',
+            'deleted',
+            'deleted_at',
+            'deleted_by_type',
+        ] + COMMENT_FIELDS
 
     def get_content(self, obj):
         # Hide content if comment was deleted
@@ -158,8 +193,10 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return "Kirjoittaja poisti oman viestinsä."
         elif obj.deleted_at:
             deleted_time = f" {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}" if obj.deleted_at is not None else ""
-            return f"Viesti on poistettu{deleted_time}, koska se ei noudattanut Kerrokantasi-palvelun sääntöjä " \
-                   f"{urljoin(settings.DEMOCRACY_UI_BASE_URL, '/info')}"
+            return (
+                f"Viesti on poistettu{deleted_time}, koska se ei noudattanut Kerrokantasi-palvelun sääntöjä "
+                f"{urljoin(settings.DEMOCRACY_UI_BASE_URL, '/info')}"
+            )
         return "Viesti on poistettu."
 
     def get_answers(self, obj):
@@ -185,6 +222,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return obj.created_by.email
         else:
             return ''
+
     def get_deleted_by_type(self, obj):
         # Used to display a different message in the frontend if comment was deleted by its creator
 
@@ -216,25 +254,28 @@ class SectionCommentViewSet(BaseCommentViewSet):
     model = SectionComment
     serializer_class = SectionCommentSerializer
     edit_serializer_class = SectionCommentCreateUpdateSerializer
-    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,
-                       filters.OrderingFilter,
-                       GeometryBboxFilterBackend)
+    filter_backends = (
+        django_filters.rest_framework.DjangoFilterBackend,
+        filters.OrderingFilter,
+        GeometryBboxFilterBackend,
+    )
     ordering_fields = ('created_at', 'n_votes')
 
     def _check_single_choice_poll(self, answer):
-        if (len(answer['answers']) > 1 and
-                SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE):
+        if (
+            len(answer['answers']) > 1
+            and SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE
+        ):
             raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
 
     def _check_can_vote(self, answer):
         if not answer['answers']:
             return None
-        
+
         # Authenticated users can only have one answer per poll.
         if self.request.user.is_authenticated:
             poll_answers = SectionPollAnswer.objects.filter(
-                option__poll=answer['question'],
-                comment__created_by=self.request.user
+                option__poll=answer['question'], comment__created_by=self.request.user
             )
             if poll_answers:
                 raise ValidationError({'answers': [_('You have already voted.')]})
@@ -250,9 +291,9 @@ class SectionCommentViewSet(BaseCommentViewSet):
                     option = SectionPollOption.objects.filter(poll=answer['question']).get(pk=option_id)
                     SectionPollAnswer.objects.create(comment=instance, option=option)
                 except SectionPollOption.DoesNotExist:
-                    raise ValidationError({'option': [
-                        _('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)
-                    ]})
+                    raise ValidationError(
+                        {'option': [_('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)]}
+                    )
         super().create_related(request, instance=instance, *args, **kwargs)
 
     def update_related(self, request, instance=None, *args, **kwargs):
@@ -268,13 +309,12 @@ class SectionCommentViewSet(BaseCommentViewSet):
                     if not SectionPollAnswer.objects.filter(comment=instance, option=option).exists():
                         SectionPollAnswer.objects.create(comment=instance, option=option)
                 except SectionPollOption.DoesNotExist:
-                    raise ValidationError({'option': [
-                        _('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)
-                    ]})
-            for answer in SectionPollAnswer.objects.filter(
-                    option__poll=answer['question'],
-                    comment=instance
-                    ).exclude(option_id__in=option_ids):
+                    raise ValidationError(
+                        {'option': [_('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)]}
+                    )
+            for answer in SectionPollAnswer.objects.filter(option__poll=answer['question'], comment=instance).exclude(
+                option_id__in=option_ids
+            ):
                 answer.soft_delete()
         super().update_related(request, instance=instance, *args, **kwargs)
 
@@ -313,27 +353,28 @@ class SectionCommentViewSet(BaseCommentViewSet):
         try:
             return Section.objects.get(pk=parent_id)
         except Section.DoesNotExist:
-            raise ValidationError({'section': [
-                _('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)
-            ]})
+            raise ValidationError(
+                {'section': [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)]}
+            )
 
     def _check_may_comment(self, request):
         parent = self.get_comment_parent()
         if not parent:
             # this should be possible only with POST requests
-            raise ValidationError({'section': [
-                _('The comment section has to be specified in URL or by JSON section or comment field.')
-            ]})
+            raise ValidationError(
+                {'section': [_('The comment section has to be specified in URL or by JSON section or comment field.')]}
+            )
 
-        '''
-        Unauthenticated user can answer polls in hearings that have open commenting.
-        The following if statement should never be true as unauthenticated users can't post comments if 
-        the hearing doesn't have open commenting.
-        '''
-        if len(request.data.get('answers', [])) > 0 and not request.user.is_authenticated and parent.commenting != Commenting.OPEN:
+        # Unauthenticated user can answer polls in hearings that have open commenting. The following if statement should
+        # never be true as unauthenticated users can't post comments if the hearing doesn't have open commenting.
+        if (
+            len(request.data.get('answers', [])) > 0
+            and not request.user.is_authenticated
+            and parent.commenting != Commenting.OPEN
+        ):
             return response.Response(
                 {'status': 'Unauthenticated users cannot answer polls in hearings that do not have open commenting.'},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_403_FORBIDDEN,
             )
         return super()._check_may_comment(request)
 
@@ -342,38 +383,35 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
     """
     Serializer for root level comment endpoint /v1/comment/
     """
+
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
     hearing_data = serializers.SerializerMethodField()
 
     class Meta(SectionCommentSerializer.Meta):
-        fields = SectionCommentSerializer.Meta.fields + ['hearing','hearing_data']
+        fields = SectionCommentSerializer.Meta.fields + ['hearing', 'hearing_data']
 
     def get_hearing_data(self, obj):
-        '''
+        """
         This is only used by comments on the profile page.
         Returns dict containing data from the hearing that the comment was made to.
-        '''
+        """
         request = self.context.get('request', None)
         user = request.user
         created_by_me = request.query_params.get('created_by', None)
-        
-        if created_by_me is not None and not user.is_anonymous:
-            translations = {
-                t.language_code: t.title for t in
-                get_translation_list(obj.section.hearing)
-            }
-            
-            return {'slug': obj.section.hearing.slug, 'title': translations, 'closed': obj.section.hearing.closed}
-            
-        
-        return False
 
+        if created_by_me is not None and not user.is_anonymous:
+            translations = {t.language_code: t.title for t in get_translation_list(obj.section.hearing)}
+
+            return {'slug': obj.section.hearing.slug, 'title': translations, 'closed': obj.section.hearing.closed}
+
+        return False
 
 
 class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSerializer):
     """
     Serializer for root level comment endpoint /v1/comment/
     """
+
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
 
     class Meta(SectionCommentSerializer.Meta):
@@ -389,8 +427,16 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
 
     class Meta:
         model = SectionComment
-        fields = ['authorization_code', 'created_at__lt', 'created_at__gt', 'section',
-                  'hearing', 'label', 'comment', 'pinned']
+        fields = [
+            'authorization_code',
+            'created_at__lt',
+            'created_at__gt',
+            'section',
+            'hearing',
+            'label',
+            'comment',
+            'pinned',
+        ]
 
 
 # root level SectionComment endpoint

@@ -1,15 +1,13 @@
-# -*- coding: utf-8 -*-
 import datetime
 import logging
-from copy import deepcopy
-from operator import itemgetter
-
 import pytz
+from copy import deepcopy
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
+from operator import itemgetter
 
 from democracy.enums import InitialSectionType
 from democracy.models import Hearing, Section, SectionType
@@ -39,7 +37,7 @@ def import_comments(target, comments_data):
 
 
 def import_comment(CommentModel, datum, target):
-    hidden = (datum.pop("is_hidden") == "true")
+    hidden = datum.pop("is_hidden") == "true"
     like_count = max(int(datum.pop("like_count", 0)), len(datum.pop("likes", ())))
     updated_at = datum.pop("updated_at", None)
     created_at = datum.pop("created_at", None)
@@ -49,13 +47,16 @@ def import_comment(CommentModel, datum, target):
         "modified_at": parse_aware_datetime(updated_at or created_at),
         "author_name": datum.pop("username"),
         "title": (datum.pop("title") or ""),
-        "content": ("%s %s" % (  # TODO: Should we have a separate lead field?
-            datum.pop("lead", "") or "",
-            datum.pop("body", "") or "",
-        )).strip(),
+        "content": (
+            "%s %s"
+            % (  # TODO: Should we have a separate lead field?
+                datum.pop("lead", "") or "",
+                datum.pop("body", "") or "",
+            )
+        ).strip(),
         "published": not hidden,
         "n_unregistered_votes": like_count,
-        "n_votes": like_count
+        "n_votes": like_count,
     }
     return CommentModel.objects.create(**c_args)
 
@@ -67,8 +68,7 @@ def import_images(target, datum):
         assert main_image_id == main_image["id"]
     alt_images = datum.pop("images", ())
     images = sorted(
-        [i for i in [main_image] + list(alt_images) if i],
-        key=lambda i: (i.get("position", "0"), i.get("id"))
+        [i for i in [main_image] + list(alt_images) if i], key=lambda i: (i.get("position", "0"), i.get("id"))
     )
     for index, image_datum in enumerate(images):
         import_image(target, image_datum, index)
@@ -84,7 +84,7 @@ def import_image(target, datum, position):
         "created_at": parse_aware_datetime(created_at),
         "modified_at": parse_aware_datetime(updated_at or created_at),
         "caption": datum.pop("caption"),
-        "ordering": position
+        "ordering": position,
     }
     image = ImageModel(**i_args)
     image.image.name = image_path
@@ -97,7 +97,7 @@ def import_image(target, datum, position):
 def import_section(hearing, section_datum, section_type, force=False):
     # Offset ensures that scenario sections are placed below other sections.
     # The 2 offset ensures the introduction section (position 1) remains first.
-    offset = (1000 if section_type == InitialSectionType.SCENARIO else 2)
+    offset = 1000 if section_type == InitialSectionType.SCENARIO else 2
     s_args = {
         "type": SectionType.objects.get(identifier=section_type),
         "created_at": parse_aware_datetime(section_datum.pop("created_at")),
@@ -162,7 +162,7 @@ def import_hearing(hearing_datum, force=False, patch=False):
         close_at=parse_aware_datetime(hearing_datum.pop("closes_at")),
         title=hearing_datum.pop("title"),
         published=(hearing_datum.pop("published") == "true"),
-        geojson=(hearing_datum.pop("_geometry", None) or None)
+        geojson=(hearing_datum.pop("_geometry", None) or None),
     )
     assert not hearing.geojson or isinstance(hearing.geojson, dict)
     hearing.save(no_modified_at_update=True)

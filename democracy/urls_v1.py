@@ -2,8 +2,18 @@ from django.conf.urls import include, url
 from rest_framework_nested import routers
 
 from democracy.views import (
-    CommentViewSet, ContactPersonViewSet, HearingViewSet, ImageViewSet, LabelViewSet, ProjectViewSet,
-    RootSectionViewSet, SectionCommentViewSet, SectionViewSet, UserDataViewSet, FileViewSet, ServeFileView
+    CommentViewSet,
+    ContactPersonViewSet,
+    FileViewSet,
+    HearingViewSet,
+    ImageViewSet,
+    LabelViewSet,
+    ProjectViewSet,
+    RootSectionViewSet,
+    SectionCommentViewSet,
+    SectionViewSet,
+    ServeFileView,
+    UserDataViewSet,
 )
 
 router = routers.DefaultRouter()

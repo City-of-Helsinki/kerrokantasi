@@ -1,28 +1,27 @@
-from functools import partial
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from collections import Counter
-
 from django import forms
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.auth import get_user_model
-from django.contrib.admin.widgets import FilteredSelectMultiple
-from django.db.models import TextField
-from django.db import router
 from django.contrib.admin.utils import NestedObjects
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models import ManyToManyField
 from django.core.exceptions import ValidationError
+from django.db import router
+from django.db.models import TextField
 from django.http import HttpResponseRedirect
-from django.utils.encoding import force_text
-from django.utils.text import capfirst
-from django.utils.html import format_html
-from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
+from django.utils.encoding import force_text
+from django.utils.html import format_html
+from django.utils.text import capfirst
+from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
+from functools import partial
 from leaflet.admin import LeafletGeoAdmin
 from nested_admin.nested import NestedModelAdminMixin, NestedStackedInline
 from parler.admin import TranslatableAdmin, TranslatableStackedInline
-from parler.forms import TranslatableModelForm, TranslatableBaseInlineFormSet
+from parler.forms import TranslatableBaseInlineFormSet, TranslatableModelForm
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
@@ -62,7 +61,7 @@ class SectionImageInline(TranslatableStackedInline, NestedStackedInline):
     extra = 0
     exclude = ("title",)
     formfield_overrides = {
-        TextField: {'widget': ShortTextAreaWidget}
+        TextField: {"widget": ShortTextAreaWidget},
     }
 
 
@@ -99,7 +98,7 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
     inlines = [SectionImageInline]
     exclude = ("published",)
     formfield_overrides = {
-        TextField: {'widget': ShortTextAreaWidget}
+        TextField: {"widget": ShortTextAreaWidget},
     }
     formset = SectionInlineFormSet
 
@@ -159,7 +158,6 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 
 
 class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
-
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)
 
@@ -170,24 +168,14 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
     readonly_fields = ("preview_url",)
     raw_id_fields = ("project_phase",)
     fieldsets = (
-        (None, {
-            "fields": ("title", "labels", "slug", "preview_url", "organization")
-        }),
-        (_("Project"), {
-            "fields": ("project_phase",)
-        }),
-        (_("Availability"), {
-            "fields": ("published", "open_at", "close_at", "force_closed")
-        }),
-        (_("Area"), {
-            "fields": ("geometry",)
-        }),
-        (_("Contact info"), {
-            "fields": ("contact_persons",)
-        })
+        (None, {"fields": ("title", "labels", "slug", "preview_url", "organization")}),
+        (_("Project"), {"fields": ("project_phase",)}),
+        (_("Availability"), {"fields": ("published", "open_at", "close_at", "force_closed")}),
+        (_("Area"), {"fields": ("geometry",)}),
+        (_("Contact info"), {"fields": ("contact_persons",)}),
     )
     formfield_overrides = {
-        TextField: {'widget': ShortTextAreaWidget}
+        TextField: {'widget': ShortTextAreaWidget},
     }
     form = FixedModelForm
     actions = ["copy_as_draft"]  # delete_selected is built_in, should not be added
@@ -201,9 +189,8 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
     def preview_url(self, obj):
         if not obj.preview_url:
             return ''
-        return format_html(
-            '<a href="%s">%s</a>' % (obj.preview_url, obj.preview_url)
-        )
+        return format_html('<a href="%s">%s</a>' % (obj.preview_url, obj.preview_url))
+
     preview_url.short_description = _('Preview URL')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
@@ -300,7 +287,7 @@ class OrganizationAdmin(admin.ModelAdmin):
     formfield_overrides = {
         ManyToManyField: {'widget': FilteredSelectMultiple("ylläpitäjät", is_stacked=False)},
     }
-    exclude = ('published', )
+    exclude = ('published',)
 
 
 class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
@@ -310,20 +297,51 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
-    list_filter = ('deleted', 'flagged_at', 'section__hearing__slug', )
+    list_filter = (
+        'deleted',
+        'flagged_at',
+        'section__hearing__slug',
+    )
     search_fields = ('section__id', 'author_name', 'title', 'content')
-    readonly_fields = ('reply_to', 'author_name', 'organization', 'geojson',
-                       'plugin_identifier', 'plugin_data', 'label', 'language_code', 'voters', 'section',
-                       'created_by_user', 'deleted_at', 'deleted_by', 'flagged_at', 'flagged_by')
+    readonly_fields = (
+        'reply_to',
+        'author_name',
+        'organization',
+        'geojson',
+        'plugin_identifier',
+        'plugin_data',
+        'label',
+        'language_code',
+        'voters',
+        'section',
+        'created_by_user',
+        'deleted_at',
+        'deleted_by',
+        'flagged_at',
+        'flagged_by',
+    )
     change_form_template = 'admin/comment_change_form.html'
 
     def get_fields(self, request, obj=None):
         """Display deleted-related fields only if comment is deleted"""
-        
+
         fields = [
-            'title', 'content', 'reply_to', 'author_name', 'organization', 'geojson', 'map_comment_text',
-            'plugin_identifier', 'plugin_data', 'pinned', 'label', 'language_code', 'voters', 'section',
-            'created_by_user', 'delete_reason'
+            'title',
+            'content',
+            'reply_to',
+            'author_name',
+            'organization',
+            'geojson',
+            'map_comment_text',
+            'plugin_identifier',
+            'plugin_data',
+            'pinned',
+            'label',
+            'language_code',
+            'voters',
+            'section',
+            'created_by_user',
+            'delete_reason',
         ]
         if obj and obj.flagged_at:
             fields += ['flagged_at', 'flagged_by']
@@ -343,11 +361,10 @@ class CommentAdmin(admin.ModelAdmin):
         if obj.created_by_id and get_user_model().objects.get(id=obj.created_by_id):
             user_url = reverse("admin:app_list", args=['kerrokantasi'])
             user_url += "user/{}/change/".format(obj.created_by_id)
-            user_info = "{} - {}".format(obj.created_by.get_display_name(),
-                                         get_user_model().objects.get(id=obj.created_by_id).email)
-            return format_html(
-                '<a href="{}">{}</a>', user_url, user_info
+            user_info = "{} - {}".format(
+                obj.created_by.get_display_name(), get_user_model().objects.get(id=obj.created_by_id).email
             )
+            return format_html('<a href="{}">{}</a>', user_url, user_info)
 
     def delete_queryset(self, request, queryset):
         # this method is called by delete_selected and can be overridden
@@ -380,9 +397,8 @@ class CommentAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         """Use deleted=False filter by default"""
-        if (
-            not request.META['QUERY_STRING']
-            and not request.META.get('HTTP_REFERER', '').startswith(request.build_absolute_uri())
+        if not request.META['QUERY_STRING'] and not request.META.get('HTTP_REFERER', '').startswith(
+            request.build_absolute_uri()
         ):
             return HttpResponseRedirect(request.path + "?deleted__exact=0")
         return super().changelist_view(request, extra_context=extra_context)
@@ -400,6 +416,7 @@ class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
 
     def title_localized(self, obj):
         return get_any_language(obj, 'title')
+
     title_localized.short_description = 'Title'
 
 
@@ -410,11 +427,13 @@ class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
 
     def title_localized(self, obj):
         return get_any_language(obj, 'title')
+
     title_localized.short_description = 'Title'
 
 
 def get_any_language(obj, attr_name):
-    """ Get a string of at least some language, if the attribute is not
+    """
+    Get a string of at least some language, if the attribute is not
     translated to the current language or the translations are empty strings.
     """
     translation = obj.safe_translation_getter(attr_name)

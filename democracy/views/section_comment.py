@@ -18,7 +18,7 @@ from democracy.views.comment import COMMENT_FIELDS, BaseCommentViewSet, BaseComm
 from democracy.views.label import LabelSerializer
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
-from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField
+from democracy.views.utils import filter_by_hearing_visible, NestedPKRelatedField, get_translation_list
 from democracy.views.utils import GeoJSONField, GeometryBboxFilterBackend
 
 
@@ -109,6 +109,9 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     @atomic
     def create(self, validated_data):
         images = validated_data.pop('images', [])
+        user = self.context['request'].user
+        if user and not user.is_anonymous:
+            validated_data['created_by_id'] = self.context['request'].user.id
         comment = SectionComment.objects.create(**validated_data)
         for image in images:
             CommentImage.objects.get_or_create(comment=comment, **image)
@@ -136,13 +139,14 @@ class SectionCommentSerializer(BaseCommentSerializer):
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
     creator_name = serializers.SerializerMethodField()
+    creator_email = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
     deleted_by_type = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
         fields = ['section', 'language_code', 'answers', 'comment',
-                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name',
+                  'comments', 'n_comments', 'pinned', 'reply_to', 'creator_name', 'creator_email',
                   'deleted', 'deleted_at', 'deleted_by_type'] + COMMENT_FIELDS
 
     def get_content(self, obj):
@@ -176,6 +180,11 @@ class SectionCommentSerializer(BaseCommentSerializer):
         else:
             return 'Anonymous'
 
+    def get_creator_email(self, obj):
+        if obj.created_by and not obj.created_by.is_anonymous:
+            return obj.created_by.email
+        else:
+            return ''
     def get_deleted_by_type(self, obj):
         # Used to display a different message in the frontend if comment was deleted by its creator
 
@@ -198,6 +207,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             and not self.context['request'].user.is_superuser
         ):
             del data['creator_name']
+            del data['creator_email']
 
         return data
 
@@ -333,9 +343,31 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
     Serializer for root level comment endpoint /v1/comment/
     """
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+    hearing_data = serializers.SerializerMethodField()
 
     class Meta(SectionCommentSerializer.Meta):
-        fields = SectionCommentSerializer.Meta.fields + ['hearing']
+        fields = SectionCommentSerializer.Meta.fields + ['hearing','hearing_data']
+
+    def get_hearing_data(self, obj):
+        '''
+        This is only used by comments on the profile page.
+        Returns dict containing data from the hearing that the comment was made to.
+        '''
+        request = self.context.get('request', None)
+        user = request.user
+        created_by_me = request.query_params.get('created_by', None)
+        
+        if created_by_me is not None and not user.is_anonymous:
+            translations = {
+                t.language_code: t.title for t in
+                get_translation_list(obj.section.hearing)
+            }
+            
+            return {'slug': obj.section.hearing.slug, 'title': translations, 'closed': obj.section.hearing.closed}
+            
+        
+        return False
+
 
 
 class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSerializer):
@@ -373,6 +405,10 @@ class CommentViewSet(SectionCommentViewSet):
 
         queryset = self.model.objects.everything()
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
+        created_by = self.request.query_params.get('created_by', None)
+        if created_by is not None and not self.request.user.is_anonymous:
+            if created_by.lower() == 'me':
+                queryset = queryset.filter(created_by_id=self.request.user.id)
 
         user = self._get_user_from_request_or_context()
         if user.is_authenticated and user.is_superuser:

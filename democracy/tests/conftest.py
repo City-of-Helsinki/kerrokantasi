@@ -323,6 +323,28 @@ def john_smith_api_client(john_smith):
 
 
 @pytest.fixture()
+def steve_staff(default_organization):
+    """
+    Steve Staff is registered user working for an organization that has staff rights to django.
+    """
+    user = get_user_model().objects.filter(username="steve_staff").first()
+    if not user:  # pragma: no branch
+        user = get_user_model().objects.create_user("steve_staff", "staff_steve@example.com", password="password")
+        user.is_staff = True
+        user.admin_organizations.add(default_organization)
+    return user
+
+@pytest.fixture()
+def steve_staff_api_client(steve_staff):
+    """
+    Steve Staff is a registered user working for an organization that has staff rights to django; this is his API client.
+    """
+    api_client = APIClient()
+    api_client.force_authenticate(user=steve_staff)
+    api_client.user = steve_staff
+    return api_client
+
+@pytest.fixture()
 def admin_api_client(admin_user):
     api_client = APIClient()
     api_client.force_authenticate(user=admin_user)

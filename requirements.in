@@ -32,3 +32,4 @@ sentry_sdk
 whitenoise
 social-auth-app-django
 pluggy>0.12.0
+python-pptx

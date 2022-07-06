@@ -11,6 +11,7 @@ from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
+from typing import List
 
 from democracy.enums import InitialSectionType
 from democracy.models.section import SectionComment
@@ -26,7 +27,7 @@ SLD_LAYOUT_MAIN_TITLE = 0
 SLD_LAYOUT_SUBSECTION_TITLE = 1
 SLD_LAYOUT_SECTION_COMMENTS = 2
 SLD_LAYOUT_SECTION_POLL = 3
-MAX_ROWS_PER_COMMENT_SLIDE = 11
+MAX_ROWS_PER_COMMENT_SLIDE = 10
 MAX_CHARACTERS_PER_SINGLE_COMMENT_ROW = 75
 
 
@@ -42,12 +43,15 @@ class HearingReportPowerPoint:
         translation.activate(self.used_language)
         self.prs = Presentation(self._get_theme_filename())
 
-    def _get_theme_filename(self) -> str:
+    @staticmethod
+    def _get_theme_filename() -> str:
         dirname = os.path.dirname(__file__)
         theme = settings.HEARING_REPORT_THEME
-        if theme == 'turku':
-            return os.path.join(dirname, './powerpoint_templates/turku_reports_template.pptx')
-        return os.path.join(dirname, './powerpoint_templates/whitelabel_reports_template.pptx')
+        if theme == "helsinki":
+            return os.path.join(dirname, "./powerpoint_templates/helsinki_reports_template.pptx")
+        elif theme == "turku":
+            return os.path.join(dirname, "./powerpoint_templates/turku_reports_template.pptx")
+        return os.path.join(dirname, "./powerpoint_templates/whitelabel_reports_template.pptx")
 
     def _add_main_title_slide(self):
         title_slide_layout = self.prs.slide_layouts[SLD_LAYOUT_MAIN_TITLE]
@@ -72,14 +76,20 @@ class HearingReportPowerPoint:
         title.text = section_title
         title.text_frame.paragraphs[0].font.size = get_powerpoint_title_font_size(section_title, False)
 
-    def _add_comment_slide(self, comments: list):
+    def _add_comment_slide(self, comments: list, index: int):
         comment_slide_layout = self.prs.slide_layouts[SLD_LAYOUT_SECTION_COMMENTS]
         slide = self.prs.slides.add_slide(comment_slide_layout)
+
+        # Comments slide title exists only in Helsinki template, don't crash hard if it doesn't exist.
+        try:
+            title = slide.placeholders[0]
+            title.text = f"{_('Comments')} {index}"
+        except KeyError:
+            pass
         text_area = slide.placeholders[1].text_frame
         # text frame always contains one paragraph initially
         if len(comments) > 0:
             for index, comment in enumerate(comments):
-                bullet = None
                 if index == 0:
                     bullet = text_area.paragraphs[0]
                 else:
@@ -90,7 +100,7 @@ class HearingReportPowerPoint:
             bullet.text = f'{_("No comments")}'
             bullet.font.italic = True
 
-    def _add_comment_slides(self, comments: dict):
+    def _add_comment_slides(self, comments: List[dict]):
         # calculate roughly how many text rows each comment will take
         comments_data = []
         for comment in comments:
@@ -122,8 +132,8 @@ class HearingReportPowerPoint:
         # add last filled page
         section_comment_pages.append(copy.deepcopy(comments_in_page))
         # create comment pages
-        for page_comments in section_comment_pages:
-            self._add_comment_slide(page_comments)
+        for index, page_comments in enumerate(section_comment_pages, start=1):
+            self._add_comment_slide(page_comments, index)
 
     def _add_poll_slide(self, poll: dict):
         poll_slide_layout = self.prs.slide_layouts[SLD_LAYOUT_SECTION_POLL]
@@ -184,7 +194,8 @@ class HearingReportPowerPoint:
     def get_response(self):
         """Returns http response with pptx content"""
         response = HttpResponse(
-            self._get_pptx(), content_type='application/vnd.openxmlformats-officedocument.presentationml.presentation'
+            self._get_pptx(),
+            content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         )
         # remove special characters from filename to avoid potential file naming issues
         response['Content-Disposition'] = 'attachment; filename="{filename}.pptx"'.format(

@@ -243,6 +243,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     id = serializers.CharField(required=False)
     type = serializers.SlugRelatedField(slug_field='identifier', queryset=SectionType.objects.all())
     commenting = EnumField(enum_type=Commenting)
+    voting = EnumField(enum_type=Commenting)
     commenting_map_tools = EnumField(enum_type=CommentingMapTools)
 
     # this field is used only for incoming data validation, outgoing data is added manually
@@ -258,6 +259,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             'type',
             'commenting',
             'commenting_map_tools',
+            'voting',
             'title',
             'abstract',
             'content',

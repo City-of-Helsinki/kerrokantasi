@@ -161,7 +161,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
-    creator_name = serializers.SerializerMethodField()
+    creator_name = serializers.CharField(source="author_name")
     creator_email = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
     deleted_by_type = serializers.SerializerMethodField()
@@ -210,12 +210,6 @@ class SectionCommentSerializer(BaseCommentSerializer):
                 }
             polls_by_id[answer.option.poll.id]['answers'].append(answer.option_id)
         return list(polls_by_id.values())
-
-    def get_creator_name(self, obj):
-        if obj.created_by and not obj.created_by.is_anonymous:
-            return obj.created_by.get_full_name()
-        else:
-            return 'Anonymous'
 
     def get_creator_email(self, obj):
         if obj.created_by and not obj.created_by.is_anonymous:

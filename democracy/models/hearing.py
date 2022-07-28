@@ -14,7 +14,7 @@ from urllib.parse import urljoin
 
 from democracy.enums import InitialSectionType
 from democracy.models.base import BaseModelManager, StringIdBaseModel
-from democracy.models.organization import ContactPerson, Organization
+from democracy.models.organization import ContactPerson, ContactPersonOrder, Organization
 from democracy.models.project import ProjectPhase
 from democracy.utils.geo import get_geometry_from_geojson
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
@@ -65,7 +65,9 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         help_text=_('You may leave this empty to automatically generate a slug'),
     )
     n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
-    contact_persons = models.ManyToManyField(ContactPerson, verbose_name=_('contact persons'), related_name='hearings')
+    contact_persons = models.ManyToManyField(
+        ContactPerson, verbose_name=_('contact persons'), related_name='hearings', through=ContactPersonOrder
+    )
     project_phase = models.ForeignKey(
         ProjectPhase,
         verbose_name=_('project phase'),

@@ -147,6 +147,13 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
         return super().get_formset(request, obj, **kwargs)
 
 
+class ContactPersonInline(NestedStackedInline):
+    verbose_name = _("contact person")
+    verbose_name_plural = _("contact persons")
+    model = models.ContactPersonOrder
+    extra = 1
+
+
 # Admins
 
 
@@ -161,7 +168,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
     class Media:
         js = ("admin/ckeditor-nested-inline-fix.js",)
 
-    inlines = [SectionInline]
+    inlines = [SectionInline, ContactPersonInline]
     list_display = ("slug", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)
     search_fields = ("slug", "translations__title")
@@ -172,7 +179,6 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         (_("Project"), {"fields": ("project_phase",)}),
         (_("Availability"), {"fields": ("published", "open_at", "close_at", "force_closed")}),
         (_("Area"), {"fields": ("geometry",)}),
-        (_("Contact info"), {"fields": ("contact_persons",)}),
     )
     formfield_overrides = {
         TextField: {'widget': ShortTextAreaWidget},

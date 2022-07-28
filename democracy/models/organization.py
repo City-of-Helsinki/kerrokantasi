@@ -21,6 +21,17 @@ class Organization(StringIdBaseModel):
         return self.name
 
 
+class ContactPersonOrder(models.Model):
+    hearing = models.ForeignKey("Hearing", on_delete=models.CASCADE)
+    contactperson = models.ForeignKey("ContactPerson", on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "democracy_hearing_contact_persons"
+
+    def __str__(self):
+        return f"{self.hearing} - {self.contactperson}"
+
+
 class ContactPerson(TranslatableModel, StringIdBaseModel):
     organization = models.ForeignKey(
         Organization,

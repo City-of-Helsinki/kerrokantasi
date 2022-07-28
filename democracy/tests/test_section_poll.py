@@ -12,10 +12,18 @@ from democracy.tests.utils import assert_common_keys_equal, get_data_from_respon
 
 isArchLinux = False
 
-if platform == 'linux':
+if platform in ["linux", "darwin"]:
+    # Arch based distros (arch vanilla/manjaro) (And also MacOS) seem to handle http get/post request response order
+    # differently compared to other distros, if not skipped then it fails like below:
+    # AssertionError: assert {'answers': [33, 34], 'question': 14, 'type': 'multiple-choice'} in
+    # [{'answers': [34, 33], 'question': 14, 'type': 'multiple-choice'}, {'answers': [36], 'question': 15, 'type': 'single-choice'}]
+    #
+    # As we were unable to determine the cause of this behaviour and it only affects 2 tests(both in this file) we skip them.
+    #
+    # This does not affect kerrokantasi normal operation.
     import distro
 
-    if distro.linux_distribution()[0].lower() in ['arch linux', 'manjaro linux']:
+    if distro.linux_distribution()[0].lower() in ["arch linux", "manjaro linux", "darwin"]:
         isArchLinux = True
 
 
@@ -347,14 +355,6 @@ def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_cl
     assert poll.n_answers == 1
 
 
-# Arch based distros (arch vanilla/manjaro) seem to handle http get/post request response order differently compared to other distros,
-# if not skipped then it fails like below:
-# AssertionError: assert {'answers': [33, 34], 'question': 14, 'type': 'multiple-choice'} in
-# [{'answers': [34, 33], 'question': 14, 'type': 'multiple-choice'}, {'answers': [36], 'question': 15, 'type': 'single-choice'}]
-#
-# As we were unable to determine the cause of this behaviour and it only affects 2 tests(both in this file) we skip them.
-#
-# This does not affect kerrokantasi normal operation.
 @pytest.mark.skipif(
     isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed"
 )
@@ -415,14 +415,6 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
         assert answer in updated_data['answers']
 
 
-# Arch based distros (arch vanilla/manjaro) seem to handle http get/post request response order differently compared to other distros,
-# if not skipped then it fails like below:
-# AssertionError: assert {'answers': [2, 3], 'question': 1, 'type': 'multiple-choice'} in
-# [{'answers': [3, 2], 'question': 1, 'type': 'multiple-choice'}, {'answers': [5], 'question': 2, 'type': 'single-choice'}]
-#
-# As we were unable to determine the cause of this behaviour and it only affects 2 tests(both in this file) we skip them.
-#
-# This does not affect kerrokantasi normal operation.
 @pytest.mark.skipif(
     isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed"
 )

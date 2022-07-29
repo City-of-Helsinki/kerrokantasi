@@ -4,7 +4,7 @@ import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
-from democracy.enums import InitialSectionType
+from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
     Hearing,
@@ -56,6 +56,7 @@ def valid_hearing_json(contact_person, default_label):
         "sections": [
             {
                 "type": "closure-info",
+                "voting": "registered",
                 "commenting": 'none',
                 "commenting_map_tools": 'none',
                 "title": {
@@ -76,6 +77,7 @@ def valid_hearing_json(contact_person, default_label):
                 "type_name_plural": "sulkeutumistiedotteet",
             },
             {
+                "voting": "registered",
                 "commenting": 'none',
                 "commenting_map_tools": 'none',
                 "title": {
@@ -103,6 +105,7 @@ def valid_hearing_json(contact_person, default_label):
             {
                 "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
                 "type": "part",
+                "voting": "registered",
                 "commenting": 'none',
                 "commenting_map_tools": 'none',
                 "title": {

@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
+    ContactPerson,
     Hearing,
     Label,
     Organization,
@@ -1225,6 +1226,64 @@ def test_POST_hearing_no_title_locale(valid_hearing_json, john_smith_api_client)
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format='json')
     data = get_data_from_response(response, status_code=400)
     assert 'Title is required at least in one locale' in data['non_field_errors']
+
+
+@pytest.mark.parametrize("inverted", [False, True])
+@pytest.mark.django_db
+def test_POST_hearing_contact_person_order(valid_hearing_json, john_smith_api_client, default_organization, inverted):
+    contact_kwargs = {
+        "title": "Chief",
+        "phone": "555-555",
+        "email": "contact@kerrokantasi.fi",
+        "organization": default_organization,
+    }
+    contact_persons = [
+        ContactPerson.objects.create(name="AAA contact", **contact_kwargs),
+        ContactPerson.objects.create(name="BBB contact", **contact_kwargs),
+        ContactPerson.objects.create(name="CCC contact", **contact_kwargs),
+    ]
+    if inverted:
+        contact_persons.reverse()
+    contact_person_id_list = [{"id": contact.id} for contact in contact_persons]
+    valid_hearing_json.update({"contact_persons": contact_person_id_list})
+
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    data = get_data_from_response(response, status_code=201)
+
+    # Make sure contact persons stay in the order they are sent to the server to, and are not ordered alphabetically
+    for i, contact in enumerate(contact_person_id_list):
+        assert data["contact_persons"][i]["id"] == contact["id"]
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_contact_person_order(valid_hearing_json, john_smith_api_client, default_organization):
+    contact_kwargs = {
+        "title": "Chief",
+        "phone": "555-555",
+        "email": "contact@kerrokantasi.fi",
+        "organization": default_organization,
+    }
+    contact_persons = [
+        ContactPerson.objects.create(name="AAA contact", **contact_kwargs),
+        ContactPerson.objects.create(name="BBB contact", **contact_kwargs),
+        ContactPerson.objects.create(name="CCC contact", **contact_kwargs),
+    ]
+    contact_person_id_list = [{"id": contact.id} for contact in contact_persons]
+    valid_hearing_json.update({"contact_persons": contact_person_id_list})
+
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    data = get_data_from_response(response, status_code=201)
+
+    # Reverse order and update hearing
+    contact_person_id_list.reverse()
+    data.update({"contact_persons": contact_person_id_list})
+
+    response = john_smith_api_client.put('%s%s/' % (endpoint, data["id"]), data=data, format="json")
+    data = get_data_from_response(response, status_code=200)
+
+    # Make sure contact persons stay in the order they are sent to the server to, and are not ordered alphabetically
+    for i, contact in enumerate(contact_person_id_list):
+        assert data["contact_persons"][i]["id"] == contact["id"]
 
 
 @pytest.mark.django_db

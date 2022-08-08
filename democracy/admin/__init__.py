@@ -299,6 +299,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     list_display = ('name', 'title', 'organization', 'phone', 'email')
     exclude = ('published',)
+    ordering = ("name", )
 
 
 class CommentAdmin(admin.ModelAdmin):

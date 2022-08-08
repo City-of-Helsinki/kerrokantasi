@@ -22,14 +22,16 @@ class Organization(StringIdBaseModel):
 
 
 class ContactPersonOrder(models.Model):
-    hearing = models.ForeignKey("Hearing", on_delete=models.CASCADE)
-    contactperson = models.ForeignKey("ContactPerson", on_delete=models.CASCADE)
+    hearing = models.ForeignKey("Hearing", on_delete=models.CASCADE, related_name="contact_person_orders")
+    contact_person = models.ForeignKey("ContactPerson", on_delete=models.CASCADE, related_name="contact_person_orders")
+    order = models.IntegerField(default=0)
 
     class Meta:
         db_table = "democracy_hearing_contact_persons"
+        ordering = ["hearing", "order"]
 
     def __str__(self):
-        return f"{self.hearing} - {self.contactperson}"
+        return f"{self.hearing} - {self.contact_person}"
 
 
 class ContactPerson(TranslatableModel, StringIdBaseModel):
@@ -51,7 +53,10 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
     class Meta:
         verbose_name = _('contact person')
         verbose_name_plural = _('contact persons')
-        ordering = ['name']
+        # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which
+        # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the
+        # correct order when used nested serializer field under Hearing in the Rest API
+        ordering = ["contact_person_orders__hearing", "contact_person_orders__order", "name"]
 
     def __str__(self):
-        return '%s, %s / %s' % (self.name, self.title, self.organization)
+        return '%s, %s / %s' % (self.name, getattr(self, "title", ""), self.organization)

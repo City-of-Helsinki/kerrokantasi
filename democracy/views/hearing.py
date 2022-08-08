@@ -11,7 +11,16 @@ from rest_framework.exceptions import NotFound, PermissionDenied, ValidationErro
 from rest_framework.settings import api_settings
 
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, Hearing, Label, Organization, Project, Section, SectionImage
+from democracy.models import (
+    ContactPerson,
+    ContactPersonOrder,
+    Hearing,
+    Label,
+    Organization,
+    Project,
+    Section,
+    SectionImage,
+)
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
@@ -103,6 +112,12 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             raise serializers.ValidationError('Title is required at least in one locale')
         return data
 
+    def _create_or_update_contact_persons(self, hearing, contact_person_data):
+        """Preserve the order of contact persons in which they were sent to the API"""
+        hearing.contact_persons.clear()
+        for order, contact_person in enumerate(contact_person_data):
+            ContactPersonOrder.objects.create(hearing=hearing, contact_person=contact_person, order=order)
+
     def _create_or_update_sections(self, hearing, sections_data, force_create=False):
         """
         Create or update sections of a hearing
@@ -177,12 +192,14 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     @transaction.atomic()
     def create(self, validated_data):
+        contact_person_data = validated_data.pop("contact_persons", None)
         sections_data = validated_data.pop('sections')
         project_data = validated_data.pop('project', None)
         validated_data['organization'] = self.context['request'].user.get_default_organization()
         validated_data['created_by_id'] = self.context['request'].user.id
         validated_data['published'] = False  # Force new hearings to be unpublished initially
         hearing = super().create(validated_data)
+        self._create_or_update_contact_persons(hearing, contact_person_data)
         self._create_or_update_sections(hearing, sections_data, force_create=True)
         self._create_or_update_project(hearing, project_data)
         return hearing
@@ -203,10 +220,12 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         if self.partial:
             return super().update(instance, validated_data)
 
+        contact_person_data = validated_data.pop("contact_persons", None)
         sections_data = validated_data.pop('sections')
         project_data = validated_data.pop('project', None)
         validated_data['modified_by_id'] = self.context['request'].user.id
         hearing = super().update(instance, validated_data)
+        self._create_or_update_contact_persons(hearing, contact_person_data)
         sections = self._create_or_update_sections(hearing, sections_data)
         self._create_or_update_project(hearing, project_data)
         new_section_ids = set([section.id for section in sections])

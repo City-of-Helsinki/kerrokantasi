@@ -8,6 +8,7 @@ from democracy.views import (
     HearingViewSet,
     ImageViewSet,
     LabelViewSet,
+    OrganizationViewSet,
     ProjectViewSet,
     RootSectionViewSet,
     SectionCommentViewSet,
@@ -26,6 +27,7 @@ router.register(r'label', LabelViewSet, basename='label')
 router.register(r'contact_person', ContactPersonViewSet, basename='contact_person')
 router.register(r'project', ProjectViewSet, basename='project')
 router.register(r'file', FileViewSet, basename='file')
+router.register(r'organization', OrganizationViewSet, basename='organization')
 
 hearing_child_router = routers.NestedSimpleRouter(router, r'hearing', lookup='hearing')
 hearing_child_router.register(r'sections', SectionViewSet, basename='sections')

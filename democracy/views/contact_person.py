@@ -8,10 +8,11 @@ from democracy.views.utils import TranslatableSerializer
 
 class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerializer):
     organization = serializers.SlugRelatedField('name', read_only=True)
+    external_organization = serializers.BooleanField(source="organization.external_organization", read_only=True)
 
     class Meta:
         model = ContactPerson
-        fields = ('id', 'title', 'name', 'phone', 'email', 'organization')
+        fields = ("id", "title", "name", "phone", "email", "organization", "external_organization", "additional_info")
 
     def to_internal_value(self, value):
         if 'organization' in value:

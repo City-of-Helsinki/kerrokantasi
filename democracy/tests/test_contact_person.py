@@ -25,7 +25,7 @@ def test_get_contact_person_list_check_fields(api_client, contact_person, valid_
     assert len(data['results']) == 1
 
     contact_person_data = data['results'][0]
-    assert set(contact_person_data.keys()) == {'id', 'title', 'phone', 'email', 'name', 'organization'}
+    assert set(contact_person_data.keys()) == {"id", "title", "name", "phone", "email", "organization", "external_organization", "additional_info"}
     assert_common_keys_equal(contact_person_data, valid_contact_person_json)
 
 
@@ -48,7 +48,7 @@ def test_admin_user_can_post_contact_person(john_smith_api_client, valid_contact
     response = john_smith_api_client.post(endpoint, data=valid_contact_person_json, format='json')
     data = get_data_from_response(response, status_code=201)
     print(data)
-    assert set(data.keys()) == {'id', 'title', 'phone', 'email', 'name', 'organization'}
+    assert set(data.keys()) == {"id", "title", "name", "phone", "email", "organization", "external_organization", "additional_info"}
     assert_common_keys_equal(data, valid_contact_person_json)
 
 
@@ -95,7 +95,7 @@ def test_admin_user_can_PUT_contact_person(john_smith_api_client, contact_person
     )
     print(response.content)
     data = get_data_from_response(response, status_code=200)
-    assert set(data.keys()) == {'id', 'title', 'phone', 'email', 'name', 'organization'}
+    assert set(data.keys()) == {"id", "title", "name", "phone", "email", "organization", "external_organization", "additional_info"}
     assert_common_keys_equal(data, valid_contact_person_json)
 
 

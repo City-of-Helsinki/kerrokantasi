@@ -44,7 +44,7 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
 
 class ContactPersonViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.UpdateModelMixin):
     serializer_class = ContactPersonSerializer
-    queryset = ContactPerson.objects.select_related('organization')
+    queryset = ContactPerson.objects.select_related("organization").order_by("name")
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     pagination_class = DefaultLimitPagination
 

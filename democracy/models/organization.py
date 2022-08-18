@@ -12,6 +12,14 @@ class Organization(StringIdBaseModel):
     parent = models.ForeignKey(
         "Organization", on_delete=models.SET_NULL, blank=True, null=True, related_name="children"
     )
+    external_organization = models.BooleanField(
+        verbose_name=_("external organization"),
+        default=False,
+        help_text=_(
+            "Enable this, if this organization is external from the city, "
+            "(e.g. a company) and should be hidden from users."
+        ),
+    )
 
     class Meta:
         verbose_name = _('organization')
@@ -49,6 +57,16 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
     name = models.CharField(verbose_name=_('name'), max_length=50)
     phone = models.CharField(verbose_name=_('phone'), max_length=50)
     email = models.EmailField(verbose_name=_('email'))
+    additional_info = models.CharField(
+        verbose_name=_("additional_info"),
+        max_length=255,
+        help_text=_(
+            "Additional info about the contact e.g. which external organization are they part of. This information is "
+            "visible to users instead of their organization, if they they belong to an external organization."
+        ),
+        blank=True,
+        null=True,
+    )
 
     class Meta:
         verbose_name = _('contact person')

@@ -30,7 +30,7 @@ distro==1.7.0
     # via -r requirements-dev.in
 docopt==0.6.2
     # via coveralls
-dparse==0.5.1
+dparse==0.5.2
     # via safety
 factory-boy==3.2.0
     # via -r requirements-dev.in
@@ -44,13 +44,6 @@ gitpython==3.1.14
     # via bandit
 idna==2.10
     # via requests
-importlib-metadata==4.2.0
-    # via
-    #   click
-    #   flake8
-    #   pluggy
-    #   pytest
-    #   stevedore
 iniconfig==1.1.1
     # via pytest
 isort==5.10.1
@@ -94,9 +87,7 @@ pytest-django==4.1.0
 python-dateutil==2.8.1
     # via faker
 pyyaml==5.4.1
-    # via
-    #   bandit
-    #   dparse
+    # via bandit
 requests==2.25.1
     # via
     #   coveralls
@@ -119,16 +110,8 @@ tomli==2.0.1
     # via
     #   black
     #   pytest
-typed-ast==1.5.4
-    # via black
-typing-extensions==4.2.0
-    # via
-    #   black
-    #   importlib-metadata
 urllib3==1.26.5
     # via requests
-zipp==3.8.0
-    # via importlib-metadata
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools

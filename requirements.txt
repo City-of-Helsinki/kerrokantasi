@@ -117,7 +117,7 @@ oauthlib==3.1.0
     #   social-auth-core
 packaging==21.3
     # via deprecation
-pillow==9.0.1
+pillow==9.3.0
     # via
     #   -r requirements.in
     #   easy-thumbnails
@@ -186,8 +186,6 @@ social-auth-core==4.1.0
     # via social-auth-app-django
 sqlparse==0.4.2
     # via django
-typing-extensions==4.2.0
-    # via asgiref
 urllib3==1.26.5
     # via
     #   requests

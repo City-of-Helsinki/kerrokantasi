@@ -60,6 +60,7 @@ env = environ.Env(
     URL_PREFIX=(str, ''),
     EXTRA_INSTALLED_APPS=(list, []),
     ENABLE_DJANGO_EXTENSIONS=(bool, False),
+    FILE_UPLOAD_PERMISSIONS=(str, '0o644'),
     # Kerrokantasi specific settings
     DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
     SENDFILE_BACKEND=(str, 'sendfile.backends.development'),
@@ -132,6 +133,7 @@ if env('SENTRY_DSN'):
 CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_SECURE = False if DEBUG else True
+FILE_UPLOAD_PERMISSIONS = env('FILE_UPLOAD_PERMISSIONS')
 # Useful when kerrokantasi API is served from a sub-path of a shared
 # hostname (like api.yourorg.org)
 SESSION_COOKIE_PATH = '/{}'.format(env('URL_PREFIX'))
@@ -380,3 +382,5 @@ SITE_ID = 1
 
 HEARING_REPORT_PUBLIC_AUTHOR_NAMES = env('HEARING_REPORT_PUBLIC_AUTHOR_NAMES')
 HEARING_REPORT_THEME = env('HEARING_REPORT_THEME')
+# GDAL_LIBRARY_PATH = '/opt/homebrew/opt/gdal/lib/libgdal.dylib'
+# GEOS_LIBRARY_PATH = '/opt/homebrew/opt/geos/lib/libgeos_c.dylib'

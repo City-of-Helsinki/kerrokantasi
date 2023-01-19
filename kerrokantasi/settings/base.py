@@ -382,5 +382,3 @@ SITE_ID = 1
 
 HEARING_REPORT_PUBLIC_AUTHOR_NAMES = env('HEARING_REPORT_PUBLIC_AUTHOR_NAMES')
 HEARING_REPORT_THEME = env('HEARING_REPORT_THEME')
-# GDAL_LIBRARY_PATH = '/opt/homebrew/opt/gdal/lib/libgdal.dylib'
-# GEOS_LIBRARY_PATH = '/opt/homebrew/opt/geos/lib/libgeos_c.dylib'

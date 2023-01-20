@@ -52,6 +52,7 @@ env = environ.Env(
     TRUST_X_FORWARDED_HOST=(bool, False),
     INTERNAL_IPS=(list, []),
     SECURE_PROXY_SSL_HEADER=(tuple, None),
+    FILE_UPLOAD_PERMISSIONS=(str, '0o644'),
     # Helsinki Django app settings
     SENTRY_DSN=(str, ''),
     SENTRY_ENVIRONMENT=(str, 'development'),
@@ -60,7 +61,6 @@ env = environ.Env(
     URL_PREFIX=(str, ''),
     EXTRA_INSTALLED_APPS=(list, []),
     ENABLE_DJANGO_EXTENSIONS=(bool, False),
-    FILE_UPLOAD_PERMISSIONS=(str, '0o644'),
     # Kerrokantasi specific settings
     DEMOCRACY_UI_BASE_URL=(str, 'http://localhost:8086'),
     SENDFILE_BACKEND=(str, 'sendfile.backends.development'),
@@ -133,7 +133,14 @@ if env('SENTRY_DSN'):
 CSRF_COOKIE_NAME = '{}-csrftoken'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_NAME = '{}-sessionid'.format(env('COOKIE_PREFIX'))
 SESSION_COOKIE_SECURE = False if DEBUG else True
-FILE_UPLOAD_PERMISSIONS = env('FILE_UPLOAD_PERMISSIONS')
+# Set django FILE_UPLOAD_PERMISSIONS, parse octal value from string
+# Fallback to default 644 permissions incase of failure
+try:
+    FILE_UPLOAD_PERMISSIONS = None if env('FILE_UPLOAD_PERMISSIONS') == 'None' else int(env('FILE_UPLOAD_PERMISSIONS'), 8)
+except:
+    # Set to default
+    FILE_UPLOAD_PERMISSIONS = 0o644
+
 # Useful when kerrokantasi API is served from a sub-path of a shared
 # hostname (like api.yourorg.org)
 SESSION_COOKIE_PATH = '/{}'.format(env('URL_PREFIX'))

@@ -136,10 +136,7 @@ SESSION_COOKIE_SECURE = False if DEBUG else True
 # Set django FILE_UPLOAD_PERMISSIONS, parse octal value from string
 # Fallback to default 644 permissions incase of failure
 try:
-    if env('FILE_UPLOAD_PERMISSIONS') == 'None':
-        FILE_UPLOAD_PERMISSIONS = None
-    else:
-        FILE_UPLOAD_PERMISSIONS = int(env('FILE_UPLOAD_PERMISSIONS'), 8)
+    FILE_UPLOAD_PERMISSIONS = None if env('FILE_UPLOAD_PERMISSIONS') == 'None' else int(env('FILE_UPLOAD_PERMISSIONS'), 8)
 except:
     # Set to default
     FILE_UPLOAD_PERMISSIONS = 0o644

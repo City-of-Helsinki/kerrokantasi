@@ -1,5 +1,5 @@
-from .util import get_settings, load_local_settings
-from . import base
+from kerrokantasi.settings import base
+from kerrokantasi.settings.util import get_settings, load_local_settings
 
 print('reading settings')
 settings = get_settings(base)
@@ -27,8 +27,8 @@ settings['CKEDITOR_CONFIGS'] = {
             ['Image', 'Video', 'Iframe', 'Flash', 'Table', 'HorizontalRule'],
             ['TextColor', 'BGColor'],
             ['Smiley', 'SpecialChar'],
-            ['Source']
-        ]
+            ['Source'],
+        ],
     },
 }
 

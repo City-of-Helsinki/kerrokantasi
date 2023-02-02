@@ -1,7 +1,5 @@
-
-# -*- coding: utf-8 -*-
-
 import pytest
+
 from democracy.tests.utils import get_data_from_response
 
 
@@ -13,5 +11,3 @@ def test_get_projects(default_project, api_client):
     assert len(project_list[0]['phases']) == 3
     assert project_list[0]['id'] == default_project.id
     assert project_list[0]['title']['en'] == default_project.title
-
-

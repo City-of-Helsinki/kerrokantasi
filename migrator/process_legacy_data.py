@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 import argparse
 import json
 import logging
-import xml.etree.ElementTree as ET
 import os
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 
 log = logging.getLogger("importer")
@@ -80,13 +79,11 @@ def process_tree(xml_tree, geometries):
     tables = {
         table.tag: [{column.tag: column.text for column in row} for row in table.getchildren()]
         for table in xml_tree.find("public").getchildren()
-        }
+    }
 
     hearings = _process_hearings_tree(tables, geometries)
 
-    out = {
-        "hearings": hearings
-    }
+    out = {"hearings": hearings}
     return out
 
 
@@ -105,9 +102,7 @@ def dump_geojson(conn, geometry_json_file):
     with open(geometry_json_file, "w", encoding="utf8") as outf:
         cur.execute("SELECT id, ST_AsGeoJSON(_area, 15, 1) FROM hearing;")
         hearing_geometries = {row[0]: json.loads(row[1] or "null") for row in cur}
-        geometries = {
-            "hearing": hearing_geometries
-        }
+        geometries = {"hearing": hearing_geometries}
         json.dump(geometries, outf, ensure_ascii=False, indent=1, sort_keys=True)
         outf.flush()
         log.info("Geometry JSON: Wrote %d bytes to %s" % (outf.tell(), outf.name))
@@ -117,8 +112,7 @@ def main():
     log_levels = {n.lower(): l for (n, l) in logging._nameToLevel.items()}
     ap = argparse.ArgumentParser()
     ap.add_argument(
-        "-p", "--from-pgsql", dest="pgsql", action="store_true", default=False,
-        help="import from PostgreSQL first"
+        "-p", "--from-pgsql", dest="pgsql", action="store_true", default=False, help="import from PostgreSQL first"
     )
     ap.add_argument("--dsn", default="dbname=kerrokantasi_old user=postgres")
     ap.add_argument("--xml", default="kerrokantasi.xml")

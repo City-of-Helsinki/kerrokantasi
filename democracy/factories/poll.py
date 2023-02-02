@@ -1,4 +1,3 @@
-
 import factory
 
 from democracy.factories.hearing import SectionFactory

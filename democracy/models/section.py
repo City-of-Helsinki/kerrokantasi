@@ -1,24 +1,22 @@
 import logging
 import re
-
-from django.conf import settings
-from django.urls import get_resolver
-from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from reversion import revisions
 from autoslug import AutoSlugField
-from parler.models import TranslatedFields, TranslatableModel
+from django.conf import settings
+from django.db import models
+from django.urls import get_resolver
+from django.utils.translation import ugettext_lazy as _
 from parler.managers import TranslatableQuerySet
-
-from democracy.models.comment import BaseComment, recache_on_save
-from democracy.models.poll import BasePoll, BasePollOption, BasePollAnswer, poll_option_recache_on_save
-from democracy.models.images import BaseImage
-from democracy.models.files import BaseFile
-from democracy.plugins import get_implementation
+from parler.models import TranslatableModel, TranslatedFields
+from reversion import revisions
 
 from democracy.enums import InitialSectionType
-from .base import ORDERING_HELP, Commentable, StringIdBaseModel, BaseModel, BaseModelManager
-from .hearing import Hearing
+from democracy.models.base import ORDERING_HELP, BaseModel, BaseModelManager, Commentable, StringIdBaseModel
+from democracy.models.comment import BaseComment, recache_on_save
+from democracy.models.files import BaseFile
+from democracy.models.hearing import Hearing
+from democracy.models.images import BaseImage
+from democracy.models.poll import BasePoll, BasePollAnswer, BasePollOption, poll_option_recache_on_save
+from democracy.plugins import get_implementation
 
 CLOSURE_INFO_ORDERING = -10000
 
@@ -171,8 +169,11 @@ class SectionComment(Commentable, BaseComment):
     flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
     flagged_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        null=True, blank=True, related_name="%(class)s_flagged",
-        editable=False, on_delete=models.SET_NULL
+        null=True,
+        blank=True,
+        related_name="%(class)s_flagged",
+        editable=False,
+        on_delete=models.SET_NULL,
     )
 
     class Meta:
@@ -217,8 +218,7 @@ class SectionPoll(BasePoll):
 
     def recache_n_answers(self):
         n_answers = (
-            SectionPollAnswer.objects
-            .everything()
+            SectionPollAnswer.objects.everything()
             .filter(option__poll_id=self.pk)
             .exclude(option__poll__deleted=True)
             .values('comment_id')

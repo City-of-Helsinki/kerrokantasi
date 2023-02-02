@@ -234,3 +234,24 @@ msgstr "äänestäjät"
 
 msgid "width"
 msgstr "leveys"
+
+msgid "Kerrokantasi hearing"
+msgstr "Kerrokantasi-kysely"
+
+msgid "Comments"
+msgstr "Kommentteja"
+
+msgid "No comments"
+msgstr "Ei kommentteja"
+
+msgid "Type"
+msgstr "Tyyppi"
+
+msgid "single-choice"
+msgstr "yksivalintakysymys"
+
+msgid "multiple-choice"
+msgstr "monivalintakysymys"
+
+msgid "total answers"
+msgstr "vastauksia yhteensä"

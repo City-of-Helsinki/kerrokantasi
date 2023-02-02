@@ -1,7 +1,5 @@
-
 import json
-
-from django.contrib.gis.geos import GEOSGeometry, GeometryCollection
+from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 
 
 def get_geometry_from_geojson(geojson):
@@ -9,7 +7,7 @@ def get_geometry_from_geojson(geojson):
     if geojson is None:
         return None
     geometry_data = geojson.get('geometry', None) or geojson
-    
+
     if geometry_data.get('features'):
         for feature in geometry_data.get('features'):
             feature_geometry = feature.get('geometry')

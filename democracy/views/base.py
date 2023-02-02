@@ -4,13 +4,12 @@ from django.urls import reverse
 from rest_framework import serializers
 
 from democracy.models.base import BaseModel
-from democracy.models.images import BaseImage
 from democracy.models.files import BaseFile
+from democracy.models.images import BaseImage
 from democracy.views.utils import AbstractSerializerMixin
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = get_user_model()
 
@@ -31,6 +30,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
     """
     Serializer for Image objects.
     """
+
     url = serializers.SerializerMethodField()
 
     class Meta:
@@ -57,6 +57,7 @@ class BaseFileSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
     """
     Serializer for File objects.
     """
+
     url = serializers.SerializerMethodField()
     filetype = None
 

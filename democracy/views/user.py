@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, serializers, viewsets
+
 from democracy.models import SectionPollAnswer
 
 
 class ForeignKeyListSerializer(serializers.ReadOnlyField):
-
     def to_representation(self, value):
         return value.all().values_list('pk', flat=True)
 
@@ -19,9 +19,14 @@ class UserDataSerializer(serializers.ModelSerializer):
         model = get_user_model()
         fields = [
             'uuid',
-            'username', 'first_name', 'last_name', 'nickname',
-            'voted_section_comments', 'followed_hearings',
-            'admin_organizations', 'answered_questions',
+            'username',
+            'first_name',
+            'last_name',
+            'nickname',
+            'voted_section_comments',
+            'followed_hearings',
+            'admin_organizations',
+            'answered_questions',
             'has_strong_auth',
         ]
 

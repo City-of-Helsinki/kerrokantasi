@@ -1,24 +1,28 @@
 import django_filters
-from django.db.models import Q, Max
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
+from django.db.models import Max, Q
 from django.utils.timezone import now
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
-from django.core.exceptions import ImproperlyConfigured
 from easy_thumbnails.files import get_thumbnailer
 from functools import lru_cache
-from rest_framework import serializers, viewsets, permissions
-from rest_framework.exceptions import ValidationError, PermissionDenied, ParseError
+from rest_framework import permissions, serializers, viewsets
+from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
 from sendfile import sendfile
 
-from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
-from democracy.models import Hearing, Section, SectionImage, SectionType, SectionPoll, SectionPollOption, SectionFile
+from democracy.enums import Commenting, CommentingMapTools, InitialSectionType
+from democracy.models import Hearing, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption, SectionType
 from democracy.pagination import DefaultLimitPagination
 from democracy.utils.drf_enum_field import EnumField
-from democracy.views.base import AdminsSeeUnpublishedMixin, BaseImageSerializer, BaseFileSerializer
+from democracy.views.base import AdminsSeeUnpublishedMixin, BaseFileSerializer, BaseImageSerializer
 from democracy.views.utils import (
-    Base64ImageField, Base64FileField, filter_by_hearing_visible, PublicFilteredRelatedField, TranslatableSerializer,
-    compare_serialized
+    Base64FileField,
+    Base64ImageField,
+    PublicFilteredRelatedField,
+    TranslatableSerializer,
+    compare_serialized,
+    filter_by_hearing_visible,
 )
 
 
@@ -28,6 +32,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
 
     ?dim=640x480
     """
+
     width = serializers.SerializerMethodField()
     height = serializers.SerializerMethodField()
 
@@ -58,10 +63,12 @@ class ThumbnailImageSerializer(BaseImageSerializer):
                 width, height = self._parse_dimension_string(request.GET['dim'])
             except ValueError as verr:
                 raise ParseError(detail=str(verr), code="invalid-dim-parameter")
-            return get_thumbnailer(obj.image).get_thumbnail({
-                'size': (width, height),
-                'crop': 'smart',
-            })
+            return get_thumbnailer(obj.image).get_thumbnail(
+                {
+                    'size': (width, height),
+                    'crop': 'smart',
+                }
+            )
         else:
             return obj.image
 
@@ -184,6 +191,7 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section instance.
     """
+
     images = PublicFilteredRelatedField(serializer_class=SectionImageSerializer)
     files = PublicFilteredRelatedField(serializer_class=SectionFileSerializer)
     questions = SectionPollSerializer(many=True, read_only=True, source='polls')
@@ -197,10 +205,24 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting', 'commenting_map_tools', 'voting',
-            'title', 'abstract', 'content', 'created_at', 'images', 'n_comments', 'files', 'questions',
-            'type_name_singular', 'type_name_plural',
-            'plugin_identifier', 'plugin_data', 'plugin_fullscreen',
+            'id',
+            'type',
+            'commenting',
+            'commenting_map_tools',
+            'voting',
+            'title',
+            'abstract',
+            'content',
+            'created_at',
+            'images',
+            'n_comments',
+            'files',
+            'questions',
+            'type_name_singular',
+            'type_name_plural',
+            'plugin_identifier',
+            'plugin_data',
+            'plugin_fullscreen',
         ]
 
 
@@ -217,9 +239,11 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     """
     Serializer for section create/update.
     """
+
     id = serializers.CharField(required=False)
     type = serializers.SlugRelatedField(slug_field='identifier', queryset=SectionType.objects.all())
     commenting = EnumField(enum_type=Commenting)
+    voting = EnumField(enum_type=Commenting)
     commenting_map_tools = EnumField(enum_type=CommentingMapTools)
 
     # this field is used only for incoming data validation, outgoing data is added manually
@@ -231,10 +255,20 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     class Meta:
         model = Section
         fields = [
-            'id', 'type', 'commenting', 'commenting_map_tools',
-            'title', 'abstract', 'content',
-            'plugin_identifier', 'plugin_data',
-            'images', 'questions', 'files', 'ordering',
+            'id',
+            'type',
+            'commenting',
+            'commenting_map_tools',
+            'voting',
+            'title',
+            'abstract',
+            'content',
+            'plugin_identifier',
+            'plugin_data',
+            'images',
+            'questions',
+            'files',
+            'ordering',
         ]
 
     @transaction.atomic()
@@ -288,12 +322,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         for index, file_data in enumerate(data):
             pk = file_data.get('id')
             file_data['ordering'] = index
-            serializer_params = {
-                'data': file_data,
-                'context': {
-                    'request': self.context['request']
-                }
-            }
+            serializer_params = {'data': file_data, 'context': {'request': self.context['request']}}
 
             if pk:
                 try:
@@ -415,6 +444,7 @@ class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpd
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """
+
     hearing = serializers.CharField(source='section.hearing_id', read_only=True)
 
     def __init__(self, *args, **kwargs):
@@ -549,7 +579,7 @@ class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
-        if (self.request.META['CONTENT_TYPE'].startswith('multipart')):
+        if self.request.META['CONTENT_TYPE'].startswith('multipart'):
             # multipart requests go to non-base64 serializer
             return RootFileSerializer
         return RootFileBase64Serializer
@@ -597,9 +627,8 @@ class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         # section file can be put to another section if admin in both previous and next org
         section = serializer.validated_data.get('section')
         instance = serializer.instance
-        return (
-            self._is_user_organisation_admin(user, section) and
-            self._is_user_organisation_admin(user, instance.section)
+        return self._is_user_organisation_admin(user, section) and self._is_user_organisation_admin(
+            user, instance.section
         )
 
     def _can_user_destroy(self, user, instance):

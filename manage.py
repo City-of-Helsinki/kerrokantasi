@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import json
-
 import os
 import sys
 
@@ -23,7 +22,7 @@ def run_npm_script():
         os.environ["PATH"] = "%s%s%s" % (
             os.path.join(os.path.dirname(__file__), "node_modules", ".bin"),
             os.pathsep,
-            os.environ["PATH"]
+            os.environ["PATH"],
         )
         command = scripts[sys.argv[1]]
         args = list(sys.argv[2:])
@@ -41,4 +40,5 @@ if __name__ == "__main__":
     if run_npm_script():
         sys.exit(0)
     from django.core.management import execute_from_command_line
+
     execute_from_command_line(sys.argv)

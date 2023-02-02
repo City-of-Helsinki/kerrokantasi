@@ -1,6 +1,5 @@
 from democracy.enums import InitialSectionType
 
-
 INITIAL_SECTION_TYPE_DATA = [
     {
         'identifier': InitialSectionType.MAIN,

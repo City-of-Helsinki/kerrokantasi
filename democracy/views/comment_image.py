@@ -13,6 +13,7 @@ class CommentImageCreateSerializer(BaseImageSerializer):
     """
     Serializer for comment_image creation.
     """
+
     image = Base64ImageField()
 
     class Meta:

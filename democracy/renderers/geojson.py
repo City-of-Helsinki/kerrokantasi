@@ -5,11 +5,13 @@ class GeoJSONRenderer(JSONRenderer):
     format = 'geojson'
 
     def get_paginated_response(self, data):
-        geojson = {"type": "FeatureCollection",
-                   "count": data['count'],
-                   "next": data['next'],
-                   "previous": data['previous'],
-                   "features": []}
+        geojson = {
+            "type": "FeatureCollection",
+            "count": data['count'],
+            "next": data['next'],
+            "previous": data['previous'],
+            "features": [],
+        }
         for item in data['results']:
             geojson['features'].append(self.geojsonify(item))
         return geojson

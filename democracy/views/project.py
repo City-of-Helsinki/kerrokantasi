@@ -1,12 +1,9 @@
-
-# -*- coding: utf-8 -*-
-
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 
 from democracy.models import Project, ProjectPhase
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.utils import TranslatableSerializer, NestedPKRelatedField, filter_by_hearing_visible
+from democracy.views.utils import NestedPKRelatedField, TranslatableSerializer, filter_by_hearing_visible
 
 
 class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -27,10 +24,12 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         return project_phase.hearings.exists()
 
     def get_hearings(self, project_phase):
-        return [hearing.slug for hearing in
-                filter_by_hearing_visible(project_phase.hearings.with_unpublished(),
-                                          self.context.get('request'),
-                                          hearing_lookup='')]
+        return [
+            hearing.slug
+            for hearing in filter_by_hearing_visible(
+                project_phase.hearings.with_unpublished(), self.context.get('request'), hearing_lookup=''
+            )
+        ]
 
     def to_representation(self, instance):
         self.fields.pop('is_active')
@@ -62,8 +61,9 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
 
 class ProjectSerializer(serializers.ModelSerializer, TranslatableSerializer):
-    phases = NestedPKRelatedField(queryset=ProjectPhase.objects.all(), many=True, expanded=True,
-                                  serializer=ProjectPhaseSerializer)
+    phases = NestedPKRelatedField(
+        queryset=ProjectPhase.objects.all(), many=True, expanded=True, serializer=ProjectPhaseSerializer
+    )
 
     class Meta:
         model = Project
@@ -122,8 +122,11 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         existing_phases = {phase.pk: phase for phase in project.phases.exclude(deleted=True)}
         # create new phases
         [self._create_phase(phase, project) for phase in phases_data if phase.get('id') not in existing_phases.keys()]
-        updated_phases = [self._update_phase(existing_phases[phase['id']], phase, project)
-                          for phase in phases_data if phase.get('id') in existing_phases.keys()]
+        updated_phases = [
+            self._update_phase(existing_phases[phase['id']], phase, project)
+            for phase in phases_data
+            if phase.get('id') in existing_phases.keys()
+        ]
         # existing phases missing from updated phases are to be deleted
         deleted_phases = set(existing_phases.values()) - set(updated_phases)
         [phase.soft_delete() for phase in deleted_phases]

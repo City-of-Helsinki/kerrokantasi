@@ -1,9 +1,8 @@
-# -*- coding: utf-8 -*-
 import pytest
 
 from democracy.models import Label
-from democracy.tests.utils import get_data_from_response
 from democracy.tests.conftest import default_lang_code
+from democracy.tests.utils import get_data_from_response
 
 endpoint = '/v1/label/'
 list_endpoint = endpoint
@@ -11,7 +10,9 @@ list_endpoint = endpoint
 
 @pytest.fixture
 def valid_label_json(default_label):
-    return {"label": {default_lang_code: default_label.label}, }
+    return {
+        "label": {default_lang_code: default_label.label},
+    }
 
 
 def test_label_str():

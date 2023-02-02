@@ -1,25 +1,23 @@
-from urllib.parse import urljoin
-
+from autoslug import AutoSlugField
+from autoslug.utils import generate_unique_slug
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.contrib.gis.db import models
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import ugettext_lazy as _
 from djgeojson.fields import GeoJSONField
-from autoslug import AutoSlugField
-from autoslug.utils import generate_unique_slug
-from parler.models import TranslatedFields, TranslatableModel
 from parler.managers import TranslatableQuerySet
+from parler.models import TranslatableModel, TranslatedFields
+from urllib.parse import urljoin
 
 from democracy.enums import InitialSectionType
-from democracy.utils.hmac_hash import get_hmac_b64_encoded
+from democracy.models.base import BaseModelManager, StringIdBaseModel
+from democracy.models.organization import ContactPerson, ContactPersonOrder, Organization
+from democracy.models.project import ProjectPhase
 from democracy.utils.geo import get_geometry_from_geojson
-
-from .base import BaseModelManager, StringIdBaseModel
-from .organization import ContactPerson, Organization
-from .project import ProjectPhase
+from democracy.utils.hmac_hash import get_hmac_b64_encoded
 
 
 class HearingQueryset(TranslatableQuerySet):
@@ -44,21 +42,40 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     organization = models.ForeignKey(
         Organization,
         verbose_name=_('organization'),
-        related_name="hearings", blank=True, null=True, on_delete=models.PROTECT
+        related_name="hearings",
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
     )
     labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
     followers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
         verbose_name=_('followers'),
         help_text=_('users who follow this hearing'),
-        related_name='followed_hearings', blank=True, editable=False
+        related_name='followed_hearings',
+        blank=True,
+        editable=False,
     )
-    slug = AutoSlugField(verbose_name=_('slug'), populate_from='title', editable=True, unique=True, blank=True,
-                         help_text=_('You may leave this empty to automatically generate a slug'))
+    slug = AutoSlugField(
+        verbose_name=_('slug'),
+        populate_from='title',
+        editable=True,
+        unique=True,
+        blank=True,
+        help_text=_('You may leave this empty to automatically generate a slug'),
+    )
     n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
-    contact_persons = models.ManyToManyField(ContactPerson, verbose_name=_('contact persons'), related_name='hearings')
-    project_phase = models.ForeignKey(ProjectPhase, verbose_name=_('project phase'), related_name='hearings',
-                                      on_delete=models.PROTECT, null=True, blank=True)
+    contact_persons = models.ManyToManyField(
+        ContactPerson, verbose_name=_('contact persons'), related_name='hearings', through=ContactPersonOrder
+    )
+    project_phase = models.ForeignKey(
+        ProjectPhase,
+        verbose_name=_('project phase'),
+        related_name='hearings',
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
 
     objects = BaseModelManager.from_queryset(HearingQueryset)()
     original_manager = models.Manager()
@@ -68,7 +85,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         verbose_name_plural = _('hearings')
 
     def __str__(self):
-        return (self.title or self.id)
+        return self.title or self.id
 
     @property
     def closed(self):
@@ -107,7 +124,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         super().save(*args, **kwargs)
 
     def recache_n_comments(self):
-        new_n_comments = (self.sections.all().aggregate(Sum('n_comments')).get('n_comments__sum') or 0)
+        new_n_comments = self.sections.all().aggregate(Sum('n_comments')).get('n_comments__sum') or 0
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))

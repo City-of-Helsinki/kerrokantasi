@@ -1,25 +1,37 @@
 import datetime
-
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
 from django.utils.timezone import now
 from rest_framework.test import APIClient
 
-from democracy.enums import Commenting, InitialSectionType, CommentingMapTools
+from democracy.enums import Commenting, CommentingMapTools, InitialSectionType
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.models import ContactPerson, Hearing, Label, Project, ProjectPhase, Section, SectionFile, SectionType, Organization
-from democracy.tests.utils import FILES, assert_ascending_sequence, create_default_images, create_default_files, get_file_path
-
+from democracy.models import (
+    ContactPerson,
+    Hearing,
+    Label,
+    Organization,
+    Project,
+    ProjectPhase,
+    Section,
+    SectionFile,
+    SectionType,
+)
+from democracy.tests.utils import (
+    FILES,
+    assert_ascending_sequence,
+    create_default_files,
+    create_default_images,
+    get_file_path,
+)
 
 default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
 red_comment_content = 'Mine is red'
 green_comment_content = 'I like green'
 default_lang_code = 'en'
-default_geojson_geometry = {
-        "type": "Point",
-        "coordinates": [-104.99404, 39.75621]
-    }
+default_geojson_geometry = {"type": "Point", "coordinates": [-104.99404, 39.75621]}
+
 
 def get_feature_with_geometry(geometry):
     return {
@@ -27,16 +39,19 @@ def get_feature_with_geometry(geometry):
         "properties": {
             "name": "Coors Field",
             "amenity": "Baseball Stadium",
-            "popupContent": "This is where the Rockies play!"
+            "popupContent": "This is where the Rockies play!",
         },
-        "geometry": geometry
+        "geometry": geometry,
     }
 
+
 default_geojson_feature = get_feature_with_geometry(default_geojson_geometry)
+
 
 def pytest_configure():
     # During tests, crypt passwords with MD5. This should make things run faster.
     from django.conf import settings
+
     settings.PASSWORD_HASHERS = (
         'django.contrib.auth.hashers.MD5PasswordHasher',
         'django.contrib.auth.hashers.PBKDF2PasswordHasher',
@@ -56,11 +71,7 @@ def default_organization():
 @pytest.fixture()
 def contact_person(default_organization):
     return ContactPerson.objects.create(
-        name='John Contact',
-        title='Chief',
-        phone='555-555',
-        email='john@contact.eu',
-        organization=default_organization
+        name='John Contact', title='Chief', phone='555-555', email='john@contact.eu', organization=default_organization
     )
 
 
@@ -81,13 +92,13 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 4):
-        section_type = (InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO)
+        section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
         section = Section.objects.create(
             abstract='Section %d abstract' % x,
             hearing=hearing,
             type=SectionType.objects.get(identifier=section_type),
             commenting=Commenting.OPEN,
-            commenting_map_tools=CommentingMapTools.ALL
+            commenting_map_tools=CommentingMapTools.ALL,
         )
         create_default_images(section)
         create_default_files(section)
@@ -100,6 +111,7 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
     hearing.contact_persons.add(contact_person)
 
     return hearing
+
 
 @pytest.fixture()
 def hearing__with_4_different_commenting(john_doe, contact_person, default_organization, default_project):
@@ -119,13 +131,13 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 5):
-        section_type = (InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO)
+        section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
         section = Section.objects.create(
             abstract='Section %d abstract' % x,
             hearing=hearing,
             type=SectionType.objects.get(identifier=section_type),
-            commenting=commenting_restrictions[x-1],
-            commenting_map_tools=CommentingMapTools.ALL
+            commenting=commenting_restrictions[x - 1],
+            commenting_map_tools=CommentingMapTools.ALL,
         )
         create_default_images(section)
         create_default_files(section)
@@ -138,6 +150,7 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
     hearing.contact_persons.add(contact_person)
 
     return hearing
+
 
 @pytest.fixture()
 def hearing_without_comments(contact_person, default_organization, default_project):
@@ -159,7 +172,7 @@ def hearing_without_comments(contact_person, default_organization, default_proje
         abstract='Section abstract for simple hearing',
         hearing=hearing,
         type=SectionType.objects.get(identifier=section_type),
-        commenting=Commenting.OPEN
+        commenting=Commenting.OPEN,
     )
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
@@ -188,7 +201,7 @@ def strong_auth_hearing(john_doe, contact_person, default_organization, default_
         abstract='Section abstract for strong auth',
         hearing=hearing,
         type=SectionType.objects.get(identifier=section_type),
-        commenting=Commenting.STRONG
+        commenting=Commenting.STRONG,
     )
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
@@ -199,10 +212,7 @@ def strong_auth_hearing(john_doe, contact_person, default_organization, default_
 
 @pytest.fixture()
 def default_project():
-    project_data = {
-        'title': 'Default project',
-        'identifier': '123456'
-    }
+    project_data = {'title': 'Default project', 'identifier': '123456'}
     project = Project.objects.create(**project_data)
     for i in range(1, 4):
         phase_data = {
@@ -276,6 +286,7 @@ def jane_doe_api_client(jane_doe):
     api_client.user = jane_doe
     return api_client
 
+
 @pytest.fixture()
 def stark_doe():
     """
@@ -299,6 +310,7 @@ def stark_doe_api_client(stark_doe):
     api_client.user.has_strong_auth = True
     return api_client
 
+
 @pytest.fixture()
 def john_smith(default_organization):
     """
@@ -319,6 +331,30 @@ def john_smith_api_client(john_smith):
     api_client = APIClient()
     api_client.force_authenticate(user=john_smith)
     api_client.user = john_smith
+    return api_client
+
+
+@pytest.fixture()
+def steve_staff(default_organization):
+    """
+    Steve Staff is registered user working for an organization that has staff rights to django.
+    """
+    user = get_user_model().objects.filter(username="steve_staff").first()
+    if not user:  # pragma: no branch
+        user = get_user_model().objects.create_user("steve_staff", "staff_steve@example.com", password="password")
+        user.is_staff = True
+        user.admin_organizations.add(default_organization)
+    return user
+
+
+@pytest.fixture()
+def steve_staff_api_client(steve_staff):
+    """
+    Steve Staff is a registered user working for an organization that has staff rights to django; this is his API client.
+    """
+    api_client = APIClient()
+    api_client.force_authenticate(user=steve_staff)
+    api_client.user = steve_staff
     return api_client
 
 
@@ -363,71 +399,111 @@ def geojson_point():
 
 @pytest.fixture()
 def geojson_multipoint():
-    return {
-        "type": "MultiPoint",
-        "coordinates": [
-            [24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]
-        ]
-    }
+    return {"type": "MultiPoint", "coordinates": [[24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]]}
 
 
 @pytest.fixture()
 def geojson_polygon():
-    return {"type": "Polygon", "coordinates": [[
-        [24.9309, 60.1818], [24.9279, 60.1771], [24.9354, 60.1743],
-        [24.9409, 60.1768], [24.9382, 60.1804], [24.9309, 60.1818],
-    ]]}
+    return {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [24.9309, 60.1818],
+                [24.9279, 60.1771],
+                [24.9354, 60.1743],
+                [24.9409, 60.1768],
+                [24.9382, 60.1804],
+                [24.9309, 60.1818],
+            ]
+        ],
+    }
 
 
 @pytest.fixture()
 def geojson_polygon_with_hole():
-    return {"type": "Polygon", "coordinates": [
-        [
-            [24.9416, 60.1710], [24.9328, 60.1685], [24.9353, 60.1658],
-            [24.9430, 60.1630], [24.9440, 60.1679], [24.9416, 60.1710],
+    return {
+        "type": "Polygon",
+        "coordinates": [
+            [
+                [24.9416, 60.1710],
+                [24.9328, 60.1685],
+                [24.9353, 60.1658],
+                [24.9430, 60.1630],
+                [24.9440, 60.1679],
+                [24.9416, 60.1710],
+            ],
+            [
+                [24.9375, 60.1682],
+                [24.9413, 60.1652],
+                [24.9407, 60.1690],
+                [24.9375, 60.1682],
+            ],
         ],
-        [
-            [24.9375, 60.1682], [24.9413, 60.1652], [24.9407, 60.1690],
-            [24.9375, 60.1682],
-        ],
-    ]}
+    }
 
 
 @pytest.fixture()
 def geojson_multipolygon():
-    return {"type": "MultiPolygon", "coordinates": [
-        [[
-            [24.9509, 60.1692], [24.9559, 60.1690], [24.9563, 60.1714],
-            [24.9508, 60.1715], [24.9509, 60.1692],
-        ]],
-        [[
-            [24.9510, 60.1718], [24.9561, 60.1717], [24.9537, 60.1740],
-            [24.9510, 60.1718],
-        ]],
-    ]}
+    return {
+        "type": "MultiPolygon",
+        "coordinates": [
+            [
+                [
+                    [24.9509, 60.1692],
+                    [24.9559, 60.1690],
+                    [24.9563, 60.1714],
+                    [24.9508, 60.1715],
+                    [24.9509, 60.1692],
+                ]
+            ],
+            [
+                [
+                    [24.9510, 60.1718],
+                    [24.9561, 60.1717],
+                    [24.9537, 60.1740],
+                    [24.9510, 60.1718],
+                ]
+            ],
+        ],
+    }
 
 
 @pytest.fixture()
 def geojson_linestring():
-    return {"type": "LineString", "coordinates": [
-        [24.9322, 60.1883], [24.9224, 60.1842], [24.9159, 60.1799],
-        [24.9157, 60.1746], [24.9252, 60.1703],
-    ]}
+    return {
+        "type": "LineString",
+        "coordinates": [
+            [24.9322, 60.1883],
+            [24.9224, 60.1842],
+            [24.9159, 60.1799],
+            [24.9157, 60.1746],
+            [24.9252, 60.1703],
+        ],
+    }
 
 
 @pytest.fixture()
 def geojson_multilinestring():
-    return {"type": "MultiLineString", "coordinates": [
-        [[24.9488, 60.1892], [24.9535, 60.1880], [24.9511, 60.1857]],
-        [[24.9490, 60.1869], [24.9466, 60.1846], [24.9522, 60.1833]],
-        [[24.9498, 60.1821], [24.9546, 60.1813], [24.9569, 60.1840]],
-    ]}
+    return {
+        "type": "MultiLineString",
+        "coordinates": [
+            [[24.9488, 60.1892], [24.9535, 60.1880], [24.9511, 60.1857]],
+            [[24.9490, 60.1869], [24.9466, 60.1846], [24.9522, 60.1833]],
+            [[24.9498, 60.1821], [24.9546, 60.1813], [24.9569, 60.1840]],
+        ],
+    }
 
 
 @pytest.fixture()
 def geojson_geometrycollection(
-    geojson_point, geojson_multipoint, geojson_polygon, geojson_polygon_with_hole,
-    geojson_multipolygon, geojson_linestring, geojson_multilinestring):
+    geojson_point,
+    geojson_multipoint,
+    geojson_polygon,
+    geojson_polygon_with_hole,
+    geojson_multipolygon,
+    geojson_linestring,
+    geojson_multilinestring,
+):
     return {
         "type": "GeometryCollection",
         "geometries": [
@@ -438,7 +514,7 @@ def geojson_geometrycollection(
             geojson_multipolygon,
             geojson_linestring,
             geojson_multilinestring,
-        ]
+        ],
     }
 
 
@@ -486,7 +562,7 @@ def geojson_featurecollection(geojson_point, geojson_polygon):
                 },
                 "geometry": geojson_polygon,
             },
-        ]
+        ],
     }
 
 

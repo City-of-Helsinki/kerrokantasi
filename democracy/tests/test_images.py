@@ -2,8 +2,15 @@ import datetime
 import pytest
 from django.utils.timezone import now
 
-from democracy.tests.utils import IMAGES, create_default_images, get_data_from_response, get_hearing_detail_url, sectionimage_test_json, assert_common_keys_equal
 from democracy.tests.conftest import default_lang_code
+from democracy.tests.utils import (
+    IMAGES,
+    assert_common_keys_equal,
+    create_default_images,
+    get_data_from_response,
+    get_hearing_detail_url,
+    sectionimage_test_json,
+)
 
 
 def check_entity_images(entity, images_field=True):
@@ -72,12 +79,11 @@ def test_section_images_ordering(api_client, default_hearing):
     first_section_data = data[0]
     assert [im['title'][default_lang_code] for im in first_section_data['images']] == reversed_image_names
 
+
 @pytest.mark.xfail(reason="sporadic failures, race condition suspected, needs debugging")
-@pytest.mark.parametrize('client, expected', [
-    ('api_client', False),
-    ('jane_doe_api_client', False),
-    ('admin_api_client', True)
-])
+@pytest.mark.parametrize(
+    'client, expected', [('api_client', False), ('jane_doe_api_client', False), ('admin_api_client', True)]
+)
 @pytest.mark.django_db
 def test_unpublished_section_images_excluded(client, expected, request, default_hearing):
     api_client = request.getfuncargvalue(client)
@@ -130,10 +136,11 @@ def test_get_thumbnail_images_root_endpoint(api_client, default_hearing):
         assert image['height'] == 100
 
 
-
 @pytest.mark.django_db
 def test_get_thumbnail_image(api_client, default_hearing):
-    data = get_data_from_response(api_client.get('/v1/image/%s/?dim=100x100' % default_hearing.sections.first().images.first().id))
+    data = get_data_from_response(
+        api_client.get('/v1/image/%s/?dim=100x100' % default_hearing.sections.first().images.first().id)
+    )
     assert data['width'] == 100
     assert data['height'] == 100
 
@@ -160,11 +167,9 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     assert len(response_data['results']) == 3
 
 
-@pytest.mark.parametrize('hearing_update', [
-    ('deleted', True),
-    ('published', False),
-    ('open_at', now() + datetime.timedelta(days=1))
-])
+@pytest.mark.parametrize(
+    'hearing_update', [('deleted', True), ('published', False), ('open_at', now() + datetime.timedelta(days=1))]
+)
 @pytest.mark.django_db
 def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
     setattr(default_hearing, hearing_update[0], hearing_update[1])
@@ -186,14 +191,18 @@ def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
     # POST new image to the section
     post_data = sectionimage_test_json()
     post_data['section'] = first_section['id']
-    data = get_data_from_response(john_smith_api_client.post('/v1/image/', data=post_data, format='json'), status_code=201)
+    data = get_data_from_response(
+        john_smith_api_client.post('/v1/image/', data=post_data, format='json'), status_code=201
+    )
     # Save order of the newly created image
     ordering = data['ordering']
     # Make sure new image was created
     data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
     assert len(data['results']) == 10
     # Create another image and make sure it gets higher ordering than the last one
-    data = get_data_from_response(john_smith_api_client.post('/v1/image/', data=post_data, format='json'), status_code=201)
+    data = get_data_from_response(
+        john_smith_api_client.post('/v1/image/', data=post_data, format='json'), status_code=201
+    )
     assert data['ordering'] == ordering + 1
 
 
@@ -205,15 +214,24 @@ def test_POST_image_root_endpoint_wrong_user(john_doe_api_client, default_hearin
     # POST new image to the section
     post_data = sectionimage_test_json()
     post_data['section'] = first_section['id']
-    data = get_data_from_response(john_doe_api_client.post('/v1/image/', data=post_data, format='json'), status_code=403)
+    data = get_data_from_response(
+        john_doe_api_client.post('/v1/image/', data=post_data, format='json'), status_code=403
+    )
 
 
 @pytest.mark.django_db
 def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
     data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
     section_image = data['results'][0]
-    post_data = {'title': {'en': 'changed_title'}, 'caption': {'en': 'changed_caption'}, 'alt_text': {'en': 'changed_alt_text'}}
-    data = get_data_from_response(john_smith_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'), status_code=200)
+    post_data = {
+        'title': {'en': 'changed_title'},
+        'caption': {'en': 'changed_caption'},
+        'alt_text': {'en': 'changed_alt_text'},
+    }
+    data = get_data_from_response(
+        john_smith_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'),
+        status_code=200,
+    )
     changed_section_image = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id']))
     assert changed_section_image['title']['en'] == 'changed_title'
     assert changed_section_image['caption']['en'] == 'changed_caption'
@@ -227,7 +245,10 @@ def test_PUT_image_root_endpoint(john_smith_api_client, default_hearing):
     section_image['title']['en'] = 'changed_title'
     section_image['caption']['en'] = 'changed_caption'
     section_image['alt_text']['en'] = 'changed_alt_text'
-    data = get_data_from_response(john_smith_api_client.put('/v1/image/%d/' % section_image['id'], data=section_image, format='json'), status_code=200)
+    data = get_data_from_response(
+        john_smith_api_client.put('/v1/image/%d/' % section_image['id'], data=section_image, format='json'),
+        status_code=200,
+    )
     changed_section_image = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id']))
     assert changed_section_image['title']['en'] == 'changed_title'
     assert changed_section_image['caption']['en'] == 'changed_caption'
@@ -239,7 +260,9 @@ def test_PATCH_image_root_endpoint_wrong_user(john_doe_api_client, default_heari
     data = get_data_from_response(john_doe_api_client.get('/v1/image/'))
     section_image = data['results'][0]
     post_data = {'title': {'en': 'changed_title'}, 'caption': {'en': 'changed_caption'}}
-    data = get_data_from_response(john_doe_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'), status_code=403)
+    data = get_data_from_response(
+        john_doe_api_client.patch('/v1/image/%d/' % section_image['id'], data=post_data, format='json'), status_code=403
+    )
 
 
 @pytest.mark.django_db
@@ -249,7 +272,9 @@ def test_DELETE_image_root_endpoint(john_smith_api_client, default_hearing):
     section_image = data['results'][0]
     response = john_smith_api_client.delete('/v1/image/%d/' % section_image['id'], format='json')
     assert response.status_code == 204
-    data = get_data_from_response(john_smith_api_client.get('/v1/image/%d/' % section_image['id'], format='json'), status_code=404)
+    data = get_data_from_response(
+        john_smith_api_client.get('/v1/image/%d/' % section_image['id'], format='json'), status_code=404
+    )
     data = get_data_from_response(john_smith_api_client.get('/v1/image/'))
     assert len(data['results']) == 8
 
@@ -260,4 +285,3 @@ def test_DELETE_image_root_endpoint_wrong_user(john_doe_api_client, default_hear
     section_image = data['results'][0]
     response = john_doe_api_client.delete('/v1/image/%d/' % section_image['id'], format='json')
     assert response.status_code == 403
-

@@ -1,6 +1,4 @@
-
 from copy import deepcopy
-
 from django.db import transaction
 
 from democracy.enums import InitialSectionType

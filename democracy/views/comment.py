@@ -160,7 +160,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
             assert parent.check_commenting(request) is None
         except ValidationError as verr:
-            return response.Response({'status': force_text(verr), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response({'status': force_text("Validation error occured during submitting comment"), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
 
     def _check_may_vote(self, request):
         parent = self.get_comment_parent()
@@ -168,7 +168,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
             assert parent.check_voting(request) is None
         except ValidationError as verr:
-            return response.Response({'status': force_text(verr), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response({'status': force_text("Validation error occured during submitting vote"), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
 
     def _check_hearing_creator(self, request):
         """

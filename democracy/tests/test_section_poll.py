@@ -389,7 +389,7 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
         {
             'question': poll.id,
             'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-            'answers': [option2.id, option3.id],
+            'answers': [option3.id, option2.id],
         },
         {
             'question': poll2.id,
@@ -449,7 +449,7 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
         {
             'question': poll.id,
             'type': SectionPoll.TYPE_MULTIPLE_CHOICE,
-            'answers': [option2.id, option3.id],
+            'answers': [option3.id, option2.id],
         },
         {
             'question': poll2.id,

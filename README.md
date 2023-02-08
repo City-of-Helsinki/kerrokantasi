@@ -188,7 +188,7 @@ In addition you will need to server out static files separately. Configure your 
 Development processes
 ---------------------
 
-###Updating requirements
+### Updating requirements
 
 Kerrokantasi uses two files for requirements. The workflow is as follows.
 
@@ -216,13 +216,18 @@ as expected, commit the changes.
 
 ### Testing
 
-To run all tests, execute command in project root directory.
+To run all tests, execute command in application root directory.
 
-     py.test
+     py.test democracy/ kerrokantasi/
 
 Run test against particular issue.
 
     py.test -k test_7 -v
+
+Integration and unit tests are in separate folders, to run only specific type of tests use foldername in path.
+
+     py.test democracy/tests/unittests
+     py.test democracy/tests/integrationtests
 
 ### Internationalization
 

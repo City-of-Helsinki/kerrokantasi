@@ -20,7 +20,7 @@ cffi==1.14.5
     # via cryptography
 chardet==4.0.0
     # via requests
-cryptography==3.4.7
+cryptography==39.0.1
     # via social-auth-core
 defusedxml==0.7.1
     # via
@@ -186,8 +186,6 @@ social-auth-core==4.1.0
     # via social-auth-app-django
 sqlparse==0.4.2
     # via django
-typing-extensions==4.2.0
-    # via asgiref
 urllib3==1.26.5
     # via
     #   requests

@@ -48,7 +48,7 @@ RUN mkdir -p /srv/static && python manage.py collectstatic
 # Keep media in its own directory outside home, in case home
 # directory forms some sort of attack route
 # Usually this would be some sort of volume
-# RUN mkdir -p /srv/media && chown hauki:hauki /srv/media
+RUN mkdir -p /srv/media && chown kerrokantasi:kerrokantasi /srv/media
 
 ENTRYPOINT ["deploy/entrypoint.sh"]
 

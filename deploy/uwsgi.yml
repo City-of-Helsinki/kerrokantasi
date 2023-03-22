@@ -14,3 +14,4 @@ uwsgi:
   buffer-size: 32768
   http: :8000
   static-map: /static=/srv/static
+  static-map: /media=/srv/media

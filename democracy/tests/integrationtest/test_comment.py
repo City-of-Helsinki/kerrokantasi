@@ -9,8 +9,9 @@ from reversion.models import Version
 
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
+from democracy.factories.poll import SectionPollFactory
 from democracy.models import Hearing, Label, Section, SectionType
-from democracy.models.section import SectionComment
+from democracy.models.section import SectionComment, SectionPoll, SectionPollAnswer
 from democracy.tests.conftest import default_comment_content, default_geojson_feature, default_lang_code
 from democracy.tests.utils import (
     assert_common_keys_equal,
@@ -1238,15 +1239,34 @@ def test_cannot_modify_others_comments(
 
 
 @pytest.mark.django_db
-def test_comment_delete(john_doe_api_client, default_hearing, get_detail_url):
-    comment = default_hearing.get_main_section().comments.all()[0]
+def test_comment_delete(john_doe_api_client, default_hearing, comment_image, get_detail_url):
+    section = default_hearing.get_main_section()
+
+    comment = section.comments.all()[0]
+    assert comment_image.deleted is False
+
+    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    option = poll.options.all().first()
+    answer = SectionPollAnswer.objects.create(option=option, comment=comment)
+    assert answer.deleted is False
+
     url = get_detail_url(comment)
+    assert comment.images.all().count() == 1
+    assert comment.poll_answers.all().count() == 1
 
     response = john_doe_api_client.delete(url)
     assert response.status_code == 204
 
     comment = SectionComment.objects.everything().get(id=comment.id)
+    assert comment.images.all().count() == 0
+    assert comment.poll_answers.all().count() == 0
+
+    comment_image.refresh_from_db()
+    assert comment_image.deleted is True
     assert comment.deleted is True
+
+    answer.refresh_from_db()
+    assert answer.deleted is True
 
 
 @pytest.mark.parametrize('anonymous_comment', [True, False])

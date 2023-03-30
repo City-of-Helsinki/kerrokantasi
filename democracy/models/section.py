@@ -184,6 +184,10 @@ class SectionComment(Commentable, BaseComment):
     def soft_delete(self, user=None):
         for answer in self.poll_answers.all():
             answer.soft_delete(user=user)
+
+        for image in self.images.all():
+            image.soft_delete(user=user)
+
         super().soft_delete(user=user)
 
     def save(self, *args, **kwargs):

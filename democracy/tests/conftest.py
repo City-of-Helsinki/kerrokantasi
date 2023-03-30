@@ -114,6 +114,21 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
 
 
 @pytest.fixture()
+def comment_image(default_hearing):
+    """
+    Fixture for a comment image.
+    """
+    section = default_hearing.sections.all()[0]
+    comment = section.comments.all()[0]
+    return comment.images.create(
+        comment=comment,
+        image=ContentFile(b"image data", name='image1.jpg'),
+        width=640,
+        height=480,
+    )
+
+
+@pytest.fixture()
 def hearing__with_4_different_commenting(john_doe, contact_person, default_organization, default_project):
     """
     Fixture for a "default" hearing with four sections (one main, three other sections).

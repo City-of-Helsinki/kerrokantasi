@@ -181,10 +181,10 @@ class SectionComment(Commentable, BaseComment):
         verbose_name_plural = _('section comments')
         ordering = ('-created_at',)
 
-    def soft_delete(self, using=None, user=None):
+    def soft_delete(self, user=None):
         for answer in self.poll_answers.all():
             answer.soft_delete(user=user)
-        super().soft_delete(using=using, user=user)
+        super().soft_delete(user=user)
 
     def save(self, *args, **kwargs):
         # we may create a comment by referring to another comment instead of section explicitly

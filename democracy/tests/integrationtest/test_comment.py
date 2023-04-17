@@ -1318,9 +1318,9 @@ def test_hearing_creator_can_delete_others_comments(
 
     # staff/hearing creator user
     response = steve_staff_api_client.delete(url)
-    assert response.status_code == 204
+    assert response.status_code == 403
     comment = SectionComment.objects.everything().get(id=comment.id)
-    assert comment.deleted is True
+    assert comment.deleted is False
 
 
 @pytest.mark.parametrize(

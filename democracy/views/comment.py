@@ -250,14 +250,11 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return resp
 
         instance = self.get_object()
-        """
-        Comment deletion is only possible if the comment is created by user OR
-        if the user has is_staff rights AND is the creator of the hearing that this comment is in.
-        """
-        if not self._check_hearing_creator(request) and self.request.user != instance.created_by:
+
+        if self.request.user != instance.created_by:
             return response.Response(
-                {'status': 'You do not have sufficient rights to delete a comment not owned by you.'},
-                status=status.HTTP_403_FORBIDDEN,
+                {'status': 'You may not delete a comment not owned by you'},
+                status=status.HTTP_403_FORBIDDEN
             )
 
         instance.soft_delete(user=request.user)

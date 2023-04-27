@@ -165,6 +165,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     creator_email = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
     deleted_by_type = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
 
     class Meta:
         model = SectionComment
@@ -182,6 +183,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             'deleted',
             'deleted_at',
             'deleted_by_type',
+            'can_edit',
         ] + COMMENT_FIELDS
 
     def get_content(self, obj):
@@ -230,6 +232,25 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return "moderator"
         # No information about who deleted the comment
         return "unknown"
+
+    def get_can_edit(self, obj: SectionComment):
+        request = self.context.get('request', None)
+        """
+        Users that have is_staff and that are the creators of the hearing can edit/delete comments
+        as long as the hearing is commentable.
+        """
+        # If user.is_staff then we check if user is also the creator of the hearing
+        if request.user.is_staff and obj.section is not None:
+            if request.user == obj.section.hearing.created_by:
+                try:
+                    obj.parent.check_commenting(request)
+                except ValidationError:
+                    return False
+                return True
+
+        if request:
+            return obj.can_edit(request)
+        return False
 
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)

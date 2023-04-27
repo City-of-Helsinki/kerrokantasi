@@ -22,7 +22,6 @@ COMMENT_FIELDS = [
     'n_votes',
     'created_at',
     'is_registered',
-    'can_edit',
     'geojson',
     'map_comment_text',
     'images',
@@ -34,10 +33,13 @@ COMMENT_FIELDS = [
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
-    can_edit = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     flagged = serializers.SerializerMethodField()
     geojson = GeoJSONField()
+
+    class Meta:
+        model = BaseComment
+        fields = COMMENT_FIELDS
 
     def to_representation(self, instance):
         r = super().to_representation(instance)
@@ -50,27 +52,6 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
     def get_is_registered(self, obj):
         return obj.created_by_id is not None
 
-    def get_can_edit(self, obj):
-        request = self.context.get('request', None)
-        """
-        Users that have is_staff and that are the creators of the hearing can edit/delete comments
-        as long as the hearing is commentable.
-        """
-        # If user.is_staff then we check if user is also the creator of the hearing
-        if request.user.is_staff and Section.objects.get(id=obj.section_id) is not None:
-            specific_section = Section.objects.get(id=obj.section_id)
-            specific_hearing = Hearing.objects.get(id=specific_section.hearing_id)
-            if request.user.id == specific_hearing.created_by_id:
-                try:
-                    obj.parent.check_commenting(request)
-                except ValidationError:
-                    return False
-                return True
-
-        if request:
-            return obj.can_edit(request)
-        return False
-
     def get_organization(self, obj):
         if obj.organization:
             return str(obj.organization)
@@ -78,10 +59,6 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
 
     def get_flagged(self, obj):
         return bool(obj.flagged_at)
-
-    class Meta:
-        model = BaseComment
-        fields = COMMENT_FIELDS
 
 
 class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):

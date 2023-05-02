@@ -2,6 +2,7 @@ import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.transaction import atomic
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
 from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
@@ -165,6 +166,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     creator_email = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
     deleted_by_type = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
 
     class Meta:
@@ -183,6 +185,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             'deleted',
             'deleted_at',
             'deleted_by_type',
+            'can_delete',
             'can_edit',
         ] + COMMENT_FIELDS
 
@@ -233,24 +236,44 @@ class SectionCommentSerializer(BaseCommentSerializer):
         # No information about who deleted the comment
         return "unknown"
 
-    def get_can_edit(self, obj: SectionComment):
-        request = self.context.get('request', None)
-        """
-        Users that have is_staff and that are the creators of the hearing can edit/delete comments
-        as long as the hearing is commentable.
-        """
-        # If user.is_staff then we check if user is also the creator of the hearing
-        if request.user.is_staff and obj.section is not None:
-            if request.user == obj.section.hearing.created_by:
-                try:
-                    obj.parent.check_commenting(request)
-                except ValidationError:
-                    return False
-                return True
+    @cached_property
+    def request(self):
+        return self.context.get('request')
 
-        if request:
-            return obj.can_edit(request)
-        return False
+    def is_commenting_allowed_in_parent(self, comment: SectionComment):
+        """
+        Whether commenting is allowed in the parent of the comment or not. Always False if no request is available.
+        """
+        if self.request is None:
+            return False
+
+        try:
+            comment.parent.check_commenting(self.request)
+        except ValidationError:
+            return False
+        return True
+
+    def get_can_edit(self, comment: SectionComment):
+        """
+        Whether the comment can be edited or not. Always False if no request is available.
+        """
+        if self.request is None:
+            return False
+
+        # Is the user a staff member and the creator of the hearing?
+        if self.request.user.is_staff and self.request.user == comment.section.hearing.created_by:
+            return self.is_commenting_allowed_in_parent(comment)
+
+        return comment.can_edit(self.request)
+
+    def get_can_delete(self, comment: SectionComment):
+        """
+        Whether the comment can be deleted or not. Always False if no request is available.
+        """
+        if self.request is None:
+            return False
+
+        return comment.can_delete(self.request)
 
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)

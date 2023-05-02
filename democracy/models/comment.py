@@ -106,8 +106,7 @@ class BaseComment(BaseModel):
         """
         Whether the given request (HTTP or DRF) is allowed to edit this Comment.
         """
-        is_authenticated = request.user.is_authenticated
-        if is_authenticated and self.created_by == request.user:
+        if request.user.is_authenticated and self.created_by == request.user:
             # also make sure the hearing is still commentable
             try:
                 self.parent.check_commenting(request)
@@ -115,6 +114,12 @@ class BaseComment(BaseModel):
                 return False
             return True
         return False
+
+    def can_delete(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to delete this Comment.
+        """
+        return self.can_edit(request)
 
 
 def comment_recache(sender, instance, using, created, **kwargs):

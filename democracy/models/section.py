@@ -2,6 +2,7 @@ import logging
 import re
 from autoslug import AutoSlugField
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import get_resolver
 from django.utils.translation import ugettext_lazy as _
@@ -207,6 +208,25 @@ class SectionComment(Commentable, BaseComment):
             self.comment.recache_n_comments()
         # then update the usual section and hearing n_comments fields
         return super().recache_parent_n_comments()
+
+    def can_edit(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to edit this Comment.
+        """
+        if request.user.is_authenticated and self.created_by == request.user:
+            # also make sure the hearing is still commentable
+            try:
+                self.parent.check_commenting(request)
+            except ValidationError:
+                return False
+            return True
+        return False
+
+    def can_delete(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to delete this Comment.
+        """
+        return self.can_edit(request)
 
 
 class SectionPoll(BasePoll):

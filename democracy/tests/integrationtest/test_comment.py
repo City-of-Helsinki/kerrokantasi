@@ -1469,3 +1469,52 @@ def test_section_comment_flag_with_proper_authentication(john_smith_api_client, 
     # Already flagged, nothing is done
     response = john_smith_api_client.post(url)
     assert response.status_code == 304
+
+
+@pytest.mark.parametrize("user_api_client,comment_creator,hearing_creator,expected_items", [
+    # Client's own comment in the client's hearing
+    ("john_doe_api_client", "john_doe", "john_doe", {"can_edit": True, "can_delete": True}),
+    # Client's own comment in someone else's hearing
+    ("john_doe_api_client", "john_doe", "jane_doe", {"can_edit": True, "can_delete": True}),
+    # Someone else's comment in client's hearing
+    ("john_doe_api_client", "jane_doe", "john_doe", {"can_edit": False, "can_delete": False}),
+    # Anonymous comment in client's hearing
+    ("john_doe_api_client", None, "john_doe", {"can_edit": False, "can_delete": False}),
+    # Someone else's comment in someone else's hearing as staff user
+    ("steve_staff_api_client", "john_doe", "john_doe", {"can_edit": False, "can_delete": False}),
+    # Someone else's comment in the client's hearing as staff user
+    ("steve_staff_api_client", "john_doe", "steve_staff", {"can_edit": True, "can_delete": False}),
+    # Anonymous comment in the client's hearing as staff user
+    ("steve_staff_api_client", None, "steve_staff", {"can_edit": True, "can_delete": False}),
+])
+@pytest.mark.django_db
+def test_get_section_comment_edit_delete_rights(
+    user_api_client,
+    comment_creator,
+    hearing_creator,
+    expected_items,
+    default_hearing,
+    request
+):
+    """Test that the can_edit and can_delete properties are correct for different users and comments"""
+    # Get fixtures
+    user_api_client = request.getfixturevalue(user_api_client)
+    comment_creator = comment_creator and request.getfixturevalue(comment_creator)
+    hearing_creator = request.getfixturevalue(hearing_creator)
+
+    # Change hearing creator
+    default_hearing.created_by = hearing_creator
+    default_hearing.save()
+
+    # Create comment
+    section = default_hearing.sections.first()
+    section.comments.create(created_by=comment_creator, content="test")
+
+    # Get comment data
+    url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
+    response = user_api_client.get(url)
+    data = get_data_from_response(response, 200)
+
+    # Check that the properties are correct
+    for key, value in expected_items.items():
+        assert data[0][key] == value

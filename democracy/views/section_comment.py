@@ -240,39 +240,10 @@ class SectionCommentSerializer(BaseCommentSerializer):
     def request(self):
         return self.context.get('request')
 
-    def is_commenting_allowed_in_parent(self, comment: SectionComment):
-        """
-        Whether commenting is allowed in the parent of the comment or not. Always False if no request is available.
-        """
-        if self.request is None:
-            return False
-
-        try:
-            comment.parent.check_commenting(self.request)
-        except ValidationError:
-            return False
-        return True
-
     def get_can_edit(self, comment: SectionComment):
-        """
-        Whether the comment can be edited or not. Always False if no request is available.
-        """
-        if self.request is None:
-            return False
-
-        # Is the user a staff member and the creator of the hearing?
-        if self.request.user.is_staff and self.request.user == comment.section.hearing.created_by:
-            return self.is_commenting_allowed_in_parent(comment)
-
         return comment.can_edit(self.request)
 
     def get_can_delete(self, comment: SectionComment):
-        """
-        Whether the comment can be deleted or not. Always False if no request is available.
-        """
-        if self.request is None:
-            return False
-
         return comment.can_delete(self.request)
 
     def to_representation(self, instance):

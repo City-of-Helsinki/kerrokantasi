@@ -209,24 +209,45 @@ class SectionComment(Commentable, BaseComment):
         # then update the usual section and hearing n_comments fields
         return super().recache_parent_n_comments()
 
+    def is_commenting_allowed_in_parent(self, request):
+        """
+        Whether commenting is allowed in the parent of the comment or not.
+        """
+        try:
+            self.parent.check_commenting(request)
+        except ValidationError:
+            return False
+        return True
+
     def can_edit(self, request):
         """
         Whether the given request (HTTP or DRF) is allowed to edit this Comment.
         """
-        if request.user.is_authenticated and self.created_by == request.user:
-            # also make sure the hearing is still commentable
-            try:
-                self.parent.check_commenting(request)
-            except ValidationError:
-                return False
-            return True
+        if request is None or not request.user.is_authenticated:
+            return False
+
+        if (
+            # Is the user the creator of the comment?
+            request.user == self.created_by
+            # Is the user a staff member and the creator of the hearing?
+            or (request.user.is_staff and request.user == self.section.hearing.created_by)
+        ):
+            return self.is_commenting_allowed_in_parent(request)
+
         return False
 
     def can_delete(self, request):
         """
         Whether the given request (HTTP or DRF) is allowed to delete this Comment.
         """
-        return self.can_edit(request)
+        if request is None or not request.user.is_authenticated:
+            return False
+
+        # Is the user the creator of the comment?
+        if request.user == self.created_by:
+            return self.is_commenting_allowed_in_parent(request)
+
+        return False
 
 
 class SectionPoll(BasePoll):

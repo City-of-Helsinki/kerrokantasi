@@ -147,23 +147,6 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         except ValidationError as verr:
             return response.Response({'status': force_text("Validation error occured during submitting vote"), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
 
-    def _check_hearing_creator(self, request):
-        """
-        Returns boolean based on if request.user has is_staff rights, is the creator of the hearing
-        and if the hearing is commentable.
-        """
-        obj = self.get_object()
-        if request.user.is_staff and Section.objects.get(id=obj.section_id) is not None:
-            specific_section = Section.objects.get(id=obj.section_id)
-            specific_hearing = Hearing.objects.get(id=specific_section.hearing_id)
-            if request.user.id == specific_hearing.created_by_id:
-                try:
-                    obj.parent.check_commenting(request)
-                except ValidationError:
-                    return False
-                return True
-        return False
-
     def create(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)
         if resp:
@@ -191,7 +174,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         Comment editing is only possible if the comment is created by user OR
         if the user has is_staff rights AND is the creator of the hearing that this comment is in.
         """
-        if not self._check_hearing_creator(request) and self.request.user != instance.created_by:
+        if not instance.can_edit(request):
             return response.Response(
                 {'status': 'You do not have sufficient rights to edit a comment not owned by you.'},
                 status=status.HTTP_403_FORBIDDEN,
@@ -228,9 +211,9 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         instance = self.get_object()
 
-        if self.request.user != instance.created_by:
+        if not instance.can_delete(request):
             return response.Response(
-                {'status': 'You may not delete a comment not owned by you'},
+                {'status': 'You do not have sufficient rights to delete a comment not owned by you.'},
                 status=status.HTTP_403_FORBIDDEN
             )
 

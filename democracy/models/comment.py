@@ -102,6 +102,18 @@ class BaseComment(BaseModel):
         if self.parent_id:  # pragma: no branch
             self.parent.recache_n_comments()
 
+    def can_edit(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to edit this Comment.
+        """
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def can_delete(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to delete this Comment.
+        """
+        raise NotImplementedError("Subclasses must implement this method")
+
 
 def comment_recache(sender, instance, using, created, **kwargs):
     """

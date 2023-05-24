@@ -226,12 +226,12 @@ class SectionComment(Commentable, BaseComment):
         if request is None or not request.user.is_authenticated:
             return False
 
-        if (
-            # Is the user the creator of the comment?
-            request.user == self.created_by
-            # Is the user a staff member and the creator of the hearing?
-            or (request.user.is_staff and request.user == self.section.hearing.created_by)
-        ):
+        # Is creator of the hearing
+        if request.user == self.section.hearing.created_by:
+            return False
+
+        # Is the user the creator of the comment?
+        if request.user == self.created_by:
             return self.is_commenting_allowed_in_parent(request)
 
         return False
@@ -241,6 +241,10 @@ class SectionComment(Commentable, BaseComment):
         Whether the given request (HTTP or DRF) is allowed to delete this Comment.
         """
         if request is None or not request.user.is_authenticated:
+            return False
+
+        # Is creator of the hearing
+        if request.user == self.section.hearing.created_by:
             return False
 
         # Is the user the creator of the comment?

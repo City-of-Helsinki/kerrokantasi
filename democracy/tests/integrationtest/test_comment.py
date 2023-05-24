@@ -1297,7 +1297,7 @@ def test_cannot_delete_others_comments(
 
 @pytest.mark.parametrize('anonymous_comment', [True, False])
 @pytest.mark.django_db
-def test_hearing_creator_can_delete_others_comments(
+def test_hearing_creator_cannot_delete_others_comments(
     api_client, steve_staff_api_client, default_hearing, get_detail_url, anonymous_comment
 ):
     default_hearing.created_by_id = steve_staff_api_client.user.id
@@ -1473,7 +1473,7 @@ def test_section_comment_flag_with_proper_authentication(john_smith_api_client, 
 
 @pytest.mark.parametrize("user_api_client,comment_creator,hearing_creator,expected_items", [
     # Client's own comment in the client's hearing
-    ("john_doe_api_client", "john_doe", "john_doe", {"can_edit": True, "can_delete": True}),
+    ("john_doe_api_client", "john_doe", "john_doe", {"can_edit": False, "can_delete": False}),
     # Client's own comment in someone else's hearing
     ("john_doe_api_client", "john_doe", "jane_doe", {"can_edit": True, "can_delete": True}),
     # Someone else's comment in client's hearing
@@ -1483,9 +1483,9 @@ def test_section_comment_flag_with_proper_authentication(john_smith_api_client, 
     # Someone else's comment in someone else's hearing as staff user
     ("steve_staff_api_client", "john_doe", "john_doe", {"can_edit": False, "can_delete": False}),
     # Someone else's comment in the client's hearing as staff user
-    ("steve_staff_api_client", "john_doe", "steve_staff", {"can_edit": True, "can_delete": False}),
+    ("steve_staff_api_client", "john_doe", "steve_staff", {"can_edit": False, "can_delete": False}),
     # Anonymous comment in the client's hearing as staff user
-    ("steve_staff_api_client", None, "steve_staff", {"can_edit": True, "can_delete": False}),
+    ("steve_staff_api_client", None, "steve_staff", {"can_edit": False, "can_delete": False}),
 ])
 @pytest.mark.django_db
 def test_get_section_comment_edit_delete_rights(

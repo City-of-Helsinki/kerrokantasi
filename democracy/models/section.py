@@ -166,6 +166,9 @@ class SectionComment(Commentable, BaseComment):
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
+    edited = models.BooleanField(verbose_name=_('is comment edited'), default=False)
+    moderated = models.BooleanField(verbose_name=_('is comment edited by admin'), default=False)
+    edit_reason = models.TextField(verbose_name=_('edit reason'), blank=True)
     delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
     flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
     flagged_by = models.ForeignKey(

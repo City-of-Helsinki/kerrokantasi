@@ -28,6 +28,8 @@ COMMENT_FIELDS = [
     'label',
     'organization',
     'flagged',
+    'moderated',
+    'edited',
 ]
 
 

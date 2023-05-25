@@ -326,6 +326,8 @@ class CommentAdmin(admin.ModelAdmin):
         'deleted_by',
         'flagged_at',
         'flagged_by',
+        'edited',
+        'moderated',
     )
     change_form_template = 'admin/comment_change_form.html'
 
@@ -348,6 +350,9 @@ class CommentAdmin(admin.ModelAdmin):
             'voters',
             'section',
             'created_by_user',
+            'edited',
+            'moderated',
+            'edit_reason',
             'delete_reason',
         ]
         if obj and obj.flagged_at:

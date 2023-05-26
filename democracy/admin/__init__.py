@@ -415,6 +415,13 @@ class CommentAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path + "?deleted__exact=0")
         return super().changelist_view(request, extra_context=extra_context)
 
+    def save_model(self, request, obj, form, change):
+        obj.edited = True
+        # If admin edits their own comment, don't mark as moderated
+        if obj.created_by_id != request.user.id:
+            obj.moderated = request.user.is_staff
+        super().save_model(request, obj, form, change)
+
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

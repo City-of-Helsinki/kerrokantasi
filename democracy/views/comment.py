@@ -28,6 +28,8 @@ COMMENT_FIELDS = [
     'label',
     'organization',
     'flagged',
+    'moderated',
+    'edited',
 ]
 
 
@@ -185,10 +187,16 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                     {'status': 'Authenticated users cannot set author name.'}, status=status.HTTP_403_FORBIDDEN
                 )
 
+        extra_params = {}
+        # Comment has beed edited
+        extra_params["edited"] = True
+        # Editor has been admin user
+        extra_params["moderated"] = request.user.is_staff
+
         # Use one serializer for update,
         partial = kwargs.pop('partial', False)
         serializer = self.get_serializer(
-            instance=instance, serializer_class=self.edit_serializer_class, data=request.data, partial=partial
+            instance=instance, serializer_class=self.edit_serializer_class, data={**request.data, **extra_params}, partial=partial
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)

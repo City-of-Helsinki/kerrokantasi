@@ -166,6 +166,9 @@ class SectionComment(Commentable, BaseComment):
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
+    edited = models.BooleanField(verbose_name=_('is comment edited'), default=False)
+    moderated = models.BooleanField(verbose_name=_('is comment edited by admin'), default=False)
+    edit_reason = models.TextField(verbose_name=_('edit reason'), blank=True)
     delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
     flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
     flagged_by = models.ForeignKey(
@@ -226,12 +229,16 @@ class SectionComment(Commentable, BaseComment):
         if request is None or not request.user.is_authenticated:
             return False
 
-        if (
-            # Is the user the creator of the comment?
-            request.user == self.created_by
-            # Is the user a staff member and the creator of the hearing?
-            or (request.user.is_staff and request.user == self.section.hearing.created_by)
-        ):
+        # Is creator of the hearing
+        if request.user == self.section.hearing.created_by:
+            return False
+
+        # Is admin
+        if request.user.is_staff:
+            return True
+
+        # Is the user the creator of the comment?
+        if request.user == self.created_by:
             return self.is_commenting_allowed_in_parent(request)
 
         return False
@@ -242,6 +249,14 @@ class SectionComment(Commentable, BaseComment):
         """
         if request is None or not request.user.is_authenticated:
             return False
+
+        # Is creator of the hearing
+        if request.user == self.section.hearing.created_by:
+            return False
+
+        # Is admin
+        if request.user.is_staff:
+            return True
 
         # Is the user the creator of the comment?
         if request.user == self.created_by:

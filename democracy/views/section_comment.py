@@ -62,6 +62,8 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
             'pinned',
             'reply_to',
             'map_comment_text',
+            'moderated',
+            'edited',
         ]
 
     def get_answers(self, obj):

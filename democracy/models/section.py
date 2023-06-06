@@ -229,14 +229,6 @@ class SectionComment(Commentable, BaseComment):
         if request is None or not request.user.is_authenticated:
             return False
 
-        # Is creator of the hearing
-        if request.user == self.section.hearing.created_by:
-            return False
-
-        # Is admin
-        if request.user.is_staff:
-            return True
-
         # Is the user the creator of the comment?
         if request.user == self.created_by:
             return self.is_commenting_allowed_in_parent(request)
@@ -249,14 +241,6 @@ class SectionComment(Commentable, BaseComment):
         """
         if request is None or not request.user.is_authenticated:
             return False
-
-        # Is creator of the hearing
-        if request.user == self.section.hearing.created_by:
-            return False
-
-        # Is admin
-        if request.user.is_staff:
-            return True
 
         # Is the user the creator of the comment?
         if request.user == self.created_by:

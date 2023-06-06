@@ -190,8 +190,6 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         extra_params = {}
         # Comment has beed edited
         extra_params["edited"] = True
-        # Editor has been admin user
-        extra_params["moderated"] = request.user.is_staff
 
         # Use one serializer for update,
         partial = kwargs.pop('partial', False)

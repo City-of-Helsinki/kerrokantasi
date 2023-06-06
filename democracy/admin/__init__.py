@@ -422,6 +422,15 @@ class CommentAdmin(admin.ModelAdmin):
             obj.moderated = request.user.is_staff
         super().save_model(request, obj, form, change)
 
+    def has_change_permission(self, request, obj=None):
+        if obj and request.user == obj.section.hearing.created_by:
+            return False
+        return super().has_change_permission(request, obj=obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and request.user == obj.section.hearing.created_by:
+            return False
+        return super().has_delete_permission(request, obj=obj)
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

@@ -3,8 +3,8 @@ uwsgi:
   # python docker image cannot use that due to linker mishaps
   # plugins: python3,http
   wsgi-file: kerrokantasi/wsgi.py
-  processes: 12
-  threads: 1
+  processes: 3
+  #threads: 1
   master: true
   #uid: hauki
   umask: 022

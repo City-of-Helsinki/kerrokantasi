@@ -797,7 +797,7 @@ def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_c
 
 @pytest.mark.django_db
 def test_get_section_comment_creator_name_without_auth_not_public(john_doe_api_client, default_hearing, settings):
-    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
 
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
@@ -810,7 +810,7 @@ def test_get_section_comment_creator_name_without_auth_not_public(john_doe_api_c
 
 @pytest.mark.django_db
 def test_get_section_comment_creator_name_without_auth_public(john_doe_api_client, default_hearing, settings):
-    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
 
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)
@@ -871,7 +871,7 @@ def test_get_section_comment_creator_name_when_posted_by_registered_user(
 def test_get_section_comment_creator_email_property_without_authorization(
     john_doe_api_client, default_hearing, settings
 ):
-    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
 
     section = default_hearing.sections.first()
     url = get_hearing_detail_url(default_hearing.id, 'sections/%s/comments' % section.id)

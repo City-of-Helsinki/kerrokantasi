@@ -79,7 +79,7 @@ env = environ.Env(
     SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
     STRONG_AUTH_PROVIDERS=(list, []),
     LOGOUT_REDIRECT_URL=(str, '/'),
-    HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, True),
+    HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, False),
     HEARING_REPORT_THEME=(str, 'whitelabel'),
 )
 

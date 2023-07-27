@@ -176,7 +176,7 @@ DEFAULT_MAP_COORDINATES=(60.192059, 24.945831)
 DEFAULT_MAP_ZOOM=11
 
 # Should comment author name column be included in the hearing report excel file
-HEARING_REPORT_PUBLIC_AUTHOR_NAMES=True
+HEARING_REPORT_PUBLIC_AUTHOR_NAMES=False
 
 # Hearing report theming. Default is whitelabel
 # HEARING_REPORT_THEME=whitelabel

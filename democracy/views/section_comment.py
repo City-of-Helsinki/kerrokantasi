@@ -251,7 +251,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
         if (
-            not settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
+            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
             and not self.context['request'].user.is_staff
             and not self.context['request'].user.is_superuser
         ):

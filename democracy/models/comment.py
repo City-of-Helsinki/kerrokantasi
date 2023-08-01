@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from djgeojson.fields import GeoJSONField
 from langdetect import detect_langs
 from langdetect.lang_detect_exception import LangDetectException

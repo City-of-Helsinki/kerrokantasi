@@ -1,7 +1,7 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-FROM python:3.7-buster as appbase
+FROM python:3.7-bookworm as appbase
 
 RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
 
@@ -20,7 +20,7 @@ ENV PYTHONUNBUFFERED True
 
 # less & netcat-openbsd are there for in-container manual debugging
 # kerrokantasi needs gdal
-RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python-gdal python3-gdal
+RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python3-gdal
 
 # we need the Finnish locale built
 RUN sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen

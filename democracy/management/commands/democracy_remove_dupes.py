@@ -1,29 +1,28 @@
 from datetime import timedelta
+
 from django.core.management.base import BaseCommand
 from django.db.models import Count
-from optparse import make_option
 
 from democracy.models import SectionComment
 
 
 class Command(BaseCommand):
-    option_list = BaseCommand.option_list + (
-        make_option("--yes-i-know-what-im-doing", dest="nothing_can_go_wrong", action="store_true"),
-    )
+    def add_arguments(self, parser):
+        parser.add_argument("--yes-i-know-what-im-doing", dest="nothing_can_go_wrong", action="store_true")
 
     def _remove_dupes(self, klass):
         # detect the dupes primarily by content
         potential_dupes = (
-            klass.objects.values('content')
+            klass.objects.values("content")
             .exclude(deleted=True)
-            .annotate(Count('content'))
+            .annotate(Count("content"))
             .filter(content__count__gt=1)
-            .order_by('-content__count')
+            .order_by("-content__count")
         )
 
         # further filter by creation time, parent hearing and plugin data
         for d in potential_dupes:
-            objs = list(klass.objects.filter(content=d['content']).order_by('created_at'))
+            objs = list(klass.objects.filter(content=d["content"]).order_by("created_at"))
             first = objs.pop(0)
             print(
                 "%s %s\n%s\n%s"

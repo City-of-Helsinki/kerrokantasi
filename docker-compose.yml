@@ -41,7 +41,7 @@ services:
             context: ./
             dockerfile: ./Dockerfile
             target: production
-        command: "e echo Not running deploy image from compose"
+        command: "echo Not running deploy image from compose"
 
 volumes:
     postgres-data-volume:

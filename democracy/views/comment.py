@@ -9,8 +9,6 @@ from rest_framework.settings import api_settings
 from reversion import revisions
 
 from democracy.models.comment import BaseComment
-from democracy.models.hearing import Hearing
-from democracy.models.section import Section
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin, GeoJSONField

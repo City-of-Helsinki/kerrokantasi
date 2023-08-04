@@ -51,7 +51,7 @@ RUN mkdir -p /srv/static && python manage.py collectstatic
 # Usually this would be some sort of volume
 RUN mkdir -p /srv/media && chown kerrokantasi:kerrokantasi /srv/media
 
-ENTRYPOINT ["deploy/entrypoint.sh"]
+ENTRYPOINT ["/kerrokantasi/deploy/entrypoint.sh"]
 
 # Both production and dev servers listen on port 8000
 EXPOSE 8000

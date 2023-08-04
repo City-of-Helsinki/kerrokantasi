@@ -109,7 +109,7 @@ ecdsa==0.14.1
     # via python-jose
 executing==1.2.0
     # via stack-data
-future==0.18.2
+future==0.18.3
     # via pyjwkest
 idna==2.10
     # via requests
@@ -221,8 +221,6 @@ traitlets==5.9.0
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.2.0
-    # via ipython
 urllib3==1.26.5
     # via
     #   requests

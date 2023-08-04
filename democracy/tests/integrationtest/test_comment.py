@@ -5,6 +5,7 @@ from copy import deepcopy
 from django.test.utils import override_settings
 from django.utils.encoding import force_text
 from django.utils.timezone import now
+from rest_framework import status
 from reversion.models import Version
 
 from democracy.enums import Commenting, InitialSectionType
@@ -916,19 +917,57 @@ def test_n_comments_updates(admin_user, default_hearing):
 
 
 @pytest.mark.django_db
+def test_comment_create_versioning(john_doe_api_client, default_hearing, lookup_field):
+    expected_content = "A comment"
+    url = get_main_comments_url(default_hearing, lookup_field)
+
+    response = john_doe_api_client.post(url, data={"content": expected_content})
+    data = get_data_from_response(response, 201)
+
+    comment = SectionComment.objects.get(pk=data["id"])
+    assert comment.content == expected_content
+    versions = Version.objects.get_for_object(comment)
+    assert len(versions) == 1  # Initial revision
+    assert versions[0].field_dict["content"] == expected_content
+
+
+@pytest.mark.django_db
 def test_comment_edit_versioning(john_doe_api_client, default_hearing, lookup_field):
+    expected_content = "Never mind, it's nice :)"
     url = get_main_comments_url(default_hearing, lookup_field)
     response = john_doe_api_client.post(url, data={"content": "THIS SERVICE SUCKS"})
     data = get_data_from_response(response, 201)
     comment_id = data["id"]
     comment = SectionComment.objects.get(pk=comment_id)
     assert comment.content.isupper()  # Oh my, all that screaming :(
-    assert not Version.objects.get_for_object(comment)  # No revisions
-    response = john_doe_api_client.patch('%s%s/' % (url, comment_id), data={"content": "Never mind, it's nice :)"})
-    data = get_data_from_response(response, 200)
+    assert Version.objects.get_for_object(comment).count() == 1  # Initial revision
+
+    response = john_doe_api_client.patch('%s%s/' % (url, comment_id), data={"content": expected_content})
+
+    assert response.status_code == status.HTTP_200_OK
     comment = SectionComment.objects.get(pk=comment_id)
     assert not comment.content.isupper()  # Screaming is gone
-    assert len(Version.objects.get_for_object(comment)) == 1  # One old revision
+    versions = Version.objects.get_for_object(comment)
+    assert len(versions) == 2  # Two revisions for two edits
+    assert versions[0].field_dict["content"] == expected_content
+
+
+@pytest.mark.django_db
+def test_comment_delete_versioning(john_doe_api_client, default_hearing, lookup_field):
+    url = get_main_comments_url(default_hearing, lookup_field)
+    response = john_doe_api_client.post(url, data={"content": "A comment"})
+    data = get_data_from_response(response, 201)
+    comment_id = data["id"]
+    comment = SectionComment.objects.get(pk=comment_id)
+    assert Version.objects.get_for_object(comment).count() == 1
+
+    response = john_doe_api_client.delete('%s%s/' % (url, comment_id))
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    comment = SectionComment.objects.deleted().get(pk=comment_id)
+    versions = Version.objects.get_for_object(comment)
+    assert len(versions) == 2
+    assert versions[0].field_dict["deleted"] == True
 
 
 @pytest.mark.django_db

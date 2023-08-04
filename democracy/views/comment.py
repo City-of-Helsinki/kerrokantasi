@@ -1,12 +1,12 @@
 import django_filters
+import reversion
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.utils import timezone
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
-from reversion import revisions
+from reversion.views import RevisionMixin
 
 from democracy.models.comment import BaseComment
 from democracy.renderers import GeoJSONRenderer
@@ -71,7 +71,7 @@ class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
         ]
 
 
-class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
+class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.ModelViewSet):
     """
     Base viewset for comments.
     """
@@ -159,6 +159,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             kwargs['created_by'] = self.request.user
         comment = serializer.save(**kwargs)
+        reversion.set_comment("Comment created")
         # and another for the response
         serializer = self.get_serializer(instance=comment)
         self.create_related(request, instance=comment, *args, **kwargs)
@@ -196,6 +197,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        reversion.set_comment("Comment updated")
         instance.refresh_from_db()
 
         if getattr(instance, '_prefetched_objects_cache', None):
@@ -222,11 +224,9 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             )
 
         instance.soft_delete(user=request.user)
-        return response.Response(status=status.HTTP_204_NO_CONTENT)
+        reversion.set_comment("Comment deleted")
 
-    def perform_update(self, serializer):
-        with transaction.atomic(), revisions.create_revision():
-            super().perform_update(serializer)
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def vote(self, request, **kwargs):

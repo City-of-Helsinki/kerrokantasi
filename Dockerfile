@@ -1,7 +1,7 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-FROM python:3.7-bookworm as appbase
+FROM python:3.8-bookworm as appbase
 
 RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
 

@@ -84,7 +84,7 @@ This applies to both development and simple production scale. Note that you won'
 
 ### Prerequisites
 
-* Python 3.7 or later
+* Python 3.8 or later
 * PostgreSQL with PostGIS extension
 * Application server implementing WSGI interface (fe. Gunicorn or uwsgi), not needed for development
 

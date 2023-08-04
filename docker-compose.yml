@@ -33,7 +33,7 @@ services:
             - $HOME/kerrokantasi_logs:/logs
         command: ["start_django_development_server"]
         ports:
-            - "127.0.0.1:8000:8000"
+            - "127.0.0.1:8080:8000"
 
     deploy:
         image: kerrokantasi

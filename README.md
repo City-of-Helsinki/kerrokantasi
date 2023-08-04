@@ -1,7 +1,3 @@
-[![Build status](https://travis-ci.org/City-of-Helsinki/kerrokantasi.svg?branch=master)](https://travis-ci.org/City-of-Helsinki/kerrokantasi)
-[![codecov](https://codecov.io/gh/City-of-Helsinki/kerrokantasi/branch/master/graph/badge.svg)](https://codecov.io/gh/City-of-Helsinki/kerrokantasi)
-[![Requirements](https://requires.io/github/City-of-Helsinki/kerrokantasi/requirements.svg?branch=master)](https://requires.io/github/City-of-Helsinki/kerrokantasi/requirements/?branch=master)
-
 Kerro kantasi
 =============
 Kerro kantasi is an implementation of the eponymous REST API for publishing and participating in public hearings.
@@ -43,7 +39,7 @@ Copy the development config file example `config_dev.toml.example`
 to `config_dev.toml` (read [Configuration](#configuration) below):
 ```
 cp config_dev.toml.example config_dev.toml
-docker-compose up dev
+docker compose up dev
 ```
 
 and open your browser to http://127.0.0.1:8000/.
@@ -51,7 +47,7 @@ and open your browser to http://127.0.0.1:8000/.
 Run tests with 
 
 ```
-docker-compose run dev test
+docker compose run dev test
 ```
 
 ### Production
@@ -66,6 +62,66 @@ docker run kerrokantasi
 
 In production, configuration is done with corresponding environment variables. See `config_dev.env.example`
 for the environment variables needed to set in production and read [Configuration](#configuration) below.
+
+
+Using local Tunnistamo instance for development with docker
+-----------------------------------------------------------
+
+### Set tunnistamo hostname
+
+Add the following line to your hosts file (`/etc/hosts` on mac and linux):
+
+    127.0.0.1 tunnistamo-backend
+
+### Create a new OAuth app on GitHub
+
+Go to https://github.com/settings/developers/ and add a new app with the following settings:
+
+- Application name: can be anything, e.g. local tunnistamo
+- Homepage URL: http://tunnistamo-backend:8000
+- Authorization callback URL: http://tunnistamo-backend:8000/accounts/github/login/callback/
+
+Save. You'll need the created **Client ID** and **Client Secret** for configuring tunnistamo in the next step.
+
+### Install local tunnistamo
+
+Clone https://github.com/City-of-Helsinki/tunnistamo/.
+
+Follow the instructions for setting up tunnistamo locally. Before running `docker compose up` set the following settings in tunnistamo roots `docker-compose.env.yaml`:
+
+- SOCIAL_AUTH_GITHUB_KEY: **Client ID** from the GitHub OAuth app
+- SOCIAL_AUTH_GITHUB_SECRET: **Client Secret** from the GitHub OAuth app
+
+After you've got tunnistamo running locally, ssh to the tunnistamo docker container:
+
+`docker compose exec django bash`
+
+and execute the following four commands inside your docker container:
+
+```bash
+./manage.py add_oidc_client -n kerrokantasi-ui -t "id_token token" -u "http://localhost:8086/callback" "http://localhost:8086/silent-callback" -i https://api.hel.fi/auth/kerrokantasi-ui -m github -s dev
+./manage.py add_oidc_client -n kerrokantasi-api -t "code" -u http://localhost:8080/pysocial/complete/tunnistamo/ -i https://api.hel.fi/auth/kerrokantasi -m github -s dev -c
+./manage.py add_oidc_api -n kerrokantasi -d https://api.hel.fi/auth -s email,profile -c https://api.hel.fi/auth/kerrokantasi
+./manage.py add_oidc_api_scope -an kerrokantasi -c https://api.hel.fi/auth/kerrokantasi -n "Kerrokantasi" -d "Lorem ipsum"
+./manage.py add_oidc_client_to_api_scope -asi https://api.hel.fi/auth/kerrokantasi -c https://api.hel.fi/auth/kerrokantasi-ui
+```
+
+### Configure Tunnistamo to backend
+
+Change the following configuration in `config_dev.toml`
+
+```
+OIDC_API_AUDIENCE=https://api.hel.fi/auth/kerrokantasi
+OIDC_API_SCOPE_PREFIX=kerrokantasi
+OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=True
+OIDC_API_ISSUER=http://tunnistamo-backend:8000/openid
+OIDC_API_AUTHORIZATION_FIELD=https://api.hel.fi/auth
+
+SOCIAL_AUTH_TUNNISTAMO_KEY=https://api.hel.fi/auth/kerrokantasi
+SOCIAL_AUTH_TUNNISTAMO_SECRET=<kerrokantasi-api client secret from Tunnistamo here>
+SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=http://tunnistamo-backend:8000/openid
+```
+
 
 Local development quickstart
 ----------------------
@@ -158,13 +214,13 @@ environment variables from their own configuration files.
 
 Kerro kantasi source code contains heavily commented example configuration file `config_dev.toml.example`. It serves both as a configuration file template and the documentation for configuration options.
 
-### Configuration using config_dev.toml directly, for development
+### Configuration using `config_dev.toml` directly, for development
 
 Directly using config_dev.toml is quite nice for development. Just `cp config_dev.toml.example config_dev.toml`. If you have created a database called `kerrokantasi` you will be almost ready to start developing. (Some `config_dev.toml` editing may be needed, overindulgence may cause laxative effects).
 
 ### Configuration using environment variables, recommended for production
 
-Read through `config_dev.toml.example` and set those environment variables your configuration needs. The environment variables are named exactly the same as the variables in `config_dev.toml.example`. In fact, you could make a copy of the file, edit the copy and source it using the shell mechanisms. This would set all uncommented variables in the file. Many application servers (and docker-compose) can also read the KEY=VALUE format used in the file and set environment variables based on that.
+Read through `config_dev.toml.example` and set those environment variables your configuration needs. The environment variables are named exactly the same as the variables in `config_dev.toml.example`. In fact, you could make a copy of the file, edit the copy and source it using the shell mechanisms. This would set all uncommented variables in the file. Many application servers (and `docker compose`) can also read the KEY=VALUE format used in the file and set environment variables based on that.
 
 Do note that nothing prevents you from using config_dev.toml in production if you so wish.
 

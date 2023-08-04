@@ -30,4 +30,3 @@ sentry_sdk
 whitenoise
 social-auth-app-django>=5.0.0
 python-pptx
-pyyaml>=6

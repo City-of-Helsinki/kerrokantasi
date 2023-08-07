@@ -193,12 +193,11 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             copy_hearing(hearing, published=False)
             self.message_user(request, _('Copied Hearing "%s" as a draft.' % hearing.title))
 
+    @admin.display(description=_('Preview URL'))
     def preview_url(self, obj):
         if not obj.preview_url:
             return ''
         return format_html('<a href="%s">%s</a>' % (obj.preview_url, obj.preview_url))
-
-    preview_url.short_description = _('Preview URL')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == "labels":
@@ -362,12 +361,11 @@ class CommentAdmin(VersionAdmin):
             fields += ['deleted_at', 'deleted_by']
         return fields
 
+    @admin.display(boolean=True)
     def is_published(self, obj):
         """Invert deleted field for readability in admin"""
 
         return not obj.deleted
-
-    is_published.boolean = True  # Make field use green/red icons in list view
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.
@@ -446,10 +444,9 @@ class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
     search_fields = ('title', 'identifier')
     inlines = (ProjectPhaseInline,)
 
+    @admin.display(description='Title')
     def title_localized(self, obj):
         return get_any_language(obj, 'title')
-
-    title_localized.short_description = 'Title'
 
 
 class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
@@ -457,10 +454,9 @@ class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
     list_filter = ('project',)
     search_fields = ('title', 'project__title')
 
+    @admin.display(description='Title')
     def title_localized(self, obj):
         return get_any_language(obj, 'title')
-
-    title_localized.short_description = 'Title'
 
 
 def get_any_language(obj, attr_name):

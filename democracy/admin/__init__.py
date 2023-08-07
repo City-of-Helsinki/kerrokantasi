@@ -1,12 +1,9 @@
-import reversion
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from collections import Counter
 from django import forms
 from django.conf import settings
 from django.contrib import admin
-from django.contrib.admin.models import LogEntry
-from django.contrib.admin.options import get_content_type_for_model
-from django.contrib.admin.utils import NestedObjects, unquote
+from django.contrib.admin.utils import NestedObjects
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.contrib.auth import get_user_model
 from django.contrib.gis.db.models import ManyToManyField
@@ -25,12 +22,11 @@ from leaflet.admin import LeafletGeoAdmin
 from nested_admin.nested import NestedModelAdminMixin, NestedStackedInline
 from parler.admin import TranslatableAdmin, TranslatableStackedInline
 from parler.forms import TranslatableBaseInlineFormSet, TranslatableModelForm
-from reversion.models import Version
+from reversion.admin import VersionAdmin
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
 from democracy.enums import InitialSectionType
-from democracy.models.section import SectionComment
 from democracy.models.utils import copy_hearing
 from democracy.plugins import get_implementation
 
@@ -307,7 +303,7 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     ordering = ("name",)
 
 
-class CommentAdmin(admin.ModelAdmin):
+class CommentAdmin(VersionAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
     list_filter = (
         'deleted',
@@ -335,7 +331,6 @@ class CommentAdmin(admin.ModelAdmin):
         'moderated',
     )
     change_form_template = 'admin/comment_change_form.html'
-    object_history_template = 'admin/object_history.html'
 
     def get_fields(self, request, obj=None):
         """Display deleted-related fields only if comment is deleted"""
@@ -422,12 +417,13 @@ class CommentAdmin(admin.ModelAdmin):
         return super().changelist_view(request, extra_context=extra_context)
 
     def save_model(self, request, obj, form, change):
-        obj.edited = True
+        if obj.pk:
+            obj.edited = True
         # If admin edits their own comment, don't mark as moderated
         if obj.created_by_id != request.user.id:
             obj.moderated = request.user.is_staff
-        with reversion.create_revision():
-            super().save_model(request, obj, form, change)
+
+        super().save_model(request, obj, form, change)
 
     def has_change_permission(self, request, obj=None):
         if obj and request.user == obj.section.hearing.created_by:
@@ -439,51 +435,6 @@ class CommentAdmin(admin.ModelAdmin):
             return False
         return super().has_delete_permission(request, obj=obj)
 
-    def history_view(self, request, object_id, extra_context=None):
-        logs = LogEntry.objects.filter(
-                object_id=unquote(object_id),
-                content_type=get_content_type_for_model(self.model),
-            ).select_related().order_by("action_time")
-
-
-        comment = SectionComment.objects.get(id=object_id)
-
-        versions = Version.objects.get_for_object(comment)
-        version_count = versions.count()
-
-        action_list = []
-
-        if version_count < logs.count():
-            for version, log in zip(versions, logs[version_count:]):
-                action_list.append({
-                    "action_time": version.revision.date_created,
-                    "user": log.user,
-                    "change_message": log.get_change_message(),
-                    "content": version.field_dict["content"],
-                })
-
-            log_action_list = []
-            for log in logs[:version_count]:
-                log_action_list.append({
-                    "action_time": log.action_time,
-                    "user": log.user,
-                    "change_message": log.get_change_message(),
-                    "content": "",
-                })
-
-            log_action_list.reverse()
-            action_list.extend(log_action_list)
-        else:
-            for version, log in zip(versions, logs):
-                action_list.append({
-                    "action_time": version.revision.date_created,
-                    "user": log.user,
-                    "change_message": log.get_change_message(),
-                    "content": version.field_dict["content"],
-                })
-
-        extra_context = {"action_list": action_list}
-        return super().history_view(request, object_id, extra_context)
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase

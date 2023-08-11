@@ -170,6 +170,9 @@ class SectionCommentSerializer(BaseCommentSerializer):
     deleted_by_type = serializers.SerializerMethodField()
     can_delete = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    comments = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=SectionComment.objects.all(), required=False
+    )
 
     class Meta:
         model = SectionComment

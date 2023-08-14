@@ -300,7 +300,6 @@ def test_add_comment_to_deleted_comment(john_doe_api_client, default_hearing, ge
     # set answered comment explicitly
     comment_data = get_comment_data(comment=old_comment_list[0]['id'])
     response = john_doe_api_client.post(url, data=comment_data)
-
     data = get_data_from_response(response, status_code=201)
     assert data['section'] == section.pk
     assert data['content'] == default_comment_content

@@ -589,7 +589,7 @@ def test_8_get_detail_labels(api_client):
     data = get_data_from_response(response)
 
     assert 'results' not in data
-    assert len(data['labels']) is 3
+    assert len(data['labels']) == 3
     assert {'id': label_one.id, 'label': {'en': label_one.label}} in data['labels']
 
 

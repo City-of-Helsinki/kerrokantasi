@@ -497,7 +497,7 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
     assert new_comment["is_registered"] == True
     assert new_comment["label"] == {'id': 1, 'label': {default_lang_code: 'The Label'}}
     assert new_comment["author_name"] is None
-    assert new_comment["content"] is ''
+    assert new_comment["content"] == ''
 
 
 @pytest.mark.django_db

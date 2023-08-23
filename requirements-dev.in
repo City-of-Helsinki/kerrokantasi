@@ -5,6 +5,7 @@ bandit
 black
 coveralls
 distro
+django-debug-toolbar
 factory-boy>=2.8.1
 flake8
 isort

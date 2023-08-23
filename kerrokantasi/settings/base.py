@@ -38,6 +38,7 @@ root = environ.Path(__file__) - 3  # three levels back in hierarchy
 env = environ.Env(
     # Common Django settings
     DEBUG=(bool, False),
+    DEBUG_TOOLBAR=(bool, False),
     DJANGO_LOG_LEVEL=(str, "INFO"),
     SECRET_KEY=(str, ''),
     CONN_MAX_AGE=(int, 0),
@@ -96,6 +97,7 @@ if os.path.exists(env_file_path):
 # Django standard settings handling
 
 DEBUG = env('DEBUG')
+DEBUG_TOOLBAR = env('DEBUG_TOOLBAR')
 SECRET_KEY = env('SECRET_KEY')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
@@ -215,6 +217,10 @@ MIDDLEWARE = [
 # django-extensions is a set of developer friendly tools
 if env("ENABLE_DJANGO_EXTENSIONS"):
     INSTALLED_APPS.append("django_extensions")
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = 'kerrokantasi.urls'
 

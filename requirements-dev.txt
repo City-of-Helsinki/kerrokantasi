@@ -4,6 +4,10 @@
 #
 #    pip-compile requirements-dev.in
 #
+asgiref==3.5.2
+    # via
+    #   -c requirements.txt
+    #   django
 attrs==20.3.0
     # via pytest
 autoflake==1.4
@@ -34,6 +38,12 @@ coverage==5.5
 coveralls==3.0.1
     # via -r requirements-dev.in
 distro==1.7.0
+    # via -r requirements-dev.in
+django==3.2.20
+    # via
+    #   -c requirements.txt
+    #   django-debug-toolbar
+django-debug-toolbar==4.2.0
     # via -r requirements-dev.in
 docopt==0.6.2
     # via coveralls
@@ -103,6 +113,10 @@ pytest-django==4.1.0
     # via -r requirements-dev.in
 python-dateutil==2.8.1
     # via faker
+pytz==2021.1
+    # via
+    #   -c requirements.txt
+    #   django
 pyyaml==6.0.1
     # via
     #   -c requirements.txt
@@ -121,6 +135,11 @@ six==1.15.0
     #   python-dateutil
 smmap==4.0.0
     # via gitdb
+sqlparse==0.4.4
+    # via
+    #   -c requirements.txt
+    #   django
+    #   django-debug-toolbar
 stevedore==3.3.0
     # via bandit
 text-unidecode==1.3

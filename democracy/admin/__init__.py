@@ -11,6 +11,7 @@ from django.core.exceptions import ValidationError
 from django.db import router
 from django.db.models import TextField
 from django.http import HttpResponseRedirect
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.html import format_html
@@ -306,6 +307,7 @@ class CommentAdmin(VersionAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
     list_filter = (
         'deleted',
+        'moderated',
         'flagged_at',
         'section__hearing__slug',
     )
@@ -361,11 +363,25 @@ class CommentAdmin(VersionAdmin):
             fields += ['deleted_at', 'deleted_by']
         return fields
 
-    @admin.display(boolean=True)
+    @admin.display(description=_('Published'))
     def is_published(self, obj):
-        """Invert deleted field for readability in admin"""
+        if obj.deleted:
+            src = static("admin/img/icon-no.svg")
+            alt = _("Deleted")
 
-        return not obj.deleted
+        elif obj.moderated:
+            src = static('admin/img/icon-moderated.svg')
+            alt = _("Moderated")
+
+        else:
+            src=static('admin/img/icon-yes.svg')
+            alt=_("Published")
+
+        return format_html(
+            '<img src="{}" alt="{alt}" title="{alt}">',
+            src,
+            alt=alt
+        )
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.

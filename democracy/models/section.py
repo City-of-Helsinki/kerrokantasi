@@ -196,11 +196,11 @@ class SectionComment(Commentable, BaseComment):
 
     def save(self, *args, **kwargs):
         # we may create a comment by referring to another comment instead of section explicitly
-        if not (self.section or self.comment):
+        if not (self.section_id or self.comment_id):
             raise Exception('Section comment must refer to section or another section comment.')
-        if not self.section:
-            self.section = self.comment.section
-        if self.comment and self.section != self.comment.section:
+        if not self.section_id:
+            self.section_id = self.comment.section_id
+        if self.comment_id and self.section_id != self.comment.section_id:
             raise Exception('Comment must belong to the same section as the original comment.')
         super().save(*args, **kwargs)
 

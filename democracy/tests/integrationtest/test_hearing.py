@@ -759,7 +759,7 @@ def test_preview_code_not_in_published(john_smith_api_client, default_organizati
     hearing_data = get_data_from_response(
         john_smith_api_client.get(get_detail_url(published_hearing.pk)), status_code=200
     )
-    print(hearing_data)
+
     assert hearing_data['preview_url'] == None
 
 

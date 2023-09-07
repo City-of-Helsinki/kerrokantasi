@@ -139,18 +139,12 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         col_index = 0
 
-        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is enabled,
-        # include Author only if requesting user is staff
-        if (
-            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
-            and (self.context['request'].user.is_staff
-            or self.context['request'].user.is_superuser)
-        ):
+        user_is_staff = self.context['request'].user.is_staff or self.context['request'].user.is_superuser
+        if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
             section_worksheet.write(row, col_index, 'Author', self.format_bold)
             col_index += 1
 
-        # include Email only if requesting user is staff
-        if self.context['request'].user.is_staff or self.context['request'].user.is_superuser:
+            # include Email only if requesting user is staff
             section_worksheet.write(row, col_index, 'Email', self.format_bold)
             col_index += 1
 
@@ -192,23 +186,16 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         col_index = 0
 
-        # if HEARING_REPORT_PUBLIC_AUTHOR_NAMES is enabled,
-        # include Author only if requesting user is staff
-        if (
-            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
-            and (self.context['request'].user.is_staff
-            or self.context['request'].user.is_superuser)
-        ):
-            name = comment.get('creator_name')
+        user_is_staff = self.context['request'].user.is_staff or self.context['request'].user.is_superuser
+        if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
+            name = comment.get('author_name')
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
             col_index += 1
-        # section_worksheet.write(row, 0, comment['author_name'])
 
-        # include Email only if requesting user is staff
-        if self.context['request'].user.is_staff or self.context['request'].user.is_superuser:
             email = comment.get('creator_email')
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
             col_index += 1
+
         # add content
         if not comment["comment"]:
             section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment['content']))

@@ -164,7 +164,6 @@ class SectionCommentSerializer(BaseCommentSerializer):
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
-    creator_name = serializers.CharField(source="author_name")
     creator_email = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
     deleted_by_type = serializers.SerializerMethodField()
@@ -183,7 +182,6 @@ class SectionCommentSerializer(BaseCommentSerializer):
             'n_comments',
             'pinned',
             'reply_to',
-            'creator_name',
             'creator_email',
             'deleted',
             'deleted_at',
@@ -255,15 +253,13 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
-        if (
-            settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
-            and not self.context['request'].user.is_staff
-            and not self.context['request'].user.is_superuser
-        ):
-            del data['creator_name']
-            del data['creator_email']
+        user_is_staff = self.context['request'].user.is_staff or self.context['request'].user.is_superuser
 
-        return data
+        if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
+            return data
+        else:
+            del data['creator_email']
+            return data
 
 
 class SectionCommentViewSet(BaseCommentViewSet):

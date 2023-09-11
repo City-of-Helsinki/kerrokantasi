@@ -195,6 +195,35 @@ def hearing_without_comments(contact_person, default_organization, default_proje
 
     return hearing
 
+@pytest.fixture()
+def hearing_with_comments_on_comments(jane_doe, john_doe, contact_person, default_organization, default_project):
+    """
+    Fixture for a simple hearing with comments that have replies.
+    """
+    hearing = Hearing.objects.create(
+        title='Simple hearing without comments',
+        open_at=now() - datetime.timedelta(days=1),
+        close_at=now() + datetime.timedelta(days=1),
+        slug='simple-hearing-slug',
+        organization=default_organization,
+        project_phase=default_project.phases.all()[0],
+    )
+
+    section_type = InitialSectionType.MAIN
+    section = Section.objects.create(
+        abstract='Section abstract for simple hearing',
+        hearing=hearing,
+        type=SectionType.objects.get(identifier=section_type),
+        commenting=Commenting.OPEN,
+    )
+
+    assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
+    hearing.contact_persons.add(contact_person)
+    parent_comment = section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+    parent_comment.comments.create(created_by=jane_doe, content=default_comment_content[::-1], section=section)
+    parent_comment.comments.create(created_by=john_doe, content=default_comment_content[::-1], section=section)
+    return hearing
+
 
 @pytest.fixture()
 def strong_auth_hearing(john_doe, contact_person, default_organization, default_project):

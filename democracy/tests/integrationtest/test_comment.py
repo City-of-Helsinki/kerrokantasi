@@ -301,7 +301,6 @@ def test_add_comment_to_deleted_comment(john_doe_api_client, default_hearing, ge
     # set answered comment explicitly
     comment_data = get_comment_data(comment=old_comment_list[0]['id'])
     response = john_doe_api_client.post(url, data=comment_data)
-
     data = get_data_from_response(response, status_code=201)
     assert data['section'] == section.pk
     assert data['content'] == default_comment_content
@@ -1557,3 +1556,25 @@ def test_get_section_comment_edit_delete_rights(
     # Check that the properties are correct
     for key, value in expected_items.items():
         assert data[0][key] == value, f"Expected '{key}' to be {value} (was: {data[0][key]})"
+
+@pytest.mark.django_db
+def test_delete_comment_comment(
+    john_doe_api_client,
+    hearing_with_comments_on_comments
+):
+    
+    section = hearing_with_comments_on_comments.sections.first()
+    comment = section.comments.filter(comment=None).first()
+    comment_to_delete = comment.comments.first()
+
+    url = '/v1/comment/?section=%s&comment=%s' % (section.pk, 'null')
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+
+    assert len(data['results'][0]['comments']) == 2
+
+    comment_to_delete.soft_delete()
+
+    response = john_doe_api_client.get(url)
+    data = get_data_from_response(response, 200)
+    assert len(data['results'][0]['comments']) == 2

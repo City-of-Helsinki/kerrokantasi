@@ -14,7 +14,7 @@ from democracy.enums import Commenting
 from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption
 from democracy.models.section import CommentImage
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet
+from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet, BaseComment
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.utils import (
@@ -170,6 +170,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
     deleted_by_type = serializers.SerializerMethodField()
     can_delete = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField(allow_null=True)
 
     class Meta:
         model = SectionComment
@@ -223,6 +224,10 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return obj.created_by.email
         else:
             return ''
+        
+    def get_comments(self, obj):
+        queryset = obj.comments.everything().filter(comment=obj.pk).values('pk')
+        return queryset
 
     def get_deleted_by_type(self, obj):
         # Used to display a different message in the frontend if comment was deleted by its creator

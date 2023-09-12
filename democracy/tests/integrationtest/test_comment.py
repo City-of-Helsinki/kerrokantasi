@@ -3,6 +3,7 @@ import pytest
 import urllib
 from copy import deepcopy
 from django.test.utils import override_settings
+from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 from rest_framework import status
@@ -1568,9 +1569,28 @@ def test_delete_comment_comment(
     assert len(data['results'][0]['comments']) == 2
 
 @pytest.mark.django_db
-def test_section_comment_num_queries(django_assert_num_queries, john_doe_api_client, hearing_with_comments_on_comments):
-    url = f'/v1/comment/'
+def test_section_comment_num_queries(
+        django_assert_num_queries,
+        john_doe_api_client,
+        hearing_with_comments_on_comments
+):
+    url = reverse('comment-list')
 
     with django_assert_num_queries(8):
+        response = john_doe_api_client.get(url)
+        get_data_from_response(response, 200)
+
+@pytest.mark.django_db
+def test_hearing_sections_comment_num_queries(
+        django_assert_num_queries,
+        john_doe_api_client,
+        hearing_with_comments_on_comments
+):
+    url = reverse('comments-list', kwargs={
+        'hearing_pk': hearing_with_comments_on_comments.pk,
+        'comment_parent_pk': hearing_with_comments_on_comments.sections.first().pk
+    })
+
+    with django_assert_num_queries(6):
         response = john_doe_api_client.get(url)
         get_data_from_response(response, 200)

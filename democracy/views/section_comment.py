@@ -463,16 +463,8 @@ class CommentViewSet(SectionCommentViewSet):
         """Returns all root-level comments, including deleted ones"""
 
         queryset = self.model.objects.everything()
-        queryset = queryset.select_related("created_by", "section").prefetch_related(
-            Prefetch(
-                "comments",
-                SectionComment.objects.everything().only("pk", "comment")
-            ),
-            "images",
-            "poll_answers",
-            "poll_answers__option",
-            "poll_answers__option__poll",
-        )
+        queryset = self.apply_select_and_prefetch(queryset)
+
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
         created_by = self.request.query_params.get('created_by', None)
         if created_by is not None and not self.request.user.is_anonymous:

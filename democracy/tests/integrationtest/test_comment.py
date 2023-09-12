@@ -1566,3 +1566,11 @@ def test_delete_comment_comment(
     response = john_doe_api_client.get(url)
     data = get_data_from_response(response, 200)
     assert len(data['results'][0]['comments']) == 2
+
+@pytest.mark.django_db
+def test_section_comment_num_queries(django_assert_num_queries, john_doe_api_client, hearing_with_comments_on_comments):
+    url = f'/v1/comment/'
+
+    with django_assert_num_queries(8):
+        response = john_doe_api_client.get(url)
+        get_data_from_response(response, 200)

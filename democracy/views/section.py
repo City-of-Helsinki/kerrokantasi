@@ -579,7 +579,7 @@ class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
-        if self.request.META['CONTENT_TYPE'].startswith('multipart'):
+        if 'CONTENT_TYPE' in self.request.META and self.request.META['CONTENT_TYPE'].startswith('multipart'):
             # multipart requests go to non-base64 serializer
             return RootFileSerializer
         return RootFileBase64Serializer

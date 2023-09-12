@@ -1,6 +1,7 @@
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Prefetch
 from django.db.transaction import atomic
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
@@ -207,7 +208,8 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     def get_answers(self, obj):
         polls_by_id = {}
-        for answer in obj.poll_answers.select_related('option', 'option__poll').all():
+        # poll_answers are prefetched in get_queryset
+        for answer in obj.poll_answers.all():
             if answer.option.poll.id not in polls_by_id:
                 polls_by_id[answer.option.poll.id] = {
                     'question': answer.option.poll.id,
@@ -224,8 +226,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return ''
         
     def get_comments(self, obj):
-        queryset = obj.comments.everything().filter(comment=obj.pk).values('pk')
-        return queryset
+        return [c.pk for c in obj.comments.all()]
 
     def get_deleted_by_type(self, obj):
         # Used to display a different message in the frontend if comment was deleted by its creator
@@ -462,6 +463,16 @@ class CommentViewSet(SectionCommentViewSet):
         """Returns all root-level comments, including deleted ones"""
 
         queryset = self.model.objects.everything()
+        queryset = queryset.select_related("created_by", "section").prefetch_related(
+            Prefetch(
+                "comments",
+                SectionComment.objects.everything().only("pk", "comment")
+            ),
+            "images",
+            "poll_answers",
+            "poll_answers__option",
+            "poll_answers__option__poll",
+        )
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
         created_by = self.request.query_params.get('created_by', None)
         if created_by is not None and not self.request.user.is_anonymous:

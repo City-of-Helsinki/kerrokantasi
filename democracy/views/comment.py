@@ -112,7 +112,11 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         return context
 
     def apply_select_and_prefetch(self, queryset):
-        return queryset.select_related("created_by", "section").prefetch_related(
+        return queryset.select_related(
+            "created_by",
+            "organization",
+            "section",
+        ).prefetch_related(
             Prefetch(
                 "comments",
                 self.model.objects.everything().only("pk", "comment")
@@ -121,6 +125,9 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             "poll_answers",
             "poll_answers__option",
             "poll_answers__option__poll",
+            "section__hearing",
+            "section__hearing__translations",
+            "section__translations",
         )
 
     def get_queryset(self):

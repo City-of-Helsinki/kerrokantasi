@@ -1576,7 +1576,7 @@ def test_section_comment_num_queries(
 ):
     url = reverse('comment-list')
 
-    with django_assert_num_queries(8):
+    with django_assert_num_queries(9):
         response = john_doe_api_client.get(url)
         get_data_from_response(response, 200)
 
@@ -1591,6 +1591,6 @@ def test_hearing_sections_comment_num_queries(
         'comment_parent_pk': hearing_with_comments_on_comments.sections.first().pk
     })
 
-    with django_assert_num_queries(6):
+    with django_assert_num_queries(7):
         response = john_doe_api_client.get(url)
         get_data_from_response(response, 200)

@@ -1,6 +1,7 @@
 import django_filters
 import reversion
 from django.core.exceptions import ValidationError
+from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
@@ -110,6 +111,18 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         context["comment_parent"] = self.get_comment_parent_id()
         return context
 
+    def apply_select_and_prefetch(self, queryset):
+        return queryset.select_related("created_by", "section").prefetch_related(
+            Prefetch(
+                "comments",
+                self.model.objects.everything().only("pk", "comment")
+            ),
+            "images",
+            "poll_answers",
+            "poll_answers__option",
+            "poll_answers__option__poll",
+        )
+
     def get_queryset(self):
         """
         This method is used  when fetching reply comments only.
@@ -118,7 +131,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
 
         queryset = self.model.objects.everything()
         queryset = queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
-
+        queryset = self.apply_select_and_prefetch(queryset)
         user = self._get_user_from_request_or_context()
         if user.is_authenticated and user.is_superuser:
             return queryset

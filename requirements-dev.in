@@ -1,7 +1,6 @@
 -c requirements.txt
 
 autoflake
-bandit
 black
 coveralls
 distro

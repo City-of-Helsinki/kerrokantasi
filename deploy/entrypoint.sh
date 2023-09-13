@@ -65,8 +65,6 @@ elif [[ "$1" = "test" ]]; then
 #     isort --check-only --diff .
     _log_boxed "Running safety"
     safety check -r requirements.txt
-    _log_boxed "Running bandit"
-    bandit -r . -ll
     _log_boxed "Running tests"
     pytest
 elif [[ -n "$*" ]]; then

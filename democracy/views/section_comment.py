@@ -7,12 +7,13 @@ from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
 from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 from urllib.parse import urljoin
 
 from democracy.enums import Commenting
-from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption
+from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption, Hearing
 from democracy.models.section import CommentImage
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet, BaseComment
@@ -161,6 +162,12 @@ class SectionCommentSerializer(BaseCommentSerializer):
     Serializer for comment added to section.
     """
 
+    section = PrimaryKeyRelatedField(
+        queryset=Section.objects.all().prefetch_related(
+            "translations",
+            "hearing__translations",
+        )
+    )
     label = LabelSerializer(read_only=True)
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
@@ -437,6 +444,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
     created_at__lt = django_filters.IsoDateTimeFilter(field_name='created_at', lookup_expr='lt')
     created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name='created_at', lookup_expr='gt')
     comment = django_filters.ModelChoiceFilter(queryset=SectionComment.objects.everything())
+    section = django_filters.CharFilter(field_name='section__id')
 
     class Meta:
         model = SectionComment

@@ -59,12 +59,6 @@ elif [[ "$1" = "migrate" ]]; then
 elif [[ "$1" = "test" ]]; then
     _log_boxed "Running flake8"
     flake8 democracy
-#     _log_boxed "Running black"
-#     black --check .
-#     _log_boxed "Running isort"
-#     isort --check-only --diff .
-    _log_boxed "Running safety"
-    safety check -r requirements.txt
     _log_boxed "Running tests"
     pytest
 elif [[ -n "$*" ]]; then

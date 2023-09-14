@@ -26,7 +26,7 @@ django-sendfile
 Babel
 django-parler>=2.2.1
 langdetect
-sentry_sdk
+sentry-sdk
 whitenoise
 social-auth-app-django>=5.0.0
 python-pptx

@@ -1,7 +1,7 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-FROM python:3.7-buster as appbase
+FROM python:3.8-bookworm as appbase
 
 RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
 
@@ -20,13 +20,14 @@ ENV PYTHONUNBUFFERED True
 
 # less & netcat-openbsd are there for in-container manual debugging
 # kerrokantasi needs gdal
-RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python-gdal python3-gdal
+RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python3-gdal
 
 # we need the Finnish locale built
 RUN sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen
 RUN locale-gen
 
-RUN pip install --no-cache-dir uwsgi
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir uwsgi
 
 # Sentry CLI for sending events from non-Python processes to Sentry
 # eg. https://docs.sentry.io/cli/send-event/#bash-hook
@@ -50,7 +51,7 @@ RUN mkdir -p /srv/static && python manage.py collectstatic
 # Usually this would be some sort of volume
 RUN mkdir -p /srv/media && chown kerrokantasi:kerrokantasi /srv/media
 
-ENTRYPOINT ["deploy/entrypoint.sh"]
+ENTRYPOINT ["/kerrokantasi/deploy/entrypoint.sh"]
 
 # Both production and dev servers listen on port 8000
 EXPOSE 8000

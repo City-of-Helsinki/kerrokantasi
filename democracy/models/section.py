@@ -2,9 +2,10 @@ import logging
 import re
 from autoslug import AutoSlugField
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import get_resolver
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from parler.managers import TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFields
 from reversion import revisions
@@ -165,6 +166,9 @@ class SectionComment(Commentable, BaseComment):
     content = models.TextField(verbose_name=_('content'), blank=True)
     reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
+    edited = models.BooleanField(verbose_name=_('is comment edited'), default=False)
+    moderated = models.BooleanField(verbose_name=_('is comment edited by admin'), default=False)
+    edit_reason = models.TextField(verbose_name=_('edit reason'), blank=True)
     delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
     flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
     flagged_by = models.ForeignKey(
@@ -181,18 +185,22 @@ class SectionComment(Commentable, BaseComment):
         verbose_name_plural = _('section comments')
         ordering = ('-created_at',)
 
-    def soft_delete(self, using=None, user=None):
+    def soft_delete(self, user=None):
         for answer in self.poll_answers.all():
             answer.soft_delete(user=user)
-        super().soft_delete(using=using, user=user)
+
+        for image in self.images.all():
+            image.soft_delete(user=user)
+
+        super().soft_delete(user=user)
 
     def save(self, *args, **kwargs):
         # we may create a comment by referring to another comment instead of section explicitly
-        if not (self.section or self.comment):
+        if not (self.section_id or self.comment_id):
             raise Exception('Section comment must refer to section or another section comment.')
-        if not self.section:
-            self.section = self.comment.section
-        if self.comment and self.section != self.comment.section:
+        if not self.section_id:
+            self.section_id = self.comment.section_id
+        if self.comment_id and self.section_id != self.comment.section_id:
             raise Exception('Comment must belong to the same section as the original comment.')
         super().save(*args, **kwargs)
 
@@ -203,6 +211,42 @@ class SectionComment(Commentable, BaseComment):
             self.comment.recache_n_comments()
         # then update the usual section and hearing n_comments fields
         return super().recache_parent_n_comments()
+
+    def is_commenting_allowed_in_parent(self, request):
+        """
+        Whether commenting is allowed in the parent of the comment or not.
+        """
+        try:
+            self.parent.check_commenting(request)
+        except ValidationError:
+            return False
+        return True
+
+    def can_edit(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to edit this Comment.
+        """
+        if request is None or not request.user.is_authenticated:
+            return False
+
+        # Is the user the creator of the comment?
+        if request.user == self.created_by:
+            return self.is_commenting_allowed_in_parent(request)
+
+        return False
+
+    def can_delete(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to delete this Comment.
+        """
+        if request is None or not request.user.is_authenticated:
+            return False
+
+        # Is the user the creator of the comment?
+        if request.user == self.created_by:
+            return self.is_commenting_allowed_in_parent(request)
+
+        return False
 
 
 class SectionPoll(BasePoll):

@@ -38,6 +38,7 @@ root = environ.Path(__file__) - 3  # three levels back in hierarchy
 env = environ.Env(
     # Common Django settings
     DEBUG=(bool, False),
+    DEBUG_TOOLBAR=(bool, False),
     DJANGO_LOG_LEVEL=(str, "INFO"),
     SECRET_KEY=(str, ''),
     CONN_MAX_AGE=(int, 0),
@@ -79,7 +80,7 @@ env = environ.Env(
     SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=(str, ''),
     STRONG_AUTH_PROVIDERS=(list, []),
     LOGOUT_REDIRECT_URL=(str, '/'),
-    HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, True),
+    HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, False),
     HEARING_REPORT_THEME=(str, 'whitelabel'),
 )
 
@@ -96,6 +97,7 @@ if os.path.exists(env_file_path):
 # Django standard settings handling
 
 DEBUG = env('DEBUG')
+DEBUG_TOOLBAR = env('DEBUG_TOOLBAR')
 SECRET_KEY = env('SECRET_KEY')
 ALLOWED_HOSTS = env('ALLOWED_HOSTS')
 ADMINS = env('ADMINS')
@@ -215,6 +217,10 @@ MIDDLEWARE = [
 # django-extensions is a set of developer friendly tools
 if env("ENABLE_DJANGO_EXTENSIONS"):
     INSTALLED_APPS.append("django_extensions")
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
 
 ROOT_URLCONF = 'kerrokantasi.urls'
 
@@ -373,7 +379,7 @@ if not DEBUG and not SECRET_KEY:
 # expecting SECRET_KEY to stay same will break upon restart. Should not be a
 # problem for development.
 if not SECRET_KEY:
-    logger.warn("SECRET_KEY was not defined in configuration. Generating a temporary key for dev.")
+    logger.warning("SECRET_KEY was not defined in configuration. Generating a temporary key for dev.")
     import random
 
     system_random = random.SystemRandom()

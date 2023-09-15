@@ -11,17 +11,19 @@ from django.core.exceptions import ValidationError
 from django.db import router
 from django.db.models import TextField
 from django.http import HttpResponseRedirect
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.encoding import force_text
 from django.utils.html import format_html
 from django.utils.text import capfirst
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
 from functools import partial
 from leaflet.admin import LeafletGeoAdmin
 from nested_admin.nested import NestedModelAdminMixin, NestedStackedInline
 from parler.admin import TranslatableAdmin, TranslatableStackedInline
 from parler.forms import TranslatableBaseInlineFormSet, TranslatableModelForm
+from reversion.admin import VersionAdmin
 
 from democracy import models
 from democracy.admin.widgets import Select2SelectMultiple, ShortTextAreaWidget
@@ -192,12 +194,11 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             copy_hearing(hearing, published=False)
             self.message_user(request, _('Copied Hearing "%s" as a draft.' % hearing.title))
 
+    @admin.display(description=_('Preview URL'))
     def preview_url(self, obj):
         if not obj.preview_url:
             return ''
         return format_html('<a href="%s">%s</a>' % (obj.preview_url, obj.preview_url))
-
-    preview_url.short_description = _('Preview URL')
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
         if db_field.name == "labels":
@@ -302,10 +303,11 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
     ordering = ("name",)
 
 
-class CommentAdmin(admin.ModelAdmin):
+class CommentAdmin(VersionAdmin):
     list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
     list_filter = (
         'deleted',
+        'moderated',
         'flagged_at',
         'section__hearing__slug',
     )
@@ -326,6 +328,8 @@ class CommentAdmin(admin.ModelAdmin):
         'deleted_by',
         'flagged_at',
         'flagged_by',
+        'edited',
+        'moderated',
     )
     change_form_template = 'admin/comment_change_form.html'
 
@@ -348,6 +352,9 @@ class CommentAdmin(admin.ModelAdmin):
             'voters',
             'section',
             'created_by_user',
+            'edited',
+            'moderated',
+            'edit_reason',
             'delete_reason',
         ]
         if obj and obj.flagged_at:
@@ -356,12 +363,25 @@ class CommentAdmin(admin.ModelAdmin):
             fields += ['deleted_at', 'deleted_by']
         return fields
 
+    @admin.display(description=_('Published'))
     def is_published(self, obj):
-        """Invert deleted field for readability in admin"""
+        if obj.deleted:
+            src = static("admin/img/icon-no.svg")
+            alt = _("Deleted")
 
-        return not obj.deleted
+        elif obj.moderated:
+            src = static('admin/img/icon-moderated.svg')
+            alt = _("Moderated")
 
-    is_published.boolean = True  # Make field use green/red icons in list view
+        else:
+            src=static('admin/img/icon-yes.svg')
+            alt=_("Published")
+
+        return format_html(
+            '<img src="{}" alt="{alt}" title="{alt}">',
+            src,
+            alt=alt
+        )
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.
@@ -410,6 +430,25 @@ class CommentAdmin(admin.ModelAdmin):
             return HttpResponseRedirect(request.path + "?deleted__exact=0")
         return super().changelist_view(request, extra_context=extra_context)
 
+    def save_model(self, request, obj, form, change):
+        if obj.pk:
+            obj.edited = True
+        # If admin edits their own comment, don't mark as moderated
+        if obj.created_by_id != request.user.id:
+            obj.moderated = request.user.is_staff
+
+        super().save_model(request, obj, form, change)
+
+    def has_change_permission(self, request, obj=None):
+        if obj and request.user == obj.section.hearing.created_by:
+            return False
+        return super().has_change_permission(request, obj=obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and request.user == obj.section.hearing.created_by:
+            return False
+        return super().has_delete_permission(request, obj=obj)
+
 
 class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
     model = models.ProjectPhase
@@ -421,10 +460,9 @@ class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
     search_fields = ('title', 'identifier')
     inlines = (ProjectPhaseInline,)
 
+    @admin.display(description='Title')
     def title_localized(self, obj):
         return get_any_language(obj, 'title')
-
-    title_localized.short_description = 'Title'
 
 
 class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
@@ -432,10 +470,9 @@ class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
     list_filter = ('project',)
     search_fields = ('title', 'project__title')
 
+    @admin.display(description='Title')
     def title_localized(self, obj):
         return get_any_language(obj, 'title')
-
-    title_localized.short_description = 'Title'
 
 
 def get_any_language(obj, attr_name):

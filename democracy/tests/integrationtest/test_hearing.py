@@ -589,7 +589,7 @@ def test_8_get_detail_labels(api_client):
     data = get_data_from_response(response)
 
     assert 'results' not in data
-    assert len(data['labels']) is 3
+    assert len(data['labels']) == 3
     assert {'id': label_one.id, 'label': {'en': label_one.label}} in data['labels']
 
 
@@ -759,7 +759,7 @@ def test_preview_code_not_in_published(john_smith_api_client, default_organizati
     hearing_data = get_data_from_response(
         john_smith_api_client.get(get_detail_url(published_hearing.pk)), status_code=200
     )
-    print(hearing_data)
+
     assert hearing_data['preview_url'] == None
 
 

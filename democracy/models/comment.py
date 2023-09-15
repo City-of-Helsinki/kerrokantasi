@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.gis.db import models
 from django.core.exceptions import ValidationError
 from django.db.models.signals import post_save
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from djgeojson.fields import GeoJSONField
 from langdetect import detect_langs
 from langdetect.lang_detect_exception import LangDetectException
@@ -106,15 +106,13 @@ class BaseComment(BaseModel):
         """
         Whether the given request (HTTP or DRF) is allowed to edit this Comment.
         """
-        is_authenticated = request.user.is_authenticated
-        if is_authenticated and self.created_by == request.user:
-            # also make sure the hearing is still commentable
-            try:
-                self.parent.check_commenting(request)
-            except ValidationError:
-                return False
-            return True
-        return False
+        raise NotImplementedError("Subclasses must implement this method")
+
+    def can_delete(self, request):
+        """
+        Whether the given request (HTTP or DRF) is allowed to delete this Comment.
+        """
+        raise NotImplementedError("Subclasses must implement this method")
 
 
 def comment_recache(sender, instance, using, created, **kwargs):

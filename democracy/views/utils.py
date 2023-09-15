@@ -10,7 +10,7 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from functools import lru_cache
 from munigeo.api import build_bbox_filter, srid_to_srs
 from rest_framework import serializers

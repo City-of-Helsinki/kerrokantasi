@@ -1,19 +1,22 @@
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Prefetch
 from django.db.transaction import atomic
+from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
 from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
 from urllib.parse import urljoin
 
 from democracy.enums import Commenting
-from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption
+from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption, Hearing
 from democracy.models.section import CommentImage
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet
+from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet, BaseComment
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.utils import (
@@ -61,6 +64,8 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
             'pinned',
             'reply_to',
             'map_comment_text',
+            'moderated',
+            'edited',
         ]
 
     def get_answers(self, obj):
@@ -157,14 +162,22 @@ class SectionCommentSerializer(BaseCommentSerializer):
     Serializer for comment added to section.
     """
 
+    section = PrimaryKeyRelatedField(
+        queryset=Section.objects.all().prefetch_related(
+            "translations",
+            "hearing__translations",
+        )
+    )
     label = LabelSerializer(read_only=True)
     geojson = GeoJSONField(required=False, allow_null=True)
     images = CommentImageSerializer(many=True, read_only=True)
     answers = serializers.SerializerMethodField()
-    creator_name = serializers.CharField(source="author_name")
     creator_email = serializers.SerializerMethodField()
     content = serializers.SerializerMethodField()
     deleted_by_type = serializers.SerializerMethodField()
+    can_delete = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
+    comments = serializers.SerializerMethodField(allow_null=True)
 
     class Meta:
         model = SectionComment
@@ -177,11 +190,12 @@ class SectionCommentSerializer(BaseCommentSerializer):
             'n_comments',
             'pinned',
             'reply_to',
-            'creator_name',
             'creator_email',
             'deleted',
             'deleted_at',
             'deleted_by_type',
+            'can_delete',
+            'can_edit',
         ] + COMMENT_FIELDS
 
     def get_content(self, obj):
@@ -201,7 +215,8 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     def get_answers(self, obj):
         polls_by_id = {}
-        for answer in obj.poll_answers.select_related('option', 'option__poll').all():
+        # poll_answers are prefetched in get_queryset
+        for answer in obj.poll_answers.all():
             if answer.option.poll.id not in polls_by_id:
                 polls_by_id[answer.option.poll.id] = {
                     'question': answer.option.poll.id,
@@ -216,6 +231,9 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return obj.created_by.email
         else:
             return ''
+        
+    def get_comments(self, obj):
+        return [c.pk for c in obj.comments.all()]
 
     def get_deleted_by_type(self, obj):
         # Used to display a different message in the frontend if comment was deleted by its creator
@@ -231,17 +249,25 @@ class SectionCommentSerializer(BaseCommentSerializer):
         # No information about who deleted the comment
         return "unknown"
 
+    @cached_property
+    def request(self):
+        return self.context.get('request')
+
+    def get_can_edit(self, comment: SectionComment):
+        return comment.can_edit(self.request)
+
+    def get_can_delete(self, comment: SectionComment):
+        return comment.can_delete(self.request)
+
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
-        if (
-            not settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES
-            and not self.context['request'].user.is_staff
-            and not self.context['request'].user.is_superuser
-        ):
-            del data['creator_name']
-            del data['creator_email']
+        user_is_staff = self.context['request'].user.is_staff or self.context['request'].user.is_superuser
 
-        return data
+        if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
+            return data
+        else:
+            del data['creator_email']
+            return data
 
 
 class SectionCommentViewSet(BaseCommentViewSet):
@@ -418,6 +444,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
     created_at__lt = django_filters.IsoDateTimeFilter(field_name='created_at', lookup_expr='lt')
     created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name='created_at', lookup_expr='gt')
     comment = django_filters.ModelChoiceFilter(queryset=SectionComment.objects.everything())
+    section = django_filters.CharFilter(field_name='section__id')
 
     class Meta:
         model = SectionComment
@@ -444,6 +471,8 @@ class CommentViewSet(SectionCommentViewSet):
         """Returns all root-level comments, including deleted ones"""
 
         queryset = self.model.objects.everything()
+        queryset = self.apply_select_and_prefetch(queryset)
+
         queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
         created_by = self.request.query_params.get('created_by', None)
         if created_by is not None and not self.request.user.is_anonymous:

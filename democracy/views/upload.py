@@ -79,7 +79,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         if str(img_format).lower() == "png":
 
             img = Image.open(section_file_obj.file.path)
-            img = img.resize(img.size, Image.ANTIALIAS)
+            img = img.resize(img.size, Image.LANCZOS)
             img.save("{}.jpg".format(img_name), quality=IMAGE_QUALITY, optimize=True)
             section_file_obj.file.name = section_file_obj.file.name.replace('.png', '.jpg')
             section_file_obj.file.save()
@@ -87,7 +87,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         elif str(img_format).lower() == "jpg" or str(img_format).lower() == "jpeg":
 
             img = Image.open(uploaded_file)
-            img = img.resize(img.size, Image.ANTIALIAS)
+            img = img.resize(img.size, Image.LANCZOS)
             img.save(section_file_obj.file.path, quality=IMAGE_QUALITY, optimize=True)
 
         return section_file_obj

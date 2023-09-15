@@ -1,16 +1,15 @@
 import django_filters
+import reversion
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.encoding import force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
-from reversion import revisions
+from reversion.views import RevisionMixin
 
 from democracy.models.comment import BaseComment
-from democracy.models.hearing import Hearing
-from democracy.models.section import Section
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin, GeoJSONField
@@ -22,22 +21,26 @@ COMMENT_FIELDS = [
     'n_votes',
     'created_at',
     'is_registered',
-    'can_edit',
     'geojson',
     'map_comment_text',
     'images',
     'label',
     'organization',
     'flagged',
+    'moderated',
+    'edited',
 ]
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
     is_registered = serializers.SerializerMethodField()
-    can_edit = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     flagged = serializers.SerializerMethodField()
     geojson = GeoJSONField()
+
+    class Meta:
+        model = BaseComment
+        fields = COMMENT_FIELDS
 
     def to_representation(self, instance):
         r = super().to_representation(instance)
@@ -50,27 +53,6 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
     def get_is_registered(self, obj):
         return obj.created_by_id is not None
 
-    def get_can_edit(self, obj):
-        request = self.context.get('request', None)
-        """
-        Users that have is_staff and that are the creators of the hearing can edit/delete comments
-        as long as the hearing is commentable.
-        """
-        # If user.is_staff then we check if user is also the creator of the hearing
-        if request.user.is_staff and Section.objects.get(id=obj.section_id) is not None:
-            specific_section = Section.objects.get(id=obj.section_id)
-            specific_hearing = Hearing.objects.get(id=specific_section.hearing_id)
-            if request.user.id == specific_hearing.created_by_id:
-                try:
-                    obj.parent.check_commenting(request)
-                except ValidationError:
-                    return False
-                return True
-
-        if request:
-            return obj.can_edit(request)
-        return False
-
     def get_organization(self, obj):
         if obj.organization:
             return str(obj.organization)
@@ -78,10 +60,6 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
 
     def get_flagged(self, obj):
         return bool(obj.flagged_at)
-
-    class Meta:
-        model = BaseComment
-        fields = COMMENT_FIELDS
 
 
 class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
@@ -94,7 +72,7 @@ class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
         ]
 
 
-class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
+class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.ModelViewSet):
     """
     Base viewset for comments.
     """
@@ -133,6 +111,25 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         context["comment_parent"] = self.get_comment_parent_id()
         return context
 
+    def apply_select_and_prefetch(self, queryset):
+        return queryset.select_related(
+            "created_by",
+            "organization",
+            "section",
+        ).prefetch_related(
+            Prefetch(
+                "comments",
+                self.model.objects.everything().only("pk", "comment")
+            ),
+            "images",
+            "poll_answers",
+            "poll_answers__option",
+            "poll_answers__option__poll",
+            "section__hearing",
+            "section__hearing__translations",
+            "section__translations",
+        )
+
     def get_queryset(self):
         """
         This method is used  when fetching reply comments only.
@@ -141,7 +138,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         queryset = self.model.objects.everything()
         queryset = queryset.filter(**{queryset.model.parent_field: self.get_comment_parent_id()})
-
+        queryset = self.apply_select_and_prefetch(queryset)
         user = self._get_user_from_request_or_context()
         if user.is_authenticated and user.is_superuser:
             return queryset
@@ -170,23 +167,6 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         except ValidationError as verr:
             return response.Response({'status': force_text("Validation error occured during submitting vote"), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
 
-    def _check_hearing_creator(self, request):
-        """
-        Returns boolean based on if request.user has is_staff rights, is the creator of the hearing
-        and if the hearing is commentable.
-        """
-        obj = self.get_object()
-        if request.user.is_staff and Section.objects.get(id=obj.section_id) is not None:
-            specific_section = Section.objects.get(id=obj.section_id)
-            specific_hearing = Hearing.objects.get(id=specific_section.hearing_id)
-            if request.user.id == specific_hearing.created_by_id:
-                try:
-                    obj.parent.check_commenting(request)
-                except ValidationError:
-                    return False
-                return True
-        return False
-
     def create(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)
         if resp:
@@ -199,6 +179,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             kwargs['created_by'] = self.request.user
         comment = serializer.save(**kwargs)
+        reversion.set_comment("Comment created")
         # and another for the response
         serializer = self.get_serializer(instance=comment)
         self.create_related(request, instance=comment, *args, **kwargs)
@@ -214,7 +195,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         Comment editing is only possible if the comment is created by user OR
         if the user has is_staff rights AND is the creator of the hearing that this comment is in.
         """
-        if not self._check_hearing_creator(request) and self.request.user != instance.created_by:
+        if not instance.can_edit(request):
             return response.Response(
                 {'status': 'You do not have sufficient rights to edit a comment not owned by you.'},
                 status=status.HTTP_403_FORBIDDEN,
@@ -225,13 +206,18 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                     {'status': 'Authenticated users cannot set author name.'}, status=status.HTTP_403_FORBIDDEN
                 )
 
+        extra_params = {}
+        # Comment has beed edited
+        extra_params["edited"] = True
+
         # Use one serializer for update,
         partial = kwargs.pop('partial', False)
         serializer = self.get_serializer(
-            instance=instance, serializer_class=self.edit_serializer_class, data=request.data, partial=partial
+            instance=instance, serializer_class=self.edit_serializer_class, data={**request.data, **extra_params}, partial=partial
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
+        reversion.set_comment("Comment updated")
         instance.refresh_from_db()
 
         if getattr(instance, '_prefetched_objects_cache', None):
@@ -250,22 +236,17 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
             return resp
 
         instance = self.get_object()
-        """
-        Comment deletion is only possible if the comment is created by user OR
-        if the user has is_staff rights AND is the creator of the hearing that this comment is in.
-        """
-        if not self._check_hearing_creator(request) and self.request.user != instance.created_by:
+
+        if not instance.can_delete(request):
             return response.Response(
                 {'status': 'You do not have sufficient rights to delete a comment not owned by you.'},
-                status=status.HTTP_403_FORBIDDEN,
+                status=status.HTTP_403_FORBIDDEN
             )
 
         instance.soft_delete(user=request.user)
-        return response.Response(status=status.HTTP_204_NO_CONTENT)
+        reversion.set_comment("Comment deleted")
 
-    def perform_update(self, serializer):
-        with transaction.atomic(), revisions.create_revision():
-            super().perform_update(serializer)
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=True, methods=['post'])
     def vote(self, request, **kwargs):

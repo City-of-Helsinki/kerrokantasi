@@ -6,7 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db.models import Sum
 from django.utils import timezone
 from django.utils.timezone import now
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from djgeojson.fields import GeoJSONField
 from parler.managers import TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFields
@@ -147,9 +147,9 @@ class Hearing(StringIdBaseModel, TranslatableModel):
             return False
         return self.organization in user.admin_organizations.all()
 
-    def soft_delete(self, using=None, user=None):
+    def soft_delete(self, user=None):
         # we want deleted hearings to give way to new ones, the original slug from a deleted hearing
         # is now free to use
         self.slug += '-deleted'
         self.save()
-        super().soft_delete(using=using, user=user)
+        super().soft_delete(user=user)

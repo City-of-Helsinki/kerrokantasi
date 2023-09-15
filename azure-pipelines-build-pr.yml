@@ -1,11 +1,9 @@
-trigger:
-  batch: true
+trigger: none
+
+pr:
   branches:
     include:
-    - master
-  paths:
-    exclude:
-    - README.md
+      - master
 
 pool: Default
 
@@ -17,4 +15,4 @@ resources:
     name: kerrokantasi/kerrokantasi-pipelines
 
 extends:
-  template: azure-pipelines-build-kerrokantasi-api-master.yml@kerrokantasi-pipelines
+  template: azure-pipelines-build-kerrokantasi-api-pr.yml@kerrokantasi-pipelines

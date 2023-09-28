@@ -1,7 +1,6 @@
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.db.models import Prefetch
 from django.db.transaction import atomic
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
@@ -13,10 +12,10 @@ from rest_framework.settings import api_settings
 from urllib.parse import urljoin
 
 from democracy.enums import Commenting
-from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption, Hearing
+from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption
 from democracy.models.section import CommentImage
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet, BaseComment
+from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet
 from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.utils import (
@@ -50,34 +49,34 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = SectionComment
         fields = [
-            'section',
-            'comment',
-            'content',
-            'plugin_data',
-            'authorization_code',
-            'author_name',
-            'label',
-            'images',
-            'answers',
-            'geojson',
-            'language_code',
-            'pinned',
-            'reply_to',
-            'map_comment_text',
-            'moderated',
-            'edited',
+            "section",
+            "comment",
+            "content",
+            "plugin_data",
+            "authorization_code",
+            "author_name",
+            "label",
+            "images",
+            "answers",
+            "geojson",
+            "language_code",
+            "pinned",
+            "reply_to",
+            "map_comment_text",
+            "moderated",
+            "edited",
         ]
 
     def get_answers(self, obj):
         polls_by_id = {}
-        for answer in obj.poll_answers.select_related('option', 'option__poll').all():
+        for answer in obj.poll_answers.select_related("option", "option__poll").all():
             if answer.option.poll.id not in polls_by_id:
                 polls_by_id[answer.option.poll.id] = {
-                    'question': answer.option.poll.id,
-                    'type': answer.option.poll.type,
-                    'answers': [],
+                    "question": answer.option.poll.id,
+                    "type": answer.option.poll.type,
+                    "answers": [],
                 }
-            polls_by_id[answer.option.poll.id]['answers'].append(answer.id)
+            polls_by_id[answer.option.poll.id]["answers"].append(answer.id)
         return list(polls_by_id.values())
 
     def to_internal_value(self, data):
@@ -99,7 +98,7 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
 
     def validate_pinned(self, value):
         if value and (
-            self.context['request'].user.is_anonymous or not self.context['request'].user.get_default_organization()
+            self.context["request"].user.is_anonymous or not self.context["request"].user.get_default_organization()
         ):
             raise ValidationError("Non-admin users may not pin their comments.")
         return value
@@ -127,18 +126,18 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
 
     @atomic
     def save(self, *args, **kwargs):
-        user = self.context['request'].user
-        if user and not user.is_anonymous and self.validated_data.get('author_name'):
-            user.nickname = self.validated_data['author_name']
-            user.save(update_fields=('nickname',))
+        user = self.context["request"].user
+        if user and not user.is_anonymous and self.validated_data.get("author_name"):
+            user.nickname = self.validated_data["author_name"]
+            user.save(update_fields=("nickname",))
         return super().save(*args, **kwargs)
 
     @atomic
     def create(self, validated_data):
-        images = validated_data.pop('images', [])
-        user = self.context['request'].user
+        images = validated_data.pop("images", [])
+        user = self.context["request"].user
         if user and not user.is_anonymous:
-            validated_data['created_by_id'] = self.context['request'].user.id
+            validated_data["created_by_id"] = self.context["request"].user.id
         comment = SectionComment.objects.create(**validated_data)
         for image in images:
             CommentImage.objects.get_or_create(comment=comment, **image)
@@ -146,11 +145,11 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
 
     @atomic
     def update(self, instance, validated_data):
-        images = validated_data.pop('images', [])
+        images = validated_data.pop("images", [])
         # do not process extra fields created by rootsectioncommentserializer
-        validated_data.pop('hearing_pk', None)
-        validated_data.pop('comment_parent_pk', None)
-        validated_data.pop('pk', None)
+        validated_data.pop("hearing_pk", None)
+        validated_data.pop("comment_parent_pk", None)
+        validated_data.pop("pk", None)
         instance = super().update(instance, validated_data)
         for image in images:
             CommentImage.objects.update(comment=instance, **image)
@@ -182,20 +181,20 @@ class SectionCommentSerializer(BaseCommentSerializer):
     class Meta:
         model = SectionComment
         fields = [
-            'section',
-            'language_code',
-            'answers',
-            'comment',
-            'comments',
-            'n_comments',
-            'pinned',
-            'reply_to',
-            'creator_email',
-            'deleted',
-            'deleted_at',
-            'deleted_by_type',
-            'can_delete',
-            'can_edit',
+            "section",
+            "language_code",
+            "answers",
+            "comment",
+            "comments",
+            "n_comments",
+            "pinned",
+            "reply_to",
+            "creator_email",
+            "deleted",
+            "deleted_at",
+            "deleted_by_type",
+            "can_delete",
+            "can_edit",
         ] + COMMENT_FIELDS
 
     def get_content(self, obj):
@@ -219,19 +218,19 @@ class SectionCommentSerializer(BaseCommentSerializer):
         for answer in obj.poll_answers.all():
             if answer.option.poll.id not in polls_by_id:
                 polls_by_id[answer.option.poll.id] = {
-                    'question': answer.option.poll.id,
-                    'type': answer.option.poll.type,
-                    'answers': [],
+                    "question": answer.option.poll.id,
+                    "type": answer.option.poll.type,
+                    "answers": [],
                 }
-            polls_by_id[answer.option.poll.id]['answers'].append(answer.option_id)
+            polls_by_id[answer.option.poll.id]["answers"].append(answer.option_id)
         return list(polls_by_id.values())
 
     def get_creator_email(self, obj):
         if obj.created_by and not obj.created_by.is_anonymous:
             return obj.created_by.email
         else:
-            return ''
-        
+            return ""
+
     def get_comments(self, obj):
         return [c.pk for c in obj.comments.all()]
 
@@ -251,7 +250,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     @cached_property
     def request(self):
-        return self.context.get('request')
+        return self.context.get("request")
 
     def get_can_edit(self, comment: SectionComment):
         return comment.can_edit(self.request)
@@ -261,12 +260,12 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
     def to_representation(self, instance):
         data = super(SectionCommentSerializer, self).to_representation(instance)
-        user_is_staff = self.context['request'].user.is_staff or self.context['request'].user.is_superuser
+        user_is_staff = self.context["request"].user.is_staff or self.context["request"].user.is_superuser
 
         if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
             return data
         else:
-            del data['creator_email']
+            del data["creator_email"]
             return data
 
 
@@ -279,60 +278,60 @@ class SectionCommentViewSet(BaseCommentViewSet):
         filters.OrderingFilter,
         GeometryBboxFilterBackend,
     )
-    ordering_fields = ('created_at', 'n_votes')
+    ordering_fields = ("created_at", "n_votes")
 
     def _check_single_choice_poll(self, answer):
         if (
-            len(answer['answers']) > 1
-            and SectionPoll.objects.get(id=answer['question']).type == SectionPoll.TYPE_SINGLE_CHOICE
+            len(answer["answers"]) > 1
+            and SectionPoll.objects.get(id=answer["question"]).type == SectionPoll.TYPE_SINGLE_CHOICE
         ):
-            raise ValidationError({'answers': [_('A single choice poll may not have several answers.')]})
+            raise ValidationError({"answers": [_("A single choice poll may not have several answers.")]})
 
     def _check_can_vote(self, answer):
-        if not answer['answers']:
+        if not answer["answers"]:
             return None
 
         # Authenticated users can only have one answer per poll.
         if self.request.user.is_authenticated:
             poll_answers = SectionPollAnswer.objects.filter(
-                option__poll=answer['question'], comment__created_by=self.request.user
+                option__poll=answer["question"], comment__created_by=self.request.user
             )
             if poll_answers:
-                raise ValidationError({'answers': [_('You have already voted.')]})
+                raise ValidationError({"answers": [_("You have already voted.")]})
 
     def create_related(self, request, instance=None, *args, **kwargs):
-        answers = request.data.pop('answers', [])
+        answers = request.data.pop("answers", [])
         for answer in answers:
             self._check_single_choice_poll(answer)
             self._check_can_vote(answer)
 
-            for option_id in answer['answers']:
+            for option_id in answer["answers"]:
                 try:
-                    option = SectionPollOption.objects.filter(poll=answer['question']).get(pk=option_id)
+                    option = SectionPollOption.objects.filter(poll=answer["question"]).get(pk=option_id)
                     SectionPollAnswer.objects.create(comment=instance, option=option)
                 except SectionPollOption.DoesNotExist:
                     raise ValidationError(
-                        {'option': [_('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)]}
+                        {"option": [_('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)]}
                     )
         super().create_related(request, instance=instance, *args, **kwargs)
 
     def update_related(self, request, instance=None, *args, **kwargs):
-        answers = request.data.pop('answers', [])
+        answers = request.data.pop("answers", [])
         for answer in answers:
             self._check_single_choice_poll(answer)
 
             option_ids = []
-            for option_id in answer['answers']:
+            for option_id in answer["answers"]:
                 try:
-                    option = SectionPollOption.objects.filter(poll=answer['question']).get(pk=option_id)
+                    option = SectionPollOption.objects.filter(poll=answer["question"]).get(pk=option_id)
                     option_ids.append(option.pk)
                     if not SectionPollAnswer.objects.filter(comment=instance, option=option).exists():
                         SectionPollAnswer.objects.create(comment=instance, option=option)
                 except SectionPollOption.DoesNotExist:
                     raise ValidationError(
-                        {'option': [_('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)]}
+                        {"option": [_('Invalid id "{id}" - option does not exist in this poll.').format(id=option_id)]}
                     )
-            for answer in SectionPollAnswer.objects.filter(option__poll=answer['question'], comment=instance).exclude(
+            for answer in SectionPollAnswer.objects.filter(option__poll=answer["question"], comment=instance).exclude(
                 option_id__in=option_ids
             ):
                 answer.soft_delete()
@@ -347,7 +346,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
         params = self.request.query_params
         parent_id = None
 
-        if 'pk' in self.kwargs:
+        if "pk" in self.kwargs:
             # the parent id might be indicated by the direct URL
             comment_id = self.kwargs["pk"]
             parent_id = SectionComment.objects.everything().get(pk=comment_id).parent.id
@@ -356,10 +355,10 @@ class SectionCommentViewSet(BaseCommentViewSet):
             parent_id = super().get_comment_parent_id()
         if not parent_id:
             # the comment parent id might lurk in the shadows of the section parameter in the root endpoint
-            parent_id = data.get('section') if 'section' in data and data['section'] else params.get('section', None)
+            parent_id = data.get("section") if "section" in data and data["section"] else params.get("section", None)
         if not parent_id:
             # the parent id might be found out from the parent of the original comment
-            comment_id = data.get('comment') if 'comment' in data else None
+            comment_id = data.get("comment") if "comment" in data else None
             if comment_id:
                 parent_id = SectionComment.objects.everything().get(pk=comment_id).parent.id
 
@@ -374,7 +373,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
             return Section.objects.get(pk=parent_id)
         except Section.DoesNotExist:
             raise ValidationError(
-                {'section': [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)]}
+                {"section": [_('Invalid pk "{pk_value}" - object does not exist.').format(pk_value=parent_id)]}
             )
 
     def _check_may_comment(self, request):
@@ -382,18 +381,18 @@ class SectionCommentViewSet(BaseCommentViewSet):
         if not parent:
             # this should be possible only with POST requests
             raise ValidationError(
-                {'section': [_('The comment section has to be specified in URL or by JSON section or comment field.')]}
+                {"section": [_("The comment section has to be specified in URL or by JSON section or comment field.")]}
             )
 
         # Unauthenticated user can answer polls in hearings that have open commenting. The following if statement should
         # never be true as unauthenticated users can't post comments if the hearing doesn't have open commenting.
         if (
-            len(request.data.get('answers', [])) > 0
+            len(request.data.get("answers", [])) > 0
             and not request.user.is_authenticated
             and parent.commenting != Commenting.OPEN
         ):
             return response.Response(
-                {'status': 'Unauthenticated users cannot answer polls in hearings that do not have open commenting.'},
+                {"status": "Unauthenticated users cannot answer polls in hearings that do not have open commenting."},
                 status=status.HTTP_403_FORBIDDEN,
             )
         return super()._check_may_comment(request)
@@ -404,25 +403,25 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
     Serializer for root level comment endpoint /v1/comment/
     """
 
-    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+    hearing = serializers.CharField(source="section.hearing_id", read_only=True)
     hearing_data = serializers.SerializerMethodField()
 
     class Meta(SectionCommentSerializer.Meta):
-        fields = SectionCommentSerializer.Meta.fields + ['hearing', 'hearing_data']
+        fields = SectionCommentSerializer.Meta.fields + ["hearing", "hearing_data"]
 
     def get_hearing_data(self, obj):
         """
         This is only used by comments on the profile page.
         Returns dict containing data from the hearing that the comment was made to.
         """
-        request = self.context.get('request', None)
+        request = self.context.get("request", None)
         user = request.user
-        created_by_me = request.query_params.get('created_by', None)
+        created_by_me = request.query_params.get("created_by", None)
 
         if created_by_me is not None and not user.is_anonymous:
             translations = {t.language_code: t.title for t in get_translation_list(obj.section.hearing)}
 
-            return {'slug': obj.section.hearing.slug, 'title': translations, 'closed': obj.section.hearing.closed}
+            return {"slug": obj.section.hearing.slug, "title": translations, "closed": obj.section.hearing.closed}
 
         return False
 
@@ -432,31 +431,31 @@ class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSeriali
     Serializer for root level comment endpoint /v1/comment/
     """
 
-    hearing = serializers.CharField(source='section.hearing_id', read_only=True)
+    hearing = serializers.CharField(source="section.hearing_id", read_only=True)
 
     class Meta(SectionCommentSerializer.Meta):
-        fields = SectionCommentCreateUpdateSerializer.Meta.fields + ['hearing']
+        fields = SectionCommentCreateUpdateSerializer.Meta.fields + ["hearing"]
 
 
 class CommentFilterSet(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(field_name='section__hearing__id')
-    label = django_filters.Filter(field_name='label__id')
-    created_at__lt = django_filters.IsoDateTimeFilter(field_name='created_at', lookup_expr='lt')
-    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name='created_at', lookup_expr='gt')
+    hearing = django_filters.CharFilter(field_name="section__hearing__id")
+    label = django_filters.Filter(field_name="label__id")
+    created_at__lt = django_filters.IsoDateTimeFilter(field_name="created_at", lookup_expr="lt")
+    created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name="created_at", lookup_expr="gt")
     comment = django_filters.ModelChoiceFilter(queryset=SectionComment.objects.everything())
-    section = django_filters.CharFilter(field_name='section__id')
+    section = django_filters.CharFilter(field_name="section__id")
 
     class Meta:
         model = SectionComment
         fields = [
-            'authorization_code',
-            'created_at__lt',
-            'created_at__gt',
-            'section',
-            'hearing',
-            'label',
-            'comment',
-            'pinned',
+            "authorization_code",
+            "created_at__lt",
+            "created_at__gt",
+            "section",
+            "hearing",
+            "label",
+            "comment",
+            "pinned",
         ]
 
 
@@ -473,10 +472,10 @@ class CommentViewSet(SectionCommentViewSet):
         queryset = self.model.objects.everything()
         queryset = self.apply_select_and_prefetch(queryset)
 
-        queryset = filter_by_hearing_visible(queryset, self.request, 'section__hearing')
-        created_by = self.request.query_params.get('created_by', None)
+        queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing")
+        created_by = self.request.query_params.get("created_by", None)
         if created_by is not None and not self.request.user.is_anonymous:
-            if created_by.lower() == 'me':
+            if created_by.lower() == "me":
                 queryset = queryset.filter(created_by_id=self.request.user.id)
 
         user = self._get_user_from_request_or_context()

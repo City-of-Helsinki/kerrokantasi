@@ -4,26 +4,26 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Section, SectionComment, SectionType
 from democracy.tests.integrationtest.test_images import get_hearing_detail_url
 
-default_content = 'Awesome comment to vote.'
-comment_data = {'content': default_content, 'section': None}
+default_content = "Awesome comment to vote."
+comment_data = {"content": default_content, "section": None}
 
 
 def add_default_section_and_comment(hearing):
     section = Section.objects.create(
-        title='Section title', hearing=hearing, type=SectionType.objects.get(identifier=InitialSectionType.PART)
+        title="Section title", hearing=hearing, type=SectionType.objects.get(identifier=InitialSectionType.PART)
     )
-    comment = SectionComment.objects.create(content='Comment text', section=section)
+    comment = SectionComment.objects.create(content="Comment text", section=section)
     return [section, comment]
 
 
 def get_section_comment_vote_url(hearing_id, section_id, comment_id):
     # /v1/hearings/<hearingID>/sections/<sectionID>/comments/<commentID>/votes/
-    return get_hearing_detail_url(hearing_id, 'sections/%s/comments/%s/vote' % (section_id, comment_id))
+    return get_hearing_detail_url(hearing_id, "sections/%s/comments/%s/vote" % (section_id, comment_id))
 
 
 def get_section_comment_unvote_url(hearing_id, section_id, comment_id):
     # /v1/hearings/<hearingID>/sections/<sectionID>/comments/<commentID>/unvote/
-    return get_hearing_detail_url(hearing_id, 'sections/%s/comments/%s/unvote' % (section_id, comment_id))
+    return get_hearing_detail_url(hearing_id, "sections/%s/comments/%s/unvote" % (section_id, comment_id))
 
 
 @pytest.mark.django_db
@@ -115,5 +115,5 @@ def test_section_comment_unvote(api_client, john_doe_api_client, default_hearing
 def test_vote_appears_in_user_data(john_doe_api_client, default_hearing):
     section, sc_comment = add_default_section_and_comment(default_hearing)
     john_doe_api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, sc_comment.id))
-    response = john_doe_api_client.get('/v1/users/')
-    assert sc_comment.id in response.data[0]['voted_section_comments']
+    response = john_doe_api_client.get("/v1/users/")
+    assert sc_comment.id in response.data[0]["voted_section_comments"]

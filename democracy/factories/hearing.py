@@ -44,7 +44,7 @@ class HearingFactory(factory.django.DjangoModelFactory):
             if label:  # pragma: no branch
                 obj.labels.add(label)
 
-        SectionFactory(hearing=obj, type=SectionType.objects.get(identifier='main'))
+        SectionFactory(hearing=obj, type=SectionType.objects.get(identifier="main"))
 
         for x in range(random.randint(1, 4)):
             section = SectionFactory(hearing=obj)
@@ -60,7 +60,7 @@ class SectionFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     abstract = factory.Faker("paragraph")
     content = factory.Faker("text")
-    type = factory.fuzzy.FuzzyChoice(choices=SectionType.objects.exclude(identifier='main'))
+    type = factory.fuzzy.FuzzyChoice(choices=SectionType.objects.exclude(identifier="main"))
     commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
 
     @factory.post_generation

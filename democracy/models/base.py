@@ -36,11 +36,11 @@ class BaseModelManager(models.Manager):
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(
-        verbose_name=_('time of creation'), default=timezone.now, editable=False, db_index=True
+        verbose_name=_("time of creation"), default=timezone.now, editable=False, db_index=True
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('created by'),
+        verbose_name=_("created by"),
         null=True,
         blank=True,
         related_name="%(class)s_created",
@@ -48,42 +48,42 @@ class BaseModel(models.Model):
         on_delete=models.SET_NULL,
     )
     modified_at = models.DateTimeField(
-        verbose_name=_('time of last modification'), default=timezone.now, editable=False
+        verbose_name=_("time of last modification"), default=timezone.now, editable=False
     )
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('last modified by'),
+        verbose_name=_("last modified by"),
         null=True,
         blank=True,
         related_name="%(class)s_modified",
         editable=False,
         on_delete=models.SET_NULL,
     )
-    published = models.BooleanField(verbose_name=_('public'), default=True, db_index=True)
+    published = models.BooleanField(verbose_name=_("public"), default=True, db_index=True)
     deleted_at = models.DateTimeField(
-        verbose_name=_('time of deletion'), default=None, editable=False, null=True, blank=True
+        verbose_name=_("time of deletion"), default=None, editable=False, null=True, blank=True
     )
     deleted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('deleted by'),
+        verbose_name=_("deleted by"),
         null=True,
         blank=True,
         related_name="%(class)s_deleted",
         editable=False,
         on_delete=models.SET_NULL,
     )
-    deleted = models.BooleanField(verbose_name=_('deleted'), default=False, db_index=True, editable=False)
+    deleted = models.BooleanField(verbose_name=_("deleted"), default=False, db_index=True, editable=False)
     objects = BaseModelManager()
 
     def save(self, *args, **kwargs):
         pk_type = self._meta.pk.get_internal_type()
-        if pk_type == 'CharField':
+        if pk_type == "CharField":
             if not self.pk:
                 self.pk = generate_id()
-        elif pk_type == 'AutoField':
+        elif pk_type == "AutoField":
             pass
         else:  # pragma: no cover
-            raise Exception('Unsupported primary key field: %s' % pk_type)
+            raise Exception("Unsupported primary key field: %s" % pk_type)
         if not kwargs.pop("no_modified_at_update", False):
             # Useful for importing, etc.
             self.modified_at = timezone.now()
@@ -127,7 +127,7 @@ class BaseModel(models.Model):
 
 
 class StringIdBaseModel(BaseModel):
-    id = models.CharField(verbose_name=_('identifier'), primary_key=True, max_length=32, editable=False)
+    id = models.CharField(verbose_name=_("identifier"), primary_key=True, max_length=32, editable=False)
 
     class Meta:
         abstract = True
@@ -139,13 +139,13 @@ class Commentable(models.Model):
     """
 
     n_comments = models.IntegerField(
-        verbose_name=_('number of comments'), blank=True, default=0, editable=False, db_index=True
+        verbose_name=_("number of comments"), blank=True, default=0, editable=False, db_index=True
     )
-    commenting = EnumIntegerField(Commenting, verbose_name=_('commenting'), default=Commenting.NONE)
+    commenting = EnumIntegerField(Commenting, verbose_name=_("commenting"), default=Commenting.NONE)
     commenting_map_tools = EnumIntegerField(
-        CommentingMapTools, verbose_name=_('commenting_map_tools'), default=CommentingMapTools.NONE
+        CommentingMapTools, verbose_name=_("commenting_map_tools"), default=CommentingMapTools.NONE
     )
-    voting = EnumIntegerField(Commenting, verbose_name=_('voting'), default=Commenting.REGISTERED)
+    voting = EnumIntegerField(Commenting, verbose_name=_("voting"), default=Commenting.REGISTERED)
 
     def recache_n_comments(self):
         new_n_comments = self.comments.count()
@@ -153,7 +153,7 @@ class Commentable(models.Model):
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))
         # if commentable has a parent hearing, recache the hearing comment count
-        if hasattr(self, 'hearing'):
+        if hasattr(self, "hearing"):
             self.hearing.recache_n_comments()
 
     def check_commenting(self, request):

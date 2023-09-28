@@ -8,7 +8,7 @@ from textwrap import dedent
 
 class ShortTextAreaWidget(AdminTextareaWidget):
     def __init__(self, attrs=None):
-        final_attrs = {'rows': '3'}
+        final_attrs = {"rows": "3"}
         if attrs is not None:
             final_attrs.update(attrs)
         super(ShortTextAreaWidget, self).__init__(attrs=final_attrs)
@@ -38,4 +38,4 @@ class Select2SelectMultiple(SelectMultiple):
             super(Select2SelectMultiple, self).render(name, value, attrs, renderer),
             self.SCRIPT_TEMPLATE.format(id=id),
         ]
-        return mark_safe(''.join(output))
+        return mark_safe("".join(output))

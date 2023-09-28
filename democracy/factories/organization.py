@@ -8,4 +8,4 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Organization
 
-    name = factory.Faker('sentence')
+    name = factory.Faker("sentence")

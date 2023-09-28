@@ -15,20 +15,20 @@ from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
 from democracy.views.utils import AbstractSerializerMixin, GeoJSONField
 
 COMMENT_FIELDS = [
-    'id',
-    'content',
-    'author_name',
-    'n_votes',
-    'created_at',
-    'is_registered',
-    'geojson',
-    'map_comment_text',
-    'images',
-    'label',
-    'organization',
-    'flagged',
-    'moderated',
-    'edited',
+    "id",
+    "content",
+    "author_name",
+    "n_votes",
+    "created_at",
+    "is_registered",
+    "geojson",
+    "map_comment_text",
+    "images",
+    "label",
+    "organization",
+    "flagged",
+    "moderated",
+    "edited",
 ]
 
 
@@ -44,10 +44,10 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
 
     def to_representation(self, instance):
         r = super().to_representation(instance)
-        request = self.context.get('request', None)
+        request = self.context.get("request", None)
         if request:
-            if request.GET.get('include', None) == 'plugin_data':
-                r['plugin_data'] = instance.plugin_data
+            if request.GET.get("include", None) == "plugin_data":
+                r["plugin_data"] = instance.plugin_data
         return r
 
     def get_is_registered(self, obj):
@@ -68,7 +68,7 @@ class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
     class Meta:
         model = BaseComment
         fields = [
-            'authorization_code',
+            "authorization_code",
         ]
 
 
@@ -88,7 +88,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
 
     def get_serializer(self, *args, **kwargs):
         serializer_class = kwargs.pop("serializer_class", None) or self.get_serializer_class()
-        context = kwargs['context'] = self.get_serializer_context()
+        context = kwargs["context"] = self.get_serializer_context()
         if serializer_class is self.edit_serializer_class and "data" in kwargs:  # Creating things with data?
             # So inject a reference to the parent object
             data = kwargs["data"].copy()
@@ -112,15 +112,8 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         return context
 
     def apply_select_and_prefetch(self, queryset):
-        return queryset.select_related(
-            "created_by",
-            "organization",
-            "section",
-        ).prefetch_related(
-            Prefetch(
-                "comments",
-                self.model.objects.everything().only("pk", "comment")
-            ),
+        return queryset.select_related("created_by", "organization", "section",).prefetch_related(
+            Prefetch("comments", self.model.objects.everything().only("pk", "comment")),
             "images",
             "poll_answers",
             "poll_answers__option",
@@ -157,7 +150,10 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
             assert parent.check_commenting(request) is None
         except ValidationError as verr:
-            return response.Response({'status': force_text("Validation error occured during submitting comment"), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {"status": force_text("Validation error occured during submitting comment"), "code": verr.code},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
     def _check_may_vote(self, request):
         parent = self.get_comment_parent()
@@ -165,7 +161,10 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
             assert parent.check_voting(request) is None
         except ValidationError as verr:
-            return response.Response({'status': force_text("Validation error occured during submitting vote"), 'code': verr.code}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response(
+                {"status": force_text("Validation error occured during submitting vote"), "code": verr.code},
+                status=status.HTTP_403_FORBIDDEN,
+            )
 
     def create(self, request, *args, **kwargs):
         resp = self._check_may_comment(request)
@@ -177,7 +176,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         serializer.is_valid(raise_exception=True)
         kwargs = {}
         if self.request.user.is_authenticated:
-            kwargs['created_by'] = self.request.user
+            kwargs["created_by"] = self.request.user
         comment = serializer.save(**kwargs)
         reversion.set_comment("Comment created")
         # and another for the response
@@ -197,13 +196,13 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         """
         if not instance.can_edit(request):
             return response.Response(
-                {'status': 'You do not have sufficient rights to edit a comment not owned by you.'},
+                {"status": "You do not have sufficient rights to edit a comment not owned by you."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        if request.user.is_authenticated and 'author_name' in request.data:
-            if request.data['author_name'] != instance.author_name:
+        if request.user.is_authenticated and "author_name" in request.data:
+            if request.data["author_name"] != instance.author_name:
                 return response.Response(
-                    {'status': 'Authenticated users cannot set author name.'}, status=status.HTTP_403_FORBIDDEN
+                    {"status": "Authenticated users cannot set author name."}, status=status.HTTP_403_FORBIDDEN
                 )
 
         extra_params = {}
@@ -211,16 +210,19 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         extra_params["edited"] = True
 
         # Use one serializer for update,
-        partial = kwargs.pop('partial', False)
+        partial = kwargs.pop("partial", False)
         serializer = self.get_serializer(
-            instance=instance, serializer_class=self.edit_serializer_class, data={**request.data, **extra_params}, partial=partial
+            instance=instance,
+            serializer_class=self.edit_serializer_class,
+            data={**request.data, **extra_params},
+            partial=partial,
         )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         reversion.set_comment("Comment updated")
         instance.refresh_from_db()
 
-        if getattr(instance, '_prefetched_objects_cache', None):
+        if getattr(instance, "_prefetched_objects_cache", None):
             # If 'prefetch_related' has been applied to a queryset, we need to
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
@@ -239,8 +241,8 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
 
         if not instance.can_delete(request):
             return response.Response(
-                {'status': 'You do not have sufficient rights to delete a comment not owned by you.'},
-                status=status.HTTP_403_FORBIDDEN
+                {"status": "You do not have sufficient rights to delete a comment not owned by you."},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
         instance.soft_delete(user=request.user)
@@ -248,7 +250,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
 
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def vote(self, request, **kwargs):
         resp = self._check_may_vote(request)
         if resp:
@@ -259,39 +261,39 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             # If the check went through, anonymous voting is allowed
             comment.n_unregistered_votes += 1
             comment.recache_n_votes()
-            return response.Response({'status': 'Vote has been counted'}, status=status.HTTP_200_OK)
+            return response.Response({"status": "Vote has been counted"}, status=status.HTTP_200_OK)
         # Check if user voted already. If yes, return 304.
         if comment.__class__.objects.filter(id=comment.id, voters=request.user).exists():
-            return response.Response({'status': 'Already voted'}, status=status.HTTP_304_NOT_MODIFIED)
+            return response.Response({"status": "Already voted"}, status=status.HTTP_304_NOT_MODIFIED)
         # add voter
         comment.voters.add(request.user)
         # update number of votes
         comment.recache_n_votes()
         # return success
-        return response.Response({'status': 'Vote has been added'}, status=status.HTTP_201_CREATED)
+        return response.Response({"status": "Vote has been added"}, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def flag(self, request, **kwargs):
         instance = self.get_object()
         user = request.user
         # Only hearing organization admins can flag comments
         if instance.section.hearing.organization not in user.admin_organizations.all():
             return response.Response(
-                {'status': "You don't have authorization to flag this comment"}, status=status.HTTP_403_FORBIDDEN
+                {"status": "You don't have authorization to flag this comment"}, status=status.HTTP_403_FORBIDDEN
             )
         if instance.flagged_at:
-            return response.Response({'status': 'Already flagged'}, status=status.HTTP_304_NOT_MODIFIED)
+            return response.Response({"status": "Already flagged"}, status=status.HTTP_304_NOT_MODIFIED)
 
         instance.flagged_at = timezone.now()
         instance.flagged_by = request.user
         instance.save()
-        return response.Response({'status': 'comment flagged'})
+        return response.Response({"status": "comment flagged"})
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def unvote(self, request, **kwargs):
         # Return 403 if user is not authenticated
         if not request.user.is_authenticated:
-            return response.Response({'status': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response({"status": "Forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
         comment = self.get_object()
 
@@ -302,6 +304,6 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             # update number of votes
             comment.recache_n_votes()
             # return success
-            return response.Response({'status': 'Removed vote'}, status=status.HTTP_204_NO_CONTENT)
+            return response.Response({"status": "Removed vote"}, status=status.HTTP_204_NO_CONTENT)
 
-        return response.Response({'status': 'You have not voted for this comment'}, status=status.HTTP_304_NOT_MODIFIED)
+        return response.Response({"status": "You have not voted for this comment"}, status=status.HTTP_304_NOT_MODIFIED)

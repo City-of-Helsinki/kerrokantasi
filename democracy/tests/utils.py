@@ -9,13 +9,13 @@ from democracy.models.files import BaseFile
 from democracy.models.images import BaseImage
 
 IMAGES = {
-    "ORIGINAL": 'original.jpg',
-    "SMALL": 'small.jpg',
-    "THUMBNAIL": 'thumbnail.jpg',
+    "ORIGINAL": "original.jpg",
+    "SMALL": "small.jpg",
+    "THUMBNAIL": "thumbnail.jpg",
 }
 
 FILES = {
-    "TXT": 'text_file.txt',
+    "TXT": "text_file.txt",
 }
 
 IMAGE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "images")
@@ -23,11 +23,11 @@ FILE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "files")
 
 
 def image_to_base64(filename):
-    return 'data:image/jpg;base64,%s' % base64.b64encode(image_to_bytesio(filename).getvalue()).decode('ascii')
+    return "data:image/jpg;base64,%s" % base64.b64encode(image_to_bytesio(filename).getvalue()).decode("ascii")
 
 
 def file_to_base64(filename):
-    return 'data:application/pdf;base64,%s' % base64.b64encode(file_to_bytesio(filename).getvalue()).decode('ascii')
+    return "data:application/pdf;base64,%s" % base64.b64encode(file_to_bytesio(filename).getvalue()).decode("ascii")
 
 
 def image_to_bytesio(filename):
@@ -39,7 +39,7 @@ def image_to_bytesio(filename):
 
 
 def file_to_bytesio(filename):
-    file = open(os.path.join(FILE_SOURCE_PATH, filename), 'rb')
+    file = open(os.path.join(FILE_SOURCE_PATH, filename), "rb")
     buffered = BytesIO(file.read())
     buffered.name = filename
     return buffered
@@ -47,59 +47,59 @@ def file_to_bytesio(filename):
 
 def image_test_json():
     return {
-        'caption': 'Test',
-        'title': 'Test title',
-        'image': image_to_base64(IMAGES['ORIGINAL']),
+        "caption": "Test",
+        "title": "Test title",
+        "image": image_to_base64(IMAGES["ORIGINAL"]),
     }
 
 
-def sectionimage_test_json(title_en='Test title'):
+def sectionimage_test_json(title_en="Test title"):
     return {
-        'caption': {
-            'en': 'Test',
-            'fi': 'Testi',
+        "caption": {
+            "en": "Test",
+            "fi": "Testi",
         },
-        'title': {
-            'en': title_en,
-            'fi': 'Finnish test title',
+        "title": {
+            "en": title_en,
+            "fi": "Finnish test title",
         },
-        'alt_text': {
-            'en': 'Map of the area',
-            'fi': 'Rakennettavan alueen kartta',
+        "alt_text": {
+            "en": "Map of the area",
+            "fi": "Rakennettavan alueen kartta",
         },
-        'image': image_to_base64(IMAGES['ORIGINAL']),
+        "image": image_to_base64(IMAGES["ORIGINAL"]),
     }
 
 
-def sectionfile_multipart_test_data(title_en='Test title'):
+def sectionfile_multipart_test_data(title_en="Test title"):
     # multipart POST requires dumping subobjects as strings
     return {
-        'caption': json.dumps(
+        "caption": json.dumps(
             {
-                'en': 'Test',
-                'fi': 'Testi',
+                "en": "Test",
+                "fi": "Testi",
             }
         ),
-        'title': json.dumps(
+        "title": json.dumps(
             {
-                'en': title_en,
-                'fi': 'Finnish test title',
+                "en": title_en,
+                "fi": "Finnish test title",
             }
         ),
     }
 
 
-def sectionfile_base64_test_data(title_en='Test title'):
+def sectionfile_base64_test_data(title_en="Test title"):
     return {
-        'caption': {
-            'en': 'Test',
-            'fi': 'Testi',
+        "caption": {
+            "en": "Test",
+            "fi": "Testi",
         },
-        'title': {
-            'en': title_en,
-            'fi': 'Finnish test title',
+        "title": {
+            "en": title_en,
+            "fi": "Finnish test title",
         },
-        'file': file_to_base64(FILES['TXT']),
+        "file": file_to_base64(FILES["TXT"]),
     }
 
 
@@ -161,7 +161,7 @@ def get_data_from_response(response, status_code=200):
             response.status_code,
             status_code,
         )
-    return json.loads(response.content.decode('utf-8'))
+    return json.loads(response.content.decode("utf-8"))
 
 
 def assert_datetime_fuzzy_equal(dt1, dt2, fuzziness=1):
@@ -182,25 +182,25 @@ def assert_ascending_sequence(seq):
 
 
 def get_hearing_detail_url(id, element=None):
-    url = '/v1/hearing/%s/' % id
+    url = "/v1/hearing/%s/" % id
     if element:
         url += "%s/" % element
     return url
 
 
 def get_sectionfile_download_url(id):
-    return '/v1/download/sectionfile/%s/' % id
+    return "/v1/download/sectionfile/%s/" % id
 
 
 def assert_id_in_results(id, results, expected=True):
-    included = id in [value['id'] for value in results]
+    included = id in [value["id"] for value in results]
     assert included is expected
 
 
 def assert_common_keys_equal(dict1, dict2):
     for key in set(dict1) & set(dict2):
         assert dict1[key] == dict2[key], 'dict1["%(key)s"] = %(v1)s while dict2["%(key)s"] = %(v2)s' % {
-            'key': key,
-            'v1': dict1[key],
-            'v2': dict2[key],
+            "key": key,
+            "v1": dict1[key],
+            "v2": dict2[key],
         }

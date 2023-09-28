@@ -1,4 +1,4 @@
-from django.urls import path, re_path, include
+from django.urls import include, path, re_path
 from rest_framework_nested import routers
 
 from democracy.views import (

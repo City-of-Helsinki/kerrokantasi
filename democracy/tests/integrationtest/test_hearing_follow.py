@@ -5,12 +5,12 @@ from democracy.tests.utils import get_hearing_detail_url
 
 def get_hearing_follow_url(hearing_id):
     # /v1/hearings/<hearingID>/follow/
-    return get_hearing_detail_url(hearing_id, 'follow')
+    return get_hearing_detail_url(hearing_id, "follow")
 
 
 def get_hearing_unfollow_url(hearing_id):
     # /v1/hearings/<hearingID>/unfollow/
-    return get_hearing_detail_url(hearing_id, 'unfollow')
+    return get_hearing_detail_url(hearing_id, "unfollow")
 
 
 @pytest.mark.django_db
@@ -49,5 +49,5 @@ def test_hearing_unfollow(api_client, john_doe_api_client, default_hearing):
 @pytest.mark.django_db
 def test_followed_hearing_appear_in_user_data(john_doe_api_client, default_hearing):
     john_doe_api_client.post(get_hearing_follow_url(default_hearing.id))
-    response = john_doe_api_client.get('/v1/users/')
-    assert default_hearing.id in response.data[0]['followed_hearings']
+    response = john_doe_api_client.get("/v1/users/")
+    assert default_hearing.id in response.data[0]["followed_hearings"]

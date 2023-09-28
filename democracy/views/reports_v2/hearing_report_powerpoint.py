@@ -39,7 +39,7 @@ class HearingReportPowerPoint:
         self.buffer = io.BytesIO()
         self.context = context
         self.initial_language = translation.get_language()
-        self.used_language = get_selected_language(context['request'].query_params.get('lang'))
+        self.used_language = get_selected_language(context["request"].query_params.get("lang"))
         translation.activate(self.used_language)
         self.prs = Presentation(self._get_theme_filename())
 
@@ -58,10 +58,10 @@ class HearingReportPowerPoint:
         slide = self.prs.slides.add_slide(title_slide_layout)
         title = slide.shapes.title
         info = slide.placeholders[10]
-        title_text = get_default_translation(self.json['title'], self.used_language)
+        title_text = get_default_translation(self.json["title"], self.used_language)
         title.text = title_text
         title.text_frame.paragraphs[0].font.size = get_powerpoint_title_font_size(title_text)
-        hearing_timerange = get_formatted_hearing_timerange(self.json['open_at'], self.json['close_at'])
+        hearing_timerange = get_formatted_hearing_timerange(self.json["open_at"], self.json["close_at"])
 
         info.text = f'{_("Kerrokantasi hearing")} {hearing_timerange}' f'\n{_("Comments")} {self.json["n_comments"]}.'
 
@@ -70,9 +70,9 @@ class HearingReportPowerPoint:
         slide = self.prs.slides.add_slide(subsection_title_slide_layout)
         title = slide.shapes.title
         # sub section names use their title or type name if title doesnt exist
-        section_title = get_default_translation(section['title'], self.used_language)
+        section_title = get_default_translation(section["title"], self.used_language)
         if not section_title:
-            section_title = section['type_name_singular']
+            section_title = section["type_name_singular"]
         title.text = section_title
         title.text_frame.paragraphs[0].font.size = get_powerpoint_title_font_size(section_title, False)
 
@@ -94,7 +94,7 @@ class HearingReportPowerPoint:
                     bullet = text_area.paragraphs[0]
                 else:
                     bullet = text_area.add_paragraph()
-                bullet.text = comment['content']
+                bullet.text = comment["content"]
         else:
             bullet = text_area.paragraphs[0]
             bullet.text = f'{_("No comments")}'
@@ -107,27 +107,27 @@ class HearingReportPowerPoint:
             current_comment = comment
             # if comment is too long, truncate it
             comment_max_length = MAX_ROWS_PER_COMMENT_SLIDE * MAX_CHARACTERS_PER_SINGLE_COMMENT_ROW
-            if len(current_comment['content']) > comment_max_length:
-                current_comment['content'] = current_comment['content'][: comment_max_length - 3] + '...'
+            if len(current_comment["content"]) > comment_max_length:
+                current_comment["content"] = current_comment["content"][: comment_max_length - 3] + "..."
 
-            comment_rows = int(math.ceil(len(current_comment['content']) / MAX_CHARACTERS_PER_SINGLE_COMMENT_ROW))
-            comments_data.append({'comment': current_comment, 'comment_rows': comment_rows})
+            comment_rows = int(math.ceil(len(current_comment["content"]) / MAX_CHARACTERS_PER_SINGLE_COMMENT_ROW))
+            comments_data.append({"comment": current_comment, "comment_rows": comment_rows})
 
         # handle calculating how to insert comments into pages
         section_comment_pages = []
         comments_in_page = []
         used_row_counter = 0
         for comment_data in comments_data:
-            if comment_data['comment_rows'] + used_row_counter <= MAX_ROWS_PER_COMMENT_SLIDE:
+            if comment_data["comment_rows"] + used_row_counter <= MAX_ROWS_PER_COMMENT_SLIDE:
                 # when comment fits in current page, insert it
-                comments_in_page.append(comment_data['comment'])
-                used_row_counter += comment_data['comment_rows']
+                comments_in_page.append(comment_data["comment"])
+                used_row_counter += comment_data["comment_rows"]
             else:
                 # when overflow would happen, start on a new page
                 section_comment_pages.append(copy.deepcopy(comments_in_page))
                 comments_in_page = []
-                comments_in_page.append(comment_data['comment'])
-                used_row_counter = comment_data['comment_rows']
+                comments_in_page.append(comment_data["comment"])
+                used_row_counter = comment_data["comment_rows"]
 
         # add last filled page
         section_comment_pages.append(copy.deepcopy(comments_in_page))
@@ -140,22 +140,22 @@ class HearingReportPowerPoint:
         slide = self.prs.slides.add_slide(poll_slide_layout)
 
         chart_data = CategoryChartData()
-        poll_options = poll['options']
-        options_data = {'categories': [], 'n_answers': []}
+        poll_options = poll["options"]
+        options_data = {"categories": [], "n_answers": []}
 
         for option in poll_options:
-            options_data['categories'].append(get_default_translation(option['text'], self.used_language))
-            options_data['n_answers'].append(option['n_answers'])
-        chart_data.categories = options_data['categories']
-        chart_title = get_default_translation(poll['text'], self.used_language)
-        chart_data.add_series(chart_title, options_data['n_answers'])
+            options_data["categories"].append(get_default_translation(option["text"], self.used_language))
+            options_data["n_answers"].append(option["n_answers"])
+        chart_data.categories = options_data["categories"]
+        chart_title = get_default_translation(poll["text"], self.used_language)
+        chart_data.add_series(chart_title, options_data["n_answers"])
 
         x, y, cx, cy = Inches(1), Inches(0.5), Inches(8), Inches(4.5)
         slide.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, x, y, cx, cy, chart_data)
 
         info = slide.placeholders[1]
-        poll_type = poll['type']
-        poll_total_answers = poll['n_answers']
+        poll_type = poll["type"]
+        poll_total_answers = poll["n_answers"]
         info.text = f'{_("Type")}: {_(poll_type)}, {_("total answers")}: {poll_total_answers}'
 
     def _add_section(self, section: dict):
@@ -166,26 +166,26 @@ class HearingReportPowerPoint:
         - Comment slides
         """
         # add title slide
-        if section['type'] == 'main':
+        if section["type"] == "main":
             self._add_main_title_slide()
         else:
             self._add_subsection_title_slide(section)
 
         # add poll slides
-        for poll in section['questions']:
+        for poll in section["questions"]:
             self._add_poll_slide(poll)
 
         # add comment slides
         comments = [
             SectionCommentSerializer(c, context=self.context).data
-            for c in SectionComment.objects.filter(section=section['id'])
+            for c in SectionComment.objects.filter(section=section["id"])
         ]
         self._add_comment_slides(comments)
 
     def _get_pptx(self):
-        sections = self.json['sections']
+        sections = self.json["sections"]
         for section in sections:
-            if section['type'] != InitialSectionType.CLOSURE_INFO:
+            if section["type"] != InitialSectionType.CLOSURE_INFO:
                 self._add_section(section)
 
         self.prs.save(self.buffer)
@@ -198,8 +198,8 @@ class HearingReportPowerPoint:
             content_type="application/vnd.openxmlformats-officedocument.presentationml.presentation",
         )
         # remove special characters from filename to avoid potential file naming issues
-        response['Content-Disposition'] = 'attachment; filename="{filename}.pptx"'.format(
-            filename=re.sub(r"\W+|_", " ", get_default_translation(self.json['title'], self.used_language))
+        response["Content-Disposition"] = 'attachment; filename="{filename}.pptx"'.format(
+            filename=re.sub(r"\W+|_", " ", get_default_translation(self.json["title"], self.used_language))
         )
         translation.activate(self.initial_language)
         return response

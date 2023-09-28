@@ -6,7 +6,7 @@ from democracy.views.utils import Base64ImageField
 class CommentImageSerializer(BaseImageSerializer):
     class Meta:
         model = CommentImage
-        fields = ['url', 'width', 'height', 'title', 'caption', 'id']
+        fields = ["url", "width", "height", "title", "caption", "id"]
 
 
 class CommentImageCreateSerializer(BaseImageSerializer):
@@ -18,4 +18,4 @@ class CommentImageCreateSerializer(BaseImageSerializer):
 
     class Meta:
         model = CommentImage
-        fields = ['title', 'image', 'id', 'width', 'height', 'caption']
+        fields = ["title", "image", "id", "width", "height", "caption"]

@@ -29,49 +29,49 @@ class HearingQueryset(TranslatableQuerySet):
 
 
 class Hearing(StringIdBaseModel, TranslatableModel):
-    open_at = models.DateTimeField(verbose_name=_('opening time'), default=timezone.now)
-    close_at = models.DateTimeField(verbose_name=_('closing time'), default=timezone.now)
-    force_closed = models.BooleanField(verbose_name=_('force hearing closed'), default=False)
+    open_at = models.DateTimeField(verbose_name=_("opening time"), default=timezone.now)
+    close_at = models.DateTimeField(verbose_name=_("closing time"), default=timezone.now)
+    force_closed = models.BooleanField(verbose_name=_("force hearing closed"), default=False)
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_('title'), max_length=255),
-        borough=models.CharField(verbose_name=_('borough'), blank=True, default='', max_length=200),
+        title=models.CharField(verbose_name=_("title"), max_length=255),
+        borough=models.CharField(verbose_name=_("borough"), blank=True, default="", max_length=200),
     )
-    servicemap_url = models.CharField(verbose_name=_('service map URL'), default='', max_length=255, blank=True)
-    geojson = GeoJSONField(blank=True, null=True, verbose_name=_('area'))
-    geometry = models.GeometryCollectionField(blank=True, null=True, verbose_name=_('area geometry'))
+    servicemap_url = models.CharField(verbose_name=_("service map URL"), default="", max_length=255, blank=True)
+    geojson = GeoJSONField(blank=True, null=True, verbose_name=_("area"))
+    geometry = models.GeometryCollectionField(blank=True, null=True, verbose_name=_("area geometry"))
     organization = models.ForeignKey(
         Organization,
-        verbose_name=_('organization'),
+        verbose_name=_("organization"),
         related_name="hearings",
         blank=True,
         null=True,
         on_delete=models.PROTECT,
     )
-    labels = models.ManyToManyField("Label", verbose_name=_('labels'), blank=True)
+    labels = models.ManyToManyField("Label", verbose_name=_("labels"), blank=True)
     followers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('followers'),
-        help_text=_('users who follow this hearing'),
-        related_name='followed_hearings',
+        verbose_name=_("followers"),
+        help_text=_("users who follow this hearing"),
+        related_name="followed_hearings",
         blank=True,
         editable=False,
     )
     slug = AutoSlugField(
-        verbose_name=_('slug'),
-        populate_from='title',
+        verbose_name=_("slug"),
+        populate_from="title",
         editable=True,
         unique=True,
         blank=True,
-        help_text=_('You may leave this empty to automatically generate a slug'),
+        help_text=_("You may leave this empty to automatically generate a slug"),
     )
-    n_comments = models.IntegerField(verbose_name=_('number of comments'), blank=True, default=0, editable=False)
+    n_comments = models.IntegerField(verbose_name=_("number of comments"), blank=True, default=0, editable=False)
     contact_persons = models.ManyToManyField(
-        ContactPerson, verbose_name=_('contact persons'), related_name='hearings', through=ContactPersonOrder
+        ContactPerson, verbose_name=_("contact persons"), related_name="hearings", through=ContactPersonOrder
     )
     project_phase = models.ForeignKey(
         ProjectPhase,
-        verbose_name=_('project phase'),
-        related_name='hearings',
+        verbose_name=_("project phase"),
+        related_name="hearings",
         on_delete=models.PROTECT,
         null=True,
         blank=True,
@@ -81,8 +81,8 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     original_manager = models.Manager()
 
     class Meta:
-        verbose_name = _('hearing')
-        verbose_name_plural = _('hearings')
+        verbose_name = _("hearing")
+        verbose_name_plural = _("hearings")
 
     def __str__(self):
         return self.title or self.id
@@ -107,13 +107,13 @@ class Hearing(StringIdBaseModel, TranslatableModel):
 
     @property
     def preview_url(self):
-        if not (self.preview_code and hasattr(settings, 'DEMOCRACY_UI_BASE_URL')):
+        if not (self.preview_code and hasattr(settings, "DEMOCRACY_UI_BASE_URL")):
             return None
-        url = urljoin(settings.DEMOCRACY_UI_BASE_URL, '/%s/?preview=%s' % (self.pk, self.preview_code))
+        url = urljoin(settings.DEMOCRACY_UI_BASE_URL, "/%s/?preview=%s" % (self.pk, self.preview_code))
         return url
 
     def save(self, *args, **kwargs):
-        slug_field = self._meta.get_field('slug')
+        slug_field = self._meta.get_field("slug")
 
         # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
         # uses our default manager, which can lead to a slug collision between this and a deleted hearing
@@ -124,7 +124,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         super().save(*args, **kwargs)
 
     def recache_n_comments(self):
-        new_n_comments = self.sections.all().aggregate(Sum('n_comments')).get('n_comments__sum') or 0
+        new_n_comments = self.sections.all().aggregate(Sum("n_comments")).get("n_comments__sum") or 0
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))
@@ -150,6 +150,6 @@ class Hearing(StringIdBaseModel, TranslatableModel):
     def soft_delete(self, user=None):
         # we want deleted hearings to give way to new ones, the original slug from a deleted hearing
         # is now free to use
-        self.slug += '-deleted'
+        self.slug += "-deleted"
         self.save()
         super().soft_delete(user=user)

@@ -46,16 +46,16 @@ from democracy.views.utils import (
 
 
 class HearingFilterSet(django_filters.rest_framework.FilterSet):
-    open_at_lte = django_filters.IsoDateTimeFilter(field_name='open_at', lookup_expr='lte')
-    open_at_gt = django_filters.IsoDateTimeFilter(field_name='open_at', lookup_expr='gt')
-    title = django_filters.CharFilter(lookup_expr='icontains', field_name='translations__title', distinct=True)
+    open_at_lte = django_filters.IsoDateTimeFilter(field_name="open_at", lookup_expr="lte")
+    open_at_gt = django_filters.IsoDateTimeFilter(field_name="open_at", lookup_expr="gt")
+    title = django_filters.CharFilter(lookup_expr="icontains", field_name="translations__title", distinct=True)
     label = django_filters.Filter(
-        field_name='labels__id', lookup_expr='in', distinct=True, widget=django_filters.widgets.CSVWidget
+        field_name="labels__id", lookup_expr="in", distinct=True, widget=django_filters.widgets.CSVWidget
     )
 
     class Meta:
         model = Hearing
-        fields = ['published', 'open_at_lte', 'open_at_gt', 'title', 'label']
+        fields = ["published", "open_at_lte", "open_at_gt", "title", "label"]
 
 
 class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
@@ -70,46 +70,46 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     )
     labels = NestedPKRelatedField(queryset=Label.objects.all(), many=True, expanded=True, serializer=LabelSerializer)
 
-    organization = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    organization = serializers.SlugRelatedField(read_only=True, slug_field="name")
     project = serializers.DictField(write_only=True, required=False, allow_null=True)
     slug = serializers.SlugField()
 
     class Meta:
         model = Hearing
         fields = [
-            'title',
-            'id',
-            'borough',
-            'force_closed',
-            'published',
-            'open_at',
-            'close_at',
-            'created_at',
-            'servicemap_url',
-            'sections',
-            'closed',
-            'geojson',
-            'organization',
-            'slug',
-            'contact_persons',
-            'labels',
-            'project',
+            "title",
+            "id",
+            "borough",
+            "force_closed",
+            "published",
+            "open_at",
+            "close_at",
+            "created_at",
+            "servicemap_url",
+            "sections",
+            "closed",
+            "geojson",
+            "organization",
+            "slug",
+            "contact_persons",
+            "labels",
+            "project",
         ]
 
     def __init__(self, *args, **kwargs):
         super(HearingCreateUpdateSerializer, self).__init__(*args, **kwargs)
-        self.partial = kwargs.get('partial', False)
+        self.partial = kwargs.get("partial", False)
 
     def validate(self, data):
         data = super(HearingCreateUpdateSerializer, self).validate(data)
-        action = self.context['view'].action
-        titles = data.get('title')
-        if not titles and action in ('create', 'update'):
-            raise serializers.ValidationError('Title is required at least in one locale')
+        action = self.context["view"].action
+        titles = data.get("title")
+        if not titles and action in ("create", "update"):
+            raise serializers.ValidationError("Title is required at least in one locale")
         if titles and not any(titles.values()):
             # If title is present in payload, one locale must be set when creating,
             # updating as whole or patching
-            raise serializers.ValidationError('Title is required at least in one locale')
+            raise serializers.ValidationError("Title is required at least in one locale")
         return data
 
     def _create_or_update_contact_persons(self, hearing, contact_person_data):
@@ -137,15 +137,15 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         """
         sections = set()
         for index, section_data in enumerate(sections_data):
-            section_data['ordering'] = index
-            pk = section_data.pop('id', None)
+            section_data["ordering"] = index
+            pk = section_data.pop("id", None)
 
-            serializer_params = {'data': section_data, 'context': {'request': self.context['request']}}
+            serializer_params = {"data": section_data, "context": {"request": self.context["request"]}}
 
             if pk and not force_create:
                 try:
                     section = hearing.sections.get(id=pk)
-                    serializer_params['instance'] = section
+                    serializer_params["instance"] = section
                 except Section.DoesNotExist:
                     pass
 
@@ -156,7 +156,7 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             except ValidationError as e:
                 errors = [{} for _ in range(len(sections_data))]
                 errors[index] = e.detail
-                raise ValidationError({'sections': errors})
+                raise ValidationError({"sections": errors})
 
             section = serializer.save(hearing=hearing)
             sections.add(section)
@@ -175,14 +175,14 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             return None
 
         serializer_params = {
-            'data': project_data,
-            'context': {'hearing': hearing},
+            "data": project_data,
+            "context": {"hearing": hearing},
         }
-        pk = project_data.pop('id', None)
+        pk = project_data.pop("id", None)
         if pk is not None:
             # deserializing an existing instance
             try:
-                serializer_params['instance'] = Project.objects.get(pk=pk)
+                serializer_params["instance"] = Project.objects.get(pk=pk)
             except Project.DoesNotExist:
                 pass
         serializer = ProjectCreateUpdateSerializer(**serializer_params)
@@ -193,11 +193,11 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     @transaction.atomic()
     def create(self, validated_data):
         contact_person_data = validated_data.pop("contact_persons", None)
-        sections_data = validated_data.pop('sections')
-        project_data = validated_data.pop('project', None)
-        validated_data['organization'] = self.context['request'].user.get_default_organization()
-        validated_data['created_by_id'] = self.context['request'].user.id
-        validated_data['published'] = False  # Force new hearings to be unpublished initially
+        sections_data = validated_data.pop("sections")
+        project_data = validated_data.pop("project", None)
+        validated_data["organization"] = self.context["request"].user.get_default_organization()
+        validated_data["created_by_id"] = self.context["request"].user.id
+        validated_data["published"] = False  # Force new hearings to be unpublished initially
         hearing = super().create(validated_data)
         self._create_or_update_contact_persons(hearing, contact_person_data)
         self._create_or_update_sections(hearing, sections_data, force_create=True)
@@ -214,16 +214,16 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
           * If a section with given id exists, update it.
           * Old sections whose ids aren't matched are (soft) deleted.
         """
-        if instance.organization not in self.context['request'].user.admin_organizations.all():
-            raise PermissionDenied('Only organization admins can update organization hearings.')
+        if instance.organization not in self.context["request"].user.admin_organizations.all():
+            raise PermissionDenied("Only organization admins can update organization hearings.")
 
         if self.partial:
             return super().update(instance, validated_data)
 
         contact_person_data = validated_data.pop("contact_persons", None)
-        sections_data = validated_data.pop('sections')
-        project_data = validated_data.pop('project', None)
-        validated_data['modified_by_id'] = self.context['request'].user.id
+        sections_data = validated_data.pop("sections")
+        project_data = validated_data.pop("project", None)
+        validated_data["modified_by_id"] = self.context["request"].user.id
         hearing = super().update(instance, validated_data)
         self._create_or_update_contact_persons(hearing, contact_person_data)
         sections = self._create_or_update_sections(hearing, sections_data)
@@ -238,22 +238,22 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     def validate_sections(self, data):
         if self.partial:
-            raise ValidationError('Sections cannot be updated by PATCHing the Hearing')
+            raise ValidationError("Sections cannot be updated by PATCHing the Hearing")
 
         num_of_sections = defaultdict(int)
 
         for section_data in data:
-            num_of_sections[section_data['type']] += 1
-            pk = section_data.get('id')
+            num_of_sections[section_data["type"]] += 1
+            pk = section_data.get("id")
 
             if pk and self.instance and not self.instance.sections.filter(pk=pk).exists():
-                raise ValidationError('The Hearing does not have a section with ID %s' % pk)
+                raise ValidationError("The Hearing does not have a section with ID %s" % pk)
 
         if num_of_sections[InitialSectionType.MAIN] != 1:
-            raise ValidationError('A hearing must have exactly one main section')
+            raise ValidationError("A hearing must have exactly one main section")
 
         if num_of_sections[InitialSectionType.CLOSURE_INFO] > 1:
-            raise ValidationError('A hearing cannot have more than one closure info sections')
+            raise ValidationError("A hearing cannot have more than one closure info sections")
 
         return data
 
@@ -261,22 +261,22 @@ class HearingCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         if data is None:
             return data
         if len(self._get_active_phases(data)) != 1:
-            raise ValidationError('Hearing in a project must have exactly one active phase')
+            raise ValidationError("Hearing in a project must have exactly one active phase")
         return data
 
     def _get_active_phases(self, project_data):
         """
         Return list of phase data marked as is_active in the project data
         """
-        return [phase for phase in project_data['phases'] if phase['is_active'] is True]
+        return [phase for phase in project_data["phases"] if phase["is_active"] is True]
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data['sections'] = SectionSerializer(instance=instance.sections.all(), many=True, context=self.context).data
+        data["sections"] = SectionSerializer(instance=instance.sections.all(), many=True, context=self.context).data
         if instance.project_phase:
-            data['project'] = ProjectSerializer(instance=instance.project_phase.project, context=self.context).data
+            data["project"] = ProjectSerializer(instance=instance.project_phase.project, context=self.context).data
         else:
-            data['project'] = None
+            data["project"] = None
         return data
 
 
@@ -284,7 +284,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = GeoJSONField()
-    organization = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    organization = serializers.SlugRelatedField(read_only=True, slug_field="name")
     main_image = serializers.SerializerMethodField()
     abstract = serializers.SerializerMethodField()
     preview_url = serializers.SerializerMethodField()
@@ -293,13 +293,13 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     project = serializers.SerializerMethodField()
 
     def _get_main_section(self, hearing):
-        prefetched_mains = getattr(hearing, 'main_section_list', [])
+        prefetched_mains = getattr(hearing, "main_section_list", [])
         return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
 
     def get_abstract(self, hearing):
         main_section = self._get_main_section(hearing)
         if not main_section:
-            return ''
+            return ""
         translations = {
             t.language_code: t.abstract
             for t in get_translation_list(main_section, language_codes=self.Meta.translation_lang)
@@ -316,7 +316,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
 
         serializer = SectionFieldSerializer(many=True, read_only=True)
-        serializer.bind('sections', self)  # this is needed to get context in the serializer
+        serializer.bind("sections", self)  # this is needed to get context in the serializer
         return serializer.to_representation(queryset)
 
     def get_main_image(self, hearing):
@@ -328,7 +328,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         if not main_image:
             return None
 
-        if main_image.published or self.context['request'].user.is_superuser:
+        if main_image.published or self.context["request"].user.is_superuser:
             return SectionImageSerializer(context=self.context, instance=main_image).data
         else:
             return None
@@ -348,39 +348,39 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         if hearing.project_phase is None:
             return None
         context = self.context
-        context['hearing'] = hearing
+        context["hearing"] = hearing
         project = hearing.project_phase.project
         serializer = ProjectFieldSerializer(read_only=True)
-        serializer.bind('project', self)  # this is needed to get context in the serializer
+        serializer.bind("project", self)  # this is needed to get context in the serializer
         return serializer.to_representation(project)
 
     class Meta:
         model = Hearing
         fields = [
-            'abstract',
-            'title',
-            'id',
-            'borough',
-            'n_comments',
-            'published',
-            'labels',
-            'open_at',
-            'close_at',
-            'created_at',
-            'servicemap_url',
-            'sections',
-            'preview_url',
-            'project',
-            'closed',
-            'geojson',
-            'organization',
-            'slug',
-            'main_image',
-            'contact_persons',
-            'default_to_fullscreen',
+            "abstract",
+            "title",
+            "id",
+            "borough",
+            "n_comments",
+            "published",
+            "labels",
+            "open_at",
+            "close_at",
+            "created_at",
+            "servicemap_url",
+            "sections",
+            "preview_url",
+            "project",
+            "closed",
+            "geojson",
+            "organization",
+            "slug",
+            "main_image",
+            "contact_persons",
+            "default_to_fullscreen",
         ]
-        read_only_fields = ['preview_url']
-        translation_lang = [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]
+        read_only_fields = ["preview_url"]
+        translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
 
 
 class HearingListSerializer(HearingSerializer):
@@ -389,9 +389,9 @@ class HearingListSerializer(HearingSerializer):
         # Elide section, contact person and geo data when listing hearings; one can get to them via detail routes
         fields.pop("sections")
         fields.pop("contact_persons")
-        request = self.context.get('request', None)
+        request = self.context.get("request", None)
         if request:
-            if not request.GET.get('include', None) == 'geojson' and not isinstance(
+            if not request.GET.get("include", None) == "geojson" and not isinstance(
                 request.accepted_renderer, GeoJSONRenderer
             ):
                 fields.pop("geojson")
@@ -403,23 +403,23 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
 
     class Meta:
         model = Hearing
-        fields = ['id', 'title', 'borough', 'open_at', 'close_at', 'closed', 'geojson', 'slug']
+        fields = ["id", "title", "borough", "open_at", "close_at", "closed", "geojson", "slug"]
 
 
 hearing_prefetches = (
     Prefetch(
-        'sections',
-        queryset=Section.objects.filter(type__identifier='main').prefetch_related(
-            Prefetch('translations', to_attr='translation_list'),
+        "sections",
+        queryset=Section.objects.filter(type__identifier="main").prefetch_related(
+            Prefetch("translations", to_attr="translation_list"),
             Prefetch(
-                'images',
-                queryset=SectionImage.objects.filter(section__type__identifier='main').prefetch_related('translations'),
+                "images",
+                queryset=SectionImage.objects.filter(section__type__identifier="main").prefetch_related("translations"),
             ),
         ),
-        to_attr='main_section_list',
+        to_attr="main_section_list",
     ),
-    Prefetch('labels', queryset=Label.objects.prefetch_related('translations')),
-    'translations',
+    Prefetch("labels", queryset=Label.objects.prefetch_related("translations")),
+    "translations",
 )
 
 
@@ -441,28 +441,28 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         GeoJSONRenderer,
     ]
 
-    ordering_fields = ('created_at', 'close_at', 'open_at', 'n_comments')
-    ordering = ('-created_at',)
+    ordering_fields = ("created_at", "close_at", "open_at", "n_comments")
+    ordering = ("-created_at",)
     filterset_class = HearingFilterSet
 
     def get_serializer_class(self, *args, **kwargs):
-        if self.action == 'list':
+        if self.action == "list":
             return HearingListSerializer
-        if self.action in ('create', 'update', 'partial_update'):
+        if self.action in ("create", "update", "partial_update"):
             return HearingCreateUpdateSerializer
         return HearingSerializer
 
     def filter_queryset(self, queryset):
-        next_closing = self.request.query_params.get('next_closing', None)
-        open = self.request.query_params.get('open', None)
-        created_by = self.request.query_params.get('created_by', None)
-        following = self.request.query_params.get('following', None)
+        next_closing = self.request.query_params.get("next_closing", None)
+        open = self.request.query_params.get("open", None)
+        created_by = self.request.query_params.get("created_by", None)
+        following = self.request.query_params.get("following", None)
 
         if following is not None and self.request.user:
             queryset = queryset.filter(followers=self.request.user)
 
         if created_by is not None and self.request.user:
-            if created_by.lower() == 'me':
+            if created_by.lower() == "me":
                 queryset = queryset.filter(created_by_id=self.request.user.id)
             else:
                 try:
@@ -475,9 +475,9 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         if next_closing is not None:
             # sliced querysets cannot be filtered or ordered further
-            return queryset.filter(close_at__gt=next_closing).order_by('close_at')[:1]
+            return queryset.filter(close_at__gt=next_closing).order_by("close_at")[:1]
         if open is not None:
-            if open.lower() == 'false' or open == 0:
+            if open.lower() == "false" or open == 0:
                 queryset = (
                     queryset.filter(close_at__lt=datetime.datetime.now())
                     | queryset.filter(open_at__gt=datetime.datetime.now())
@@ -494,7 +494,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = filter_by_hearing_visible(
-            Hearing.objects.with_unpublished(), self.request, hearing_lookup=''
+            Hearing.objects.with_unpublished(), self.request, hearing_lookup=""
         ).prefetch_related(*hearing_prefetches)
         return queryset
 
@@ -513,7 +513,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         preview_code = None
         if not obj.is_visible_for(user):
-            preview_code = self.request.query_params.get('preview')
+            preview_code = self.request.query_params.get("preview")
             if not preview_code or preview_code != obj.preview_code:
                 raise NotFound()
 
@@ -524,48 +524,48 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         self.check_object_permissions(self.request, obj)
         return obj
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):
         hearing = self.get_object()
 
         # check if user already follow a hearing
         if Hearing.objects.filter(id=hearing.id, followers=request.user).exists():
-            return response.Response({'status': 'Already follow'}, status=status.HTTP_304_NOT_MODIFIED)
+            return response.Response({"status": "Already follow"}, status=status.HTTP_304_NOT_MODIFIED)
 
         # add follower
         hearing.followers.add(request.user)
 
         # return success
-        return response.Response({'status': 'You follow a hearing now'}, status=status.HTTP_201_CREATED)
+        return response.Response({"status": "You follow a hearing now"}, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=["post"])
     def unfollow(self, request, pk=None):
         hearing = self.get_object()
 
         if Hearing.objects.filter(id=hearing.id, followers=request.user).exists():
             hearing.followers.remove(request.user)
-            return response.Response({'status': 'You stopped following a hearing'}, status=status.HTTP_204_NO_CONTENT)
+            return response.Response({"status": "You stopped following a hearing"}, status=status.HTTP_204_NO_CONTENT)
 
-        return response.Response({'status': 'You are not following this hearing'}, status=status.HTTP_304_NOT_MODIFIED)
+        return response.Response({"status": "You are not following this hearing"}, status=status.HTTP_304_NOT_MODIFIED)
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def report(self, request, pk=None):
         context = self.get_serializer_context()
         report = HearingReport(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def report_pptx(self, request, pk=None):
         user = request.user
         if not user or not user.is_authenticated or not user.get_default_organization():
             return response.Response(
-                {'status': 'User without organization cannot GET report pptx.'}, status=status.HTTP_403_FORBIDDEN
+                {"status": "User without organization cannot GET report pptx."}, status=status.HTTP_403_FORBIDDEN
             )
         context = self.get_serializer_context()
         report = HearingReportPowerPoint(HearingSerializer(self.get_object(), context=context).data, context=context)
         return report.get_response()
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def map(self, request):
         queryset = self.filter_queryset(self.get_queryset())
 
@@ -580,28 +580,28 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     def create(self, request):
         if not request.user or not request.user.get_default_organization():
             return response.Response(
-                {'status': 'User without organization cannot POST hearings.'}, status=status.HTTP_403_FORBIDDEN
+                {"status": "User without organization cannot POST hearings."}, status=status.HTTP_403_FORBIDDEN
             )
         return super().create(request)
 
     def update(self, request, pk=None, partial=False):
         if not request.user or not request.user.get_default_organization():
             return response.Response(
-                {'status': 'User without organization cannot PUT hearings.'}, status=status.HTTP_403_FORBIDDEN
+                {"status": "User without organization cannot PUT hearings."}, status=status.HTTP_403_FORBIDDEN
             )
         return super().update(request, pk=pk, partial=partial)
 
     def destroy(self, request, pk=None):
         if not request.user or not request.user.get_default_organization():
             return response.Response(
-                {'status': 'User without organization cannot DELETE hearings.'}, status=status.HTTP_403_FORBIDDEN
+                {"status": "User without organization cannot DELETE hearings."}, status=status.HTTP_403_FORBIDDEN
             )
         hearing = self.get_object()
         if hearing.published:
-            return response.Response({'status': 'Cannot DELETE published hearing.'}, status=status.HTTP_403_FORBIDDEN)
+            return response.Response({"status": "Cannot DELETE published hearing."}, status=status.HTTP_403_FORBIDDEN)
         if hearing.n_comments > 0:
             return response.Response(
-                {'status': 'Cannot DELETE hearing with comments.'}, status=status.HTTP_403_FORBIDDEN
+                {"status": "Cannot DELETE hearing with comments."}, status=status.HTTP_403_FORBIDDEN
             )
         hearing.soft_delete(user=request.user)
-        return response.Response({'status': 'Hearing deleted'}, status=status.HTTP_200_OK)
+        return response.Response({"status": "Hearing deleted"}, status=status.HTTP_200_OK)

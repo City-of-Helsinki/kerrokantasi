@@ -35,7 +35,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
 
     class Meta:
         model = BaseImage
-        fields = ['title', 'url', 'width', 'height', 'caption']
+        fields = ["title", "url", "width", "height", "caption"]
 
     def get_url(self, obj):
         url = self._get_image(obj).url
@@ -63,10 +63,10 @@ class BaseFileSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
 
     class Meta:
         model = BaseFile
-        fields = ['title', 'url', 'caption']
+        fields = ["title", "url", "caption"]
 
     def get_url(self, obj):
-        url = reverse('serve_file', kwargs={'filetype': self.filetype, 'pk': obj.pk})
+        url = reverse("serve_file", kwargs={"filetype": self.filetype, "pk": obj.pk})
         if not self.context:
             raise NotImplementedError("Not implemented")  # pragma: no cover
         request = self.context.get("request")

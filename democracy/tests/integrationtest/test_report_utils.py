@@ -10,27 +10,27 @@ from democracy.views.reports_v2.utils import (
 
 
 @pytest.mark.parametrize(
-    'lang_code, expected',
+    "lang_code, expected",
     [
-        ('fi', 'fi_test'),
-        ('en', 'en_test'),
-        ('sv', 'sv_test'),
-        ('aa', 'fi_test'),
+        ("fi", "fi_test"),
+        ("en", "en_test"),
+        ("sv", "sv_test"),
+        ("aa", "fi_test"),
     ],
 )
 def test_get_default_translation_returns_correct_str(lang_code, expected):
     """Tests that correct translation is returned from a field"""
-    test_field = {'fi': 'fi_test', 'en': 'en_test', 'sv': 'sv_test'}
+    test_field = {"fi": "fi_test", "en": "en_test", "sv": "sv_test"}
     assert get_default_translation(test_field, lang_code) == expected
 
 
 @pytest.mark.parametrize(
-    'lang_code, expected',
+    "lang_code, expected",
     [
-        ('fi', 'fi'),
-        ('en', 'en'),
-        ('sv', 'fi'),
-        (None, 'fi'),
+        ("fi", "fi"),
+        ("en", "en"),
+        ("sv", "fi"),
+        (None, "fi"),
     ],
 )
 def test_get_selected_language_returns_correct_lang_code(lang_code, expected):
@@ -39,11 +39,11 @@ def test_get_selected_language_returns_correct_lang_code(lang_code, expected):
 
 
 @pytest.mark.parametrize(
-    'open_at, close_at, expected',
+    "open_at, close_at, expected",
     [
-        ('2022-03-24T22:00:00Z', '2022-03-28T21:00:00Z', '24.-28.03.2022'),
-        ('2022-03-24T22:00:00Z', '2022-04-29T21:00:00Z', '24.03.-29.04.2022'),
-        ('2022-03-24T22:00:00Z', '2023-04-29T21:00:00Z', '24.03.2022-29.04.2023'),
+        ("2022-03-24T22:00:00Z", "2022-03-28T21:00:00Z", "24.-28.03.2022"),
+        ("2022-03-24T22:00:00Z", "2022-04-29T21:00:00Z", "24.03.-29.04.2022"),
+        ("2022-03-24T22:00:00Z", "2023-04-29T21:00:00Z", "24.03.2022-29.04.2023"),
     ],
 )
 def test_get_formatted_hearing_timerange_returns_correct_time_string(open_at, close_at, expected):
@@ -52,7 +52,7 @@ def test_get_formatted_hearing_timerange_returns_correct_time_string(open_at, cl
 
 
 @pytest.mark.parametrize(
-    'text_length, is_main_title, expected',
+    "text_length, is_main_title, expected",
     [
         (38, True, 56),
         (60, True, 40),
@@ -67,4 +67,4 @@ def test_get_formatted_hearing_timerange_returns_correct_time_string(open_at, cl
 )
 def test_get_powerpoint_title_font_size_returns_correct_val(text_length, is_main_title, expected):
     """Tests that correct font sizes are returned for given text and title type"""
-    assert get_powerpoint_title_font_size('x' * text_length, is_main_title) == Pt(expected)
+    assert get_powerpoint_title_font_size("x" * text_length, is_main_title) == Pt(expected)

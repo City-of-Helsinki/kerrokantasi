@@ -8,7 +8,7 @@ class UserAdmin(DjangoUserAdmin):
     fieldsets = DjangoUserAdmin.fieldsets + (
         (
             None,
-            {'fields': ('uuid', 'nickname')},
+            {"fields": ("uuid", "nickname")},
         ),
     )
 

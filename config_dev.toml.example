@@ -180,3 +180,8 @@ HEARING_REPORT_PUBLIC_AUTHOR_NAMES=False
 
 # Hearing report theming. Default is whitelabel
 # HEARING_REPORT_THEME=whitelabel
+
+# The numeric mode to apply to directories created in the process of uploading files.
+# String representation of an octal number. Default is 0o644
+# https://docs.djangoproject.com/en/4.2/ref/settings/#file-upload-permissions
+# FILE_UPLOAD_PERMISSIONS=0o644

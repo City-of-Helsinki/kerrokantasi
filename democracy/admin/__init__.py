@@ -50,9 +50,9 @@ class FixedModelForm(TranslatableModelForm):
 
         for name, field in self.fields.items():
             if isinstance(field, GeoJSONFormField):
-                field.help_text = ''
+                field.help_text = ""
             else:
-                field.help_text = field.help_text.replace(msg, '')
+                field.help_text = field.help_text.replace(msg, "")
 
 
 # Inlines
@@ -75,10 +75,10 @@ class SectionInlineFormSet(TranslatableBaseInlineFormSet):
         mains = 0
         closure_infos = 0
         for form in self.forms:
-            if not hasattr(form, 'cleaned_data') or form.cleaned_data.get('DELETE'):
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
                 continue
 
-            section_type = form.cleaned_data.get('type')
+            section_type = form.cleaned_data.get("type")
             if not section_type:
                 continue
 
@@ -88,10 +88,10 @@ class SectionInlineFormSet(TranslatableBaseInlineFormSet):
                 closure_infos += 1
 
         if mains != 1:
-            raise ValidationError(_('There must be exactly one main section.'))
+            raise ValidationError(_("There must be exactly one main section."))
 
         if closure_infos > 1:
-            raise ValidationError(_('There cannot be more than one closure info section.'))
+            raise ValidationError(_("There cannot be more than one closure info section."))
 
 
 class SectionInline(NestedStackedInline, TranslatableStackedInline):
@@ -145,7 +145,7 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
     def get_formset(self, request, obj=None, **kwargs):
         kwargs["formfield_callback"] = partial(self.formfield_for_dbfield, request=request, obj=obj)
         if getattr(obj, "pk", None):
-            kwargs['extra'] = 0
+            kwargs["extra"] = 0
         return super().get_formset(request, obj, **kwargs)
 
 
@@ -161,8 +161,8 @@ class ContactPersonInline(NestedStackedInline):
 
 class HearingGeoAdmin(LeafletGeoAdmin):
     settings_overrides = {
-        'DEFAULT_CENTER': settings.DEFAULT_MAP_COORDINATES,
-        'DEFAULT_ZOOM': settings.DEFAULT_MAP_ZOOM,
+        "DEFAULT_CENTER": settings.DEFAULT_MAP_COORDINATES,
+        "DEFAULT_ZOOM": settings.DEFAULT_MAP_ZOOM,
     }
 
 
@@ -183,7 +183,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         (_("Area"), {"fields": ("geometry",)}),
     )
     formfield_overrides = {
-        TextField: {'widget': ShortTextAreaWidget},
+        TextField: {"widget": ShortTextAreaWidget},
     }
     form = FixedModelForm
     actions = ["copy_as_draft"]  # delete_selected is built_in, should not be added
@@ -194,10 +194,10 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             copy_hearing(hearing, published=False)
             self.message_user(request, _('Copied Hearing "%s" as a draft.' % hearing.title))
 
-    @admin.display(description=_('Preview URL'))
+    @admin.display(description=_("Preview URL"))
     def preview_url(self, obj):
         if not obj.preview_url:
-            return ''
+            return ""
         return format_html('<a href="%s">%s</a>' % (obj.preview_url, obj.preview_url))
 
     def formfield_for_manytomany(self, db_field, request=None, **kwargs):
@@ -224,7 +224,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         collector.collect(objs)
 
         def format_callback(obj):
-            return '%s: %s' % (capfirst(obj._meta.verbose_name), obj)
+            return "%s: %s" % (capfirst(obj._meta.verbose_name), obj)
 
         to_delete = collector.nested(format_callback)
         model_count = {model._meta.verbose_name_plural: len(objs) for model, objs in collector.model_objs.items()}
@@ -251,7 +251,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         to_delete += collector.protected
         # since we are only performing soft delete, we must soft_delete related objects too, if possible
         for obj in to_delete:
-            if hasattr(obj, 'soft_delete'):
+            if hasattr(obj, "soft_delete"):
                 obj.soft_delete(user=request.user)
 
     def delete_model(self, request, obj):
@@ -264,7 +264,7 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         to_delete += collector.protected
         # since we are only performing soft delete, we must soft_delete related objects too, if possible
         for obj in to_delete:
-            if hasattr(obj, 'soft_delete'):
+            if hasattr(obj, "soft_delete"):
                 obj.soft_delete()
 
     def save_formset(self, request, form, formset, change):
@@ -292,101 +292,97 @@ class SectionTypeAdmin(admin.ModelAdmin):
 
 class OrganizationAdmin(admin.ModelAdmin):
     formfield_overrides = {
-        ManyToManyField: {'widget': FilteredSelectMultiple("ylläpitäjät", is_stacked=False)},
+        ManyToManyField: {"widget": FilteredSelectMultiple("ylläpitäjät", is_stacked=False)},
     }
-    exclude = ('published',)
+    exclude = ("published",)
 
 
 class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
-    list_display = ('name', 'title', 'organization', 'phone', 'email')
-    exclude = ('published',)
+    list_display = ("name", "title", "organization", "phone", "email")
+    exclude = ("published",)
     ordering = ("name",)
 
 
 class CommentAdmin(VersionAdmin):
-    list_display = ('id', 'section', 'author_name', 'content', 'is_published', 'flagged_at')
+    list_display = ("id", "section", "author_name", "content", "is_published", "flagged_at")
     list_filter = (
-        'deleted',
-        'moderated',
-        'flagged_at',
-        'section__hearing__slug',
+        "deleted",
+        "moderated",
+        "flagged_at",
+        "section__hearing__slug",
     )
-    search_fields = ('section__id', 'author_name', 'title', 'content')
+    search_fields = ("section__id", "author_name", "title", "content")
     readonly_fields = (
-        'reply_to',
-        'author_name',
-        'organization',
-        'geojson',
-        'plugin_identifier',
-        'plugin_data',
-        'label',
-        'language_code',
-        'voters',
-        'section',
-        'created_by_user',
-        'deleted_at',
-        'deleted_by',
-        'flagged_at',
-        'flagged_by',
-        'edited',
-        'moderated',
+        "reply_to",
+        "author_name",
+        "organization",
+        "geojson",
+        "plugin_identifier",
+        "plugin_data",
+        "label",
+        "language_code",
+        "voters",
+        "section",
+        "created_by_user",
+        "deleted_at",
+        "deleted_by",
+        "flagged_at",
+        "flagged_by",
+        "edited",
+        "moderated",
     )
-    change_form_template = 'admin/comment_change_form.html'
+    change_form_template = "admin/comment_change_form.html"
 
     def get_fields(self, request, obj=None):
         """Display deleted-related fields only if comment is deleted"""
 
         fields = [
-            'title',
-            'content',
-            'reply_to',
-            'author_name',
-            'organization',
-            'geojson',
-            'map_comment_text',
-            'plugin_identifier',
-            'plugin_data',
-            'pinned',
-            'label',
-            'language_code',
-            'voters',
-            'section',
-            'created_by_user',
-            'edited',
-            'moderated',
-            'edit_reason',
-            'delete_reason',
+            "title",
+            "content",
+            "reply_to",
+            "author_name",
+            "organization",
+            "geojson",
+            "map_comment_text",
+            "plugin_identifier",
+            "plugin_data",
+            "pinned",
+            "label",
+            "language_code",
+            "voters",
+            "section",
+            "created_by_user",
+            "edited",
+            "moderated",
+            "edit_reason",
+            "delete_reason",
         ]
         if obj and obj.flagged_at:
-            fields += ['flagged_at', 'flagged_by']
+            fields += ["flagged_at", "flagged_by"]
         if obj and obj.deleted:
-            fields += ['deleted_at', 'deleted_by']
+            fields += ["deleted_at", "deleted_by"]
         return fields
 
-    @admin.display(description=_('Published'))
+    @admin.display(description=_("Published"))
     def is_published(self, obj):
         if obj.deleted:
             src = static("admin/img/icon-no.svg")
             alt = _("Deleted")
 
         elif obj.moderated:
-            src = static('admin/img/icon-moderated.svg')
+            src = static("admin/img/icon-moderated.svg")
             alt = _("Moderated")
 
         else:
-            src=static('admin/img/icon-yes.svg')
-            alt=_("Published")
+            src = static("admin/img/icon-yes.svg")
+            alt = _("Published")
 
-        return format_html(
-            '<img src="{}" alt="{alt}" title="{alt}">',
-            src,
-            alt=alt
-        )
+        return format_html('<img src="{}" alt="{alt}" title="{alt}">', src, alt=alt)
 
     def created_by_user(self, obj):
         # returns a link to the user that created the comment.
         if obj.created_by_id and get_user_model().objects.get(id=obj.created_by_id):
-            user_url = reverse("admin:app_list", args=['kerrokantasi'])
+            user_url = reverse("admin:app_list", args=["kerrokantasi"])
             user_url += "user/{}/change/".format(obj.created_by_id)
             user_info = "{} - {}".format(
                 obj.created_by.get_display_name(), get_user_model().objects.get(id=obj.created_by_id).email
@@ -424,7 +420,7 @@ class CommentAdmin(VersionAdmin):
 
     def changelist_view(self, request, extra_context=None):
         """Use deleted=False filter by default"""
-        if not request.META['QUERY_STRING'] and not request.META.get('HTTP_REFERER', '').startswith(
+        if not request.META["QUERY_STRING"] and not request.META.get("HTTP_REFERER", "").startswith(
             request.build_absolute_uri()
         ):
             return HttpResponseRedirect(request.path + "?deleted__exact=0")
@@ -456,23 +452,23 @@ class ProjectPhaseInline(TranslatableStackedInline, NestedStackedInline):
 
 
 class ProjectAdmin(TranslatableAdmin, admin.ModelAdmin):
-    list_display = ('title_localized', 'identifier')
-    search_fields = ('title', 'identifier')
+    list_display = ("title_localized", "identifier")
+    search_fields = ("title", "identifier")
     inlines = (ProjectPhaseInline,)
 
-    @admin.display(description='Title')
+    @admin.display(description="Title")
     def title_localized(self, obj):
-        return get_any_language(obj, 'title')
+        return get_any_language(obj, "title")
 
 
 class ProjectPhaseAdmin(TranslatableAdmin, admin.ModelAdmin):
-    list_display = ('title_localized', 'project')
-    list_filter = ('project',)
-    search_fields = ('title', 'project__title')
+    list_display = ("title_localized", "project")
+    list_filter = ("project",)
+    search_fields = ("title", "project__title")
 
-    @admin.display(description='Title')
+    @admin.display(description="Title")
     def title_localized(self, obj):
-        return get_any_language(obj, 'title')
+        return get_any_language(obj, "title")
 
 
 def get_any_language(obj, attr_name):
@@ -483,7 +479,7 @@ def get_any_language(obj, attr_name):
     translation = obj.safe_translation_getter(attr_name)
     if not translation:
         for lang in settings.PARLER_LANGUAGES[None]:
-            translation = obj.safe_translation_getter(attr_name, language_code=lang['code'])
+            translation = obj.safe_translation_getter(attr_name, language_code=lang["code"])
             if translation:
                 break
     return translation

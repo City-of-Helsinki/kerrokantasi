@@ -7,7 +7,7 @@ from democracy.models.base import StringIdBaseModel
 
 
 class Organization(StringIdBaseModel):
-    name = models.CharField(verbose_name=_('name'), max_length=255, unique=True)
+    name = models.CharField(verbose_name=_("name"), max_length=255, unique=True)
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations")
     parent = models.ForeignKey(
         "Organization", on_delete=models.SET_NULL, blank=True, null=True, related_name="children"
@@ -22,8 +22,8 @@ class Organization(StringIdBaseModel):
     )
 
     class Meta:
-        verbose_name = _('organization')
-        verbose_name_plural = _('organizations')
+        verbose_name = _("organization")
+        verbose_name_plural = _("organizations")
 
     def __str__(self):
         return self.name
@@ -52,11 +52,11 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
         on_delete=models.PROTECT,
     )
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_('title'), max_length=255),
+        title=models.CharField(verbose_name=_("title"), max_length=255),
     )
-    name = models.CharField(verbose_name=_('name'), max_length=50)
-    phone = models.CharField(verbose_name=_('phone'), max_length=50)
-    email = models.EmailField(verbose_name=_('email'))
+    name = models.CharField(verbose_name=_("name"), max_length=50)
+    phone = models.CharField(verbose_name=_("phone"), max_length=50)
+    email = models.EmailField(verbose_name=_("email"))
     additional_info = models.CharField(
         verbose_name=_("additional_info"),
         max_length=255,
@@ -69,12 +69,12 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
     )
 
     class Meta:
-        verbose_name = _('contact person')
-        verbose_name_plural = _('contact persons')
+        verbose_name = _("contact person")
+        verbose_name_plural = _("contact persons")
         # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which
         # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the
         # correct order when used nested serializer field under Hearing in the Rest API
         ordering = ["contact_person_orders__hearing", "contact_person_orders__order", "name"]
 
     def __str__(self):
-        return '%s, %s / %s' % (self.name, getattr(self, "title", ""), self.organization)
+        return "%s, %s / %s" % (self.name, getattr(self, "title", ""), self.organization)

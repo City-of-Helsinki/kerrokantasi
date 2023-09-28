@@ -151,5 +151,5 @@ def main():
         log.info("Output JSON: Wrote %d bytes to %s", outf.tell(), outf.name)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

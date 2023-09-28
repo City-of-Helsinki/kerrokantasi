@@ -16,7 +16,7 @@ class ApiTokenAuthentication(HelApiTokenAuth):
 
         # amr (Authentication Methods References) should contain the used auth
         # provider name e.g. suomifi
-        if payload.get('amr') in settings.STRONG_AUTH_PROVIDERS:
+        if payload.get("amr") in settings.STRONG_AUTH_PROVIDERS:
             user.has_strong_auth = True
         else:
             user.has_strong_auth = False

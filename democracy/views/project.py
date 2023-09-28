@@ -13,7 +13,7 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     class Meta:
         model = ProjectPhase
-        fields = ('id', 'description', 'has_hearings', 'is_active', 'schedule', 'title', 'hearings', 'ordering')
+        fields = ("id", "description", "has_hearings", "is_active", "schedule", "title", "hearings", "ordering")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -27,36 +27,36 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         return [
             hearing.slug
             for hearing in filter_by_hearing_visible(
-                project_phase.hearings.with_unpublished(), self.context.get('request'), hearing_lookup=''
+                project_phase.hearings.with_unpublished(), self.context.get("request"), hearing_lookup=""
             )
         ]
 
     def to_representation(self, instance):
-        self.fields.pop('is_active')
+        self.fields.pop("is_active")
         # do not return ordering explicitly
-        self.fields.pop('ordering')
+        self.fields.pop("ordering")
         data = super().to_representation(instance)
 
         # include is_active when updating a hearing with a project
-        if self.context['request'].method in ['PUT', 'PATCH']:
-            data['is_active'] = self.context['view'].get_object().project_phase_id == instance.pk
+        if self.context["request"].method in ["PUT", "PATCH"]:
+            data["is_active"] = self.context["view"].get_object().project_phase_id == instance.pk
 
-        if 'hearing' in self.context:
-            data['is_active'] = self.context['hearing'].project_phase_id == instance.pk
+        if "hearing" in self.context:
+            data["is_active"] = self.context["hearing"].project_phase_id == instance.pk
         return data
 
     def create(self, validated_data):
-        is_active = validated_data.pop('is_active')
+        is_active = validated_data.pop("is_active")
         phase = super().create(validated_data)
-        if is_active and 'hearing' in self.context:
-            self.context['hearing'].project_phase = phase
+        if is_active and "hearing" in self.context:
+            self.context["hearing"].project_phase = phase
         return phase
 
     def update(self, instance, validated_data):
-        is_active = validated_data.pop('is_active')
+        is_active = validated_data.pop("is_active")
         phase = super().update(instance, validated_data)
-        if is_active and 'hearing' in self.context:
-            self.context['hearing'].project_phase = phase
+        if is_active and "hearing" in self.context:
+            self.context["hearing"].project_phase = phase
         return phase
 
 
@@ -67,7 +67,7 @@ class ProjectSerializer(serializers.ModelSerializer, TranslatableSerializer):
 
     class Meta:
         model = Project
-        fields = ('id', 'title', 'phases')
+        fields = ("id", "title", "phases")
 
 
 class ProjectFieldSerializer(serializers.RelatedField):
@@ -84,7 +84,7 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     class Meta:
         model = Project
-        fields = ('id', 'title', 'phases')
+        fields = ("id", "title", "phases")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -94,19 +94,19 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def validate_phases(self, data):
         if not self.instance:
             return data
-        deleted_phases = self.instance.phases.exclude(pk__in=[p['id'] for p in data if 'id' in p])
+        deleted_phases = self.instance.phases.exclude(pk__in=[p["id"] for p in data if "id" in p])
         for phase in deleted_phases:
             if phase.hearings.exists():
-                raise ValidationError('Can not delete phase which has hearings')
+                raise ValidationError("Can not delete phase which has hearings")
         return data
 
     def create(self, validated_data):
         """
         Create a new project from scratch. Phases are all new too.
         """
-        phases_data = validated_data.pop('phases')
+        phases_data = validated_data.pop("phases")
         for ordering, phase in enumerate(phases_data):
-            phase['ordering'] = ordering + 1
+            phase["ordering"] = ordering + 1
         project = super().create(validated_data)
         [self._create_phase(phase, project) for phase in phases_data]
         return project
@@ -115,17 +115,17 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         """
         Update an existing project and its phases.
         """
-        phases_data = validated_data.pop('phases')
+        phases_data = validated_data.pop("phases")
         for ordering, phase in enumerate(phases_data):
-            phase['ordering'] = ordering + 1
+            phase["ordering"] = ordering + 1
         project = super().update(instance, validated_data)
         existing_phases = {phase.pk: phase for phase in project.phases.exclude(deleted=True)}
         # create new phases
-        [self._create_phase(phase, project) for phase in phases_data if phase.get('id') not in existing_phases.keys()]
+        [self._create_phase(phase, project) for phase in phases_data if phase.get("id") not in existing_phases.keys()]
         updated_phases = [
-            self._update_phase(existing_phases[phase['id']], phase, project)
+            self._update_phase(existing_phases[phase["id"]], phase, project)
             for phase in phases_data
-            if phase.get('id') in existing_phases.keys()
+            if phase.get("id") in existing_phases.keys()
         ]
         # existing phases missing from updated phases are to be deleted
         deleted_phases = set(existing_phases.values()) - set(updated_phases)

@@ -16,14 +16,14 @@ def get_default_translation(field: dict, lang_code: str):
     for lang, value in field.items():
         if value:
             return value
-    return ''
+    return ""
 
 
 def get_selected_language(lang: Union[str, None]) -> str:
     """Returns a supported language code based on given lang param or fi by default"""
-    if lang == 'en':
-        return 'en'
-    return 'fi'
+    if lang == "en":
+        return "en"
+    return "fi"
 
 
 def get_formatted_hearing_timerange(open_at: str, close_at: str) -> str:
@@ -33,16 +33,16 @@ def get_formatted_hearing_timerange(open_at: str, close_at: str) -> str:
     """
     open_at = parse_datetime(open_at)
     close_at = parse_datetime(close_at)
-    open_at_timeunits = ['%d.', '%m.', '%Y']
+    open_at_timeunits = ["%d.", "%m.", "%Y"]
     if open_at.year == close_at.year:
         # remove redundant year
-        open_at_timeunits = ['%d.', '%m.']
+        open_at_timeunits = ["%d.", "%m."]
         if open_at.month == close_at.month:
             # remove redundant month
-            open_at_timeunits = ['%d.']
-    open_at_formatted = open_at.strftime(''.join(open_at_timeunits))
-    close_at_formatted = close_at.strftime('%d.%m.%Y')
-    return f'{open_at_formatted}-{close_at_formatted}'
+            open_at_timeunits = ["%d."]
+    open_at_formatted = open_at.strftime("".join(open_at_timeunits))
+    close_at_formatted = close_at.strftime("%d.%m.%Y")
+    return f"{open_at_formatted}-{close_at_formatted}"
 
 
 def get_powerpoint_title_font_size(text: str, is_main_title: bool = True) -> int:

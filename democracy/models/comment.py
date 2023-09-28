@@ -14,37 +14,37 @@ from democracy.utils.geo import get_geometry_from_geojson
 class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
-    geojson = GeoJSONField(blank=True, null=True, verbose_name=_('location'))
-    map_comment_text = models.CharField(verbose_name=_('map_comment_text'), max_length=255, blank=True, null=True)
-    geometry = models.GeometryField(blank=True, null=True, verbose_name=_('location geometry'))
+    geojson = GeoJSONField(blank=True, null=True, verbose_name=_("location"))
+    map_comment_text = models.CharField(verbose_name=_("map_comment_text"), max_length=255, blank=True, null=True)
+    geometry = models.GeometryField(blank=True, null=True, verbose_name=_("location geometry"))
     authorization_code = models.CharField(verbose_name=_("authorization code"), max_length=32, blank=True)
-    author_name = models.CharField(verbose_name=_('author name'), max_length=255, blank=True, null=True)
+    author_name = models.CharField(verbose_name=_("author name"), max_length=255, blank=True, null=True)
     organization = models.ForeignKey("Organization", blank=True, null=True, default=None, on_delete=models.PROTECT)
-    plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
-    plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
-    label = models.ForeignKey("Label", verbose_name=_('label'), blank=True, null=True, on_delete=models.PROTECT)
-    language_code = models.CharField(verbose_name=_('language code'), blank=True, max_length=15)
+    plugin_identifier = models.CharField(verbose_name=_("plugin identifier"), blank=True, max_length=255)
+    plugin_data = models.TextField(verbose_name=_("plugin data"), blank=True)
+    label = models.ForeignKey("Label", verbose_name=_("label"), blank=True, null=True, on_delete=models.PROTECT)
+    language_code = models.CharField(verbose_name=_("language code"), blank=True, max_length=15)
     n_votes = models.IntegerField(
-        verbose_name=_('vote count'),
-        help_text=_('number of votes given to this comment'),
+        verbose_name=_("vote count"),
+        help_text=_("number of votes given to this comment"),
         default=0,
         editable=False,
         db_index=True,
     )
     n_unregistered_votes = models.IntegerField(
-        verbose_name=_('unregistered vote count'),
-        help_text=_('number of unregistered votes'),
+        verbose_name=_("unregistered vote count"),
+        help_text=_("number of unregistered votes"),
         default=0,
         editable=False,
     )
     voters = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        verbose_name=_('voters'),
-        help_text=_('users who voted for this comment'),
+        verbose_name=_("voters"),
+        help_text=_("users who voted for this comment"),
         related_name="voted_%(app_label)s_%(class)s",
         blank=True,
     )
-    fields_to_check_for_data = ['plugin_data', 'content', 'label', 'geojson']
+    fields_to_check_for_data = ["plugin_data", "content", "label", "geojson"]
 
     class Meta:
         abstract = True
@@ -67,7 +67,7 @@ class BaseComment(BaseModel):
         try:
             candidates = detect_langs(self.content.lower())
             for candidate in candidates:
-                if candidate.lang in [lang['code'] for lang in settings.PARLER_LANGUAGES[None]]:
+                if candidate.lang in [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]:
                     if candidate.prob > settings.DETECT_LANGS_MIN_PROBA:
                         self.language_code = candidate.lang
                     break

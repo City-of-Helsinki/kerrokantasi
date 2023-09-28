@@ -42,8 +42,8 @@ class Command(BaseCommand):
         if hearing:
             # picks the hearing corresponding to given slug
             try:
-                hearing_data = next(value for key, value in json_data['hearings'].items() if value['slug'] == hearing)
+                hearing_data = next(value for key, value in json_data["hearings"].items() if value["slug"] == hearing)
             except StopIteration:
                 raise CommandError('Hearing "%s" does not exist' % hearing)
-            json_data = {'hearings': {'1': hearing_data}}
+            json_data = {"hearings": {"1": hearing_data}}
         import_from_data(json_data, force=force, patch=patch)

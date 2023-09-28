@@ -9,7 +9,6 @@ from democracy.models import Hearing, Label
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument("--nuke", dest="nuke", action="store_true")
 

@@ -21,7 +21,7 @@ from democracy.plugins import get_implementation
 
 CLOSURE_INFO_ORDERING = -10000
 
-INITIAL_SECTION_TYPE_IDS = set(value for key, value in InitialSectionType.__dict__.items() if key[:1] != '_')
+INITIAL_SECTION_TYPE_IDS = set(value for key, value in InitialSectionType.__dict__.items() if key[:1] != "_")
 
 LOG = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class SectionTypeQuerySet(models.QuerySet):
 
 
 class SectionType(BaseModel):
-    identifier = AutoSlugField(populate_from='name_singular', unique=True)
+    identifier = AutoSlugField(populate_from="name_singular", unique=True)
     name_singular = models.CharField(max_length=64)
     name_plural = models.CharField(max_length=64)
     objects = BaseModelManager.from_queryset(SectionTypeQuerySet)()
@@ -51,23 +51,23 @@ class SectionType(BaseModel):
 
 
 class Section(Commentable, StringIdBaseModel, TranslatableModel):
-    hearing = models.ForeignKey(Hearing, related_name='sections', on_delete=models.PROTECT)
-    ordering = models.IntegerField(verbose_name=_('ordering'), default=1, db_index=True, help_text=ORDERING_HELP)
-    type = models.ForeignKey(SectionType, related_name='sections', on_delete=models.PROTECT)
+    hearing = models.ForeignKey(Hearing, related_name="sections", on_delete=models.PROTECT)
+    ordering = models.IntegerField(verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP)
+    type = models.ForeignKey(SectionType, related_name="sections", on_delete=models.PROTECT)
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True),
-        abstract=models.TextField(verbose_name=_('abstract'), blank=True),
-        content=models.TextField(verbose_name=_('content'), blank=True),
+        title=models.CharField(verbose_name=_("title"), max_length=255, blank=True),
+        abstract=models.TextField(verbose_name=_("abstract"), blank=True),
+        content=models.TextField(verbose_name=_("content"), blank=True),
     )
-    plugin_identifier = models.CharField(verbose_name=_('plugin identifier'), blank=True, max_length=255)
-    plugin_data = models.TextField(verbose_name=_('plugin data'), blank=True)
+    plugin_identifier = models.CharField(verbose_name=_("plugin identifier"), blank=True, max_length=255)
+    plugin_data = models.TextField(verbose_name=_("plugin data"), blank=True)
     plugin_fullscreen = models.BooleanField(default=False)
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         ordering = ["ordering"]
-        verbose_name = _('section')
-        verbose_name_plural = _('sections')
+        verbose_name = _("section")
+        verbose_name_plural = _("sections")
 
     def __str__(self):
         return "%s: %s" % (self.hearing, self.title)
@@ -96,16 +96,16 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
         """
         # get regex pattern of protected sectionfile endpoint
         resolver = get_resolver(None)
-        url = resolver.reverse_dict.getlist('serve_file')
+        url = resolver.reverse_dict.getlist("serve_file")
         if not url:
-            LOG.error('serve_file URL pattern not found')
+            LOG.error("serve_file URL pattern not found")
             return 0
-        pattern = url[0][1].rstrip('$')
+        pattern = url[0][1].rstrip("$")
 
         sectionfile_pks = []
         for translation in self.translations.all():
             for match in re.finditer(pattern, translation.content):
-                sectionfile_pks.append(match.groupdict()['pk'])
+                sectionfile_pks.append(match.groupdict()["pk"])
         return SectionFile.objects.filter(section__isnull=True, pk__in=sectionfile_pks).update(section_id=self.pk)
 
     def check_commenting(self, request):
@@ -125,34 +125,34 @@ class SectionImage(BaseImage, TranslatableModel):
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="images", on_delete=models.CASCADE)
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
-        caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
-        alt_text=models.TextField(verbose_name=_('alt text'), blank=True, default=''),
+        title=models.CharField(verbose_name=_("title"), max_length=255, blank=True, default=""),
+        caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
+        alt_text=models.TextField(verbose_name=_("alt text"), blank=True, default=""),
     )
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
-        verbose_name = _('section image')
-        verbose_name_plural = _('section images')
-        ordering = ('ordering',)
+        verbose_name = _("section image")
+        verbose_name_plural = _("section images")
+        ordering = ("ordering",)
 
 
 class SectionFile(BaseFile, TranslatableModel):
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="files", blank=True, null=True, on_delete=models.CASCADE)
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_('title'), max_length=255, blank=True, default=''),
-        caption=models.TextField(verbose_name=_('caption'), blank=True, default=''),
+        title=models.CharField(verbose_name=_("title"), max_length=255, blank=True, default=""),
+        caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
     )
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
-        verbose_name = _('section file')
-        verbose_name_plural = _('section files')
-        ordering = ('ordering',)
+        verbose_name = _("section file")
+        verbose_name_plural = _("section files")
+        ordering = ("ordering",)
 
     def __str__(self):
-        return '%s - %s' % (self.pk, self.file.name)
+        return "%s - %s" % (self.pk, self.file.name)
 
 
 @revisions.register
@@ -161,15 +161,15 @@ class SectionComment(Commentable, BaseComment):
     parent_field = "section"
     parent_model = Section
     section = models.ForeignKey(Section, related_name="comments", on_delete=models.PROTECT)
-    comment = models.ForeignKey('self', related_name="comments", null=True, on_delete=models.SET_NULL)
-    title = models.CharField(verbose_name=_('title'), blank=True, max_length=255)
-    content = models.TextField(verbose_name=_('content'), blank=True)
-    reply_to = models.CharField(verbose_name=_('reply to'), blank=True, max_length=255)
+    comment = models.ForeignKey("self", related_name="comments", null=True, on_delete=models.SET_NULL)
+    title = models.CharField(verbose_name=_("title"), blank=True, max_length=255)
+    content = models.TextField(verbose_name=_("content"), blank=True)
+    reply_to = models.CharField(verbose_name=_("reply to"), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
-    edited = models.BooleanField(verbose_name=_('is comment edited'), default=False)
-    moderated = models.BooleanField(verbose_name=_('is comment edited by admin'), default=False)
-    edit_reason = models.TextField(verbose_name=_('edit reason'), blank=True)
-    delete_reason = models.TextField(verbose_name=_('delete reason'), blank=True)
+    edited = models.BooleanField(verbose_name=_("is comment edited"), default=False)
+    moderated = models.BooleanField(verbose_name=_("is comment edited by admin"), default=False)
+    edit_reason = models.TextField(verbose_name=_("edit reason"), blank=True)
+    delete_reason = models.TextField(verbose_name=_("delete reason"), blank=True)
     flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
     flagged_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -181,9 +181,9 @@ class SectionComment(Commentable, BaseComment):
     )
 
     class Meta:
-        verbose_name = _('section comment')
-        verbose_name_plural = _('section comments')
-        ordering = ('-created_at',)
+        verbose_name = _("section comment")
+        verbose_name_plural = _("section comments")
+        ordering = ("-created_at",)
 
     def soft_delete(self, user=None):
         for answer in self.poll_answers.all():
@@ -197,11 +197,11 @@ class SectionComment(Commentable, BaseComment):
     def save(self, *args, **kwargs):
         # we may create a comment by referring to another comment instead of section explicitly
         if not (self.section_id or self.comment_id):
-            raise Exception('Section comment must refer to section or another section comment.')
+            raise Exception("Section comment must refer to section or another section comment.")
         if not self.section_id:
             self.section_id = self.comment.section_id
         if self.comment_id and self.section_id != self.comment.section_id:
-            raise Exception('Comment must belong to the same section as the original comment.')
+            raise Exception("Comment must belong to the same section as the original comment.")
         super().save(*args, **kwargs)
 
     def recache_parent_n_comments(self):
@@ -250,59 +250,59 @@ class SectionComment(Commentable, BaseComment):
 
 
 class SectionPoll(BasePoll):
-    section = models.ForeignKey(Section, related_name='polls', on_delete=models.PROTECT)
+    section = models.ForeignKey(Section, related_name="polls", on_delete=models.PROTECT)
     translations = TranslatedFields(
-        text=models.TextField(verbose_name=_('text')),
+        text=models.TextField(verbose_name=_("text")),
     )
 
     class Meta:
-        verbose_name = _('section poll')
-        verbose_name_plural = _('section polls')
-        ordering = ['ordering']
+        verbose_name = _("section poll")
+        verbose_name_plural = _("section polls")
+        ordering = ["ordering"]
 
     def recache_n_answers(self):
         n_answers = (
             SectionPollAnswer.objects.everything()
             .filter(option__poll_id=self.pk)
             .exclude(option__poll__deleted=True)
-            .values('comment_id')
+            .values("comment_id")
             .distinct()
             .count()
         )
         if n_answers != self.n_answers:
             self.n_answers = n_answers
-            self.save(update_fields=('n_answers',))
+            self.save(update_fields=("n_answers",))
 
 
 class SectionPollOption(BasePollOption):
-    poll = models.ForeignKey(SectionPoll, related_name='options', on_delete=models.PROTECT)
+    poll = models.ForeignKey(SectionPoll, related_name="options", on_delete=models.PROTECT)
     translations = TranslatedFields(
-        text=models.TextField(verbose_name=_('option text')),
+        text=models.TextField(verbose_name=_("option text")),
     )
 
     class Meta:
-        verbose_name = _('section poll option')
-        verbose_name_plural = _('section poll options')
-        ordering = ['ordering']
+        verbose_name = _("section poll option")
+        verbose_name_plural = _("section poll options")
+        ordering = ["ordering"]
 
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer):
-    comment = models.ForeignKey(SectionComment, related_name='poll_answers', on_delete=models.CASCADE)
-    option = models.ForeignKey(SectionPollOption, related_name='answers', on_delete=models.PROTECT)
+    comment = models.ForeignKey(SectionComment, related_name="poll_answers", on_delete=models.CASCADE)
+    option = models.ForeignKey(SectionPollOption, related_name="answers", on_delete=models.PROTECT)
 
     class Meta:
-        verbose_name = _('section poll answer')
-        verbose_name_plural = _('section poll answers')
+        verbose_name = _("section poll answer")
+        verbose_name_plural = _("section poll answers")
 
 
 class CommentImage(BaseImage):
-    title = models.CharField(verbose_name=_('title'), max_length=255, blank=True, default='')
-    caption = models.TextField(verbose_name=_('caption'), blank=True, default='')
+    title = models.CharField(verbose_name=_("title"), max_length=255, blank=True, default="")
+    caption = models.TextField(verbose_name=_("caption"), blank=True, default="")
     parent_field = "sectioncomment"
     comment = models.ForeignKey(SectionComment, related_name="images", on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name = _('comment image')
-        verbose_name_plural = _('comment images')
+        verbose_name = _("comment image")
+        verbose_name_plural = _("comment images")
         ordering = ("ordering", "title")

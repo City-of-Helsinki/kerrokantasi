@@ -26,10 +26,10 @@ from democracy.tests.utils import (
     get_file_path,
 )
 
-default_comment_content = 'I agree with you sir Lancelot. My favourite colour is blue'
-red_comment_content = 'Mine is red'
-green_comment_content = 'I like green'
-default_lang_code = 'en'
+default_comment_content = "I agree with you sir Lancelot. My favourite colour is blue"
+red_comment_content = "Mine is red"
+green_comment_content = "I like green"
+default_lang_code = "en"
 default_geojson_geometry = {"type": "Point", "coordinates": [-104.99404, 39.75621]}
 
 
@@ -53,25 +53,25 @@ def pytest_configure():
     from django.conf import settings
 
     settings.PASSWORD_HASHERS = (
-        'django.contrib.auth.hashers.MD5PasswordHasher',
-        'django.contrib.auth.hashers.PBKDF2PasswordHasher',
-        'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
-        'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
-        'django.contrib.auth.hashers.BCryptPasswordHasher',
-        'django.contrib.auth.hashers.SHA1PasswordHasher',
-        'django.contrib.auth.hashers.CryptPasswordHasher',
+        "django.contrib.auth.hashers.MD5PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+        "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+        "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+        "django.contrib.auth.hashers.BCryptPasswordHasher",
+        "django.contrib.auth.hashers.SHA1PasswordHasher",
+        "django.contrib.auth.hashers.CryptPasswordHasher",
     )
 
 
 @pytest.fixture()
 def default_organization():
-    return Organization.objects.create(name='The department for squirrel welfare')
+    return Organization.objects.create(name="The department for squirrel welfare")
 
 
 @pytest.fixture()
 def contact_person(default_organization):
     return ContactPerson.objects.create(
-        name='John Contact', title='Chief', phone='555-555', email='john@contact.eu', organization=default_organization
+        name="John Contact", title="Chief", phone="555-555", email="john@contact.eu", organization=default_organization
     )
 
 
@@ -84,17 +84,17 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
     All objects will have commenting_map_tools all
     """
     hearing = Hearing.objects.create(
-        title='Default test hearing One',
+        title="Default test hearing One",
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
-        slug='default-hearing-slug',
+        slug="default-hearing-slug",
         organization=default_organization,
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 4):
         section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
         section = Section.objects.create(
-            abstract='Section %d abstract' % x,
+            abstract="Section %d abstract" % x,
             hearing=hearing,
             type=SectionType.objects.get(identifier=section_type),
             commenting=Commenting.OPEN,
@@ -122,7 +122,7 @@ def comment_image(default_hearing):
     comment = section.comments.all()[0]
     return comment.images.create(
         comment=comment,
-        image=ContentFile(b"image data", name='image1.jpg'),
+        image=ContentFile(b"image data", name="image1.jpg"),
         width=640,
         height=480,
     )
@@ -138,17 +138,17 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
     """
     commenting_restrictions = [Commenting.NONE, Commenting.OPEN, Commenting.REGISTERED, Commenting.STRONG]
     hearing = Hearing.objects.create(
-        title='Default test hearing One',
+        title="Default test hearing One",
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
-        slug='default-hearing-slug',
+        slug="default-hearing-slug",
         organization=default_organization,
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 5):
         section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
         section = Section.objects.create(
-            abstract='Section %d abstract' % x,
+            abstract="Section %d abstract" % x,
             hearing=hearing,
             type=SectionType.objects.get(identifier=section_type),
             commenting=commenting_restrictions[x - 1],
@@ -174,17 +174,17 @@ def hearing_without_comments(contact_person, default_organization, default_proje
     Commenting is open for everyone.
     """
     hearing = Hearing.objects.create(
-        title='Simple hearing without comments',
+        title="Simple hearing without comments",
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
-        slug='simple-hearing-slug',
+        slug="simple-hearing-slug",
         organization=default_organization,
         project_phase=default_project.phases.all()[0],
     )
 
     section_type = InitialSectionType.MAIN
     Section.objects.create(
-        abstract='Section abstract for simple hearing',
+        abstract="Section abstract for simple hearing",
         hearing=hearing,
         type=SectionType.objects.get(identifier=section_type),
         commenting=Commenting.OPEN,
@@ -195,23 +195,24 @@ def hearing_without_comments(contact_person, default_organization, default_proje
 
     return hearing
 
+
 @pytest.fixture()
 def hearing_with_comments_on_comments(jane_doe, john_doe, contact_person, default_organization, default_project):
     """
     Fixture for a simple hearing with comments that have replies.
     """
     hearing = Hearing.objects.create(
-        title='Simple hearing without comments',
+        title="Simple hearing without comments",
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
-        slug='simple-hearing-slug',
+        slug="simple-hearing-slug",
         organization=default_organization,
         project_phase=default_project.phases.all()[0],
     )
 
     section_type = InitialSectionType.MAIN
     section = Section.objects.create(
-        abstract='Section abstract for simple hearing',
+        abstract="Section abstract for simple hearing",
         hearing=hearing,
         type=SectionType.objects.get(identifier=section_type),
         commenting=Commenting.OPEN,
@@ -232,17 +233,17 @@ def strong_auth_hearing(john_doe, contact_person, default_organization, default_
     Commenting requires strong auth.
     """
     hearing = Hearing.objects.create(
-        title='Strong auth test hearing',
+        title="Strong auth test hearing",
         open_at=now() - datetime.timedelta(days=1),
         close_at=now() + datetime.timedelta(days=1),
-        slug='strong-auth-hearing-slug',
+        slug="strong-auth-hearing-slug",
         organization=default_organization,
         project_phase=default_project.phases.all()[0],
     )
 
     section_type = InitialSectionType.MAIN
     Section.objects.create(
-        abstract='Section abstract for strong auth',
+        abstract="Section abstract for strong auth",
         hearing=hearing,
         type=SectionType.objects.get(identifier=section_type),
         commenting=Commenting.STRONG,
@@ -256,14 +257,14 @@ def strong_auth_hearing(john_doe, contact_person, default_organization, default_
 
 @pytest.fixture()
 def default_project():
-    project_data = {'title': 'Default project', 'identifier': '123456'}
+    project_data = {"title": "Default project", "identifier": "123456"}
     project = Project.objects.create(**project_data)
     for i in range(1, 4):
         phase_data = {
-            'project': project,
-            'title': 'Phase %d' % i,
-            'description': 'Phase %d description' % i,
-            'schedule': 'Phase %d schedule' % i,
+            "project": project,
+            "title": "Phase %d" % i,
+            "description": "Phase %d description" % i,
+            "schedule": "Phase %d schedule" % i,
         }
         ProjectPhase.objects.create(**phase_data)
     return project
@@ -271,7 +272,7 @@ def default_project():
 
 @pytest.fixture()
 def default_label():
-    label = Label.objects.create(label='The Label')
+    label = Label.objects.create(label="The Label")
     return label
 
 
@@ -415,9 +416,9 @@ def admin_api_client_logged_in(admin_user):
     api_client = APIClient()
     api_client.force_authenticate(user=admin_user)
     api_client.user = admin_user
-    admin_user.set_password('foo')
+    admin_user.set_password("foo")
     admin_user.save()
-    api_client.login(username=admin_user.username, password='foo')
+    api_client.login(username=admin_user.username, password="foo")
     return api_client
 
 
@@ -433,7 +434,7 @@ def geojson_feature():
 
 @pytest.fixture()
 def bbox_containing_feature():
-    return '-104.9950,39.7554,-104.9930,39.7569'
+    return "-104.9950,39.7554,-104.9930,39.7569"
 
 
 @pytest.fixture()
@@ -575,12 +576,12 @@ def geojson_feature_with_geometries(geojson_geometrycollection):
 
 @pytest.fixture()
 def bbox_containing_geometries():
-    return '24.9034,60.1614,24.9684,60.1920'
+    return "24.9034,60.1614,24.9684,60.1920"
 
 
 @pytest.fixture()
 def bbox_all():
-    return '-180.0,-90.0,180.0,90.0'
+    return "-180.0,-90.0,180.0,90.0"
 
 
 @pytest.fixture()
@@ -613,8 +614,8 @@ def geojson_featurecollection(geojson_point, geojson_polygon):
 @pytest.fixture
 def section_file_orphan():
     section_file = SectionFile()
-    with open(get_file_path(FILES['TXT']), 'rb') as fp:
+    with open(get_file_path(FILES["TXT"]), "rb") as fp:
         cf = ContentFile(fp.read())
-        section_file.file.save('test/file.txt', cf, save=False)
+        section_file.file.save("test/file.txt", cf, save=False)
     section_file.save()
     return section_file

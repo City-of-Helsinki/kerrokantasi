@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.transaction import atomic
 from django.utils.functional import cached_property
 from django.utils.translation import ugettext as _
+import os
 from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -26,15 +27,13 @@ from democracy.views.utils import (
     get_translation_list,
 )
 
-
 class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     """
     Serializer for comments creation.
     """
 
     label = NestedPKRelatedField(
-        queryset=Label.objects.all(),
-        serializer=LabelSerializer,
+        queryset=Label.objects.all(), serializer=LabelSerializer,
         required=False,
         allow_null=True,
         expanded=True,

@@ -1,4 +1,4 @@
-from rest_framework import mixins, permissions, serializers, viewsets
+from rest_framework import mixins, permissions, serializers
 from rest_framework.viewsets import GenericViewSet
 
 from democracy.models import Organization

@@ -135,15 +135,10 @@ if env("SENTRY_DSN"):
 CSRF_COOKIE_NAME = "{}-csrftoken".format(env("COOKIE_PREFIX"))
 SESSION_COOKIE_NAME = "{}-sessionid".format(env("COOKIE_PREFIX"))
 SESSION_COOKIE_SECURE = False if DEBUG else True
+
 # Set django FILE_UPLOAD_PERMISSIONS, parse octal value from string
-# Fallback to default 644 permissions incase of failure
-try:
-    FILE_UPLOAD_PERMISSIONS = (
-        None if env("FILE_UPLOAD_PERMISSIONS") == "None" else int(env("FILE_UPLOAD_PERMISSIONS"), 8)
-    )
-except:
-    # Set to default
-    FILE_UPLOAD_PERMISSIONS = 0o644
+FILE_UPLOAD_PERMISSIONS = None if env("FILE_UPLOAD_PERMISSIONS") == "None" else int(env("FILE_UPLOAD_PERMISSIONS"), 8)
+
 
 # Useful when kerrokantasi API is served from a sub-path of a shared
 # hostname (like api.yourorg.org)

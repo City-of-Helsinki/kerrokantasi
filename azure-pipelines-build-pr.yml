@@ -13,6 +13,7 @@ resources:
   - repository: kerrokantasi-pipelines
     type: git
     name: kerrokantasi/kerrokantasi-pipelines
+    ref: refs/heads/api-linting
 
 extends:
   template: azure-pipelines-build-kerrokantasi-api-pr.yml@kerrokantasi-pipelines

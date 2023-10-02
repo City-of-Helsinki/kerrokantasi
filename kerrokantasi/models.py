@@ -6,6 +6,7 @@ class User(AbstractUser):
 
     nickname = models.CharField(max_length=50, blank=True)
     has_strong_auth = models.BooleanField(default=False)
+    #ok
 
     def __str__(self):
         return " - ".join([super().__str__(), self.get_display_name(), self.email])

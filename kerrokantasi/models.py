@@ -13,6 +13,8 @@ class User(AbstractUser):
     def get_real_name(self):
         return "{0} {1}".format(self.first_name, self.last_name).strip()
 
+
+
     def get_display_name(self):
         return self.nickname or self.get_real_name()
 

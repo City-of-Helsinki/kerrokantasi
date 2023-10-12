@@ -4,9 +4,10 @@ line_length = 120
 
 [tool.isort]
 profile = "black"
-skip_glob = ["*/migrations/*"]
+py_version = 38
+atomic = true
+extend_skip_glob = ["*migrations*"]
 line_length = 120
-indent = 4
 known_first_party = "democracy"
 known_standard_library = ["token", "tokenize"]
-known_third_party = ["django", "six"]
+known_third_party = ["django"]

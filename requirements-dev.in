@@ -5,7 +5,7 @@ black
 coveralls
 distro
 django-debug-toolbar
-factory-boy>=2.8.1
+factory-boy
 flake8
 isort
 pip-tools

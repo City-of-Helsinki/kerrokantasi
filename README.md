@@ -44,7 +44,7 @@ docker compose up dev
 
 and open your browser to http://127.0.0.1:8000/.
 
-Run tests with 
+Run tests with
 
 ```
 docker compose run dev test
@@ -157,7 +157,7 @@ Both of these commands must be run with database superuser permissions or simila
 After creating the database, PostGIS extension must be activated:
 
      psql kerrokantasi
-     create extension postgis;     
+     create extension postgis;
 
 This too requires superuser permissions, database ownership is not enough. PostGIS extension can also require the installation of package ending in -scripts, which might not be marked as mandatory.
 
@@ -293,3 +293,26 @@ Translations are maintained on [Transifex][tx].
 * As a translation maintainer, run `npm run i18n:extract && npm run i18n:push` to push new source files.
 
 [tx]: https://www.transifex.com/city-of-helsinki/kerrokantasi/dashboard/
+
+### Code format
+
+This project uses
+[`black`](https://github.com/ambv/black),
+[`flake8`](https://github.com/pycqa/flake8) and
+[`isort`](https://github.com/timothycrosley/isort)
+for code formatting and quality checking.
+
+[`pre-commit`](https://pre-commit.com/) can be used to install and
+run all the formatting tools as git hooks automatically before a
+commit.
+
+### Git blame ignore refs
+
+Project includes a `.git-blame-ignore-revs` file for ignoring certain commits from `git blame`.
+This can be useful for ignoring e.g. formatting commits, so that it is more clear from `git blame`
+where the actual code change came from. Configure your git to use it for this project with the
+following command:
+
+```shell
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```

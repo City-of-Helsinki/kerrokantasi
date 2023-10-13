@@ -425,6 +425,12 @@ class RootSectionCommentSerializer(SectionCommentSerializer):
 
         return False
 
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if self.context.get("remove_author_name"):
+            ret["author_name"] = None
+        return ret
+
 
 class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSerializer):
     """
@@ -472,6 +478,31 @@ class CommentViewSet(SectionCommentViewSet):
     edit_serializer_class = RootSectionCommentCreateUpdateSerializer
     pagination_class = DefaultLimitPagination
     filterset_class = CommentFilterSet
+
+    @property
+    def _is_filtered(self):
+        """Is the queryset filtered enough to show author_names."""
+        acceptable_filters = ["section", "hearing", "comment", "created_by"]
+        filterset = self.filterset_class(data=self.request.query_params, request=self.request)
+        if filterset.is_valid():
+            for af in acceptable_filters:
+                if filterset.form.cleaned_data[af]:
+                    return True
+        return False
+
+    def get_serializer_context(self):
+        """Author name will be removed for privacy reasons if fetching unfiltered comments."""
+        context = super().get_serializer_context()
+
+        if (
+            self.action == "list"
+            and not self._is_filtered
+            and not bool(
+                hasattr(self.request.user, "get_default_organization") and self.request.user.get_default_organization()
+            )
+        ):
+            context["remove_author_name"] = True
+        return context
 
     def get_queryset(self):
         """Returns all root-level comments, including deleted ones"""

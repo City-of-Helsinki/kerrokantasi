@@ -444,6 +444,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
     created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(field_name="created_at", lookup_expr="gt")
     comment = django_filters.ModelChoiceFilter(queryset=SectionComment.objects.everything())
     section = django_filters.CharFilter(field_name="section__id")
+    created_by = django_filters.CharFilter(method="filter_created_by")
 
     class Meta:
         model = SectionComment
@@ -457,6 +458,12 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
             "comment",
             "pinned",
         ]
+
+    def filter_created_by(self, queryset, name, value: str):
+        if value.lower() == "me" and not self.request.user.is_anonymous:
+            return queryset.filter(created_by_id=self.request.user.id)
+
+        return queryset.none()
 
 
 # root level SectionComment endpoint
@@ -473,10 +480,6 @@ class CommentViewSet(SectionCommentViewSet):
         queryset = self.apply_select_and_prefetch(queryset)
 
         queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing")
-        created_by = self.request.query_params.get("created_by", None)
-        if created_by is not None and not self.request.user.is_anonymous:
-            if created_by.lower() == "me":
-                queryset = queryset.filter(created_by_id=self.request.user.id)
 
         user = self._get_user_from_request_or_context()
         if user.is_authenticated and user.is_superuser:

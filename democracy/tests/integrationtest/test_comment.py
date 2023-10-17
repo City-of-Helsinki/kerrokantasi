@@ -1437,6 +1437,16 @@ def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, 
     assert data["results"][0]["content"] == "Jane created this comment"
 
 
+@pytest.mark.parametrize("query_params,expected", [({"created_by": "me"}, 0), (None, 9)])
+@pytest.mark.django_db
+def test_get_comments_created_by_user__unauthenticated(query_params, expected, api_client, default_hearing):
+    """Unauthenticated users get no results with created_by filter."""
+    url = reverse("comment-list")
+    response = api_client.get(url, query_params)
+
+    assert len(response.data["results"]) == expected
+
+
 @pytest.mark.django_db
 def test_deleted_comments_data_returned(john_doe_api_client, default_hearing):
     """Deleted comment is returned, with contents censored"""

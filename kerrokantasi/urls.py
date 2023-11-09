@@ -18,6 +18,7 @@ urlpatterns = [
     path("ckeditor/", include("ckeditor_uploader.urls")),
     path("upload/", staff_member_required(upload), name="ckeditor_upload"),
     path("browse/", never_cache(staff_member_required(browse)), name="ckeditor_browse"),
+    path("gdpr-api/", include("helsinki_gdpr.urls")),
     path("", RedirectView.as_view(url="v1/")),
 ]
 

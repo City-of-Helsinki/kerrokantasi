@@ -1,8 +1,17 @@
 from django.db import models
+from helsinki_gdpr.models import SerializableMixin
 from helusers.models import AbstractUser
 
 
-class User(AbstractUser):
+class User(AbstractUser, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "uuid"},
+        {"name": "username"},
+        {"name": "first_name"},
+        {"name": "last_name"},
+        {"name": "email"},
+    )
 
     nickname = models.CharField(max_length=50, blank=True)
     has_strong_auth = models.BooleanField(default=False)

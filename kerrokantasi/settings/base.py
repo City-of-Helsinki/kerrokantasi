@@ -71,7 +71,7 @@ env = environ.Env(
     DEFAULT_MAP_ZOOM=(int, 11),
     # Authentication settings
     OIDC_API_AUDIENCE=(str, ""),
-    OIDC_API_SCOPE_PREFIX=(str, ""),
+    OIDC_API_SCOPE_PREFIX=(str, "kerrokantasi"),
     OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=(bool, True),
     OIDC_API_ISSUER=(str, ""),
     OIDC_API_AUTHORIZATION_FIELD=(str, ""),
@@ -82,6 +82,9 @@ env = environ.Env(
     LOGOUT_REDIRECT_URL=(str, "/"),
     HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, False),
     HEARING_REPORT_THEME=(str, "whitelabel"),
+    # GDPR API settings
+    GDPR_API_QUERY_SCOPE=(str, "kerrokantasi.gdprquery"),
+    GDPR_API_DELETE_SCOPE=(str, "kerrokantasi.gdprdelete"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -392,3 +395,12 @@ SITE_ID = 1
 
 HEARING_REPORT_PUBLIC_AUTHOR_NAMES = env("HEARING_REPORT_PUBLIC_AUTHOR_NAMES")
 HEARING_REPORT_THEME = env("HEARING_REPORT_THEME")
+
+# GDPR API settings
+GDPR_API_MODEL = "kerrokantasi.User"
+GDPR_API_MODEL_LOOKUP = "uuid"
+GDPR_API_URL_PATTERN = "v1/user/<uuid:uuid>"
+GDPR_API_USER_PROVIDER = "kerrokantasi.gdpr.get_user"
+GDPR_API_DELETER = "kerrokantasi.gdpr.delete_data"
+GDPR_API_QUERY_SCOPE = env("GDPR_API_QUERY_SCOPE")
+GDPR_API_DELETE_SCOPE = env("GDPR_API_DELETE_SCOPE")

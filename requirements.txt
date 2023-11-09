@@ -57,6 +57,7 @@ django==3.2.23
     #   drf-nested-routers
     #   drf-oidc-auth
     #   easy-thumbnails
+    #   helsinki-profile-gdpr-api
     #   jsonfield
 django-autoslug==1.9.8
     # via -r requirements.in
@@ -75,7 +76,9 @@ django-filter==2.4.0
 django-geojson==3.1.0
     # via -r requirements.in
 django-helusers==0.7.1
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   helsinki-profile-gdpr-api
 django-js-asset==1.2.2
     # via
     #   django-ckeditor
@@ -105,10 +108,13 @@ djangorestframework==3.12.4
     #   django-parler-rest
     #   drf-nested-routers
     #   drf-oidc-auth
+    #   helsinki-profile-gdpr-api
 drf-nested-routers==0.93.3
     # via -r requirements.in
 drf-oidc-auth==0.10.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   helsinki-profile-gdpr-api
 easy-thumbnails==2.8.5
     # via -r requirements.in
 ecdsa==0.14.1
@@ -119,6 +125,8 @@ executing==1.2.0
     # via stack-data
 future==0.18.3
     # via pyjwkest
+helsinki-profile-gdpr-api==0.2.0
+    # via -r requirements.in
 idna==2.10
     # via requests
 ipython==8.12.2

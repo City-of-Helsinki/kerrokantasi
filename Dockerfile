@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd g
 RUN sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen
 RUN locale-gen
 
-RUN pip install --upgrade pip && \
+RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir uwsgi
 
 # Sentry CLI for sending events from non-Python processes to Sentry

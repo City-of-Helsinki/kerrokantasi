@@ -38,7 +38,7 @@ coveralls==3.0.1
     # via -r requirements-dev.in
 distro==1.7.0
     # via -r requirements-dev.in
-django==3.2.21
+django==3.2.23
     # via
     #   -c requirements.txt
     #   django-debug-toolbar
@@ -134,7 +134,7 @@ typing-extensions==4.2.0
     # via
     #   -c requirements.txt
     #   black
-urllib3==2.0.4
+urllib3==2.0.7
     # via
     #   -c requirements.txt
     #   requests

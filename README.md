@@ -99,8 +99,8 @@ After you've got tunnistamo running locally, ssh to the tunnistamo docker contai
 and execute the following four commands inside your docker container:
 
 ```bash
-./manage.py add_oidc_client -n kerrokantasi-ui -t "id_token token" -u "http://localhost:8086/callback" "http://localhost:8086/silent-callback" -i https://api.hel.fi/auth/kerrokantasi-ui -m github -s dev
-./manage.py add_oidc_client -n kerrokantasi-api -t "code" -u http://localhost:8080/pysocial/complete/tunnistamo/ -i https://api.hel.fi/auth/kerrokantasi -m github -s dev -c
+./manage.py add_oidc_client -n kerrokantasi-ui -t "id_token token" -u "http://localhost:8086/callback" "http://localhost:8086/silent-renew" -i https://api.hel.fi/auth/kerrokantasi-ui -m github -s dev
+./manage.py add_oidc_client -n kerrokantasi-api -t "code" -u http://localhost:8080/complete/tunnistamo/ -i https://api.hel.fi/auth/kerrokantasi -m github -s dev -c
 ./manage.py add_oidc_api -n kerrokantasi -d https://api.hel.fi/auth -s email,profile -c https://api.hel.fi/auth/kerrokantasi
 ./manage.py add_oidc_api_scope -an kerrokantasi -c https://api.hel.fi/auth/kerrokantasi -n "Kerrokantasi" -d "Lorem ipsum"
 ./manage.py add_oidc_client_to_api_scope -asi https://api.hel.fi/auth/kerrokantasi -c https://api.hel.fi/auth/kerrokantasi-ui

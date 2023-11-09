@@ -45,6 +45,7 @@ env = environ.Env(
     ALLOWED_HOSTS=(list, []),
     ADMINS=(list, []),
     DATABASE_URL=(str, "postgis:///kerrokantasi"),
+    DATABASE_PASSWORD=(str, ""),
     TEST_DATABASE_URL=(str, ""),
     MEDIA_ROOT=(environ.Path(), root("media")),
     STATIC_ROOT=(environ.Path(), root("static")),
@@ -110,6 +111,9 @@ DATABASES = {
 
 if env.db("TEST_DATABASE_URL"):
     DATABASES["default"]["TEST"] = env.db("TEST_DATABASE_URL")
+
+if env("DATABASE_PASSWORD"):
+    DATABASES["default"]["PASSWORD"] = env("DATABASE_PASSWORD")
 
 MEDIA_ROOT = env("MEDIA_ROOT")
 MEDIA_URL = env("MEDIA_URL")

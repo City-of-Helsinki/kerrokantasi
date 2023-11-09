@@ -29,8 +29,6 @@ services:
         #     - config_dev.toml
         volumes:
             - .:/kerrokantasi:cached
-            - $HOME/maintenance:/maintenance
-            - $HOME/kerrokantasi_logs:/logs
         command: ["start_django_development_server"]
         ports:
             - "127.0.0.1:8080:8000"

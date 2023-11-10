@@ -60,6 +60,8 @@ iniconfig==1.1.1
     # via pytest
 isort==5.12.0
     # via -r requirements-dev.in
+jose==1.0.0
+    # via -r requirements-dev.in
 mccabe==0.7.0
     # via flake8
 mypy-extensions==0.4.3
@@ -112,10 +114,14 @@ requests==2.31.0
     # via
     #   -c requirements.txt
     #   coveralls
+    #   requests-mock
+requests-mock==1.11.0
+    # via -r requirements-dev.in
 six==1.15.0
     # via
     #   -c requirements.txt
     #   python-dateutil
+    #   requests-mock
 sqlparse==0.4.4
     # via
     #   -c requirements.txt

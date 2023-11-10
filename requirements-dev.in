@@ -7,8 +7,10 @@ distro
 django-debug-toolbar
 factory-boy
 flake8
+jose
 isort
 pip-tools
 pytest
 pytest-cov
 pytest_django
+requests-mock

@@ -1,4 +1,9 @@
+from typing import Optional
+
 from django.contrib.auth import get_user_model
+from helsinki_gdpr.types import ErrorResponse
+
+from democracy.models import SectionComment
 
 
 def get_user(user: get_user_model()) -> get_user_model():
@@ -13,7 +18,7 @@ def get_user(user: get_user_model()) -> get_user_model():
     return user
 
 
-def delete_data(user: get_user_model(), dry_run: bool) -> None:
+def delete_data(user: get_user_model(), dry_run: bool) -> Optional[ErrorResponse]:
     """
     Function used by the Helsinki Profile GDPR API to delete all GDPR data collected of the user.
     The GDPR API package will run this within a transaction.
@@ -21,4 +26,15 @@ def delete_data(user: get_user_model(), dry_run: bool) -> None:
     :param  user: the User instance to be deleted along with related GDPR data
     :param dry_run: a boolean telling if this is a dry run of the function or not
     """
-    raise NotImplementedError()
+
+    user.nickname = ""
+    user.first_name = ""
+    user.last_name = ""
+    user.email = ""
+    user.is_active = False
+    user.username = f"deleted-{user.id}"
+    user.set_unusable_password()
+    user.save()
+    SectionComment.objects.filter(created_by=user).update(author_name=None)
+
+    return None

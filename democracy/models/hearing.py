@@ -8,12 +8,13 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from djgeojson.fields import GeoJSONField
+from helsinki_gdpr.models import SerializableMixin
 from parler.managers import TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFields
 from urllib.parse import urljoin
 
 from democracy.enums import InitialSectionType
-from democracy.models.base import BaseModelManager, StringIdBaseModel
+from democracy.models.base import SerializableBaseModelManager, StringIdBaseModel
 from democracy.models.organization import ContactPerson, ContactPersonOrder, Organization
 from democracy.models.project import ProjectPhase
 from democracy.utils.geo import get_geometry_from_geojson
@@ -28,7 +29,14 @@ class HearingQueryset(TranslatableQuerySet):
         return self.filter(models.Q(pk=id_or_slug) | models.Q(slug=id_or_slug))
 
 
-class Hearing(StringIdBaseModel, TranslatableModel):
+class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "title"},
+        {"name": "geojson"},
+        {"name": "sections"},
+    )
+
     open_at = models.DateTimeField(verbose_name=_("opening time"), default=timezone.now)
     close_at = models.DateTimeField(verbose_name=_("closing time"), default=timezone.now)
     force_closed = models.BooleanField(verbose_name=_("force hearing closed"), default=False)
@@ -77,7 +85,7 @@ class Hearing(StringIdBaseModel, TranslatableModel):
         blank=True,
     )
 
-    objects = BaseModelManager.from_queryset(HearingQueryset)()
+    objects = SerializableBaseModelManager.from_queryset(HearingQueryset)()
     original_manager = models.Manager()
 
     class Meta:

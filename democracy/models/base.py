@@ -7,6 +7,7 @@ from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from enumfields.fields import EnumIntegerField
 from functools import lru_cache
+from helsinki_gdpr.models import SerializableMixin
 
 from democracy.enums import Commenting, CommentingMapTools
 
@@ -32,6 +33,10 @@ class BaseModelManager(models.Manager):
 
     def everything(self, *args, **kwargs):
         return super().get_queryset().filter(*args, **kwargs)
+
+
+class SerializableBaseModelManager(SerializableMixin.SerializableManager, BaseModelManager):
+    """Add serialization support needed for GDPR API to the base model manager."""
 
 
 class BaseModel(models.Model):

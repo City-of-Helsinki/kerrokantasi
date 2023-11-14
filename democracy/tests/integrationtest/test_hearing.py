@@ -4,7 +4,7 @@ import pytest
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
-from democracy.enums import Commenting, InitialSectionType
+from democracy.enums import InitialSectionType
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
     ContactPerson,
@@ -19,7 +19,7 @@ from democracy.models import (
     SectionType,
 )
 from democracy.models.utils import copy_hearing
-from democracy.tests.conftest import default_lang_code, get_feature_with_geometry
+from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
     assert_common_keys_equal,
     assert_datetime_fuzzy_equal,
@@ -28,6 +28,7 @@ from democracy.tests.utils import (
     sectionfile_base64_test_data,
     sectionimage_test_json,
 )
+from kerrokantasi.tests.conftest import get_feature_with_geometry
 
 endpoint = "/v1/hearing/"
 list_endpoint = endpoint
@@ -357,11 +358,11 @@ def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_d
 
     """Create hearings"""
     # Jane creates 6 hearings
-    jane_hearings = create_hearings_created_by(6, main_organization, jane_doe_api_client.user)
+    create_hearings_created_by(6, main_organization, jane_doe_api_client.user)
     # John creates 3 hearings
-    john_hearings = create_hearings_created_by(3, main_organization, john_smith_api_client.user)
+    create_hearings_created_by(3, main_organization, john_smith_api_client.user)
     # Stark creates 1 hearing
-    stark_hearings = create_hearings_created_by(1, second_organization, stark_doe_api_client.user)
+    create_hearings_created_by(1, second_organization, stark_doe_api_client.user)
 
     # Filtering with me
     # Jane should get 6 results when filtering with 'me'
@@ -472,8 +473,8 @@ def test_list_hearings_check_default_to_fullscreen(api_client, default_hearing, 
 @pytest.mark.django_db
 def test_get_next_closing_and_open_hearings(api_client):
     create_hearings(0)  # Clear out old hearings
-    closed_hearing_1 = Hearing.objects.create(title="Gone", close_at=now() - datetime.timedelta(days=1))
-    closed_hearing_2 = Hearing.objects.create(title="Gone too", close_at=now() - datetime.timedelta(days=2))
+    Hearing.objects.create(title="Gone", close_at=now() - datetime.timedelta(days=1))  # Closed hearing
+    Hearing.objects.create(title="Gone too", close_at=now() - datetime.timedelta(days=2))  # Closed hearing
     future_hearing_1 = Hearing.objects.create(title="Next up", close_at=now() + datetime.timedelta(days=1))
     future_hearing_2 = Hearing.objects.create(title="Next up", close_at=now() + datetime.timedelta(days=5))
     response = api_client.get(list_endpoint, {"next_closing": now().isoformat()})
@@ -760,7 +761,7 @@ def test_preview_code_not_in_published(john_smith_api_client, default_organizati
         john_smith_api_client.get(get_detail_url(published_hearing.pk)), status_code=200
     )
 
-    assert hearing_data["preview_url"] == None
+    assert hearing_data["preview_url"] is None
 
 
 @pytest.mark.django_db
@@ -1138,7 +1139,6 @@ def test_POST_hearing_with_updated_project(
     )
 
     valid_hearing_json.update(default_project_json)
-    default_project_phase_ids = set(default_project.phases.values_list("id", flat=True))
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
     data = get_data_from_response(response, status_code=201)
     assert "project" in data
@@ -1692,7 +1692,7 @@ def test_GET_unpublished_hearing_no_organization(unpublished_hearing_json, john_
 def test_GET_unpublished_hearing(unpublished_hearing_json, john_smith_api_client):
     response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format="json")
     data_created = get_data_from_response(response, status_code=201)
-    assert data_created["published"] == False
+    assert data_created["published"] is False
     response = john_smith_api_client.get("%s%s/" % (endpoint, data_created["id"]), format="json")
     data = get_data_from_response(response, status_code=200)
     response = john_smith_api_client.get(endpoint, format="json")
@@ -1707,11 +1707,11 @@ def test_PATCH_hearing(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["close_at"] = datetime.datetime.now() + datetime.timedelta(days=1)
     response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
     data = get_data_from_response(response, status_code=201)
-    assert data["closed"] == False
+    assert data["closed"] is False
     before = datetime.datetime.now() - datetime.timedelta(days=1)
     response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data={"close_at": before}, format="json")
     data = get_data_from_response(response, status_code=200)
-    assert data["closed"] == True
+    assert data["closed"] is True
 
 
 # Test that updating hearing with project returns a response with phases' is_active value
@@ -1726,12 +1726,12 @@ def test_PATCH_hearing_with_project_phase_is_active(valid_hearing_json_with_proj
     for index, phase in enumerate(phases):
         data["project"]["phases"][index]["is_active"] = phase["is_active"]
 
-    assert data["closed"] == False
+    assert data["closed"] is False
     before = datetime.datetime.now() - datetime.timedelta(days=1)
     response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data={"close_at": before}, format="json")
     data = get_data_from_response(response, status_code=200)
 
-    assert data["closed"] == True
+    assert data["closed"] is True
     for index, phase in enumerate(phases):
         assert data["project"]["phases"][index]["is_active"] == phase["is_active"]
 

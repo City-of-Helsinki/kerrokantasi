@@ -8,8 +8,8 @@ from django.utils.crypto import get_random_string
 from democracy.enums import InitialSectionType
 from democracy.importing.json_importer import import_from_data, parse_aware_datetime
 from democracy.models import Hearing
-from democracy.tests.conftest import default_geojson_feature
 from democracy.tests.utils import assert_datetime_fuzzy_equal
+from kerrokantasi.tests.conftest import default_geojson_feature
 
 LIKE = {"comment_id": "154", "created_at": "2014-11-27T18:02:53.874498", "id": "37", "user_id": "16"}
 

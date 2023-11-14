@@ -1,12 +1,18 @@
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from helsinki_gdpr.models import SerializableMixin
 from parler.models import TranslatableModel, TranslatedFields
 
-from democracy.models.base import StringIdBaseModel
+from democracy.models.base import SerializableBaseModelManager, StringIdBaseModel
 
 
-class Organization(StringIdBaseModel):
+class Organization(StringIdBaseModel, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "name"},
+    )
+
     name = models.CharField(verbose_name=_("name"), max_length=255, unique=True)
     admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations")
     parent = models.ForeignKey(
@@ -20,6 +26,8 @@ class Organization(StringIdBaseModel):
             "(e.g. a company) and should be hidden from users."
         ),
     )
+
+    objects = SerializableBaseModelManager()
 
     class Meta:
         verbose_name = _("organization")

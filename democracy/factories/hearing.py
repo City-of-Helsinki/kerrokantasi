@@ -1,6 +1,7 @@
 import factory
 import factory.fuzzy
 import logging
+import os
 import random
 from datetime import timedelta
 from django.utils.timezone import now
@@ -8,8 +9,10 @@ from django.utils.timezone import now
 from democracy.enums import Commenting
 from democracy.factories.comment import BaseCommentFactory
 from democracy.models import Hearing, Label, Section, SectionComment, SectionType
+from democracy.models.section import CommentImage, SectionFile, SectionImage
+from democracy.tests.utils import FILE_SOURCE_PATH, FILES
 
-LOG = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
@@ -22,6 +25,15 @@ class LabelFactory(factory.django.DjangoModelFactory):
 class SectionCommentFactory(BaseCommentFactory):
     class Meta:
         model = SectionComment
+
+
+class CommentImageFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("word")
+    caption = factory.Faker("word")
+    image = factory.django.ImageField()
+
+    class Meta:
+        model = CommentImage
 
 
 class HearingFactory(factory.django.DjangoModelFactory):
@@ -48,7 +60,7 @@ class HearingFactory(factory.django.DjangoModelFactory):
 
         for x in range(random.randint(1, 4)):
             section = SectionFactory(hearing=obj)
-            LOG.info("Hearing %s: Created section %s", obj, section)
+            logger.info("Hearing %s: Created section %s", obj, section)
 
         obj.recache_n_comments()
 
@@ -67,5 +79,24 @@ class SectionFactory(factory.django.DjangoModelFactory):
     def post(obj, create, extracted, **kwargs):
         for x in range(random.randint(1, 5)):
             comment = SectionCommentFactory(section=obj)
-            LOG.info("Hearing %s: Section %s: Created section comment %s", obj.hearing, obj, comment.pk)
+            logger.info("Hearing %s: Section %s: Created section comment %s", obj.hearing, obj, comment.pk)
         obj.recache_n_comments()
+
+
+class SectionFileFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("word")
+    caption = factory.Faker("word")
+    file = factory.django.FileField(from_path=os.path.join(FILE_SOURCE_PATH, FILES["PDF"]))
+
+    class Meta:
+        model = SectionFile
+
+
+class SectionImageFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("word")
+    caption = factory.Faker("word")
+    alt_text = factory.Faker("word")
+    image = factory.django.ImageField()
+
+    class Meta:
+        model = SectionImage

@@ -25,42 +25,12 @@ from democracy.tests.utils import (
     create_default_images,
     get_file_path,
 )
+from kerrokantasi.tests.conftest import *  # noqa
 
 default_comment_content = "I agree with you sir Lancelot. My favourite colour is blue"
 red_comment_content = "Mine is red"
 green_comment_content = "I like green"
 default_lang_code = "en"
-default_geojson_geometry = {"type": "Point", "coordinates": [-104.99404, 39.75621]}
-
-
-def get_feature_with_geometry(geometry):
-    return {
-        "type": "Feature",
-        "properties": {
-            "name": "Coors Field",
-            "amenity": "Baseball Stadium",
-            "popupContent": "This is where the Rockies play!",
-        },
-        "geometry": geometry,
-    }
-
-
-default_geojson_feature = get_feature_with_geometry(default_geojson_geometry)
-
-
-def pytest_configure():
-    # During tests, crypt passwords with MD5. This should make things run faster.
-    from django.conf import settings
-
-    settings.PASSWORD_HASHERS = (
-        "django.contrib.auth.hashers.MD5PasswordHasher",
-        "django.contrib.auth.hashers.PBKDF2PasswordHasher",
-        "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
-        "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
-        "django.contrib.auth.hashers.BCryptPasswordHasher",
-        "django.contrib.auth.hashers.SHA1PasswordHasher",
-        "django.contrib.auth.hashers.CryptPasswordHasher",
-    )
 
 
 @pytest.fixture()
@@ -395,7 +365,8 @@ def steve_staff(default_organization):
 @pytest.fixture()
 def steve_staff_api_client(steve_staff):
     """
-    Steve Staff is a registered user working for an organization that has staff rights to django; this is his API client.
+    Steve Staff is a registered user working for an organization that has staff rights
+    to django; this is his API client.
     """
     api_client = APIClient()
     api_client.force_authenticate(user=steve_staff)
@@ -420,16 +391,6 @@ def admin_api_client_logged_in(admin_user):
     admin_user.save()
     api_client.login(username=admin_user.username, password="foo")
     return api_client
-
-
-@pytest.fixture()
-def api_client():
-    return APIClient()
-
-
-@pytest.fixture()
-def geojson_feature():
-    return default_geojson_feature
 
 
 @pytest.fixture()
@@ -614,8 +575,8 @@ def geojson_featurecollection(geojson_point, geojson_polygon):
 @pytest.fixture
 def section_file_orphan():
     section_file = SectionFile()
-    with open(get_file_path(FILES["TXT"]), "rb") as fp:
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
         cf = ContentFile(fp.read())
-        section_file.file.save("test/file.txt", cf, save=False)
+        section_file.file.save("test/file.pdf", cf, save=False)
     section_file.save()
     return section_file

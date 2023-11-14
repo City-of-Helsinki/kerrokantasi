@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 from django.utils.dateparse import parse_datetime
@@ -7,6 +6,7 @@ from PIL import Image
 
 from democracy.models.files import BaseFile
 from democracy.models.images import BaseImage
+from democracy.utils.file_to_base64 import file_to_base64
 
 IMAGES = {
     "ORIGINAL": "original.jpg",
@@ -15,19 +15,18 @@ IMAGES = {
 }
 
 FILES = {
-    "TXT": "text_file.txt",
+    "PDF": "dummy.pdf",
 }
 
 IMAGE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "images")
 FILE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "files")
 
 
-def image_to_base64(filename):
-    return "data:image/jpeg;base64,%s" % base64.b64encode(image_to_bytesio(filename).getvalue()).decode("ascii")
+def test_file_to_base64():
+    file = BytesIO(b"Binary")
+    file.name = "funny.gif"
 
-
-def file_to_base64(filename):
-    return "data:application/pdf;base64,%s" % base64.b64encode(file_to_bytesio(filename).getvalue()).decode("ascii")
+    assert file_to_base64(file) == "data:image/gif;base64,QmluYXJ5"
 
 
 def image_to_bytesio(filename):
@@ -35,6 +34,7 @@ def image_to_bytesio(filename):
     image = Image.open(os.path.join(IMAGE_SOURCE_PATH, filename))
     image.save(buffered, format="JPEG")
     buffered.name = filename
+    buffered.seek(0)
     return buffered
 
 
@@ -42,6 +42,7 @@ def file_to_bytesio(filename):
     file = open(os.path.join(FILE_SOURCE_PATH, filename), "rb")
     buffered = BytesIO(file.read())
     buffered.name = filename
+    buffered.seek(0)
     return buffered
 
 
@@ -49,7 +50,7 @@ def image_test_json():
     return {
         "caption": "Test",
         "title": "Test title",
-        "image": image_to_base64(IMAGES["ORIGINAL"]),
+        "image": file_to_base64(image_to_bytesio(IMAGES["ORIGINAL"])),
     }
 
 
@@ -67,7 +68,7 @@ def sectionimage_test_json(title_en="Test title"):
             "en": "Map of the area",
             "fi": "Rakennettavan alueen kartta",
         },
-        "image": image_to_base64(IMAGES["ORIGINAL"]),
+        "image": file_to_base64(image_to_bytesio(IMAGES["ORIGINAL"])),
     }
 
 
@@ -99,7 +100,7 @@ def sectionfile_base64_test_data(title_en="Test title"):
             "en": title_en,
             "fi": "Finnish test title",
         },
-        "file": file_to_base64(FILES["TXT"]),
+        "file": file_to_base64(file_to_bytesio(FILES["PDF"])),
     }
 
 

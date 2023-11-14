@@ -14,13 +14,14 @@ from democracy.factories.hearing import SectionCommentFactory
 from democracy.factories.poll import SectionPollFactory
 from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment, SectionPoll, SectionPollAnswer
-from democracy.tests.conftest import default_comment_content, default_geojson_feature, default_lang_code
+from democracy.tests.conftest import default_comment_content, default_lang_code
 from democracy.tests.utils import (
     assert_common_keys_equal,
     get_data_from_response,
     get_hearing_detail_url,
     image_test_json,
 )
+from kerrokantasi.tests.conftest import default_geojson_feature
 
 root_list_url = "/v1/comment/"
 

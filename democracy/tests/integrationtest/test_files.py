@@ -1,8 +1,6 @@
-import datetime
 import pytest
 import re
 from django.urls import reverse
-from django.utils.timezone import now
 
 from democracy.models import SectionFile
 from democracy.tests.conftest import default_lang_code
@@ -110,7 +108,7 @@ def test_get_section_with_files(api_client, default_hearing):
 def test_unpublished_section_files_excluded(client, expected, request, default_hearing):
     api_client = request.getfixturevalue(client)
 
-    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["TXT"])
+    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["PDF"])
     file_obj.published = False
     file_obj.save(update_fields=("published",))
 
@@ -123,7 +121,7 @@ def test_unpublished_section_files_excluded(client, expected, request, default_h
     file_set_2 = get_data_from_response(response)[2]["files"]
 
     for set_num, file_set in zip(range(1, 3), (file_set_1, file_set_2)):
-        assert (FILES["TXT"] in [file_obj["title"][default_lang_code] for file_obj in file_set]) is expected, (
+        assert (FILES["PDF"] in [file_obj["title"][default_lang_code] for file_obj in file_set]) is expected, (
             "Set %d failed" % set_num
         )
 
@@ -134,7 +132,7 @@ def test_published_hearing_section_files_download_link(api_client, default_heari
     Files in an published hearing should be downloadable for normal users
     """
 
-    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["TXT"])
+    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["PDF"])
 
     response = api_client.get(get_sectionfile_download_url(file_obj.id))
     assert response.status_code == 200
@@ -145,7 +143,7 @@ def test_unpublished_hearing_section_files_download_link(api_client, default_hea
     """
     Files in an unpublished hearing should not be downloadable for normal users
     """
-    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["TXT"])
+    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["PDF"])
 
     default_hearing.published = False
     default_hearing.save(update_fields=("published",))
@@ -161,9 +159,11 @@ def test_unpublished_hearing_section_files_download_link_admin(default_hearing, 
     """
     Files in an unpublished hearing should be downloadable for organisation admin
 
-    Test currently skipped, john_smith_api_client results in AnonymousUser in request.user instead of john_smith from the fixture, who should be organisation admin of the default_hearing.
+    Test currently skipped, john_smith_api_client results in AnonymousUser in
+    request.user instead of john_smith from the fixture, who should be organisation
+    admin of the default_hearing.
     """
-    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["TXT"])
+    file_obj = default_hearing.sections.all()[2].files.get(translations__title=FILES["PDF"])
 
     default_hearing.published = False
     default_hearing.save(update_fields=("published",))
@@ -181,10 +181,9 @@ def test_POST_file_root_endpoint_empty_section(john_smith_api_client, default_he
     assert len(data["results"]) == 3
     # Get some section
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, "sections")))
-    first_section = data[0]
     # POST new file to the section
     post_data = sectionfile_multipart_test_data()
-    with open(get_file_path(FILES["TXT"]), "rb") as fp:
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
         post_data["file"] = fp
         data = get_data_from_response(
             john_smith_api_client.post("/v1/file/", data=post_data, format="multipart"), status_code=201
@@ -206,7 +205,7 @@ def test_PUT_file_multipart_section(john_smith_api_client, default_hearing):
     first_section = data[0]
     # POST new file to the section
     post_data = sectionfile_multipart_test_data()
-    with open(get_file_path(FILES["TXT"]), "rb") as fp:
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
         post_data["file"] = fp
         data = get_data_from_response(
             john_smith_api_client.post("/v1/file/", data=post_data, format="multipart"), status_code=201
@@ -242,7 +241,7 @@ def test_PUT_file_json_section(john_smith_api_client, default_hearing):
 @pytest.mark.django_db
 def test_GET_file(john_doe_api_client, default_hearing):
     url = "/v1/file/%s/" % default_hearing.sections.first().files.first().pk
-    data = get_data_from_response(john_doe_api_client.get(url), status_code=200)
+    get_data_from_response(john_doe_api_client.get(url), status_code=200)
 
 
 @pytest.mark.django_db
@@ -252,7 +251,7 @@ def test_PUT_file_no_access(john_doe_api_client, default_hearing):
     """
     url = "/v1/file/%s/" % default_hearing.sections.first().files.first().pk
     put_data = sectionfile_multipart_test_data()
-    data = get_data_from_response(john_doe_api_client.put(url, data=put_data, format="multipart"), status_code=403)
+    get_data_from_response(john_doe_api_client.put(url, data=put_data, format="multipart"), status_code=403)
 
 
 @pytest.mark.parametrize(
@@ -281,7 +280,7 @@ def test_POST_first_file(john_smith_api_client, default_hearing):
     # POST new file to the section
     post_data = sectionfile_multipart_test_data()
     post_data["section"] = section.pk
-    with open(get_file_path(FILES["TXT"]), "rb") as fp:
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
         post_data["file"] = fp
         data = get_data_from_response(
             john_smith_api_client.post(url, data=post_data, format="multipart"), status_code=201
@@ -304,7 +303,7 @@ def test_ckeditor_file_upload_orphan(admin_api_client_logged_in):
     ckeditor_params = "?CKEditor=id_sections-0-content&CKEditorFuncNum=1&langCode=en"
     url = "/upload/" + ckeditor_params
     post_data = {}
-    with open(get_file_path(FILES["TXT"]), "rb") as fp:
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
         post_data["upload"] = fp
         response = admin_api_client_logged_in.post(url, data=post_data, format="multipart")
     assert response.status_code == 200, "expected status_code 200, received %s" % response.status_code
@@ -351,7 +350,7 @@ def test_ckeditor_get_uploaded_orphan(admin_api_client_logged_in):
     ckeditor_params = "?CKEditor=id_sections-0-content&CKEditorFuncNum=1&langCode=en"
     url = "/upload/" + ckeditor_params
     post_data = {}
-    with open(get_file_path(FILES["TXT"]), "rb") as fp:
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
         post_data["upload"] = fp
         response = admin_api_client_logged_in.post(url, data=post_data, format="multipart")
     assert response.status_code == 200, "expected status_code 200, received %s" % response.status_code

@@ -6,18 +6,27 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import get_resolver
 from django.utils.translation import gettext_lazy as _
+from helsinki_gdpr.models import SerializableMixin
 from parler.managers import TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFields
 from reversion import revisions
 
 from democracy.enums import InitialSectionType
-from democracy.models.base import ORDERING_HELP, BaseModel, BaseModelManager, Commentable, StringIdBaseModel
+from democracy.models.base import (
+    ORDERING_HELP,
+    BaseModel,
+    BaseModelManager,
+    Commentable,
+    SerializableBaseModelManager,
+    StringIdBaseModel,
+)
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.files import BaseFile
 from democracy.models.hearing import Hearing
 from democracy.models.images import BaseImage
 from democracy.models.poll import BasePoll, BasePollAnswer, BasePollOption, poll_option_recache_on_save
 from democracy.plugins import get_implementation
+from democracy.utils.file_to_base64 import file_to_base64
 
 CLOSURE_INFO_ORDERING = -10000
 
@@ -50,7 +59,18 @@ class SectionType(BaseModel):
         return super().save(*args, **kwargs)
 
 
-class Section(Commentable, StringIdBaseModel, TranslatableModel):
+class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "ordering"},
+        {"name": "title"},
+        {"name": "abstract"},
+        {"name": "content"},
+        {"name": "files"},
+        {"name": "images"},
+        {"name": "polls"},
+    )
+
     hearing = models.ForeignKey(Hearing, related_name="sections", on_delete=models.PROTECT)
     ordering = models.IntegerField(verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP)
     type = models.ForeignKey(SectionType, related_name="sections", on_delete=models.PROTECT)
@@ -62,7 +82,7 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
     plugin_identifier = models.CharField(verbose_name=_("plugin identifier"), blank=True, max_length=255)
     plugin_data = models.TextField(verbose_name=_("plugin data"), blank=True)
     plugin_fullscreen = models.BooleanField(default=False)
-    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
+    objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         ordering = ["ordering"]
@@ -121,7 +141,20 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel):
         return get_implementation(self.plugin_identifier)
 
 
-class SectionImage(BaseImage, TranslatableModel):
+class SectionImage(BaseImage, TranslatableModel, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "title"},
+        {"name": "caption"},
+        {"name": "alt_text"},
+        {"name": "image", "accessor": lambda x: file_to_base64(x)},
+        {"name": "published"},
+        {"name": "created_at"},
+        {"name": "modified_at"},
+        {"name": "deleted"},
+        {"name": "deleted_at"},
+    )
+
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="images", on_delete=models.CASCADE)
     translations = TranslatedFields(
@@ -129,7 +162,7 @@ class SectionImage(BaseImage, TranslatableModel):
         caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
         alt_text=models.TextField(verbose_name=_("alt text"), blank=True, default=""),
     )
-    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
+    objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         verbose_name = _("section image")
@@ -137,14 +170,26 @@ class SectionImage(BaseImage, TranslatableModel):
         ordering = ("ordering",)
 
 
-class SectionFile(BaseFile, TranslatableModel):
+class SectionFile(BaseFile, TranslatableModel, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "title"},
+        {"name": "caption"},
+        {"name": "file", "accessor": lambda x: file_to_base64(x)},
+        {"name": "published"},
+        {"name": "created_at"},
+        {"name": "modified_at"},
+        {"name": "deleted"},
+        {"name": "deleted_at"},
+    )
+
     parent_field = "section"
     section = models.ForeignKey(Section, related_name="files", blank=True, null=True, on_delete=models.CASCADE)
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_("title"), max_length=255, blank=True, default=""),
         caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
     )
-    objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
+    objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
         verbose_name = _("section file")
@@ -157,7 +202,24 @@ class SectionFile(BaseFile, TranslatableModel):
 
 @revisions.register
 @recache_on_save
-class SectionComment(Commentable, BaseComment):
+class SectionComment(Commentable, BaseComment, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "section_id"},
+        {"name": "author_name"},
+        {"name": "comment_id"},
+        {"name": "title"},
+        {"name": "content"},
+        {"name": "published"},
+        {"name": "created_at"},
+        {"name": "modified_at"},
+        {"name": "deleted"},
+        {"name": "deleted_at"},
+        {"name": "images"},
+        {"name": "poll_answers"},
+        {"name": "geojson"},
+    )
+
     parent_field = "section"
     parent_model = Section
     section = models.ForeignKey(Section, related_name="comments", on_delete=models.PROTECT)
@@ -179,6 +241,8 @@ class SectionComment(Commentable, BaseComment):
         editable=False,
         on_delete=models.SET_NULL,
     )
+
+    objects = SerializableBaseModelManager()
 
     class Meta:
         verbose_name = _("section comment")
@@ -249,11 +313,21 @@ class SectionComment(Commentable, BaseComment):
         return False
 
 
-class SectionPoll(BasePoll):
+class SectionPoll(BasePoll, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "type"},
+        {"name": "ordering"},
+        {"name": "is_independent_poll"},
+        {"name": "text"},
+        {"name": "options"},
+    )
     section = models.ForeignKey(Section, related_name="polls", on_delete=models.PROTECT)
     translations = TranslatedFields(
         text=models.TextField(verbose_name=_("text")),
     )
+
+    objects = SerializableBaseModelManager()
 
     class Meta:
         verbose_name = _("section poll")
@@ -274,11 +348,18 @@ class SectionPoll(BasePoll):
             self.save(update_fields=("n_answers",))
 
 
-class SectionPollOption(BasePollOption):
+class SectionPollOption(BasePollOption, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "ordering"},
+        {"name": "text"},
+    )
     poll = models.ForeignKey(SectionPoll, related_name="options", on_delete=models.PROTECT)
     translations = TranslatedFields(
         text=models.TextField(verbose_name=_("option text")),
     )
+
+    objects = SerializableBaseModelManager()
 
     class Meta:
         verbose_name = _("section poll option")
@@ -287,20 +368,40 @@ class SectionPollOption(BasePollOption):
 
 
 @poll_option_recache_on_save
-class SectionPollAnswer(BasePollAnswer):
+class SectionPollAnswer(BasePollAnswer, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "option", "accessor": lambda x: x.text},
+    )
     comment = models.ForeignKey(SectionComment, related_name="poll_answers", on_delete=models.CASCADE)
     option = models.ForeignKey(SectionPollOption, related_name="answers", on_delete=models.PROTECT)
+
+    objects = SerializableBaseModelManager()
 
     class Meta:
         verbose_name = _("section poll answer")
         verbose_name_plural = _("section poll answers")
 
 
-class CommentImage(BaseImage):
+class CommentImage(BaseImage, SerializableMixin):
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "title"},
+        {"name": "caption"},
+        {"name": "image", "accessor": lambda x: file_to_base64(x)},
+        {"name": "published"},
+        {"name": "created_at"},
+        {"name": "modified_at"},
+        {"name": "deleted"},
+        {"name": "deleted_at"},
+    )
+
     title = models.CharField(verbose_name=_("title"), max_length=255, blank=True, default="")
     caption = models.TextField(verbose_name=_("caption"), blank=True, default="")
     parent_field = "sectioncomment"
     comment = models.ForeignKey(SectionComment, related_name="images", on_delete=models.CASCADE)
+
+    objects = SerializableBaseModelManager()
 
     class Meta:
         verbose_name = _("comment image")

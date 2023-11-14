@@ -8,9 +8,16 @@ class User(AbstractUser, SerializableMixin):
         {"name": "id"},
         {"name": "uuid"},
         {"name": "username"},
+        {"name": "nickname"},
         {"name": "first_name"},
         {"name": "last_name"},
         {"name": "email"},
+        {"name": "has_strong_auth"},
+        {"name": "sectioncomment_created"},
+        {"name": "voted_democracy_sectioncomment"},
+        {"name": "followed_hearings"},
+        {"name": "admin_organizations"},
+        {"name": "hearing_created"},
     )
 
     nickname = models.CharField(max_length=50, blank=True)

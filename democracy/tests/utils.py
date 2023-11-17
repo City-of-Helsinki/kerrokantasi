@@ -23,7 +23,7 @@ FILE_SOURCE_PATH = os.path.join(os.path.dirname(__file__), "files")
 
 
 def image_to_base64(filename):
-    return "data:image/jpg;base64,%s" % base64.b64encode(image_to_bytesio(filename).getvalue()).decode("ascii")
+    return "data:image/jpeg;base64,%s" % base64.b64encode(image_to_bytesio(filename).getvalue()).decode("ascii")
 
 
 def file_to_base64(filename):
@@ -101,10 +101,6 @@ def sectionfile_base64_test_data(title_en="Test title"):
         },
         "file": file_to_base64(FILES["TXT"]),
     }
-
-
-def get_image_path(filename):
-    return os.path.join(IMAGE_SOURCE_PATH, filename)
 
 
 def create_image(instance, filename):

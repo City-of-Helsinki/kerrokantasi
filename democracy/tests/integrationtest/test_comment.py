@@ -649,7 +649,7 @@ def test_56_add_comment_with_invalid_content_as_images(john_doe_api_client, defa
     data = get_data_from_response(response, status_code=400)
     assert data["images"][0]["image"][0] == 'Invalid content. Expected "data:image"'
 
-    invalid_image.update({"image": "data:image/jpg;base64,not a b64 image"})
+    invalid_image.update({"image": "data:image/jpeg;base64,not a b64 image"})
     comment_data = get_comment_data(section=section.pk, images=[invalid_image])
     response = john_doe_api_client.post(url, data=comment_data, format="json")
     data = get_data_from_response(response, status_code=400)

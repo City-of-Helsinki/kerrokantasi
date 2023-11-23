@@ -265,7 +265,7 @@ CORS_URLS_REGEX = r"^/[a-z0-9-]*/?v1/.*$"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
-        "kerrokantasi.oidc.ApiTokenAuthentication",
+        "kerrokantasi.oidc.StrongApiTokenAuthentication",
         "django.contrib.auth.backends.ModelBackend",
     ),
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),

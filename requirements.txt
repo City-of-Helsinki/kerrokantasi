@@ -75,7 +75,7 @@ django-filter==2.4.0
     # via -r requirements.in
 django-geojson==3.1.0
     # via -r requirements.in
-django-helusers==0.7.1
+django-helusers==0.9.0
     # via
     #   -r requirements.in
     #   helsinki-profile-gdpr-api

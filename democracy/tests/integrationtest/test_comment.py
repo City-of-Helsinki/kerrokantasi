@@ -798,7 +798,7 @@ def test_get_section_comment_creator_email_as_regular_user_not_public(john_doe_a
     section = default_hearing.sections.first()
 
     data = get_section_comments(default_hearing, section, john_doe_api_client)
-    # check no section comment has creator_name when not authorized and the setting is disabled
+    # check no section comment has creator_email when not authorized and the setting is disabled
     for comment in data:
         assert "creator_email" not in comment
 
@@ -809,7 +809,7 @@ def test_get_section_comment_creator_email_as_regular_user_public(john_doe_api_c
     section = default_hearing.sections.first()
 
     data = get_section_comments(default_hearing, section, john_doe_api_client)
-    # check section comment has creator_name when not authorized and the setting is enabled
+    # check section comment has creator_email when not authorized and the setting is enabled
     for comment in data:
         assert "creator_email" not in comment
 
@@ -820,7 +820,7 @@ def test_get_section_comment_creator_email_as_admin_not_public(admin_api_client,
     section = default_hearing.sections.first()
 
     data = get_section_comments(default_hearing, section, admin_api_client)
-    # check all section comments have creator_name when authorized
+    # check all section comments have creator_email when authorized
     for comment in data:
         assert "creator_email" not in comment
 
@@ -831,9 +831,25 @@ def test_get_section_comment_creator_email_as_admin_public(admin_api_client, def
     section = default_hearing.sections.first()
 
     data = get_section_comments(default_hearing, section, admin_api_client)
-    # check all section comments have creator_name when authorized
+
+    # check all section comments have creator_email when authorized
     for comment in data:
         assert "creator_email" in comment
+        assert comment["creator_email"] != ""
+
+
+@pytest.mark.django_db
+def test_get_section_comment_creator_email_as_admin_public_when_deleted(admin_api_client, default_hearing, settings):
+    settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
+    section = default_hearing.sections.first()
+    section.comments.update(deleted=True)
+
+    data = get_section_comments(default_hearing, section, admin_api_client)
+
+    # Creator email should not be visible when comment is deleted.
+    for comment in data:
+        assert "creator_email" in comment
+        assert comment["creator_email"] == ""
 
 
 @pytest.mark.django_db
@@ -1454,6 +1470,8 @@ def test_deleted_comments_data_returned(john_doe_api_client, default_hearing):
         SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
         and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" in comment_data["content"]
     )
+    assert comment_data["author_name"] is None
+    assert comment_data["organization"] is None
 
 
 @pytest.mark.django_db
@@ -1473,6 +1491,8 @@ def test_deleted_comments_data_returned_author_self_deleted(john_doe_api_client,
         SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
         and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" not in comment_data["content"]
     )
+    assert comment_data["author_name"] is None
+    assert comment_data["organization"] is None
 
 
 @pytest.mark.django_db

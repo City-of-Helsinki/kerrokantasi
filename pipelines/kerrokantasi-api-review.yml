@@ -27,7 +27,7 @@ pr:
     - '**/*.md'
     - '.github/'
     - 'pipelines/kerrokantasi-api-release.yml'
-    - 'pipelines/kerrokantasi-api-test.yml'
+    - 'pipelines/kerrokantasi-api-dev.yml'
     - 'docker-compose*'
 
 # By default, use self-hosted agents

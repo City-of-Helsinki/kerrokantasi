@@ -9,12 +9,6 @@ trigger:
     exclude:
       - '**/*.md'
 
-parameters:
-  - name: deployTest
-    displayName: Deploy test environment
-    type: boolean
-    default: false
-
 # Pull request (PR) triggers cause a pipeline to run whenever a pull request is
 # opened with one of the specified target branches, or when updates are made to
 # such a pull request.
@@ -25,6 +19,13 @@ parameters:
 #
 # Opt out of pull request validation
 pr: none
+
+# Deploy test environment
+parameters:
+  - name: deployTest
+    displayName: Deploy test environment
+    type: boolean
+    default: false
 
 # By default, use self-hosted agents for production
 pool: Default

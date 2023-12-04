@@ -9,6 +9,12 @@ trigger:
     exclude:
       - '**/*.md'
 
+parameters:
+  - name: deployTest
+    displayName: Deploy test environment
+    type: boolean
+    default: false
+
 # Pull request (PR) triggers cause a pipeline to run whenever a pull request is
 # opened with one of the specified target branches, or when updates are made to
 # such a pull request.
@@ -21,7 +27,7 @@ trigger:
 pr: none
 
 # By default, use self-hosted agents for production
-pool: Production
+pool: Default
 
 resources:
   repositories:
@@ -34,7 +40,8 @@ resources:
 extends:
   # Filename in Azure DevOps Repository
   template: azure-pipelines-kerrokantasi-api-release.yml@kerrokantasi-pipelines
-  # parameters:
+  parameters:
+    deployTest: ${{ parameters.deployTest }}
     # Application build arguments and config map values as key value pairs.
     # Does not contain all buildArguments or configMap values, the rest located in kerrokantasi-pipelines
     # Default value to pythonVersion is set on template.

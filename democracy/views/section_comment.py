@@ -226,7 +226,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
         return list(polls_by_id.values())
 
     def get_creator_email(self, obj):
-        if obj.created_by and not obj.created_by.is_anonymous:
+        if not obj.deleted and obj.created_by and not obj.created_by.is_anonymous:
             return obj.created_by.email
         else:
             return ""

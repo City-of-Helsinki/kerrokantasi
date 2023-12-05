@@ -33,6 +33,7 @@ COMMENT_FIELDS = [
 
 
 class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
+    author_name = serializers.SerializerMethodField()
     is_registered = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()
     flagged = serializers.SerializerMethodField()
@@ -50,12 +51,19 @@ class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serial
                 r["plugin_data"] = instance.plugin_data
         return r
 
+    def get_author_name(self, obj):
+        if obj.deleted:
+            return None
+
+        return obj.author_name
+
     def get_is_registered(self, obj):
-        return obj.created_by_id is not None
+        return not obj.deleted and obj.created_by_id is not None
 
     def get_organization(self, obj):
-        if obj.organization:
+        if not obj.deleted and obj.organization:
             return str(obj.organization)
+
         return None
 
     def get_flagged(self, obj):

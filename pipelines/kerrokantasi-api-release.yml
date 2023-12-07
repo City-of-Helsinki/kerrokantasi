@@ -52,6 +52,10 @@ extends:
     #   DEBUG: 1
     # configMapStage: # pod environment variables
     #   DEBUG: 1
+    ## Test definitions
+    ## Test is using staging image
+    # configMapTest: # pod environment variables
+    #   DEBUG: 1
     ## Production definitions
     ## Production is using staging image
     # configMap: # pod environment variables

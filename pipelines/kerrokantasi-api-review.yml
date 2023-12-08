@@ -38,7 +38,6 @@ resources:
     # Azure DevOps repository
     - repository: kerrokantasi-pipelines
       type: git
-      ref: refs/heads/clean_old_pipelines-OH-20
       # Azure DevOps project/repository
       name: kerrokantasi/kerrokantasi-pipelines
 

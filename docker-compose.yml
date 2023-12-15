@@ -23,13 +23,13 @@ services:
         environment:
             - DEBUG=true
             - DATABASE_URL=postgis://kerrokantasi:kerrokantasi@postgis/kerrokantasi
-            - WAIT_FOR_IT_ADDRESS=postgis:5432
+            - WAIT_FOR_IT_HOSTS=postgis:5432
+            - DEV_SERVER=true
         # Uncomment this if you want to configure development instance with the external file
         # env_file:
         #     - config_dev.toml
         volumes:
             - .:/kerrokantasi:cached
-        command: ["start_django_development_server"]
         ports:
             - "127.0.0.1:8080:8000"
 

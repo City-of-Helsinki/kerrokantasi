@@ -13,9 +13,25 @@
 # Following are the settings and their explanations, with useful values
 # for development:
 
+#### entrypoint.sh settings ####
+
+# Boolean. Whether to run Django development server when launching the container.
+DEV_SERVER=true
+
+# Boolean. Whether to apply migrations when launching the container.
+APPLY_MIGRATIONS=true
+
+# Boolean. Whether to compile translations when launching the container.
+COMPILE_TRANSLATIONS=true
+
+# List of host:ports (separated by spaces) that the container will wait for before starting up.
+WAIT_FOR_IT_HOSTS=postgis:5432
+
+#### Django settings ####
+
 # Whether to run Django in debug mode
 # Django setting: DEBUG https://docs.djangoproject.com/en/2.2/ref/settings/#debug
-DEBUG=True
+DEBUG=true
 
 # Secret used for various functions within Django. This setting is
 # mandatory for Django, but Kerrokantasi will generate a key, if it is not

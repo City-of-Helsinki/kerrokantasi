@@ -306,6 +306,14 @@ for code formatting and quality checking.
 run all the formatting tools as git hooks automatically before a
 commit.
 
+## Commit message format
+
+New commit messages must adhere to the [Conventional Commits](https://www.conventionalcommits.org/)
+specification, and line length is limited to 72 characters.
+
+When [`pre-commit`](https://pre-commit.com/) is in use, [`commitlint`](https://github.com/conventional-changelog/commitlint)
+checks new commit messages for the correct format.
+
 ### Git blame ignore refs
 
 Project includes a `.git-blame-ignore-revs` file for ignoring certain commits from `git blame`.

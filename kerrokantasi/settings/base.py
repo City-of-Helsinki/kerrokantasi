@@ -72,10 +72,10 @@ env = environ.Env(
     DEFAULT_MAP_ZOOM=(int, 11),
     # Authentication settings
     HELUSERS_BACK_CHANNEL_LOGOUT_ENABLED=(bool, False),
-    OIDC_API_AUDIENCE=(str, ""),
-    OIDC_API_SCOPE_PREFIX=(str, "kerrokantasi"),
+    OIDC_API_AUDIENCE=(list, [""]),
+    OIDC_API_SCOPE_PREFIX=(list, ["kerrokantasi"]),
     OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=(bool, True),
-    OIDC_API_ISSUER=(str, ""),
+    OIDC_API_ISSUER=(list, [""]),
     OIDC_API_AUTHORIZATION_FIELD=(str, ""),
     SOCIAL_AUTH_TUNNISTAMO_KEY=(str, ""),
     SOCIAL_AUTH_TUNNISTAMO_SECRET=(str, ""),

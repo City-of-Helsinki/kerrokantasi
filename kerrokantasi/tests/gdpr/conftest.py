@@ -42,7 +42,6 @@ def get_api_token_for_user_with_scopes(user, scopes: list, requests_mock):
     issuer = api_token_auth_settings.ISSUER
     if isinstance(issuer, list):
         issuer = issuer[0]
-    auth_field = api_token_auth_settings.API_AUTHORIZATION_FIELD
     config_url = f"{issuer}/.well-known/openid-configuration"
     jwks_url = f"{issuer}/jwks"
 
@@ -62,7 +61,8 @@ def get_api_token_for_user_with_scopes(user, scopes: list, requests_mock):
         "sub": str(user.uuid),
         "iat": int(now.timestamp()),
         "exp": int(expire.timestamp()),
-        auth_field: scopes,
+        # Use hardcoded keycloak field, see override_settings_oidc_api_authorization_field
+        "authorization": {"permissions": [{"scopes": scopes}]},
     }
     encoded_jwt = jwt.encode(jwt_data, key=rsa_key.private_key_pem, algorithm=rsa_key.jose_algorithm)
 

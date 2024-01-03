@@ -136,7 +136,7 @@ COOKIE_PREFIX=kkdev
 # to Tunnistamo instance.
 OIDC_API_AUDIENCE=https://auth.example.com/kerrokantasi
 OIDC_API_SCOPE_PREFIX=kerrokantasi
-OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=True
+OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION=False
 OIDC_API_ISSUER=https://tunnistamo.example.com/openid
 OIDC_API_AUTHORIZATION_FIELD=https://auth.example.com
 

@@ -85,8 +85,8 @@ env = environ.Env(
     HEARING_REPORT_PUBLIC_AUTHOR_NAMES=(bool, False),
     HEARING_REPORT_THEME=(str, "whitelabel"),
     # GDPR API settings
-    GDPR_API_QUERY_SCOPE=(str, "kerrokantasi.gdprquery"),
-    GDPR_API_DELETE_SCOPE=(str, "kerrokantasi.gdprdelete"),
+    GDPR_API_QUERY_SCOPE=(str, "gdprquery"),
+    GDPR_API_DELETE_SCOPE=(str, "gdprdelete"),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)

@@ -66,6 +66,8 @@ USER kerrokantasi
 # And the production image
 FROM appbase as production
 
+RUN django-admin compilemessages
+
 ENV DEBUG=False
 
 USER kerrokantasi

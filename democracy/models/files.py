@@ -6,7 +6,23 @@ from django.utils.translation import gettext_lazy as _
 
 from democracy.models.base import ORDERING_HELP, BaseModel
 
-protected_storage = FileSystemStorage(location=settings.SENDFILE_ROOT)
+
+class ProtectedFileSystemStorage(FileSystemStorage):
+    """
+    This subclass exists solely to prevent Django from
+    generating migrations for the file storage location.
+
+    E.g. local and production environments might have
+    different paths for the protected media, but we don't
+    want to generate migrations for that.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.update({"location": settings.SENDFILE_ROOT})
+        super().__init__(*args, **kwargs)
+
+
+protected_storage = ProtectedFileSystemStorage()
 
 
 class BaseFile(BaseModel):

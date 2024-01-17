@@ -39,7 +39,6 @@ resources:
     - repository: kerrokantasi-pipelines
       type: git
       ref: refs/heads/tunnistus_testing_OH-39
-
       # Azure DevOps project/repository
       name: kerrokantasi/kerrokantasi-pipelines
 

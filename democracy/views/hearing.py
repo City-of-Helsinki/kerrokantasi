@@ -311,7 +311,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         return abstract
 
     def get_sections(self, hearing):
-        queryset = hearing.sections.all()
+        queryset = hearing.sections.select_related("type").prefetch_related("polls", "translations")
         if not hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
 
@@ -493,15 +493,20 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return queryset
 
     def get_queryset(self):
-        queryset = filter_by_hearing_visible(
-            Hearing.objects.with_unpublished(), self.request, hearing_lookup=""
-        ).prefetch_related(*hearing_prefetches)
+        queryset = (
+            filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request, hearing_lookup="")
+            .select_related("organization", "project_phase__project")
+            .prefetch_related(*hearing_prefetches)
+        )
+
         return queryset
 
     def get_object(self):
         id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
 
-        queryset = self.filter_queryset(Hearing.objects.with_unpublished())
+        queryset = self.filter_queryset(Hearing.objects.with_unpublished()).select_related(
+            "organization", "project_phase__project"
+        )
         queryset = queryset.prefetch_related(*hearing_prefetches)
 
         try:

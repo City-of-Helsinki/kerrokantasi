@@ -491,7 +491,7 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related("section__hearing").prefetch_related("translations")
         queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing")
         return queryset.filter(deleted=False)
 
@@ -663,7 +663,12 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
     filterset_class = SectionFilterSet
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related("type")
+            .prefetch_related("translations", "polls__translations", "polls__options__translations")
+        )
         queryset = filter_by_hearing_visible(queryset, self.request)
 
         n = now()

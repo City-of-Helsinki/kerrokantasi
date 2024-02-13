@@ -203,12 +203,14 @@ def _get_user_data(user: User) -> List[dict]:
         {"key": "EMAIL", "value": user.email},
         {"key": "HAS_STRONG_AUTH", "value": user.has_strong_auth},
         {
-            "key": "SECTIONCOMMENT_CREATED",
-            "children": [_get_section_comment_data(comment) for comment in user.sectioncomment_created.all()],
+            "key": "SECTIONCOMMENTS",
+            "value": [_get_section_comment_data(comment) for comment in user.sectioncomment_created.everything()],
         },
         {
-            "key": "VOTED_DEMOCRACY_SECTIONCOMMENT",
-            "children": [_get_section_comment_data(comment) for comment in user.voted_democracy_sectioncomment.all()],
+            "key": "VOTED_SECTIONCOMMENTS",
+            "value": [
+                _get_section_comment_data(comment) for comment in user.voted_democracy_sectioncomment.everything()
+            ],
         },
         {
             "key": "FOLLOWED_HEARINGS",
@@ -244,6 +246,12 @@ def test_get_user_information_from_gdpr_api(user, geojson_feature):
     comment_voted = SectionCommentFactory(section=section)
     comment_voted.voters.add(user)
     SectionPollAnswer.objects.create(comment=comment, created_by=user, option=poll_option)
+
+    deleted_comment = SectionCommentFactory(
+        section=section, created_by=user, author_name="Name of the Author", geojson=geojson_feature
+    )
+    deleted_comment.soft_delete()
+
     CommentImageFactory(comment=comment, created_by=user)
     hearing_followed = HearingFactory()
     hearing_followed.followers.add(user)

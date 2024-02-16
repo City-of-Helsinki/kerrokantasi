@@ -1,5 +1,6 @@
 from django.conf import settings
 from helusers.oidc import ApiTokenAuthentication
+from social_django.strategy import DjangoStrategy
 
 
 class StrongApiTokenAuthentication(ApiTokenAuthentication):
@@ -19,3 +20,7 @@ class StrongApiTokenAuthentication(ApiTokenAuthentication):
             user.save(update_fields=["has_strong_auth"])
 
         return user, auth
+
+class ReviewStrategy(DjangoStrategy):
+    def build_absolute_uri(self, path=None):
+        return settings.SOCIAL_AUTH_TUNNISTAMO_REDIRECT_URI_OVERRIDE

@@ -22,11 +22,11 @@ from democracy.models.base import (
 )
 from democracy.models.comment import BaseComment, recache_on_save
 from democracy.models.files import BaseFile
+from democracy.models.gdpr_data_serialization_mixin import FileFieldUrlSerializerMixin
 from democracy.models.hearing import Hearing
 from democracy.models.images import BaseImage
 from democracy.models.poll import BasePoll, BasePollAnswer, BasePollOption, poll_option_recache_on_save
 from democracy.plugins import get_implementation
-from democracy.utils.file_to_base64 import file_to_base64
 
 CLOSURE_INFO_ORDERING = -10000
 
@@ -141,13 +141,15 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         return get_implementation(self.plugin_identifier)
 
 
-class SectionImage(BaseImage, TranslatableModel, SerializableMixin):
+class SectionImage(BaseImage, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin):
+    field_to_use_as_url_field = "image"
+
     serialize_fields = (
         {"name": "id"},
         {"name": "title"},
         {"name": "caption"},
         {"name": "alt_text"},
-        {"name": "image", "accessor": lambda x: file_to_base64(x)},
+        {"name": "url"},
         {"name": "published"},
         {"name": "created_at"},
         {"name": "modified_at"},
@@ -170,12 +172,14 @@ class SectionImage(BaseImage, TranslatableModel, SerializableMixin):
         ordering = ("ordering",)
 
 
-class SectionFile(BaseFile, TranslatableModel, SerializableMixin):
+class SectionFile(BaseFile, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin):
+    field_to_use_as_url_field = "file"
+
     serialize_fields = (
         {"name": "id"},
         {"name": "title"},
         {"name": "caption"},
-        {"name": "file", "accessor": lambda x: file_to_base64(x)},
+        {"name": "url"},
         {"name": "published"},
         {"name": "created_at"},
         {"name": "modified_at"},
@@ -383,12 +387,14 @@ class SectionPollAnswer(BasePollAnswer, SerializableMixin):
         verbose_name_plural = _("section poll answers")
 
 
-class CommentImage(BaseImage, SerializableMixin):
+class CommentImage(BaseImage, SerializableMixin, FileFieldUrlSerializerMixin):
+    field_to_use_as_url_field = "image"
+
     serialize_fields = (
         {"name": "id"},
         {"name": "title"},
         {"name": "caption"},
-        {"name": "image", "accessor": lambda x: file_to_base64(x)},
+        {"name": "url"},
         {"name": "published"},
         {"name": "created_at"},
         {"name": "modified_at"},

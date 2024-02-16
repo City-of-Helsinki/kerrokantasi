@@ -1,8 +1,11 @@
+import threading
 from django.contrib.auth import get_user_model
 from helsinki_gdpr.types import ErrorResponse
 from typing import Optional
 
 from democracy.models import SectionComment
+
+_thread_locals = threading.local()
 
 
 def get_user(user: get_user_model()) -> get_user_model():
@@ -37,3 +40,27 @@ def delete_data(user: get_user_model(), dry_run: bool) -> Optional[ErrorResponse
     SectionComment.objects.filter(created_by=user).update(author_name=None)
 
     return None
+
+
+class CurrentRequestMiddleware:
+    """
+    Middleware to store the current request in a thread_locals.
+
+    In the GDPR API user data fetch the files (images & files) need to contain the absolute URL to the file.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        _thread_locals.request = request
+
+        try:
+            response = self.get_response(request)
+        except Exception:
+            _thread_locals.request = None
+            raise
+
+        _thread_locals.request = None
+
+        return response

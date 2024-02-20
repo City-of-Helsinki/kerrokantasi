@@ -13,8 +13,8 @@ class User(AbstractUser, SerializableMixin):
         {"name": "last_name"},
         {"name": "email"},
         {"name": "has_strong_auth"},
-        {"name": "sectioncomment_created"},
-        {"name": "voted_democracy_sectioncomment"},
+        {"name": "sectioncomments"},
+        {"name": "voted_sectioncomments"},
         {"name": "followed_hearings"},
         {"name": "admin_organizations"},
         {"name": "hearing_created"},
@@ -22,6 +22,15 @@ class User(AbstractUser, SerializableMixin):
 
     nickname = models.CharField(max_length=50, blank=True)
     has_strong_auth = models.BooleanField(default=False)
+
+    # Properties for GDPR api serialization
+    @property
+    def sectioncomments(self):
+        return [s.serialize() for s in self.sectioncomment_created.everything().iterator()]
+
+    @property
+    def voted_sectioncomments(self):
+        return [s.serialize() for s in self.voted_democracy_sectioncomment.everything().iterator()]
 
     def __str__(self):
         return " - ".join([super().__str__(), self.get_display_name(), self.email])

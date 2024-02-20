@@ -19,7 +19,6 @@ from democracy.factories.poll import SectionPollFactory
 from democracy.factories.user import UserFactory
 from democracy.models import Hearing, Organization, SectionComment, SectionPollAnswer
 from democracy.models.section import CommentImage, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption
-from democracy.utils.file_to_base64 import file_to_base64
 from kerrokantasi.tests.gdpr.conftest import get_api_token_for_user_with_scopes
 
 User = get_user_model()
@@ -32,11 +31,17 @@ def do_query(user, id_value, scopes=(settings.GDPR_API_QUERY_SCOPE,)):
         auth_header = get_api_token_for_user_with_scopes(user, scopes, req_mock)
         api_client.credentials(HTTP_AUTHORIZATION=auth_header)
 
-        return api_client.get(reverse("helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: id_value}))
+        response = api_client.get(reverse("helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: id_value}))
+
+        return response
 
 
 def _format_datetime(dt):
     return dt.isoformat().replace("+00:00", "Z") if dt else dt
+
+
+def _get_full_url(url):
+    return f"http://testserver{url}"
 
 
 def _get_section_poll_option_data(section_poll_option: SectionPollOption) -> dict:
@@ -75,7 +80,7 @@ def _get_section_image_data(section_image: SectionImage) -> dict:
             {"key": "TITLE", "value": section_image.title},
             {"key": "CAPTION", "value": section_image.caption},
             {"key": "ALT_TEXT", "value": section_image.alt_text},
-            {"key": "IMAGE", "value": file_to_base64(section_image.image.file)},
+            {"key": "URL", "value": _get_full_url(section_image.image.url)},
             {"key": "PUBLISHED", "value": section_image.published},
             {"key": "CREATED_AT", "value": _format_datetime(section_image.created_at)},
             {"key": "MODIFIED_AT", "value": _format_datetime(section_image.modified_at)},
@@ -92,7 +97,7 @@ def _get_section_file_data(section_file: SectionFile) -> dict:
             {"key": "ID", "value": section_file.id},
             {"key": "TITLE", "value": section_file.title},
             {"key": "CAPTION", "value": section_file.caption},
-            {"key": "FILE", "value": file_to_base64(section_file.file.file)},
+            {"key": "URL", "value": _get_full_url(section_file.url)},
             {"key": "PUBLISHED", "value": section_file.published},
             {"key": "CREATED_AT", "value": _format_datetime(section_file.created_at)},
             {"key": "MODIFIED_AT", "value": _format_datetime(section_file.modified_at)},
@@ -147,7 +152,7 @@ def _get_comment_image_data(comment_image: CommentImage) -> dict:
             {"key": "ID", "value": comment_image.id},
             {"key": "TITLE", "value": comment_image.title},
             {"key": "CAPTION", "value": comment_image.caption},
-            {"key": "IMAGE", "value": file_to_base64(comment_image.image.file)},
+            {"key": "URL", "value": _get_full_url(comment_image.image.url)},
             {"key": "PUBLISHED", "value": comment_image.published},
             {"key": "CREATED_AT", "value": _format_datetime(comment_image.created_at)},
             {"key": "MODIFIED_AT", "value": _format_datetime(comment_image.modified_at)},
@@ -203,12 +208,14 @@ def _get_user_data(user: User) -> List[dict]:
         {"key": "EMAIL", "value": user.email},
         {"key": "HAS_STRONG_AUTH", "value": user.has_strong_auth},
         {
-            "key": "SECTIONCOMMENT_CREATED",
-            "children": [_get_section_comment_data(comment) for comment in user.sectioncomment_created.all()],
+            "key": "SECTIONCOMMENTS",
+            "value": [_get_section_comment_data(comment) for comment in user.sectioncomment_created.everything()],
         },
         {
-            "key": "VOTED_DEMOCRACY_SECTIONCOMMENT",
-            "children": [_get_section_comment_data(comment) for comment in user.voted_democracy_sectioncomment.all()],
+            "key": "VOTED_SECTIONCOMMENTS",
+            "value": [
+                _get_section_comment_data(comment) for comment in user.voted_democracy_sectioncomment.everything()
+            ],
         },
         {
             "key": "FOLLOWED_HEARINGS",
@@ -244,6 +251,12 @@ def test_get_user_information_from_gdpr_api(user, geojson_feature):
     comment_voted = SectionCommentFactory(section=section)
     comment_voted.voters.add(user)
     SectionPollAnswer.objects.create(comment=comment, created_by=user, option=poll_option)
+
+    deleted_comment = SectionCommentFactory(
+        section=section, created_by=user, author_name="Name of the Author", geojson=geojson_feature
+    )
+    deleted_comment.soft_delete()
+
     CommentImageFactory(comment=comment, created_by=user)
     hearing_followed = HearingFactory()
     hearing_followed.followers.add(user)
@@ -273,3 +286,14 @@ def test_gdpr_api_requires_authentication(api_client, user):
     response = api_client.get(reverse("helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: user.uuid}))
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_request_is_not_found_thread_locals(user, api_client):
+    from kerrokantasi.gdpr import _thread_locals
+
+    response = do_query(user, user.uuid)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert getattr(_thread_locals, "request", None) is None

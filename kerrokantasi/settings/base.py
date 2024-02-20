@@ -217,6 +217,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
+    "kerrokantasi.gdpr.CurrentRequestMiddleware",
 ]
 
 # django-extensions is a set of developer friendly tools

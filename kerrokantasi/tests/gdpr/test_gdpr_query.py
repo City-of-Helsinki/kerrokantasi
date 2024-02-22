@@ -215,12 +215,6 @@ def _get_user_data(user: User) -> List[dict]:
             ],
         },
         {
-            "key": "VOTED_SECTIONCOMMENTS",
-            "value": [
-                _get_section_comment_data(comment) for comment in user.voted_democracy_sectioncomment.everything()
-            ],
-        },
-        {
             "key": "FOLLOWED_HEARINGS",
             "children": [_get_hearing_data(hearing) for hearing in user.followed_hearings.all()],
         },

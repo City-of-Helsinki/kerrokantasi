@@ -2,6 +2,8 @@ from django.db import models
 from helsinki_gdpr.models import SerializableMixin
 from helusers.models import AbstractUser
 
+from democracy.models import SectionComment
+
 
 class User(AbstractUser, SerializableMixin):
     serialize_fields = (
@@ -26,7 +28,7 @@ class User(AbstractUser, SerializableMixin):
     # Properties for GDPR api serialization
     @property
     def sectioncomments(self):
-        return [s.serialize() for s in self.sectioncomment_created.everything().iterator()]
+        return [s.serialize() for s in SectionComment.objects.everything(created_by=self).iterator()]
 
     @property
     def voted_sectioncomments(self):

@@ -209,7 +209,10 @@ def _get_user_data(user: User) -> List[dict]:
         {"key": "HAS_STRONG_AUTH", "value": user.has_strong_auth},
         {
             "key": "SECTIONCOMMENTS",
-            "value": [_get_section_comment_data(comment) for comment in user.sectioncomment_created.everything()],
+            "value": [
+                _get_section_comment_data(comment)
+                for comment in SectionComment.objects.everything(created_by=user).iterator()
+            ],
         },
         {
             "key": "VOTED_SECTIONCOMMENTS",
@@ -266,10 +269,23 @@ def test_get_user_information_from_gdpr_api(user, geojson_feature):
     SectionImageFactory(section=section_created, created_by=user)
     SectionPollFactory(section=section_created, created_by=user)
 
+    # Create some other comments from other users.
+    user = UserFactory()
+    SectionCommentFactory.create_batch(10, section=section, created_by=user)
+
     response = do_query(user, user.uuid)
 
     assert response.status_code == status.HTTP_200_OK
     _assert_user_data_in_response(response, user)
+
+    # Match the comment count
+    user_data = response.json()["children"]
+    section_comments = [child for child in user_data if child["key"] == "SECTIONCOMMENTS"][0]
+    all_comment_count = SectionComment.objects.everything().count()
+    user_comment_count = SectionComment.objects.everything(created_by=user).count()
+
+    assert all_comment_count > user_comment_count
+    assert len(section_comments["value"]) == user_comment_count
 
 
 @pytest.mark.django_db

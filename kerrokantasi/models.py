@@ -16,7 +16,6 @@ class User(AbstractUser, SerializableMixin):
         {"name": "email"},
         {"name": "has_strong_auth"},
         {"name": "sectioncomments"},
-        {"name": "voted_sectioncomments"},
         {"name": "followed_hearings"},
         {"name": "admin_organizations"},
         {"name": "hearing_created"},
@@ -29,10 +28,6 @@ class User(AbstractUser, SerializableMixin):
     @property
     def sectioncomments(self):
         return [s.serialize() for s in SectionComment.objects.everything(created_by=self).iterator()]
-
-    @property
-    def voted_sectioncomments(self):
-        return [s.serialize() for s in self.voted_democracy_sectioncomment.everything().iterator()]
 
     def __str__(self):
         return " - ".join([super().__str__(), self.get_display_name(), self.email])

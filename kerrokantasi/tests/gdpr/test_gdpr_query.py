@@ -264,8 +264,8 @@ def test_get_user_information_from_gdpr_api(user, geojson_feature):
     SectionPollFactory(section=section_created, created_by=user)
 
     # Create some other comments from other users.
-    user = UserFactory()
-    SectionCommentFactory.create_batch(10, section=section, created_by=user)
+    other_user = UserFactory()
+    SectionCommentFactory.create_batch(10, section=section, created_by=other_user)
 
     response = do_query(user, user.uuid)
 

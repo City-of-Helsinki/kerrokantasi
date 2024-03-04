@@ -27,6 +27,7 @@ from democracy.models.hearing import Hearing
 from democracy.models.images import BaseImage
 from democracy.models.poll import BasePoll, BasePollAnswer, BasePollOption, poll_option_recache_on_save
 from democracy.plugins import get_implementation
+from democracy.utils.translations import get_translations_dict
 
 CLOSURE_INFO_ORDERING = -10000
 
@@ -63,9 +64,9 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
     serialize_fields = (
         {"name": "id"},
         {"name": "ordering"},
-        {"name": "title"},
-        {"name": "abstract"},
-        {"name": "content"},
+        {"name": "title_with_translations"},
+        {"name": "abstract_with_translations"},
+        {"name": "content_with_translations"},
         {"name": "files"},
         {"name": "images"},
         {"name": "polls"},
@@ -88,6 +89,18 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         ordering = ["ordering"]
         verbose_name = _("section")
         verbose_name_plural = _("sections")
+
+    @property
+    def title_with_translations(self):
+        return get_translations_dict(self, "title")
+
+    @property
+    def abstract_with_translations(self):
+        return get_translations_dict(self, "abstract")
+
+    @property
+    def content_with_translations(self):
+        return get_translations_dict(self, "content")
 
     def __str__(self):
         return "%s: %s" % (self.hearing, self.title)
@@ -146,9 +159,9 @@ class SectionImage(BaseImage, TranslatableModel, SerializableMixin, FileFieldUrl
 
     serialize_fields = (
         {"name": "id"},
-        {"name": "title"},
-        {"name": "caption"},
-        {"name": "alt_text"},
+        {"name": "title_with_translations"},
+        {"name": "caption_with_translations"},
+        {"name": "alt_text_with_translations"},
         {"name": "url"},
         {"name": "published"},
         {"name": "created_at"},
@@ -171,14 +184,26 @@ class SectionImage(BaseImage, TranslatableModel, SerializableMixin, FileFieldUrl
         verbose_name_plural = _("section images")
         ordering = ("ordering",)
 
+    @property
+    def title_with_translations(self):
+        return get_translations_dict(self, "title")
+
+    @property
+    def caption_with_translations(self):
+        return get_translations_dict(self, "caption")
+
+    @property
+    def alt_text_with_translations(self):
+        return get_translations_dict(self, "alt_text")
+
 
 class SectionFile(BaseFile, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin):
     field_to_use_as_url_field = "file"
 
     serialize_fields = (
         {"name": "id"},
-        {"name": "title"},
-        {"name": "caption"},
+        {"name": "title_with_translations"},
+        {"name": "caption_with_translations"},
         {"name": "url"},
         {"name": "published"},
         {"name": "created_at"},
@@ -202,6 +227,14 @@ class SectionFile(BaseFile, TranslatableModel, SerializableMixin, FileFieldUrlSe
 
     def __str__(self):
         return "%s - %s" % (self.pk, self.file.name)
+
+    @property
+    def title_with_translations(self):
+        return get_translations_dict(self, "title")
+
+    @property
+    def caption_with_translations(self):
+        return get_translations_dict(self, "caption")
 
 
 @revisions.register
@@ -323,7 +356,7 @@ class SectionPoll(BasePoll, SerializableMixin):
         {"name": "type"},
         {"name": "ordering"},
         {"name": "is_independent_poll"},
-        {"name": "text"},
+        {"name": "text_with_translations"},
         {"name": "options"},
     )
     section = models.ForeignKey(Section, related_name="polls", on_delete=models.PROTECT)
@@ -332,6 +365,10 @@ class SectionPoll(BasePoll, SerializableMixin):
     )
 
     objects = SerializableBaseModelManager()
+
+    @property
+    def text_with_translations(self):
+        return get_translations_dict(self, "text")
 
     class Meta:
         verbose_name = _("section poll")
@@ -356,8 +393,13 @@ class SectionPollOption(BasePollOption, SerializableMixin):
     serialize_fields = (
         {"name": "id"},
         {"name": "ordering"},
-        {"name": "text"},
+        {"name": "text_with_translations"},
     )
+
+    @property
+    def text_with_translations(self):
+        return get_translations_dict(self, "text")
+
     poll = models.ForeignKey(SectionPoll, related_name="options", on_delete=models.PROTECT)
     translations = TranslatedFields(
         text=models.TextField(verbose_name=_("option text")),

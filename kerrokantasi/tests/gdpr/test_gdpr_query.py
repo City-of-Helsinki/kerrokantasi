@@ -19,6 +19,7 @@ from democracy.factories.poll import SectionPollFactory
 from democracy.factories.user import UserFactory
 from democracy.models import Hearing, Organization, SectionComment, SectionPollAnswer
 from democracy.models.section import CommentImage, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption
+from democracy.utils.translations import get_translations_dict
 from kerrokantasi.tests.gdpr.conftest import get_api_token_for_user_with_scopes
 
 User = get_user_model()
@@ -50,7 +51,7 @@ def _get_section_poll_option_data(section_poll_option: SectionPollOption) -> dic
         "children": [
             {"key": "ID", "value": section_poll_option.id},
             {"key": "ORDERING", "value": section_poll_option.ordering},
-            {"key": "TEXT", "value": section_poll_option.text},
+            {"key": "TEXT_WITH_TRANSLATIONS", "value": get_translations_dict(section_poll_option, "text")},
         ],
     }
 
@@ -63,7 +64,7 @@ def _get_section_poll_data(section_poll: SectionPoll) -> dict:
             {"key": "TYPE", "value": section_poll.type},
             {"key": "ORDERING", "value": section_poll.ordering},
             {"key": "IS_INDEPENDENT_POLL", "value": section_poll.is_independent_poll},
-            {"key": "TEXT", "value": section_poll.text},
+            {"key": "TEXT_WITH_TRANSLATIONS", "value": get_translations_dict(section_poll, "text")},
             {
                 "key": "OPTIONS",
                 "children": [_get_section_poll_option_data(option) for option in section_poll.options.all()],
@@ -77,9 +78,9 @@ def _get_section_image_data(section_image: SectionImage) -> dict:
         "key": "SECTIONIMAGE",
         "children": [
             {"key": "ID", "value": section_image.id},
-            {"key": "TITLE", "value": section_image.title},
-            {"key": "CAPTION", "value": section_image.caption},
-            {"key": "ALT_TEXT", "value": section_image.alt_text},
+            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(section_image, "title")},
+            {"key": "CAPTION_WITH_TRANSLATIONS", "value": get_translations_dict(section_image, "caption")},
+            {"key": "ALT_TEXT_WITH_TRANSLATIONS", "value": get_translations_dict(section_image, "alt_text")},
             {"key": "URL", "value": _get_full_url(section_image.image.url)},
             {"key": "PUBLISHED", "value": section_image.published},
             {"key": "CREATED_AT", "value": _format_datetime(section_image.created_at)},
@@ -95,8 +96,8 @@ def _get_section_file_data(section_file: SectionFile) -> dict:
         "key": "SECTIONFILE",
         "children": [
             {"key": "ID", "value": section_file.id},
-            {"key": "TITLE", "value": section_file.title},
-            {"key": "CAPTION", "value": section_file.caption},
+            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(section_file, "title")},
+            {"key": "CAPTION_WITH_TRANSLATIONS", "value": get_translations_dict(section_file, "caption")},
             {"key": "URL", "value": _get_full_url(section_file.url)},
             {"key": "PUBLISHED", "value": section_file.published},
             {"key": "CREATED_AT", "value": _format_datetime(section_file.created_at)},
@@ -113,9 +114,9 @@ def _get_section_data(section: Section) -> dict:
         "children": [
             {"key": "ID", "value": section.id},
             {"key": "ORDERING", "value": section.ordering},
-            {"key": "TITLE", "value": section.title},
-            {"key": "ABSTRACT", "value": section.abstract},
-            {"key": "CONTENT", "value": section.content},
+            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(section, "title")},
+            {"key": "ABSTRACT_WITH_TRANSLATIONS", "value": get_translations_dict(section, "abstract")},
+            {"key": "CONTENT_WITH_TRANSLATIONS", "value": get_translations_dict(section, "content")},
             {"key": "FILES", "children": [_get_section_file_data(file) for file in section.files.all()]},
             {"key": "IMAGES", "children": [_get_section_image_data(image) for image in section.images.all()]},
             {"key": "POLLS", "children": [_get_section_poll_data(poll) for poll in section.polls.all()]},
@@ -128,7 +129,7 @@ def _get_hearing_data(hearing: Hearing) -> dict:
         "key": "HEARING",
         "children": [
             {"key": "ID", "value": hearing.id},
-            {"key": "TITLE", "value": hearing.title},
+            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(hearing, "title")},
             {"key": "GEOJSON", "value": hearing.geojson},
             {"key": "SECTIONS", "children": [_get_section_data(section) for section in hearing.sections.all()]},
         ],

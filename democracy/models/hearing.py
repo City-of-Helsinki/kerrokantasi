@@ -19,6 +19,7 @@ from democracy.models.organization import ContactPerson, ContactPersonOrder, Org
 from democracy.models.project import ProjectPhase
 from democracy.utils.geo import get_geometry_from_geojson
 from democracy.utils.hmac_hash import get_hmac_b64_encoded
+from democracy.utils.translations import get_translations_dict
 
 
 class HearingQueryset(TranslatableQuerySet):
@@ -32,7 +33,7 @@ class HearingQueryset(TranslatableQuerySet):
 class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
     serialize_fields = (
         {"name": "id"},
-        {"name": "title"},
+        {"name": "title_with_translations"},
         {"name": "geojson"},
         {"name": "sections"},
     )
@@ -94,6 +95,10 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
 
     def __str__(self):
         return self.title or self.id
+
+    @property
+    def title_with_translations(self):
+        return get_translations_dict(self, "title")
 
     @property
     def closed(self):

@@ -415,14 +415,15 @@ class SectionPollOption(BasePollOption, SerializableMixin):
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer, SerializableMixin):
-    serialize_fields = (
-        {"name": "id"},
-        {"name": "option", "accessor": lambda x: x.text},
-    )
+    serialize_fields = ({"name": "id"}, {"name": "option", "accessor": lambda x: x.text}, {"name": "poll_text"})
     comment = models.ForeignKey(SectionComment, related_name="poll_answers", on_delete=models.CASCADE)
     option = models.ForeignKey(SectionPollOption, related_name="answers", on_delete=models.PROTECT)
 
     objects = SerializableBaseModelManager()
+
+    @property
+    def poll_text(self):
+        return get_translations_dict(self.option.poll, "text")
 
     class Meta:
         verbose_name = _("section poll answer")

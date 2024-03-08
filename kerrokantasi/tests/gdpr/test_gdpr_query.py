@@ -169,6 +169,7 @@ def _get_poll_answer_data(poll_answer: SectionPollAnswer) -> dict:
         "children": [
             {"key": "ID", "value": poll_answer.id},
             {"key": "OPTION", "value": poll_answer.option.text},
+            {"key": "POLL_TEXT", "value": get_translations_dict(poll_answer.option.poll, "text")},
         ],
     }
 

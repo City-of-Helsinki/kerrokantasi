@@ -1,0 +1,11 @@
+{
+  "bootstrap-sha": "ecb3705fba7c2a4334b76233f6bb1b7d2238a0e2",
+  "sequential-calls": true,
+  "packages": {
+    ".": {
+      "release-type": "python",
+      "package-name": "kerrokantasi"
+    }
+  },
+  "plugins": ["sentence-case"]
+}

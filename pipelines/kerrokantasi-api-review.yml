@@ -41,6 +41,7 @@ resources:
       # Azure DevOps project/repository
       name: kerrokantasi/kerrokantasi-pipelines
 
+
 extends:
   # Filename in Azure DevOps Repository
   template: azure-pipelines-kerrokantasi-api-review.yml@kerrokantasi-pipelines

@@ -158,11 +158,7 @@ class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer)
             serializer_params = {"data": option_data}
             if pk:
                 try:
-                    if self.instance.pk:
-                        option = self.instance.options.get(pk=pk)
-                    else:  # Creating a copy of the hearing
-                        option = SectionPollOption.objects.get(pk=pk)
-                        option.pk = None
+                    option = self.instance.options.get(pk=pk)
                 except SectionPollOption.DoesNotExist:
                     raise ValidationError("The Poll does not have an option with ID %s" % repr(pk))
                 serializer_params["instance"] = option
@@ -295,52 +291,64 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
 
     def validate_images(self, data):
         for index, image_data in enumerate(data):
-            pk = image_data.get("id")
             image_data["ordering"] = index
-            serializer_params = {"data": image_data}
 
-            if pk:
+            image = None
+            # NOTE: You can only use either pk or reference_id, not both. If you use both, pk will be used.
+            # reference_id is meant for "save as new" type of situations. Not sure how it should behave if
+            # used in conjunction with pk.
+            if pk := image_data.get("id"):
+                # Use an existing SectionImage.
                 try:
-                    if self.instance is not None:
-                        image = self.instance.images.get(pk=pk)
-                    else:  # Creating a copy of the hearing
-                        image = SectionImage.objects.get(pk=pk)
-                        image.pk = None
+                    # only allow orphan images or images within this section already
+                    image = SectionImage.objects.filter(Q(section=None) | Q(section=self.instance)).get(pk=pk)
                 except SectionImage.DoesNotExist:
-                    raise ValidationError("The Section does not have an image with ID %s" % pk)
-                serializer_params["instance"] = image
+                    raise ValidationError("No image with ID %s available in this section" % pk)
+            elif reference_id := image_data.get("reference_id"):
+                # Create a new SectionImage based on an existing image.
+                try:
+                    image = SectionImage.objects.get(pk=reference_id)
+                except SectionImage.DoesNotExist:
+                    raise ValidationError("Image %s does not exist" % reference_id)
+                image.pk = None
 
-            serializer = SectionImageCreateUpdateSerializer(**serializer_params)
+            serializer = SectionImageCreateUpdateSerializer(data=image_data, instance=image)
             serializer.is_valid(raise_exception=True)
 
-            # save serializer in data so it can be used when handling the images
+            # save serializer in data, so it can be used when handling the images
             image_data["serializer"] = serializer
 
         return data
 
     def validate_files(self, data):
         for index, file_data in enumerate(data):
-            pk = file_data.get("id")
             file_data["ordering"] = index
-            serializer_params = {"data": file_data, "context": {"request": self.context["request"]}}
 
-            if pk:
+            file = None
+            # NOTE: You can only use either pk or reference_id, not both. If you use both, pk will be used.
+            # reference_id is meant for "save as new" type of situations. Not sure how it should behave if
+            # used in conjunction with pk.
+            if pk := file_data.get("id"):
+                # Use an existing SectionFile.
                 try:
-                    if self.instance is not None:
-                        # only allow orphan files or files within this section already
-                        file = SectionFile.objects.filter(Q(section=None) | (Q(section=self.instance))).get(pk=pk)
-                    else:  # Creating a copy of the hearing
-                        file = SectionFile.objects.get(pk=pk)
-                        file.pk = None
-                except SectionImage.DoesNotExist:
+                    # only allow orphan files or files within this section already
+                    file = SectionFile.objects.filter(Q(section=None) | Q(section=self.instance)).get(pk=pk)
+                except SectionFile.DoesNotExist:
                     raise ValidationError("No file with ID %s available in this section" % pk)
+            elif reference_id := file_data.get("reference_id"):
+                # Create a new SectionFile based on an existing file.
+                try:
+                    file = SectionFile.objects.get(pk=reference_id)
+                except SectionFile.DoesNotExist:
+                    raise ValidationError("File %s does not exist" % reference_id)
+                file.pk = None
 
-                serializer_params["instance"] = file
-
-            serializer = RootFileBase64Serializer(**serializer_params)
+            serializer = RootFileBase64Serializer(
+                data=file_data, instance=file, context={"request": self.context["request"]}
+            )
             serializer.is_valid(raise_exception=True)
 
-            # save serializer in data so it can be used when handling the files
+            # save serializer in data, so it can be used when handling the files
             file_data["serializer"] = serializer
 
         return data
@@ -391,12 +399,7 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             serializer_params = {"data": poll_data}
             if pk:
                 try:
-                    if self.instance is not None:
-                        poll = self.instance.polls.get(pk=pk)
-                    else:  # Creating a copy of the hearing
-                        poll = SectionPoll.objects.get(pk=pk)
-                        poll.pk = None
-                        poll.n_answers = 0
+                    poll = self.instance.polls.get(pk=pk)
                 except SectionPoll.DoesNotExist:
                     raise ValidationError("The Section does not have a poll with ID %s" % repr(pk))
                 self._validate_question_update(poll_data, poll)

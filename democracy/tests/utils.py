@@ -3,6 +3,7 @@ import os
 from django.utils.dateparse import parse_datetime
 from io import BytesIO
 from PIL import Image
+from typing import Iterable, Mapping
 
 from democracy.models.files import BaseFile
 from democracy.models.images import BaseImage
@@ -201,3 +202,11 @@ def assert_common_keys_equal(dict1, dict2):
             "v1": dict1[key],
             "v2": dict2[key],
         }
+
+
+def get_nested(data: Mapping, keys: Iterable):
+    """Get a nested value from a mapping using an iterable of keys."""
+    val = data
+    for key in keys:
+        val = val[key]
+    return val

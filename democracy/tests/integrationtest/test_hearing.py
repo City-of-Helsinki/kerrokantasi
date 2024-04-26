@@ -1,6 +1,7 @@
 import datetime
 import json
 import pytest
+from copy import deepcopy
 from django.utils.encoding import force_text
 from django.utils.timezone import now
 
@@ -21,13 +22,18 @@ from democracy.models import (
 from democracy.models.utils import copy_hearing
 from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
+    FILES,
     assert_common_keys_equal,
     assert_datetime_fuzzy_equal,
+    file_to_bytesio,
     get_data_from_response,
+    get_file_path,
     get_hearing_detail_url,
+    get_nested,
     sectionfile_base64_test_data,
     sectionimage_test_json,
 )
+from democracy.utils.file_to_base64 import file_to_base64
 from kerrokantasi.tests.conftest import get_feature_with_geometry
 
 endpoint = "/v1/hearing/"
@@ -1067,6 +1073,126 @@ def test_POST_hearing(valid_hearing_json, john_smith_api_client):
     data = get_data_from_response(response, status_code=201)
     assert data["organization"] == john_smith_api_client.user.get_default_organization().name
     assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_file_upload(valid_hearing_json, john_smith_api_client):
+    # Upload a file before creating the hearing, similar to how you would upload the file
+    # in the creation form before submitting the form.
+    data = get_data_from_response(
+        john_smith_api_client.post(
+            "/v1/file/",
+            data={
+                "title": {
+                    "fi": "Testi",
+                    "en": "Test",
+                },
+                "caption": {},
+                "file": file_to_base64(file_to_bytesio(FILES["PDF"])),
+            },
+        ),
+        status_code=201,
+    )
+
+    # We have other tests for the file upload, so we can assume that the file upload works.
+    # Add the freshly uploaded file to the hearing data.
+    valid_hearing_json["sections"][0]["files"] = [data]
+
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    data = get_data_from_response(response, status_code=201)
+
+    assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
+
+
+@pytest.mark.django_db
+def test_POST_save_hearing_as_new(valid_hearing_json, john_smith_api_client):
+    # Modify the default hearing data to simplify testing.
+    valid_hearing_json["title"] = {"en": "Hearing"}
+    valid_hearing_json["sections"] = [
+        {
+            "voting": "registered",
+            "commenting": "none",
+            "commenting_map_tools": "none",
+            "title": {
+                "en": "Section",
+            },
+            "abstract": {},
+            "content": {},
+            "images": [
+                sectionimage_test_json(),
+            ],
+            "files": [
+                sectionfile_base64_test_data(),
+            ],
+            "questions": [
+                {
+                    "type": "multiple-choice",
+                    "is_independent_poll": False,
+                    "text": {"en": "Question"},
+                    "options": [
+                        {"text": {"en": "1"}},
+                        {"text": {"en": "2"}},
+                    ],
+                }
+            ],
+            "plugin_identifier": "",
+            "plugin_data": "",
+            "type_name_singular": "pääosio",
+            "type_name_plural": "pääosiot",
+            "type": "main",
+        },
+    ]
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    hearing = get_data_from_response(response, status_code=201)
+
+    # Do some edits before saving as new...
+    save_as_new_payload = deepcopy(hearing)
+    # Set ids to None.
+    save_as_new_payload["id"] = None
+    save_as_new_payload["sections"][0]["id"] = None
+    question = save_as_new_payload["sections"][0]["questions"][0]
+    question["id"] = None
+    for option in question["options"]:
+        option["id"] = None
+    # Files and images need to have a reference ID set to the original ID.
+    file = save_as_new_payload["sections"][0]["files"][0]
+    file["reference_id"] = file["id"]
+    file["id"] = None
+    image = save_as_new_payload["sections"][0]["images"][0]
+    image["reference_id"] = image["id"]
+    image["id"] = None
+
+    response = john_smith_api_client.post(endpoint, data=save_as_new_payload, format="json")
+    new_hearing = get_data_from_response(response, status_code=201)
+
+    # Assert for content that should match between the original and the new hearing.
+    for keys in (
+        ("title",),
+        ("sections", 0, "title"),
+        ("sections", 0, "images", 0, "url"),
+        ("sections", 0, "questions", 0, "text"),
+        ("sections", 0, "questions", 0, "options", 0, "text"),
+        ("sections", 0, "questions", 0, "options", 1, "text"),
+    ):
+        assert (a := get_nested(hearing, keys)) == (
+            b := get_nested(new_hearing, keys)
+        ), f'{keys} should match ("{a}" != "{b}")'
+
+    # Assert for content that should *not* match between the original and the new hearing.
+    for keys in (
+        ("id",),
+        ("sections", 0, "id"),
+        ("sections", 0, "images", 0, "id"),
+        ("sections", 0, "files", 0, "id"),
+        # this is a url to the resource, so unlike with an image, it should not match
+        ("sections", 0, "files", 0, "url"),
+        ("sections", 0, "questions", 0, "id"),
+        ("sections", 0, "questions", 0, "options", 0, "id"),
+        ("sections", 0, "questions", 0, "options", 1, "id"),
+    ):
+        assert (a := get_nested(hearing, keys)) != (
+            b := get_nested(new_hearing, keys)
+        ), f'{keys} should not match ("{a}" == "{b}")'
 
 
 @pytest.mark.django_db

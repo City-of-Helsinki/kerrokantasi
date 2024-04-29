@@ -900,7 +900,7 @@ def test_hearing_copy(default_hearing, random_label):
     assert new_hearing.sections.count() == 3
     for i, new_section in enumerate(new_hearing.sections.all().order_by("translations__abstract"), 1):
         # each section should have 3 images, the correct abstract and no comments
-        new_section.images.count() == 3
+        assert new_section.images.count() == 3
         assert new_section.abstract == "Section %d abstract" % i
         assert new_section.comments.count() == 0
         assert new_section.n_comments == 0

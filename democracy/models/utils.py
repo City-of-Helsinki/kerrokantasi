@@ -60,6 +60,12 @@ def copy_hearing(old_hearing, **kwargs):
             image.section = section
             image.save()
             _copy_translations(image, old_image)
+        for old_file in old_section.files.all():
+            file = deepcopy(old_file)
+            file.pk = None
+            file.section = section
+            file.save()
+            _copy_translations(file, old_file)
         for old_poll in old_polls:
             old_options = old_poll.options.all()
             poll = deepcopy(old_poll)

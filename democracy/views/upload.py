@@ -1,6 +1,6 @@
 import os
 from ckeditor_uploader import utils
-from ckeditor_uploader.backends import registry
+from ckeditor_uploader.backends import get_backend
 from ckeditor_uploader.views import ImageUploadView, SearchForm, get_files_browse_urls
 from django.conf import settings
 from django.http import HttpResponse
@@ -26,7 +26,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         """
         uploaded_file = request.FILES["upload"]
 
-        backend = registry.get_backend()
+        backend = get_backend()
         ck_func_num = escape(request.GET["CKEditorFuncNum"])
 
         # Throws an error when an non-image file are uploaded.

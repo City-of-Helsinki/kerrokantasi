@@ -194,7 +194,7 @@ EXAMPLE_DATA = {"hearings": {"1": HEARING}}
 @pytest.mark.django_db
 def test_json_importer():
     data = deepcopy(EXAMPLE_DATA)
-    hearing_id = get_random_string()
+    hearing_id = get_random_string(6)
     hearing_data = data["hearings"]["1"]
     hearing_data["slug"] = hearing_id
     import_from_data(data)

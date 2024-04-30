@@ -1,4 +1,4 @@
-Django>3.2<4
+Django~=4.2
 djangorestframework
 django-environ
 django-extensions>=3.1.3

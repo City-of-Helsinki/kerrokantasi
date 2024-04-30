@@ -3,7 +3,7 @@ import reversion
 from django.core.exceptions import ValidationError
 from django.db.models import Prefetch
 from django.utils import timezone
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str as force_text
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
@@ -120,7 +120,11 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         return context
 
     def apply_select_and_prefetch(self, queryset):
-        return queryset.select_related("created_by", "organization", "section",).prefetch_related(
+        return queryset.select_related(
+            "created_by",
+            "organization",
+            "section",
+        ).prefetch_related(
             Prefetch("comments", self.model.objects.everything().only("pk", "comment")),
             "images",
             "poll_answers",

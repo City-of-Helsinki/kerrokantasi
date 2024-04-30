@@ -1,6 +1,6 @@
 import datetime
 import pytest
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 
 from democracy.enums import InitialSectionType

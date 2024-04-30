@@ -4,7 +4,7 @@ import urllib
 from copy import deepcopy
 from django.test.utils import override_settings
 from django.urls import reverse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 from rest_framework import status
 from reversion.models import Version

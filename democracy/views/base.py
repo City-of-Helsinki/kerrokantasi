@@ -66,6 +66,8 @@ class BaseFileSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
         fields = ["title", "url", "caption"]
 
     def get_url(self, obj):
+        if not obj.pk:
+            return None
         url = reverse("serve_file", kwargs={"filetype": self.filetype, "pk": obj.pk})
         if not self.context:
             raise NotImplementedError("Not implemented")  # pragma: no cover

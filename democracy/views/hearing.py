@@ -458,7 +458,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         created_by = self.request.query_params.get("created_by", None)
         following = self.request.query_params.get("following", None)
 
-        if following is not None and self.request.user:
+        if following is not None and self.request.user.is_authenticated:
             queryset = queryset.filter(followers=self.request.user)
 
         if created_by is not None and self.request.user:

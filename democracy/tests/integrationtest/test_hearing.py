@@ -457,6 +457,19 @@ def test_filter_hearings_by_following(john_doe_api_client):
     assert len(data["results"]) == 3
 
 
+@pytest.mark.django_db
+def test_filter_hearings_by_following_anonymous_user(api_client, john_doe):
+    Hearing.objects.create(title="hearing")
+    hearing_with_follower = Hearing.objects.create(title="hearing with follower")
+    hearing_with_follower.followers.add(john_doe)
+
+    response = api_client.get(list_endpoint, data={"following": True})
+
+    data = get_data_from_response(response)
+    # Should return all hearings.
+    assert len(data["results"]) == 2
+
+
 @pytest.mark.parametrize(
     "plugin_fullscreen",
     [

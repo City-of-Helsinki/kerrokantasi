@@ -52,6 +52,12 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
     label = django_filters.Filter(
         field_name="labels__id", lookup_expr="in", distinct=True, widget=django_filters.widgets.CSVWidget
     )
+    following = django_filters.BooleanFilter(method="filter_following")
+
+    def filter_following(self, queryset, name, value):
+        if value and self.request.user.is_authenticated:
+            return queryset.filter(followers=self.request.user)
+        return queryset
 
     class Meta:
         model = Hearing
@@ -456,10 +462,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         next_closing = self.request.query_params.get("next_closing", None)
         open = self.request.query_params.get("open", None)
         created_by = self.request.query_params.get("created_by", None)
-        following = self.request.query_params.get("following", None)
-
-        if following is not None and self.request.user.is_authenticated:
-            queryset = queryset.filter(followers=self.request.user)
 
         if created_by is not None and self.request.user:
             if created_by.lower() == "me":

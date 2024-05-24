@@ -53,11 +53,26 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
         field_name="labels__id", lookup_expr="in", distinct=True, widget=django_filters.widgets.CSVWidget
     )
     following = django_filters.BooleanFilter(method="filter_following")
+    open = django_filters.BooleanFilter(method="filter_open")
 
     def filter_following(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
             return queryset.filter(followers=self.request.user)
         return queryset
+
+    def filter_open(self, queryset, name, value):
+        if value:
+            return (
+                queryset.filter(close_at__gt=datetime.datetime.now())
+                .filter(open_at__lt=datetime.datetime.now())
+                .filter(force_closed=False)
+            )
+        else:
+            return (
+                queryset.filter(close_at__lt=datetime.datetime.now())
+                | queryset.filter(open_at__gt=datetime.datetime.now())
+                | queryset.filter(force_closed=True)
+            ).distinct()
 
     class Meta:
         model = Hearing
@@ -459,7 +474,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return HearingSerializer
 
     def filter_queryset(self, queryset):
-        open = self.request.query_params.get("open", None)
         created_by = self.request.query_params.get("created_by", None)
 
         if created_by is not None and self.request.user:
@@ -474,19 +488,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 if organizationObject is not None:
                     queryset = queryset.filter(organization=organizationObject.id)
 
-        if open is not None:
-            if open.lower() == "false" or open == 0:
-                queryset = (
-                    queryset.filter(close_at__lt=datetime.datetime.now())
-                    | queryset.filter(open_at__gt=datetime.datetime.now())
-                    | queryset.filter(force_closed=True)
-                ).distinct()
-            else:
-                queryset = (
-                    queryset.filter(close_at__gt=datetime.datetime.now())
-                    .filter(open_at__lt=datetime.datetime.now())
-                    .filter(force_closed=False)
-                )
         queryset = super().filter_queryset(queryset)
         return queryset
 

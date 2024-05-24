@@ -490,33 +490,6 @@ def test_list_hearings_check_default_to_fullscreen(api_client, default_hearing, 
 
 
 @pytest.mark.django_db
-def test_get_next_closing_and_open_hearings(api_client):
-    create_hearings(0)  # Clear out old hearings
-    Hearing.objects.create(title="Gone", close_at=now() - datetime.timedelta(days=1))  # Closed hearing
-    Hearing.objects.create(title="Gone too", close_at=now() - datetime.timedelta(days=2))  # Closed hearing
-    future_hearing_1 = Hearing.objects.create(title="Next up", close_at=now() + datetime.timedelta(days=1))
-    future_hearing_2 = Hearing.objects.create(title="Next up", close_at=now() + datetime.timedelta(days=5))
-    response = api_client.get(list_endpoint, {"next_closing": now().isoformat()})
-    data = get_data_from_response(response)
-    assert len(data["results"]) == 1
-    assert data["results"][0]["title"][default_lang_code] == future_hearing_1.title
-    response = api_client.get(list_endpoint, {"next_closing": future_hearing_1.close_at.isoformat()})
-    data = get_data_from_response(response)
-    assert len(data["results"]) == 1
-    assert data["results"][0]["title"][default_lang_code] == future_hearing_2.title
-    response = api_client.get(list_endpoint, {"open": "true"})
-    data = get_data_from_response(response)
-    assert len(data["results"]) == 2
-    assert data["results"][0]["title"][default_lang_code].startswith("Next")
-    assert data["results"][1]["title"][default_lang_code].startswith("Next")
-    response = api_client.get(list_endpoint, {"open": "false"})
-    data = get_data_from_response(response)
-    assert len(data["results"]) == 2
-    assert data["results"][0]["title"][default_lang_code].startswith("Gone")
-    assert data["results"][1]["title"][default_lang_code].startswith("Gone")
-
-
-@pytest.mark.django_db
 def test_8_get_detail_check_properties(api_client, default_hearing):
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
 

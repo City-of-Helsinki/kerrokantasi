@@ -459,7 +459,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         return HearingSerializer
 
     def filter_queryset(self, queryset):
-        next_closing = self.request.query_params.get("next_closing", None)
         open = self.request.query_params.get("open", None)
         created_by = self.request.query_params.get("created_by", None)
 
@@ -475,9 +474,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
                 if organizationObject is not None:
                     queryset = queryset.filter(organization=organizationObject.id)
 
-        if next_closing is not None:
-            # sliced querysets cannot be filtered or ordered further
-            return queryset.filter(close_at__gt=next_closing).order_by("close_at")[:1]
         if open is not None:
             if open.lower() == "false" or open == 0:
                 queryset = (

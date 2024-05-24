@@ -54,6 +54,7 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
     )
     following = django_filters.BooleanFilter(method="filter_following")
     open = django_filters.BooleanFilter(method="filter_open")
+    created_by = django_filters.CharFilter(method="filter_created_by")
 
     def filter_following(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
@@ -73,6 +74,20 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
                 | queryset.filter(open_at__gt=datetime.datetime.now())
                 | queryset.filter(force_closed=True)
             ).distinct()
+
+    def filter_created_by(self, queryset, name, value):
+        if not self.request.user:
+            return queryset
+
+        if value.lower() == "me":
+            return queryset.filter(created_by=self.request.user)
+
+        try:
+            # Filter by organization name if organization exists.
+            organization = Organization.objects.get(name=value)
+            return queryset.filter(organization=organization)
+        except Organization.DoesNotExist:
+            return queryset
 
     class Meta:
         model = Hearing
@@ -472,24 +487,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
         if self.action in ("create", "update", "partial_update"):
             return HearingCreateUpdateSerializer
         return HearingSerializer
-
-    def filter_queryset(self, queryset):
-        created_by = self.request.query_params.get("created_by", None)
-
-        if created_by is not None and self.request.user:
-            if created_by.lower() == "me":
-                queryset = queryset.filter(created_by_id=self.request.user.id)
-            else:
-                try:
-                    organizationObject = Organization.objects.get(name=created_by)
-                except Organization.DoesNotExist:
-                    organizationObject = None
-
-                if organizationObject is not None:
-                    queryset = queryset.filter(organization=organizationObject.id)
-
-        queryset = super().filter_queryset(queryset)
-        return queryset
 
     def get_queryset(self):
         queryset = (

@@ -2,7 +2,7 @@ import django_filters
 from collections import defaultdict
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Q
 from django.utils import timezone
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -68,11 +68,9 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
                 .filter(force_closed=False)
             )
         else:
-            return (
-                queryset.filter(close_at__lte=timezone.now())
-                | queryset.filter(open_at__gt=timezone.now())
-                | queryset.filter(force_closed=True)
-            ).distinct()
+            return queryset.filter(
+                Q(close_at__lte=timezone.now()) | Q(open_at__gt=timezone.now()) | Q(force_closed=True)
+            )
 
     def filter_created_by(self, queryset, name, value):
         if not self.request.user:

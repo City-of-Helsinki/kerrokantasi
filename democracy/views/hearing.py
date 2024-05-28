@@ -65,12 +65,12 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
         if value:
             return (
                 queryset.filter(close_at__gt=datetime.datetime.now())
-                .filter(open_at__lt=datetime.datetime.now())
+                .filter(open_at__lte=datetime.datetime.now())
                 .filter(force_closed=False)
             )
         else:
             return (
-                queryset.filter(close_at__lt=datetime.datetime.now())
+                queryset.filter(close_at__lte=datetime.datetime.now())
                 | queryset.filter(open_at__gt=datetime.datetime.now())
                 | queryset.filter(force_closed=True)
             ).distinct()

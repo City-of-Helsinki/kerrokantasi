@@ -73,7 +73,7 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
             )
 
     def filter_created_by(self, queryset, name, value):
-        if not self.request.user:
+        if not self.request.user.is_authenticated:
             return queryset
 
         if value.lower() == "me":

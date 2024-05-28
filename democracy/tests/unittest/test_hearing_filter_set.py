@@ -1,5 +1,6 @@
 import datetime
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.utils.timezone import now
 from freezegun import freeze_time
 
@@ -14,12 +15,12 @@ endpoint = "/v1/hearing/"
 
 
 @pytest.mark.django_db
-def test_filter_created_by_without_user_should_return_unmodified_queryset(rf):
+def test_filter_created_by_as_anonymous_user_should_return_unmodified_queryset(rf):
     organization = OrganizationFactory.create()
     another_organization = OrganizationFactory.create()
     MinimalHearingFactory.create_batch(5, organization=another_organization)
     request = rf.get(endpoint)
-    request.user = None
+    request.user = AnonymousUser()
 
     hearing_filter_set = HearingFilterSet(
         queryset=Hearing.objects.all(), data={"created_by": organization.name}, request=request

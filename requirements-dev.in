@@ -7,6 +7,7 @@ distro
 django-debug-toolbar
 factory-boy
 flake8
+freezegun
 jose
 isort
 pip-tools

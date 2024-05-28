@@ -36,6 +36,13 @@ class CommentImageFactory(factory.django.DjangoModelFactory):
         model = CommentImage
 
 
+class MinimalHearingFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Hearing
+
+    title = factory.Faker("sentence")
+
+
 class HearingFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Hearing

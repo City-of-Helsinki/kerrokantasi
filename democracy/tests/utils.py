@@ -210,3 +210,8 @@ def get_nested(data: Mapping, keys: Iterable):
     for key in keys:
         val = val[key]
     return val
+
+
+def instance_ids(instances: Iterable) -> set:
+    """Get a set of unique IDs from an iterable of model instances, e.g. a list, queryset."""
+    return {instance.id for instance in instances}

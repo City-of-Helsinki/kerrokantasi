@@ -27,7 +27,6 @@ from democracy.tests.utils import (
     assert_datetime_fuzzy_equal,
     file_to_bytesio,
     get_data_from_response,
-    get_file_path,
     get_hearing_detail_url,
     get_nested,
     sectionfile_base64_test_data,

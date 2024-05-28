@@ -1,4 +1,3 @@
-import datetime
 import django_filters
 from collections import defaultdict
 from django.conf import settings
@@ -64,14 +63,14 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
     def filter_open(self, queryset, name, value):
         if value:
             return (
-                queryset.filter(close_at__gt=datetime.datetime.now())
-                .filter(open_at__lte=datetime.datetime.now())
+                queryset.filter(close_at__gt=timezone.now())
+                .filter(open_at__lte=timezone.now())
                 .filter(force_closed=False)
             )
         else:
             return (
-                queryset.filter(close_at__lte=datetime.datetime.now())
-                | queryset.filter(open_at__gt=datetime.datetime.now())
+                queryset.filter(close_at__lte=timezone.now())
+                | queryset.filter(open_at__gt=timezone.now())
                 | queryset.filter(force_closed=True)
             ).distinct()
 

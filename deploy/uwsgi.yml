@@ -20,3 +20,8 @@ uwsgi:
   ignore-sigpipe: true
   ignore-write-errors: true
   disable-write-exception: true
+
+  logger-req: stdio
+  log-format: '"remote_addr": "%(addr)", "x_forwarded_for":"%(var.HTTP_X_FORWARDED_FOR)", "request_id":"%(var.HTTP_X_REQUEST_ID)", "remote_user":"%(user)", "bytes_sent":%(size), "request_time":%(secs), "status":%(status), "host":"%(host)", "request_proto":"%(proto)", "path":"%(uri)", "request_length":%(cl), "http_referer":"%(referer)", "http_user_agent":"%(uagent)"'
+  log-req-encoder: format {"time":"${strftime:%%Y:%%m:%%d %%H:%%M:%%S}", "source":"uwsgi-req", ${msg}}
+  log-req-encoder: nl

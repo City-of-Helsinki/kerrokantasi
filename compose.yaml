@@ -10,7 +10,7 @@ services:
         volumes:
             - postgres-data-volume:/var/lib/postgresql/data
 
-    dev:
+    django:
         image: kerrokantasi_dev
         depends_on:
             - postgis

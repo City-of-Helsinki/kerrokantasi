@@ -1,7 +1,7 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-FROM python:3.8-bookworm as appbase
+FROM python:3.8-bookworm AS appbase
 
 RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
 
@@ -57,14 +57,14 @@ ENTRYPOINT ["/kerrokantasi/deploy/entrypoint.sh"]
 EXPOSE 8000
 
 # Next, the development & testing extras
-FROM appbase as development
+FROM appbase AS development
 
 RUN pip install --no-cache-dir -r requirements-dev.txt
 
 USER kerrokantasi
 
 # And the production image
-FROM appbase as production
+FROM appbase AS production
 
 RUN django-admin compilemessages
 

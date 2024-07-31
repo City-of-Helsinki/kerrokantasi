@@ -8,9 +8,19 @@ class UserAdmin(DjangoUserAdmin):
     fieldsets = DjangoUserAdmin.fieldsets + (
         (
             None,
-            {"fields": ("uuid", "nickname")},
+            {
+                "fields": (
+                    "uuid",
+                    "nickname",
+                    "admin_in_organizations",
+                )
+            },
         ),
     )
+    readonly_fields = ("admin_in_organizations",)
+
+    def admin_in_organizations(self, obj):
+        return ", ".join([org.name for org in obj.admin_organizations.all()]) or "-"
 
 
 admin.site.register(User, UserAdmin)

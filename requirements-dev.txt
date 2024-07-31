@@ -51,7 +51,9 @@ exceptiongroup==1.2.1
     #   -c requirements.txt
     #   pytest
 factory-boy==3.3.0
-    # via -r requirements-dev.in
+    # via
+    #   -r requirements-dev.in
+    #   pytest-factoryboy
 faker==25.2.0
     # via factory-boy
 flake8==7.0.0
@@ -64,6 +66,8 @@ idna==3.7
     #   requests
 importlib-metadata==7.1.0
     # via build
+inflection==0.5.1
+    # via pytest-factoryboy
 iniconfig==2.0.0
     # via pytest
 isort==5.13.2
@@ -80,6 +84,7 @@ packaging==24.0
     #   black
     #   build
     #   pytest
+    #   pytest-factoryboy
 pathspec==0.12.1
     # via black
 pip-tools==7.4.1
@@ -105,9 +110,12 @@ pytest==8.2.1
     #   -r requirements-dev.in
     #   pytest-cov
     #   pytest-django
+    #   pytest-factoryboy
 pytest-cov==5.0.0
     # via -r requirements-dev.in
 pytest-django==4.8.0
+    # via -r requirements-dev.in
+pytest-factoryboy==2.7.0
     # via -r requirements-dev.in
 python-dateutil==2.9.0.post0
     # via
@@ -142,6 +150,7 @@ typing-extensions==4.11.0
     #   -c requirements.txt
     #   asgiref
     #   black
+    #   pytest-factoryboy
 urllib3==2.2.1
     # via
     #   -c requirements.txt

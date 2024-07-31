@@ -14,4 +14,5 @@ pip-tools
 pytest
 pytest-cov
 pytest_django
+pytest-factoryboy
 requests-mock

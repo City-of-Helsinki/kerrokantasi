@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.6.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.5.0...kerrokantasi-v1.6.0) (2024-08-01)
+
+
+### Features
+
+* Add admin in organizations field in user admin ([4762dda](https://github.com/City-of-Helsinki/kerrokantasi/commit/4762dda64ddb128cdaad1a71bbf73e593d45942a))
+
+
+### Dependencies
+
+* Add pytest-factoryboy ([ea9c394](https://github.com/City-of-Helsinki/kerrokantasi/commit/ea9c394be5aa5444dee07b14528856d25fdc8220))
+
 ## [1.5.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.4.0...kerrokantasi-v1.5.0) (2024-05-28)
 
 

@@ -18,27 +18,30 @@ ENV STATIC_ROOT /srv/static
 # while in Docker. Maybe the buffer is larger?
 ENV PYTHONUNBUFFERED True
 
+COPY --chown=kerrokantasi:kerrokantasi requirements.txt .
+COPY --chown=kerrokantasi:kerrokantasi requirements-prod.txt .
+
 # less & netcat-openbsd are there for in-container manual debugging
 # kerrokantasi needs gdal
-RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python3-gdal
-
-# we need the Finnish locale built
-RUN sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen
-RUN locale-gen
-
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir uwsgi
+RUN apt-get update  \
+    && apt-get install -y --no-install-recommends  \
+    postgresql-client  \
+    less  \
+    netcat-openbsd  \
+    gettext  \
+    locales  \
+    gdal-bin  \
+    python3-gdal  \
+    # Build finnish locale
+    && sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen \
+    && locale-gen \
+    && pip install --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r ./requirements.txt \
+    && pip install --no-cache-dir -r ./requirements-prod.txt
 
 # Sentry CLI for sending events from non-Python processes to Sentry
 # eg. https://docs.sentry.io/cli/send-event/#bash-hook
 RUN curl -sL https://sentry.io/get-cli/ | bash
-
-# Copy requirements files to image for preloading dependencies
-# in their own layer
-COPY requirements.txt ./
-
-# deploy/requirements.txt must reference the base requirements
-RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 

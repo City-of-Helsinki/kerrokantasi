@@ -1273,33 +1273,48 @@ def test_cannot_modify_others_comments(
 
 @pytest.mark.django_db
 def test_comment_delete(john_doe_api_client, default_hearing, comment_image, get_detail_url):
+    # Arrange
     section = default_hearing.get_main_section()
-
     comment = section.comments.all()[0]
-    assert comment_image.deleted is False
-
+    comment.geojson = default_geojson_feature
+    comment.save()
     poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
     option = poll.options.all().first()
     answer = SectionPollAnswer.objects.create(option=option, comment=comment)
-    assert answer.deleted is False
-
     url = get_detail_url(comment)
+
+    # Sanity checks
+    assert comment_image.deleted is False
+    assert answer.deleted is False
     assert comment.images.all().count() == 1
     assert comment.poll_answers.all().count() == 1
 
+    # Delete comment
     response = john_doe_api_client.delete(url)
     assert response.status_code == 204
 
+    # Refresh objects from db
     comment = SectionComment.objects.everything().get(id=comment.id)
+    comment_image.refresh_from_db()
+    answer.refresh_from_db()
+
+    # Assert at database level
     assert comment.images.all().count() == 0
     assert comment.poll_answers.all().count() == 0
-
-    comment_image.refresh_from_db()
     assert comment_image.deleted is True
     assert comment.deleted is True
-
-    answer.refresh_from_db()
     assert answer.deleted is True
+    assert comment.geojson == default_geojson_feature
+
+    # Get the comment from the API
+    response = john_doe_api_client.get(url)
+    assert response.status_code == 200
+    comment_data = response.json()
+
+    # Assert at API level
+    assert comment_data["deleted"] is True
+    assert comment_data["images"] == []
+    assert comment_data["geojson"] is None
 
 
 @pytest.mark.parametrize("anonymous_comment", [True, False])

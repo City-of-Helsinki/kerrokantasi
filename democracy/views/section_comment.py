@@ -259,6 +259,9 @@ class SectionCommentSerializer(BaseCommentSerializer):
         return comment.can_delete(self.request)
 
     def to_representation(self, instance):
+        if instance.deleted:
+            instance.geojson = None
+
         data = super(SectionCommentSerializer, self).to_representation(instance)
         user_is_staff = self.context["request"].user.is_staff or self.context["request"].user.is_superuser
 

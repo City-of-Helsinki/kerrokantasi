@@ -5,7 +5,7 @@ import os
 import xml.etree.ElementTree as ET
 from collections import defaultdict
 
-log = logging.getLogger("importer")
+logger = logging.getLogger("importer")
 
 psycopg_import_error = None
 
@@ -36,7 +36,7 @@ def _process_hearings_tree(tables, geometries):
     sections = {section["id"]: section for section in tables.pop("section")}
     comments = {comment["id"]: comment for comment in tables.pop("comment")}
     images = {image["id"]: image for image in tables.pop("image")}
-    log.info(
+    logger.info(
         "Found %d hearings, %d alternatives, %d sections, %d comments and %d images",
         len(hearings),
         len(alternatives),
@@ -94,7 +94,7 @@ def dump_xml(conn, xml_file):
         row = cur.fetchone()
         outf.write(row[0])
         outf.flush()
-        log.info("Database XML: Wrote %d bytes to %s" % (outf.tell(), outf.name))
+        logger.info("Database XML: Wrote %d bytes to %s" % (outf.tell(), outf.name))
 
 
 def dump_geojson(conn, geometry_json_file):
@@ -105,7 +105,7 @@ def dump_geojson(conn, geometry_json_file):
         geometries = {"hearing": hearing_geometries}
         json.dump(geometries, outf, ensure_ascii=False, indent=1, sort_keys=True)
         outf.flush()
-        log.info("Geometry JSON: Wrote %d bytes to %s" % (outf.tell(), outf.name))
+        logger.info("Geometry JSON: Wrote %d bytes to %s" % (outf.tell(), outf.name))
 
 
 def main():
@@ -123,7 +123,7 @@ def main():
     logging.basicConfig(level=log_levels[args.log_level])
 
     if args.pgsql:
-        log.info("Creating XML and geometry files")
+        logger.info("Creating XML and geometry files")
         if not psycopg2:
             raise ValueError("Psycopg2 is not available; can't import from PostgreSQL. (%s)" % psycopg_import_error)
         conn = psycopg2.connect(args.dsn)
@@ -133,7 +133,7 @@ def main():
         dump_geojson(conn, args.geometry_json)
         conn.close()
 
-    log.info("Importing data from XML and geometry files...")
+    logger.info("Importing data from XML and geometry files...")
 
     tree = ET.parse(args.xml)
 
@@ -141,14 +141,14 @@ def main():
         with open(args.geometry_json, "r", encoding="utf8") as inf:
             geometries = json.load(inf)
     else:
-        log.warning("Geometry file %s does not exist" % args.geometry_json)
+        logger.warning("Geometry file %s does not exist" % args.geometry_json)
         geometries = {}
 
     tree = process_tree(tree, geometries)
     with open(args.output_json, "w", encoding="utf8") as outf:
         json.dump(tree, outf, ensure_ascii=False, indent=1, sort_keys=True)
         outf.flush()
-        log.info("Output JSON: Wrote %d bytes to %s", outf.tell(), outf.name)
+        logger.info("Output JSON: Wrote %d bytes to %s", outf.tell(), outf.name)
 
 
 if __name__ == "__main__":

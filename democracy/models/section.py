@@ -33,7 +33,7 @@ CLOSURE_INFO_ORDERING = -10000
 
 INITIAL_SECTION_TYPE_IDS = set(value for key, value in InitialSectionType.__dict__.items() if key[:1] != "_")
 
-LOG = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class SectionTypeQuerySet(models.QuerySet):
@@ -131,7 +131,7 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         resolver = get_resolver(None)
         url = resolver.reverse_dict.getlist("serve_file")
         if not url:
-            LOG.error("serve_file URL pattern not found")
+            logger.error("serve_file URL pattern not found")
             return 0
         pattern = url[0][1].rstrip("$")
 

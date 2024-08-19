@@ -504,13 +504,13 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self._is_user_organisation_admin(serializer.validated_data["section"]):
-            return super().perform_create(serializer)
+            super().perform_create(serializer)
         else:
             raise PermissionDenied("Only organisation admin can create SectionImages")
 
     def perform_update(self, serializer):
         if self._is_user_organisation_admin(serializer.instance.section):
-            return super().perform_update(serializer)
+            super().perform_update(serializer)
         else:
             raise PermissionDenied("Only organisation admin can update SectionImages")
 
@@ -594,13 +594,13 @@ class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if self._can_user_create(self.request.user, serializer):
-            return super().perform_create(serializer)
+            super().perform_create(serializer)
         else:
             raise PermissionDenied("Only organisation admin can create SectionFiles")
 
     def perform_update(self, serializer):
         if self._can_user_update(self.request.user, serializer):
-            return super().perform_update(serializer)
+            super().perform_update(serializer)
         else:
             raise PermissionDenied("Only organisation admin can update SectionFiles")
 

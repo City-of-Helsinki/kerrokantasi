@@ -6,10 +6,10 @@ from freezegun import freeze_time
 
 from democracy.factories.hearing import MinimalHearingFactory
 from democracy.factories.organization import OrganizationFactory
-from democracy.factories.user import UserFactory
 from democracy.models import Hearing
 from democracy.tests.utils import instance_ids
 from democracy.views.hearing import HearingFilterSet
+from kerrokantasi.tests.factories import UserFactory
 
 endpoint = "/v1/hearing/"
 

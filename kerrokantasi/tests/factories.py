@@ -1,13 +1,12 @@
 import factory
-import factory.fuzzy
 from django.contrib.auth import get_user_model
 
 
 class UserFactory(factory.django.DjangoModelFactory):
     class Meta:
-        model = get_user_model()  # XXX: This makes this file not safe to import before `django.setup()`
+        model = get_user_model()
 
-    username = factory.fuzzy.FuzzyText()
+    uuid = factory.Faker("uuid4", cast_to=None)
     first_name = factory.Faker("first_name", locale="fi")
     last_name = factory.Faker("last_name")
     email = factory.Faker("email")

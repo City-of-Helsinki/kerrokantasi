@@ -4,8 +4,8 @@ from helusers.settings import api_token_auth_settings
 from jose import jwt
 
 from democracy.factories.hearing import HearingFactory, SectionCommentFactory
-from democracy.factories.user import UserFactory
 from democracy.models import SectionComment
+from kerrokantasi.tests.factories import UserFactory
 from kerrokantasi.tests.gdpr.keys import rsa_key
 
 

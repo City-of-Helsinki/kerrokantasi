@@ -3,9 +3,9 @@ from django.contrib.auth.models import AbstractUser
 from django.core.management.base import BaseCommand
 
 from democracy.factories.hearing import HearingFactory, LabelFactory
-from democracy.factories.user import UserFactory
 from democracy.management.utils import nuke
 from democracy.models import Hearing, Label
+from kerrokantasi.tests.factories import UserFactory
 
 
 class Command(BaseCommand):

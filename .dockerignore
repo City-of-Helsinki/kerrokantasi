@@ -6,6 +6,7 @@
 #################################################
 # Whitelisted folders
 #################################################
+!audit_log*
 !kerrokantasi*
 !democracy*
 !locale*

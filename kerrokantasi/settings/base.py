@@ -87,6 +87,8 @@ env = environ.Env(
     # GDPR API settings
     GDPR_API_QUERY_SCOPE=(str, "gdprquery"),
     GDPR_API_DELETE_SCOPE=(str, "gdprdelete"),
+    # Audit logging
+    AUDIT_LOG_ENABLED=(bool, False),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -198,6 +200,7 @@ INSTALLED_APPS = [
     "ckeditor_uploader",
     "munigeo",
     "kerrokantasi",  # User model is project-wide
+    "audit_log",
     "democracy",  # Reusable participatory democracy app
     "parler",
     "django_filters",
@@ -214,6 +217,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "audit_log.middleware.AuditLogMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "social_django.middleware.SocialAuthExceptionMiddleware",
@@ -412,3 +416,9 @@ GDPR_API_USER_PROVIDER = "kerrokantasi.gdpr.get_user"
 GDPR_API_DELETER = "kerrokantasi.gdpr.delete_data"
 GDPR_API_QUERY_SCOPE = env("GDPR_API_QUERY_SCOPE")
 GDPR_API_DELETE_SCOPE = env("GDPR_API_DELETE_SCOPE")
+
+# Audit logging
+AUDIT_LOG = {
+    "ENABLED": env("AUDIT_LOG_ENABLED"),
+    "ORIGIN": "kerrokantasi",
+}

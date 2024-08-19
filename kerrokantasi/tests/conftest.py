@@ -1,23 +1,12 @@
-import factory
 import pytest
 import shutil
-from django.contrib.auth import get_user_model
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 
 from democracy.factories.organization import OrganizationFactory
+from kerrokantasi.tests.factories import UserFactory
 
 default_geojson_geometry = {"type": "Point", "coordinates": [-104.99404, 39.75621]}
-
-
-class UserFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = get_user_model()
-
-    uuid = factory.Faker("uuid4", cast_to=None)
-    first_name = factory.Faker("first_name", locale="fi")
-    last_name = factory.Faker("last_name")
-    email = factory.Faker("email")
 
 
 register(UserFactory)

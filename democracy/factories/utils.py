@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 
-from democracy.factories.user import UserFactory
+from kerrokantasi.tests.factories import UserFactory
 
 
 def get_random_user():

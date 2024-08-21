@@ -299,7 +299,7 @@ Translations are maintained on [Transifex][tx].
 This project uses
 [`black`](https://github.com/ambv/black),
 [`flake8`](https://github.com/pycqa/flake8) and
-[`isort`](https://github.com/timothycrosley/isort)
+[`isort`](https://github.com/pycqa/isort)
 for code formatting and quality checking.
 
 [`pre-commit`](https://pre-commit.com/) can be used to install and

@@ -14,7 +14,7 @@ backports-zoneinfo==0.2.1
     # via
     #   -c requirements.txt
     #   django
-black==24.4.2
+black==24.8.0
     # via -r requirements-dev.in
 build==1.2.1
     # via pip-tools
@@ -56,7 +56,7 @@ factory-boy==3.3.0
     #   pytest-factoryboy
 faker==25.2.0
     # via factory-boy
-flake8==7.0.0
+flake8==7.1.1
     # via -r requirements-dev.in
 freezegun==1.5.1
     # via -r requirements-dev.in
@@ -95,7 +95,7 @@ platformdirs==4.2.2
     #   black
 pluggy==1.5.0
     # via pytest
-pycodestyle==2.11.1
+pycodestyle==2.12.1
     # via flake8
 pyflakes==3.2.0
     # via

@@ -9,6 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 from reversion.views import RevisionMixin
 
+from audit_log.utils import add_audit_logged_object_ids
+from audit_log.views import AuditLogApiView
 from democracy.models.comment import BaseComment
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
@@ -80,7 +82,7 @@ class BaseCommentFilterSet(django_filters.rest_framework.FilterSet):
         ]
 
 
-class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.ModelViewSet):
+class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, AuditLogApiView, viewsets.ModelViewSet):
     """
     Base viewset for comments.
     """
@@ -190,6 +192,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         if self.request.user.is_authenticated:
             kwargs["created_by"] = self.request.user
         comment = serializer.save(**kwargs)
+        add_audit_logged_object_ids(self.request, serializer.instance)
         reversion.set_comment("Comment created")
         # and another for the response
         serializer = self.get_serializer(instance=comment)
@@ -258,6 +261,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             )
 
         instance.soft_delete(user=request.user)
+        add_audit_logged_object_ids(self.request, instance)
         reversion.set_comment("Comment deleted")
 
         return response.Response(status=status.HTTP_204_NO_CONTENT)
@@ -279,6 +283,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
             return response.Response({"status": "Already voted"}, status=status.HTTP_304_NOT_MODIFIED)
         # add voter
         comment.voters.add(request.user)
+        add_audit_logged_object_ids(self.request, comment)
         # update number of votes
         comment.recache_n_votes()
         # return success
@@ -299,6 +304,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         instance.flagged_at = timezone.now()
         instance.flagged_by = request.user
         instance.save()
+        add_audit_logged_object_ids(self.request, instance)
         return response.Response({"status": "comment flagged"})
 
     @action(detail=True, methods=["post"])
@@ -313,6 +319,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, viewsets.Mode
         if comment.__class__.objects.filter(id=comment.id, voters=request.user).exists():
             # remove voter
             comment.voters.remove(request.user)
+            add_audit_logged_object_ids(self.request, comment)
             # update number of votes
             comment.recache_n_votes()
             # return success

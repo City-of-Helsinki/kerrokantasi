@@ -1,10 +1,13 @@
 import json
 import os
+from collections import Counter
 from django.utils.dateparse import parse_datetime
 from io import BytesIO
 from PIL import Image
 from typing import Iterable, Mapping
 
+from audit_log.enums import Operation, Status
+from audit_log.models import AuditLogEntry
 from democracy.models.files import BaseFile
 from democracy.models.images import BaseImage
 from democracy.utils.file_to_base64 import file_to_base64
@@ -215,3 +218,18 @@ def get_nested(data: Mapping, keys: Iterable):
 def instance_ids(instances: Iterable) -> set:
     """Get a set of unique IDs from an iterable of model instances, e.g. a list, queryset."""
     return {instance.id for instance in instances}
+
+
+def assert_audit_log_entry(
+    path: str,
+    object_ids: list,
+    count: int = 1,
+    status: Status = Status.SUCCESS,
+    operation: Operation = Operation.CREATE,
+):
+    assert AuditLogEntry.objects.count() == count
+    audit_log_entry = AuditLogEntry.objects.order_by("-created_at").first()
+    assert path in audit_log_entry.message["audit_event"]["target"]["path"]
+    assert Counter(audit_log_entry.message["audit_event"]["target"]["object_ids"]) == Counter(object_ids)
+    assert audit_log_entry.message["audit_event"]["status"] == status.value
+    assert audit_log_entry.message["audit_event"]["operation"] == operation.value

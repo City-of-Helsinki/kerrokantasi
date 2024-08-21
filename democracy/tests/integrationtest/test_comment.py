@@ -8,7 +8,9 @@ from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 from rest_framework import status
 from reversion.models import Version
+from urllib.parse import urlparse
 
+from audit_log.enums import Operation
 from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
 from democracy.factories.poll import SectionPollFactory
@@ -16,6 +18,7 @@ from democracy.models import Hearing, Label, Section, SectionType
 from democracy.models.section import SectionComment, SectionPoll, SectionPollAnswer
 from democracy.tests.conftest import default_comment_content, default_lang_code
 from democracy.tests.utils import (
+    assert_audit_log_entry,
     assert_common_keys_equal,
     get_data_from_response,
     get_hearing_detail_url,
@@ -1684,3 +1687,78 @@ def test_hearing_sections_comment_num_queries(
     with django_assert_num_queries(7):
         response = john_doe_api_client.get(url)
         get_data_from_response(response, 200)
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_flag(john_smith_api_client, default_hearing, audit_log_configure):
+    section = default_hearing.sections.first()
+    comment = section.comments.first()
+    url = get_section_comment_flag_url(default_hearing.id, section.id, comment.id)
+
+    john_smith_api_client.post(url)
+
+    assert_audit_log_entry("/flag", [comment.pk])
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_create(
+    john_doe_api_client, default_hearing, get_comments_url_and_data, audit_log_configure
+):
+    section = default_hearing.sections.first()
+    url, data = get_comments_url_and_data(default_hearing, section)
+
+    response = john_doe_api_client.post(url, data=data)
+    data = get_data_from_response(response, 201)
+
+    assert_audit_log_entry(urlparse(url).path, [data["id"]])
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_edit(john_doe_api_client, default_hearing, get_detail_url, audit_log_configure):
+    section = default_hearing.get_main_section()
+    comment = section.comments.all()[0]
+    url = get_detail_url(comment)
+
+    john_doe_api_client.patch(url, data={"content": "B"})
+
+    assert_audit_log_entry(url, [comment.pk], operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_delete(
+    john_doe_api_client, default_hearing, get_detail_url, audit_log_configure
+):
+    section = default_hearing.get_main_section()
+    comment = section.comments.all()[0]
+    url = get_detail_url(comment)
+
+    john_doe_api_client.delete(url)
+
+    assert_audit_log_entry(url, [comment.pk], operation=Operation.DELETE)
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_retrieve(
+    john_doe_api_client, default_hearing, get_detail_url, audit_log_configure
+):
+    section = default_hearing.get_main_section()
+    comment = section.comments.all()[0]
+    url = get_detail_url(comment)
+
+    john_doe_api_client.get(url)
+
+    assert_audit_log_entry(url, [comment.pk], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_comment_ids_are_audit_logged_on_list(
+    john_doe_api_client, default_hearing, get_comments_url_and_data, audit_log_configure
+):
+    section = default_hearing.get_main_section()
+    url, data = get_comments_url_and_data(default_hearing, section)
+    comments = section.comments.all()
+    assert comments.count() > 1
+
+    john_doe_api_client.get(url)
+
+    assert_audit_log_entry(urlparse(url).path, comments.values_list("pk", flat=True), operation=Operation.READ)

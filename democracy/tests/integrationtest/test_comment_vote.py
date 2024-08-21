@@ -3,6 +3,7 @@ import pytest
 from democracy.enums import Commenting, InitialSectionType
 from democracy.models import Section, SectionComment, SectionType
 from democracy.tests.integrationtest.test_images import get_hearing_detail_url
+from democracy.tests.utils import assert_audit_log_entry
 
 default_content = "Awesome comment to vote."
 comment_data = {"content": default_content, "section": None}
@@ -125,3 +126,22 @@ def test_vote_appears_in_user_data(john_doe_api_client, default_hearing):
     john_doe_api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, sc_comment.id))
     response = john_doe_api_client.get("/v1/users/")
     assert sc_comment.id in response.data[0]["voted_section_comments"]
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_vote(john_doe_api_client, default_hearing, audit_log_configure):
+    section, comment = add_default_section_and_comment(default_hearing)
+
+    john_doe_api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
+
+    assert_audit_log_entry("/vote", [comment.pk])
+
+
+@pytest.mark.django_db
+def test_comment_id_is_audit_logged_on_unvote(api_client, john_doe_api_client, default_hearing, audit_log_configure):
+    section, comment = add_default_section_and_comment(default_hearing)
+
+    john_doe_api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
+    john_doe_api_client.post(get_section_comment_unvote_url(default_hearing.id, section.id, comment.id))
+
+    assert_audit_log_entry("/unvote", [comment.pk], 2)

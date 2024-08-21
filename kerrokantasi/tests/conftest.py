@@ -28,6 +28,11 @@ def pytest_configure():
     )
 
 
+@pytest.fixture
+def audit_log_configure(settings):
+    settings.AUDIT_LOG = {"ENABLED": True}
+
+
 @pytest.fixture(autouse=True)
 def setup_test_media(settings):
     """Create folder for test media/file uploads."""

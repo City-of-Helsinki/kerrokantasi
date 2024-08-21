@@ -106,7 +106,10 @@ def test_section_comment_unvote(api_client, john_doe_api_client, default_hearing
     john_doe_api_client.post(get_section_comment_vote_url(default_hearing.id, section.id, comment.id))
     response = john_doe_api_client.post(get_section_comment_unvote_url(default_hearing.id, section.id, comment.id))
     assert response.status_code == 204
+    comment.refresh_from_db()
     assert comment.n_votes == 0
+
+    # User cannot unvote if he/she hasn't voted
     response = john_doe_api_client.post(get_section_comment_unvote_url(default_hearing.id, section.id, comment.id))
     assert response.status_code == 304
 

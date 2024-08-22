@@ -2,11 +2,14 @@ import pytest
 import re
 from django.urls import reverse
 
+from audit_log.enums import Operation
+from democracy.factories.hearing import SectionFileFactory
 from democracy.models import SectionFile
 from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
     FILES,
     IMAGES,
+    assert_audit_log_entry,
     get_data_from_response,
     get_file_path,
     get_hearing_detail_url,
@@ -389,3 +392,64 @@ def test_access_section_file(default_hearing, section_file_orphan, john_doe_api_
         reverse("serve_file", kwargs={"filetype": "sectionfile", "pk": section_file_orphan.pk})
     )
     assert response.status_code == 200, "normal user should be be able to get section file"
+
+
+@pytest.mark.django_db
+def test_file_id_is_audit_logged_on_retrieve(john_doe_api_client, default_hearing, audit_log_configure):
+    file = default_hearing.sections.first().files.first()
+    url = reverse("file-detail", kwargs={"pk": file.pk})
+    john_doe_api_client.get(url)
+
+    assert_audit_log_entry(url, [file.pk], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_file_ids_are_audit_logged_on_list(john_doe_api_client, audit_log_configure):
+    file_ids = [SectionFileFactory().pk, SectionFileFactory().pk, SectionFileFactory().pk]
+    url = reverse("file-list")
+
+    john_doe_api_client.get(url)
+
+    assert_audit_log_entry(url, file_ids, operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_file_id_is_audit_logged_on_create(john_smith_api_client, default_hearing, audit_log_configure):
+    post_data = sectionfile_multipart_test_data()
+    url = reverse("file-list")
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
+        post_data["file"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(url, data=post_data, format="multipart"), status_code=201
+        )
+
+    assert_audit_log_entry(url, [data["id"]])
+
+
+@pytest.mark.django_db
+def test_file_id_is_audit_logged_on_update(john_smith_api_client, default_hearing, audit_log_configure):
+    post_data = sectionfile_multipart_test_data()
+    url = reverse("file-list")
+    with open(get_file_path(FILES["PDF"]), "rb") as fp:
+        post_data["file"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(url, data=post_data, format="multipart"), status_code=201
+        )
+    section = default_hearing.sections.first()
+    file_obj_id = data["id"]
+    put_data = sectionfile_multipart_test_data()
+    put_data["section"] = section.pk
+
+    john_smith_api_client.put(reverse("file-detail", kwargs={"pk": file_obj_id}), data=put_data, format="multipart")
+
+    assert_audit_log_entry(url, [data["id"]], count=2, operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_file_id_is_audit_logged_on_delete(john_smith_api_client, default_hearing, audit_log_configure):
+    file_obj = default_hearing.sections.first().files.first()
+    url = reverse("file-detail", kwargs={"pk": file_obj.pk})
+
+    john_smith_api_client.delete(url)
+
+    assert_audit_log_entry(url, [file_obj.pk], operation=Operation.DELETE)

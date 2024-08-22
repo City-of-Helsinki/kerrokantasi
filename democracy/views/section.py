@@ -11,6 +11,7 @@ from rest_framework import permissions, serializers, viewsets
 from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
 from sendfile import sendfile
 
+from audit_log.views import AuditLogApiView
 from democracy.enums import Commenting, CommentingMapTools, InitialSectionType
 from democracy.models import Hearing, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption, SectionType
 from democracy.pagination import DefaultLimitPagination
@@ -576,7 +577,7 @@ class RootFileBase64Serializer(RootFileSerializer):
     file = Base64FileField()
 
 
-class FileViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
+class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
     model = SectionFile
     pagination_class = DefaultLimitPagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

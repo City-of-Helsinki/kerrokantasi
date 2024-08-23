@@ -1,5 +1,6 @@
 from rest_framework import mixins, permissions, serializers, viewsets
 
+from audit_log.views import AuditLogApiView
 from democracy.models import ContactPerson, Organization
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import TranslatableSerializer
@@ -26,7 +27,9 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
         return super().create(validated_data)
 
 
-class ContactPersonViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.UpdateModelMixin):
+class ContactPersonViewSet(
+    AuditLogApiView, viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin, mixins.UpdateModelMixin
+):
     serializer_class = ContactPersonSerializer
     queryset = ContactPerson.objects.select_related("organization").order_by("name")
     permission_classes = [permissions.IsAuthenticated, ContactPersonPermission]

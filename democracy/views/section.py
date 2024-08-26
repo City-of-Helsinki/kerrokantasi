@@ -487,7 +487,7 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
 
 
 # root level SectionImage endpoint
-class ImageViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
+class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
     model = SectionImage
     serializer_class = RootSectionImageSerializer
     pagination_class = DefaultLimitPagination

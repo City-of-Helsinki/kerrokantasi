@@ -1,16 +1,18 @@
 import pytest
+from django.urls import reverse
 
-from democracy.tests.utils import get_hearing_detail_url
+from audit_log.enums import Operation
+from democracy.tests.utils import assert_audit_log_entry
 
 
 def get_hearing_follow_url(hearing_id):
     # /v1/hearings/<hearingID>/follow/
-    return get_hearing_detail_url(hearing_id, "follow")
+    return reverse("hearing-follow", kwargs={"pk": hearing_id})
 
 
 def get_hearing_unfollow_url(hearing_id):
     # /v1/hearings/<hearingID>/unfollow/
-    return get_hearing_detail_url(hearing_id, "unfollow")
+    return reverse("hearing-unfollow", kwargs={"pk": hearing_id})
 
 
 @pytest.mark.django_db
@@ -49,5 +51,24 @@ def test_hearing_unfollow(api_client, john_doe_api_client, default_hearing):
 @pytest.mark.django_db
 def test_followed_hearing_appear_in_user_data(john_doe_api_client, default_hearing):
     john_doe_api_client.post(get_hearing_follow_url(default_hearing.id))
-    response = john_doe_api_client.get("/v1/users/")
+    response = john_doe_api_client.get(reverse("users-list"))
     assert default_hearing.id in response.data[0]["followed_hearings"]
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_follow(john_doe_api_client, default_hearing, audit_log_configure):
+    url = get_hearing_follow_url(default_hearing.pk)
+
+    john_doe_api_client.post(url)
+
+    assert_audit_log_entry(url, [default_hearing.pk], operation=Operation.CREATE)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_unfollow(john_doe_api_client, default_hearing, audit_log_configure):
+    url = get_hearing_unfollow_url(default_hearing.pk)
+    default_hearing.followers.add(john_doe_api_client.user)
+
+    john_doe_api_client.post(url)
+
+    assert_audit_log_entry(url, [default_hearing.pk], operation=Operation.CREATE)

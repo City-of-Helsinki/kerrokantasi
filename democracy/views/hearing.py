@@ -9,6 +9,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
 from rest_framework.settings import api_settings
 
+from audit_log.utils import add_audit_logged_object_ids
+from audit_log.views import AuditLogApiView
 from democracy.enums import InitialSectionType
 from democracy.models import (
     ContactPerson,
@@ -456,7 +458,7 @@ hearing_prefetches = (
 )
 
 
-class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
+class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
     """
     API endpoint for hearings.
     """
@@ -504,6 +506,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, viewsets.ModelViewSet):
 
         try:
             obj = queryset.get_by_id_or_slug(id_or_slug)
+            add_audit_logged_object_ids(self.request, obj)
         except Hearing.DoesNotExist:
             raise NotFound()
 

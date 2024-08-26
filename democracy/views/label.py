@@ -1,6 +1,7 @@
 import django_filters
 from rest_framework import mixins, permissions, response, serializers, status, viewsets
 
+from audit_log.views import AuditLogApiView
 from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import TranslatableSerializer
@@ -20,7 +21,7 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = ("id", "label")
 
 
-class LabelViewSet(viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+class LabelViewSet(AuditLogApiView, viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     serializer_class = LabelSerializer
     queryset = Label.objects.all()
     pagination_class = DefaultLimitPagination

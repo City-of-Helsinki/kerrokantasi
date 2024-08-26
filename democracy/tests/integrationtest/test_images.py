@@ -1,11 +1,14 @@
 import datetime
 import pytest
+from django.urls import reverse
 from django.utils.timezone import now
 
+from audit_log.enums import Operation
+from democracy.models import SectionImage
 from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
     IMAGES,
-    assert_common_keys_equal,
+    assert_audit_log_entry,
     create_default_images,
     get_data_from_response,
     get_hearing_detail_url,
@@ -86,7 +89,7 @@ def test_section_images_ordering(api_client, default_hearing):
 )
 @pytest.mark.django_db
 def test_unpublished_section_images_excluded(client, expected, request, default_hearing):
-    api_client = request.getfuncargvalue(client)
+    api_client = request.getfixturevalue(client)
 
     image = default_hearing.get_main_section().images.first()
     image.published = False
@@ -111,7 +114,7 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
     response = api_client.get(get_hearing_detail_url(default_hearing.id, "sections"))
     image_set_2 = get_data_from_response(response)[2]["images"]
 
-    response = api_client.get("/v1/image/?section=%s" % default_hearing.sections.all()[2].id)
+    response = api_client.get(f"{reverse('image-list')}?section={default_hearing.sections.all()[2].id}")
     image_set_3 = get_data_from_response(response)["results"]
 
     for image_set in (image_set_1, image_set_2, image_set_3):
@@ -120,16 +123,18 @@ def test_unpublished_section_images_excluded(client, expected, request, default_
 
 @pytest.mark.django_db
 def test_get_images_root_endpoint(api_client, default_hearing):
-    data = get_data_from_response(api_client.get("/v1/image/"))
+    data = get_data_from_response(api_client.get(reverse("image-list")))
     assert len(data["results"]) == 9
 
-    data = get_data_from_response(api_client.get("/v1/image/?section=%s" % default_hearing.sections.first().id))
+    data = get_data_from_response(
+        api_client.get(f"{reverse('image-list')}?section={default_hearing.sections.first().id}")
+    )
     check_entity_images(data["results"], False)
 
 
 @pytest.mark.django_db
 def test_get_thumbnail_images_root_endpoint(api_client, default_hearing):
-    data = get_data_from_response(api_client.get("/v1/image/?dim=100x100"))
+    data = get_data_from_response(api_client.get(f"{reverse('image-list')}?dim=100x100"))
     assert len(data["results"]) == 9
     for image in data["results"]:
         assert image["width"] == 100
@@ -138,9 +143,10 @@ def test_get_thumbnail_images_root_endpoint(api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_get_thumbnail_image(api_client, default_hearing):
-    data = get_data_from_response(
-        api_client.get("/v1/image/%s/?dim=100x100" % default_hearing.sections.first().images.first().id)
-    )
+    detail_url = reverse("image-detail", kwargs={"pk": default_hearing.sections.first().images.first().id})
+
+    data = get_data_from_response(api_client.get(f"{detail_url}?dim=100x100"))
+
     assert data["width"] == 100
     assert data["height"] == 100
 
@@ -151,18 +157,18 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     # random hearing has always atleast one section that is not the main, add images to it
     create_default_images(random_hearing.sections.exclude(type__identifier="main").first())
 
-    url = "/v1/image/"
+    url = reverse("image-list")
     section = default_hearing.sections.first()
 
-    response = api_client.get("%s?hearing=%s" % (url, default_hearing.id))
+    response = api_client.get(f"{url}?hearing={default_hearing.id}")
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 9
 
-    response = api_client.get("%s?section=%s" % (url, section.id))
+    response = api_client.get(f"{url}?section={section.id}")
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 3
 
-    response = api_client.get("%s?section_type=%s" % (url, "main"))
+    response = api_client.get(f"{url}?section_type=main")
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 3
 
@@ -175,7 +181,7 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
     setattr(default_hearing, hearing_update[0], hearing_update[1])
     default_hearing.save()
 
-    response = api_client.get("/v1/image/")
+    response = api_client.get(reverse("image-list"))
     response_data = get_data_from_response(response)["results"]
     assert len(response_data) == 0
 
@@ -183,7 +189,7 @@ def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_heari
 @pytest.mark.django_db
 def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
     # Check original image count
-    data = get_data_from_response(john_smith_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_smith_api_client.get(reverse("image-list")))
     assert len(data["results"]) == 9
     # Get some section
     data = get_data_from_response(john_smith_api_client.get(get_hearing_detail_url(default_hearing.id, "sections")))
@@ -192,16 +198,16 @@ def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
     post_data = sectionimage_test_json()
     post_data["section"] = first_section["id"]
     data = get_data_from_response(
-        john_smith_api_client.post("/v1/image/", data=post_data, format="json"), status_code=201
+        john_smith_api_client.post(reverse("image-list"), data=post_data, format="json"), status_code=201
     )
     # Save order of the newly created image
     ordering = data["ordering"]
     # Make sure new image was created
-    data = get_data_from_response(john_smith_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_smith_api_client.get(reverse("image-list")))
     assert len(data["results"]) == 10
     # Create another image and make sure it gets higher ordering than the last one
     data = get_data_from_response(
-        john_smith_api_client.post("/v1/image/", data=post_data, format="json"), status_code=201
+        john_smith_api_client.post(reverse("image-list"), data=post_data, format="json"), status_code=201
     )
     assert data["ordering"] == ordering + 1
 
@@ -215,24 +221,25 @@ def test_POST_image_root_endpoint_wrong_user(john_doe_api_client, default_hearin
     post_data = sectionimage_test_json()
     post_data["section"] = first_section["id"]
     data = get_data_from_response(
-        john_doe_api_client.post("/v1/image/", data=post_data, format="json"), status_code=403
+        john_doe_api_client.post(reverse("image-list"), data=post_data, format="json"), status_code=403
     )
 
 
 @pytest.mark.django_db
 def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
-    data = get_data_from_response(john_smith_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_smith_api_client.get(reverse("image-list")))
     section_image = data["results"][0]
     post_data = {
         "title": {"en": "changed_title"},
         "caption": {"en": "changed_caption"},
         "alt_text": {"en": "changed_alt_text"},
     }
+    detail_url = reverse("image-detail", kwargs={"pk": section_image["id"]})
     data = get_data_from_response(
-        john_smith_api_client.patch("/v1/image/%d/" % section_image["id"], data=post_data, format="json"),
+        john_smith_api_client.patch(detail_url, data=post_data, format="json"),
         status_code=200,
     )
-    changed_section_image = get_data_from_response(john_smith_api_client.get("/v1/image/%d/" % section_image["id"]))
+    changed_section_image = get_data_from_response(john_smith_api_client.get(detail_url))
     assert changed_section_image["title"]["en"] == "changed_title"
     assert changed_section_image["caption"]["en"] == "changed_caption"
     assert changed_section_image["alt_text"]["en"] == "changed_alt_text"
@@ -240,16 +247,17 @@ def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_PUT_image_root_endpoint(john_smith_api_client, default_hearing):
-    data = get_data_from_response(john_smith_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_smith_api_client.get(reverse("image-list")))
     section_image = data["results"][0]
     section_image["title"]["en"] = "changed_title"
     section_image["caption"]["en"] = "changed_caption"
     section_image["alt_text"]["en"] = "changed_alt_text"
+    detail_url = reverse("image-detail", kwargs={"pk": section_image["id"]})
     data = get_data_from_response(
-        john_smith_api_client.put("/v1/image/%d/" % section_image["id"], data=section_image, format="json"),
+        john_smith_api_client.put(detail_url, data=section_image, format="json"),
         status_code=200,
     )
-    changed_section_image = get_data_from_response(john_smith_api_client.get("/v1/image/%d/" % section_image["id"]))
+    changed_section_image = get_data_from_response(john_smith_api_client.get(detail_url))
     assert changed_section_image["title"]["en"] == "changed_title"
     assert changed_section_image["caption"]["en"] == "changed_caption"
     assert changed_section_image["alt_text"]["en"] == "changed_alt_text"
@@ -257,31 +265,104 @@ def test_PUT_image_root_endpoint(john_smith_api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_PATCH_image_root_endpoint_wrong_user(john_doe_api_client, default_hearing):
-    data = get_data_from_response(john_doe_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_doe_api_client.get(reverse("image-list")))
     section_image = data["results"][0]
     post_data = {"title": {"en": "changed_title"}, "caption": {"en": "changed_caption"}}
     data = get_data_from_response(
-        john_doe_api_client.patch("/v1/image/%d/" % section_image["id"], data=post_data, format="json"), status_code=403
+        john_doe_api_client.patch(
+            reverse("image-detail", kwargs={"pk": section_image["id"]}), data=post_data, format="json"
+        ),
+        status_code=403,
     )
 
 
 @pytest.mark.django_db
 def test_DELETE_image_root_endpoint(john_smith_api_client, default_hearing):
-    data = get_data_from_response(john_smith_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_smith_api_client.get(reverse("image-list")))
     assert len(data["results"]) == 9
     section_image = data["results"][0]
-    response = john_smith_api_client.delete("/v1/image/%d/" % section_image["id"], format="json")
+    response = john_smith_api_client.delete(reverse("image-detail", kwargs={"pk": section_image["id"]}), format="json")
     assert response.status_code == 204
     data = get_data_from_response(
-        john_smith_api_client.get("/v1/image/%d/" % section_image["id"], format="json"), status_code=404
+        john_smith_api_client.get(reverse("image-detail", kwargs={"pk": section_image["id"]}), format="json"),
+        status_code=404,
     )
-    data = get_data_from_response(john_smith_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_smith_api_client.get(reverse("image-list")))
     assert len(data["results"]) == 8
 
 
 @pytest.mark.django_db
 def test_DELETE_image_root_endpoint_wrong_user(john_doe_api_client, default_hearing):
-    data = get_data_from_response(john_doe_api_client.get("/v1/image/"))
+    data = get_data_from_response(john_doe_api_client.get(reverse("image-list")))
     section_image = data["results"][0]
-    response = john_doe_api_client.delete("/v1/image/%d/" % section_image["id"], format="json")
+    detail_url = reverse("image-detail", kwargs={"pk": section_image["id"]})
+
+    response = john_doe_api_client.delete(detail_url, format="json")
+
     assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_image_id_is_audit_logged_on_retrieve(api_client, default_hearing, audit_log_configure):
+    image = default_hearing.sections.first().images.first()
+    url = reverse("image-detail", kwargs={"pk": image.pk})
+
+    api_client.get(url)
+
+    assert_audit_log_entry(url, [image.pk], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_image_ids_are_audit_logged_on_list(api_client, default_hearing, audit_log_configure):
+    url = reverse("image-list")
+    section_images = SectionImage.objects.all()
+    assert section_images.count() > 1
+
+    api_client.get(url)
+
+    assert_audit_log_entry(url, section_images.values_list("pk", flat=True), operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_image_id_is_audit_logged_on_create(john_smith_api_client, default_hearing, audit_log_configure):
+    url = reverse("image-list")
+    post_data = sectionimage_test_json()
+    post_data["section"] = default_hearing.sections.first().pk
+
+    response = john_smith_api_client.post(url, data=post_data, format="json")
+    data = get_data_from_response(response, status_code=201)
+
+    assert_audit_log_entry(url, [data["id"]])
+
+
+@pytest.mark.django_db
+def test_file_id_is_audit_logged_on_update_PATCH(john_smith_api_client, default_hearing, audit_log_configure):
+    section_image = default_hearing.sections.first().images.first()
+    url = reverse("image-detail", kwargs={"pk": section_image.pk})
+    post_data = {"title": {"en": "changed_title"}}
+
+    john_smith_api_client.patch(url, data=post_data, format="json")
+
+    assert_audit_log_entry(url, [section_image.pk], operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_file_id_is_audit_logged_on_update_PUT(john_smith_api_client, default_hearing, audit_log_configure):
+    section_image = default_hearing.sections.first().images.first()
+    url = reverse("image-detail", kwargs={"pk": section_image.pk})
+    data = get_data_from_response(john_smith_api_client.get(url))
+    data["title"]["en"] = "changed_title"
+
+    john_smith_api_client.put(url, data=data, format="json")
+
+    assert_audit_log_entry(url, [section_image.pk], count=2, operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_image_id_is_audit_logged_on_delete(john_smith_api_client, default_hearing, audit_log_configure):
+    section_image = default_hearing.sections.first().images.first()
+    url = reverse("image-detail", kwargs={"pk": section_image.pk})
+
+    john_smith_api_client.delete(url)
+
+    assert_audit_log_entry(url, [section_image.pk], operation=Operation.DELETE)

@@ -2,9 +2,11 @@ import datetime
 import json
 import pytest
 from copy import deepcopy
+from django.urls import reverse
 from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 
+from audit_log.enums import Operation
 from democracy.enums import InitialSectionType
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
@@ -23,6 +25,7 @@ from democracy.models.utils import copy_hearing
 from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
     FILES,
+    assert_audit_log_entry,
     assert_common_keys_equal,
     assert_datetime_fuzzy_equal,
     file_to_bytesio,
@@ -35,7 +38,7 @@ from democracy.tests.utils import (
 from democracy.utils.file_to_base64 import file_to_base64
 from kerrokantasi.tests.conftest import get_feature_with_geometry
 
-endpoint = "/v1/hearing/"
+endpoint = reverse("hearing-list")
 list_endpoint = endpoint
 
 
@@ -1943,3 +1946,105 @@ def test_get_project_data_in_hearing(default_hearing, api_client):
         assert phase["is_active"] == is_active_phase
         if is_active_phase:
             assert default_hearing.slug in phase["hearings"]
+
+
+@pytest.mark.django_db
+def test_hearing_ids_are_audit_logged_on_map(
+    john_smith_api_client, valid_hearing_json, geojson_point, audit_log_configure
+):
+    feature = get_feature_with_geometry(geojson_point)
+    valid_hearing_json["geojson"] = feature
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    hearing_1_data = get_data_from_response(response, status_code=201)
+    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    hearing_2_data = get_data_from_response(response, status_code=201)
+
+    john_smith_api_client.get(reverse("hearing-map"))
+
+    assert_audit_log_entry(
+        reverse("hearing-map"), [hearing_1_data["id"], hearing_2_data["id"]], count=3, operation=Operation.READ
+    )
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_report(api_client, default_hearing, audit_log_configure):
+    url = reverse("hearing-report", kwargs={"pk": default_hearing.pk})
+
+    api_client.get(url)
+
+    assert_audit_log_entry(url, [default_hearing.pk], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_report_pptx(john_smith_api_client, default_hearing, audit_log_configure):
+    url = reverse("hearing-report-pptx", kwargs={"pk": default_hearing.pk})
+
+    john_smith_api_client.get(url)
+
+    assert_audit_log_entry(url, [default_hearing.pk], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_retrieve(api_client, default_hearing, audit_log_configure):
+    url = reverse("hearing-detail", kwargs={"pk": default_hearing.pk})
+
+    api_client.get(url)
+
+    assert_audit_log_entry(url, [default_hearing.pk], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_hearing_ids_are_audit_logged_on_list(api_client, audit_log_configure):
+    url = reverse("hearing-list")
+    hearings = create_hearings(3)
+
+    api_client.get(url)
+
+    assert_audit_log_entry(url, [h.pk for h in hearings], operation=Operation.READ)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_create(john_smith_api_client, valid_hearing_json, audit_log_configure):
+    url = reverse("hearing-list")
+
+    response = john_smith_api_client.post(url, data=valid_hearing_json, format="json")
+    hearing_data = get_data_from_response(response, status_code=201)
+
+    assert_audit_log_entry(url, [hearing_data["id"]], operation=Operation.CREATE)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_update_PATCH(john_smith_api_client, valid_hearing_json, audit_log_configure):
+    response = john_smith_api_client.post(reverse("hearing-list"), data=valid_hearing_json, format="json")
+    patch_data = {"title": {"fi": "Title"}}
+    hearing_data = get_data_from_response(response, status_code=201)
+    detail_url = reverse("hearing-detail", kwargs={"pk": hearing_data["id"]})
+
+    john_smith_api_client.patch(detail_url, data=patch_data, format="json")
+
+    assert_audit_log_entry(detail_url, [hearing_data["id"]], count=2, operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_update_PUT(john_smith_api_client, valid_hearing_json, audit_log_configure):
+    response = john_smith_api_client.post(reverse("hearing-list"), data=valid_hearing_json, format="json")
+    hearing_data = get_data_from_response(response, status_code=201)
+    detail_url = reverse("hearing-detail", kwargs={"pk": hearing_data["id"]})
+    hearing_data["title"]["fi"] = "Title"
+
+    john_smith_api_client.put(detail_url, data=hearing_data, format="json")
+
+    assert_audit_log_entry(detail_url, [hearing_data["id"]], count=2, operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_hearing_id_is_audit_logged_on_delete(john_smith_api_client, valid_hearing_json, audit_log_configure):
+    """Deleting an unpublished hearing should be logged."""
+    valid_hearing_json["published"] = False
+    response = john_smith_api_client.post(reverse("hearing-list"), data=valid_hearing_json, format="json")
+    data = get_data_from_response(response, status_code=201)
+    detail_url = reverse("hearing-detail", kwargs={"pk": data["id"]})
+
+    john_smith_api_client.delete(detail_url, format="json")
+
+    assert_audit_log_entry(detail_url, [data["id"]], count=2, operation=Operation.DELETE)

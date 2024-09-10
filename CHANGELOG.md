@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.7.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.6.0...kerrokantasi-v1.7.0) (2024-09-10)
+
+
+### Features
+
+* Add application for audit logging ([64ecc66](https://github.com/City-of-Helsinki/kerrokantasi/commit/64ecc66fc4932290593a0ef6da78ed66a105e6ec))
+* Add audit logging for BaseCommentViewSet ([c09d2d9](https://github.com/City-of-Helsinki/kerrokantasi/commit/c09d2d989e08e35bf4e83472206e97cfac5e1dfb))
+* Add audit logging to ContactPersonViewSet ([3e4b929](https://github.com/City-of-Helsinki/kerrokantasi/commit/3e4b9293fa5e65479bd3ed867db6dac959c22c1d))
+* Add audit logging to FileViewSet ([842fc05](https://github.com/City-of-Helsinki/kerrokantasi/commit/842fc0586d109383c3f5c9141ae2e29706e24130))
+* Add audit logging to HearingViewSet ([49d8ac2](https://github.com/City-of-Helsinki/kerrokantasi/commit/49d8ac29f1971db8cc73019e67dc6023772093d4))
+* Add audit logging to ImageViewSet ([920e80e](https://github.com/City-of-Helsinki/kerrokantasi/commit/920e80e0d7eda9a96d3e446764cdeb5609bc4cb6))
+* Add audit logging to LabelViewSet ([005aa8c](https://github.com/City-of-Helsinki/kerrokantasi/commit/005aa8ca8160e82451c5aa341200466b7edaa829))
+* Configure audit logging for kerrokantasi ([89aa789](https://github.com/City-of-Helsinki/kerrokantasi/commit/89aa789ef9879815ede1f70d79ffcdffc02ad1df))
+
+
+### Dependencies
+
+* Sync pre-commit and development requirements ([c3a8d00](https://github.com/City-of-Helsinki/kerrokantasi/commit/c3a8d0057f3993af062506529b0d77a3c228c839))
+
+
+### Documentation
+
+* **readme:** Update isort url ([0490fbf](https://github.com/City-of-Helsinki/kerrokantasi/commit/0490fbf150c8d2413b809a3f775ef6601ab9b25e))
+
 ## [1.6.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.5.0...kerrokantasi-v1.6.0) (2024-08-13)
 
 

@@ -32,7 +32,7 @@ git clone https://github.com/City-of-Helsinki/kerrokantasi.git
 cd kerrokantasi
 ```
 
-Uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/master/docker-compose.yml#L29 to activate
+Uncomment line https://github.com/City-of-Helsinki/kerrokantasi/blob/main/compose.yaml#L27-L28 to activate
 configuring the dev environment with a local file.
 
 Copy the development config file example `config_dev.toml.example`

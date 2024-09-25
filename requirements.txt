@@ -10,11 +10,11 @@ asgiref==3.8.1
     #   django-cors-headers
 asttokens==2.4.1
     # via stack-data
-attrs==23.2.0
+attrs==24.2.0
     # via
     #   cattrs
     #   requests-cache
-babel==2.15.0
+babel==2.16.0
     # via -r requirements.in
 backcall==0.2.0
     # via ipython
@@ -22,19 +22,19 @@ backports-zoneinfo==0.2.1
     # via
     #   django
     #   djangorestframework
-cachetools==5.3.3
+cachetools==5.5.0
     # via django-helusers
-cattrs==23.2.3
+cattrs==24.1.2
     # via requests-cache
-certifi==2024.2.2
+certifi==2024.8.30
     # via
     #   requests
     #   sentry-sdk
-cffi==1.16.0
+cffi==1.17.1
     # via cryptography
 charset-normalizer==3.3.2
     # via requests
-cryptography==42.0.7
+cryptography==43.0.1
     # via social-auth-core
 decorator==5.1.1
     # via ipython
@@ -44,7 +44,7 @@ defusedxml==0.8.0rc2
     #   social-auth-core
 deprecation==2.1.0
     # via django-helusers
-django==4.2.13
+django==4.2.16
     # via
     #   -r requirements.in
     #   django-ckeditor
@@ -71,7 +71,7 @@ django-autoslug==1.9.9
     # via -r requirements.in
 django-ckeditor==6.7.1
     # via -r requirements.in
-django-cors-headers==4.3.1
+django-cors-headers==4.4.0
     # via -r requirements.in
 django-enumfields==2.1.1
     # via -r requirements.in
@@ -79,7 +79,7 @@ django-environ==0.11.2
     # via -r requirements.in
 django-extensions==3.2.3
     # via -r requirements.in
-django-filter==24.2
+django-filter==24.3
     # via -r requirements.in
 django-geojson==4.1.0
     # via -r requirements.in
@@ -91,13 +91,13 @@ django-js-asset==2.2.0
     # via
     #   django-ckeditor
     #   django-mptt
-django-leaflet==0.30.0
+django-leaflet==0.30.1
     # via -r requirements.in
 django-mptt==0.14.0
     # via django-munigeo
 django-munigeo==0.3.10
     # via -r requirements.in
-django-nested-admin==4.0.2
+django-nested-admin==4.1.1
     # via -r requirements.in
 django-parler==2.3
     # via
@@ -106,11 +106,11 @@ django-parler==2.3
     #   django-parler-rest
 django-parler-rest==2.2
     # via django-munigeo
-django-reversion==5.0.12
+django-reversion==5.1.0
     # via -r requirements.in
 django-sendfile==0.3.11
     # via -r requirements.in
-djangorestframework==3.15.1
+djangorestframework==3.15.2
     # via
     #   -r requirements.in
     #   django-parler-rest
@@ -123,19 +123,19 @@ drf-oidc-auth==0.10.0
     # via
     #   -r requirements.in
     #   helsinki-profile-gdpr-api
-easy-thumbnails==2.8.5
+easy-thumbnails==2.9
     # via -r requirements.in
 ecdsa==0.19.0
     # via python-jose
-exceptiongroup==1.2.1
+exceptiongroup==1.2.2
     # via cattrs
-executing==2.0.1
+executing==2.1.0
     # via stack-data
 future==1.0.0
     # via pyjwkest
 helsinki-profile-gdpr-api==0.2.0
     # via -r requirements.in
-idna==3.7
+idna==3.10
     # via requests
 ipython==8.12.3
     # via -r requirements.in
@@ -145,7 +145,7 @@ jsonfield==3.1.0
     # via -r requirements.in
 langdetect==1.0.9
     # via -r requirements.in
-lxml==5.2.2
+lxml==5.3.0
     # via python-pptx
 matplotlib-inline==0.1.7
     # via ipython
@@ -153,7 +153,7 @@ oauthlib==3.2.2
     # via
     #   requests-oauthlib
     #   social-auth-core
-packaging==24.0
+packaging==24.1
     # via deprecation
 parso==0.8.4
     # via jedi
@@ -161,22 +161,22 @@ pexpect==4.9.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==10.3.0
+pillow==10.4.0
     # via
     #   -r requirements.in
     #   easy-thumbnails
     #   python-pptx
-platformdirs==4.2.2
+platformdirs==4.3.6
     # via requests-cache
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.48
     # via ipython
 psycopg2==2.9.9
     # via -r requirements.in
 ptyprocess==0.7.0
     # via pexpect
-pure-eval==0.2.2
+pure-eval==0.2.3
     # via stack-data
-pyasn1==0.6.0
+pyasn1==0.6.1
     # via
     #   python-jose
     #   rsa
@@ -188,25 +188,25 @@ pygments==2.18.0
     # via ipython
 pyjwkest==1.4.2
     # via drf-oidc-auth
-pyjwt==2.8.0
+pyjwt==2.9.0
     # via
     #   -r requirements.in
     #   social-auth-core
 python-jose==3.3.0
     # via django-helusers
-python-monkey-business==1.0.0
+python-monkey-business==1.1.0
     # via django-nested-admin
-python-pptx==0.6.23
+python-pptx==1.0.2
     # via -r requirements.in
 python3-openid==3.2.0
     # via social-auth-core
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements.in
     #   babel
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via django-munigeo
-requests==2.32.2
+requests==2.32.3
     # via
     #   django-helusers
     #   django-munigeo
@@ -214,13 +214,13 @@ requests==2.32.2
     #   requests-cache
     #   requests-oauthlib
     #   social-auth-core
-requests-cache==1.2.0
+requests-cache==1.2.1
     # via django-munigeo
 requests-oauthlib==2.0.0
     # via social-auth-core
 rsa==4.9
     # via python-jose
-sentry-sdk==2.3.0
+sentry-sdk==2.14.0
     # via -r requirements.in
 six==1.16.0
     # via
@@ -229,13 +229,12 @@ six==1.16.0
     #   ecdsa
     #   langdetect
     #   pyjwkest
-    #   python-monkey-business
     #   url-normalize
-social-auth-app-django==5.4.1
+social-auth-app-django==5.4.2
     # via -r requirements.in
 social-auth-core==4.5.4
     # via social-auth-app-django
-sqlparse==0.5.0
+sqlparse==0.5.1
     # via django
 stack-data==0.6.3
     # via ipython
@@ -243,21 +242,22 @@ traitlets==5.14.3
     # via
     #   ipython
     #   matplotlib-inline
-typing-extensions==4.11.0
+typing-extensions==4.12.2
     # via
     #   asgiref
     #   cattrs
     #   ipython
+    #   python-pptx
 url-normalize==1.4.3
     # via requests-cache
-urllib3==2.2.1
+urllib3==2.2.3
     # via
     #   requests
     #   requests-cache
     #   sentry-sdk
 wcwidth==0.2.13
     # via prompt-toolkit
-whitenoise==6.6.0
+whitenoise==6.7.0
     # via -r requirements.in
 xlsxwriter==3.2.0
     # via

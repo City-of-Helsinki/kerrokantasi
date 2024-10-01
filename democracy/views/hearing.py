@@ -12,7 +12,16 @@ from rest_framework.settings import api_settings
 from audit_log.utils import add_audit_logged_object_ids
 from audit_log.views import AuditLogApiView
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, ContactPersonOrder, Hearing, Label, Organization, Project, Section
+from democracy.models import (
+    ContactPerson,
+    ContactPersonOrder,
+    Hearing,
+    Label,
+    Organization,
+    Project,
+    ProjectPhase,
+    Section,
+)
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
@@ -343,7 +352,7 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         queryset = hearing.sections.select_related("type").prefetch_related(
             "polls",
             "translations",
-            Prefetch("images", image_qs_for_request(request)),
+            Prefetch("images", image_qs_for_request(request).prefetch_related("translations")),
             Prefetch("files", file_qs_for_request(request)),
         )
         if not hearing.closed:
@@ -440,28 +449,6 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = ["id", "title", "borough", "open_at", "close_at", "closed", "geojson", "slug"]
 
 
-def get_prefetches(request):
-    """Temporary function, this will be refactored away later"""
-
-    return (
-        Prefetch(
-            "sections",
-            queryset=Section.objects.filter(type__identifier="main").prefetch_related(
-                Prefetch("translations", to_attr="translation_list"),
-                Prefetch(
-                    "images",
-                    image_qs_for_request(request)
-                    .filter(section__type__identifier="main")
-                    .prefetch_related("translations"),
-                ),
-            ),
-            to_attr="main_section_list",
-        ),
-        Prefetch("labels", queryset=Label.objects.prefetch_related("translations")),
-        "translations",
-    )
-
-
 class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
     """
     API endpoint for hearings.
@@ -492,21 +479,61 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         return HearingSerializer
 
     def get_queryset(self):
-        queryset = (
-            filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request, hearing_lookup="")
-            .select_related("organization", "project_phase__project")
-            .prefetch_related(*get_prefetches(self.request))
-        )
+        if self.action == "list":
+            base_hearing_qs = (
+                filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request, hearing_lookup="")
+                .select_related("organization")
+                .prefetch_related("translations")
+            )
+            hearing_qs = base_hearing_qs.prefetch_related(
+                Prefetch(
+                    "project_phase",
+                    ProjectPhase.objects.prefetch_related(
+                        Prefetch(
+                            "project",
+                            Project.objects.all().prefetch_related(
+                                "translations",
+                                Prefetch(
+                                    "phases",
+                                    ProjectPhase.objects.prefetch_related(
+                                        Prefetch("hearings", base_hearing_qs),
+                                        "translations",
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
 
-        return queryset
+        else:
+            hearing_qs = Hearing.objects.with_unpublished().select_related("organization", "project_phase__project")
+
+        qs = hearing_qs.prefetch_related(
+            Prefetch(
+                "sections",
+                Section.objects.filter(type__identifier="main").prefetch_related(
+                    Prefetch("translations", to_attr="translation_list"),
+                    Prefetch(
+                        "images",
+                        image_qs_for_request(self.request)
+                        .filter(section__type__identifier="main")
+                        .prefetch_related("translations"),
+                    ),
+                ),
+                to_attr="main_section_list",
+            ),
+            Prefetch(
+                "labels",
+                Label.objects.prefetch_related("translations"),
+            ),
+        )
+        return qs
 
     def get_object(self):
         id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
 
-        queryset = self.filter_queryset(Hearing.objects.with_unpublished()).select_related(
-            "organization", "project_phase__project"
-        )
-        queryset = queryset.prefetch_related(*get_prefetches(self.request))
+        queryset = self.filter_queryset(self.get_queryset())
 
         try:
             obj = queryset.get_by_id_or_slug(id_or_slug)

@@ -122,11 +122,7 @@ class BaseCommentViewSet(AdminsSeeUnpublishedMixin, RevisionMixin, AuditLogApiVi
         return context
 
     def apply_select_and_prefetch(self, queryset):
-        return queryset.select_related(
-            "created_by",
-            "organization",
-            "section",
-        ).prefetch_related(
+        return queryset.select_related("created_by", "organization", "section",).prefetch_related(
             Prefetch("comments", self.model.objects.everything().only("pk", "comment")),
             "images",
             "poll_answers",

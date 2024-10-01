@@ -21,7 +21,9 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         self.partial = True
 
     def get_has_hearings(self, project_phase):
-        return project_phase.hearings.exists()
+        return filter_by_hearing_visible(
+            project_phase.hearings.with_unpublished(), self.context.get("request"), hearing_lookup=""
+        ).exists()
 
     def get_hearings(self, project_phase):
         return [

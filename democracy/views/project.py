@@ -29,6 +29,9 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         ).exists()
 
     def get_hearings(self, project_phase):
+        if "hearings" in (cache := getattr(project_phase, "_prefetched_objects_cache", {})):
+            return [hearing.slug for hearing in cache["hearings"]]
+
         return [
             hearing.slug
             for hearing in filter_by_hearing_visible(

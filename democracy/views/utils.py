@@ -1,6 +1,8 @@
 import base64
 import json
 from collections import OrderedDict
+from operator import attrgetter
+
 from django.conf import settings
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
@@ -260,9 +262,14 @@ class TranslatableSerializer(serializers.Serializer):
     def to_representation(self, instance):
         ret = super(TranslatableSerializer, self).to_representation(instance)
         # enforce consistent order of translations in the API
-        translations = instance.translations.filter(language_code__in=self.Meta.translation_lang).order_by(
-            "language_code"
-        )
+        if "translations" in (cache := getattr(instance, "_prefetched_objects_cache", {})):
+            translations = [translation for translation in cache["translations"]]
+            translations.sort(key=attrgetter("language_code"))
+
+        else:
+            translations = instance.translations.filter(language_code__in=self.Meta.translation_lang).order_by(
+                "language_code"
+            )
 
         for translation in translations:
             for field in self.Meta.translated_fields:

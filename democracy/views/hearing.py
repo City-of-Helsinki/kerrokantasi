@@ -12,16 +12,7 @@ from rest_framework.settings import api_settings
 from audit_log.utils import add_audit_logged_object_ids
 from audit_log.views import AuditLogApiView
 from democracy.enums import InitialSectionType
-from democracy.models import (
-    ContactPerson,
-    ContactPersonOrder,
-    Hearing,
-    Label,
-    Organization,
-    Project,
-    Section,
-    SectionImage,
-)
+from democracy.models import ContactPerson, ContactPersonOrder, Hearing, Label, Organization, Project, Section
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
@@ -35,6 +26,8 @@ from democracy.views.section import (
     SectionFieldSerializer,
     SectionImageSerializer,
     SectionSerializer,
+    file_qs_for_request,
+    image_qs_for_request,
 )
 from democracy.views.utils import (
     GeoJSONField,
@@ -346,7 +339,13 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         return abstract
 
     def get_sections(self, hearing):
-        queryset = hearing.sections.select_related("type").prefetch_related("polls", "translations")
+        request = self.context["request"]
+        queryset = hearing.sections.select_related("type").prefetch_related(
+            "polls",
+            "translations",
+            Prefetch("images", image_qs_for_request(request)),
+            Prefetch("files", file_qs_for_request(request)),
+        )
         if not hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
 
@@ -441,21 +440,26 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = ["id", "title", "borough", "open_at", "close_at", "closed", "geojson", "slug"]
 
 
-hearing_prefetches = (
-    Prefetch(
-        "sections",
-        queryset=Section.objects.filter(type__identifier="main").prefetch_related(
-            Prefetch("translations", to_attr="translation_list"),
-            Prefetch(
-                "images",
-                queryset=SectionImage.objects.filter(section__type__identifier="main").prefetch_related("translations"),
+def get_prefetches(request):
+    """Temporary function, this will be refactored away later"""
+
+    return (
+        Prefetch(
+            "sections",
+            queryset=Section.objects.filter(type__identifier="main").prefetch_related(
+                Prefetch("translations", to_attr="translation_list"),
+                Prefetch(
+                    "images",
+                    image_qs_for_request(request)
+                    .filter(section__type__identifier="main")
+                    .prefetch_related("translations"),
+                ),
             ),
+            to_attr="main_section_list",
         ),
-        to_attr="main_section_list",
-    ),
-    Prefetch("labels", queryset=Label.objects.prefetch_related("translations")),
-    "translations",
-)
+        Prefetch("labels", queryset=Label.objects.prefetch_related("translations")),
+        "translations",
+    )
 
 
 class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
@@ -491,7 +495,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         queryset = (
             filter_by_hearing_visible(Hearing.objects.with_unpublished(), self.request, hearing_lookup="")
             .select_related("organization", "project_phase__project")
-            .prefetch_related(*hearing_prefetches)
+            .prefetch_related(*get_prefetches(self.request))
         )
 
         return queryset
@@ -502,7 +506,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         queryset = self.filter_queryset(Hearing.objects.with_unpublished()).select_related(
             "organization", "project_phase__project"
         )
-        queryset = queryset.prefetch_related(*hearing_prefetches)
+        queryset = queryset.prefetch_related(*get_prefetches(self.request))
 
         try:
             obj = queryset.get_by_id_or_slug(id_or_slug)

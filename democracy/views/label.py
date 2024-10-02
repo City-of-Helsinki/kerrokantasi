@@ -23,7 +23,7 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
 
 class LabelViewSet(AuditLogApiView, viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     serializer_class = LabelSerializer
-    queryset = Label.objects.all()
+    queryset = Label.objects.all().prefetch_related("translations")
     pagination_class = DefaultLimitPagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)

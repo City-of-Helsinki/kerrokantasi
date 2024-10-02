@@ -600,7 +600,7 @@ class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelView
         return RootFileBase64Serializer
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related("section").prefetch_related("translations")
         queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing", include_orphans=True)
         return queryset.filter(deleted=False)
 

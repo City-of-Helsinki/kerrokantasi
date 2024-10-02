@@ -2,6 +2,7 @@ import django_filters
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import Max, Prefetch, Q
+from django.utils.functional import cached_property
 from django.utils.timezone import now
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
@@ -434,19 +435,22 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = SectionSerializer
     model = Section
 
-    def get_queryset(self):
+    @cached_property
+    def hearing(self):
         id_or_slug = self.kwargs["hearing_pk"]
-        hearing = Hearing.objects.get_by_id_or_slug(id_or_slug)
+        return Hearing.objects.get_by_id_or_slug(id_or_slug)
+
+    def get_queryset(self):
         queryset = (
             super()
             .get_queryset()
-            .filter(hearing=hearing)
+            .filter(hearing=self.hearing)
             .prefetch_related(
-                Prefetch("images", image_qs_for_request(self.request)),
+                Prefetch("images", image_qs_for_request(self.request).prefetch_related("translations")),
                 Prefetch("files", file_qs_for_request(self.request)),
             )
         )
-        if not hearing.closed:
+        if not self.hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
         return queryset
 
@@ -698,8 +702,8 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
                 "translations",
                 "polls__translations",
                 "polls__options__translations",
-                Prefetch("images", image_qs_for_request(self.request)),
-                Prefetch("files", file_qs_for_request(self.request)),
+                Prefetch("images", image_qs_for_request(self.request).prefetch_related("translations")),
+                Prefetch("files", file_qs_for_request(self.request).prefetch_related("translations")),
             )
         )
         queryset = filter_by_hearing_visible(queryset, self.request)

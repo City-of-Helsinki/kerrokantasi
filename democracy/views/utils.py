@@ -4,14 +4,11 @@ from collections import OrderedDict
 from django.conf import settings
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
-from django.core.exceptions import ImproperlyConfigured
 from django.core.files.base import ContentFile
 from django.db.models import Q
-from django.db.models.query import QuerySet
 from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
-from functools import lru_cache
 from munigeo.api import build_bbox_filter, srid_to_srs
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, ValidationError
@@ -55,72 +52,6 @@ class AbstractFieldSerializer(serializers.RelatedField):
             if key in MANY_RELATION_KWARGS:
                 list_kwargs[key] = kwargs[key]
         return cls.many_field_class(**list_kwargs)
-
-
-class AbstractSerializerMixin(object):
-    @classmethod
-    @lru_cache()
-    def get_field_serializer_class(cls, many_field_class=ManyRelatedField):
-        return type(
-            "%sFieldSerializer" % cls.Meta.model,
-            (AbstractFieldSerializer,),
-            {
-                "parent_serializer_class": cls,
-                "many_field_class": many_field_class,
-            },
-        )
-
-    @classmethod
-    def get_field_serializer(cls, **kwargs):
-        many_field_class = kwargs.pop("many_field_class", ManyRelatedField)
-        return cls.get_field_serializer_class(many_field_class=many_field_class)(**kwargs)
-
-
-class IOErrorIgnoringManyRelatedField(ManyRelatedField):
-    """
-    A ManyRelatedField that ignores IOErrors occurring during iterating the children.
-
-    This is mainly useful for images that are referenced in the database but do not exist
-    on the server (where constructing them requires accessing them to populate the width
-    and height fields).
-    """
-
-    def to_representation(self, iterable):
-        out = []
-        if isinstance(iterable, QuerySet):
-            iterable = iterable.iterator()
-        while True:
-            try:
-                value = next(iterable)
-                out.append(self.child_relation.to_representation(value))
-            except StopIteration:
-                break
-            except IOError:
-                continue
-        return out
-
-
-class PublicFilteredRelatedField(serializers.Field):
-    def __init__(self, *args, **kwargs):
-        self.serializer_class = kwargs.pop("serializer_class", None)
-        if not self.serializer_class:
-            raise ImproperlyConfigured("Keyword argument serializer_class required")
-        super().__init__(*args, **kwargs)
-
-    def to_representation(self, queryset):
-        request = self.context.get("request")
-
-        if request and request.user and request.user.is_authenticated and request.user.is_superuser:
-            queryset = queryset.with_unpublished()
-        else:
-            queryset = queryset.public()
-
-        serializer = self.serializer_class.get_field_serializer(
-            many=True, read_only=True, many_field_class=IOErrorIgnoringManyRelatedField
-        )
-        serializer.bind(self.source, self)  # this is needed to get context in the serializer
-
-        return serializer.to_representation(queryset)
 
 
 def filter_by_hearing_visible(queryset, request, hearing_lookup="hearing", include_orphans=False):

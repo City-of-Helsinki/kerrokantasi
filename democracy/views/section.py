@@ -1,7 +1,7 @@
 import django_filters
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
-from django.db.models import Max, Q
+from django.db.models import Max, Prefetch, Q
 from django.utils.timezone import now
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
@@ -20,7 +20,6 @@ from democracy.views.base import AdminsSeeUnpublishedMixin, BaseFileSerializer, 
 from democracy.views.utils import (
     Base64FileField,
     Base64ImageField,
-    PublicFilteredRelatedField,
     TranslatableSerializer,
     compare_serialized,
     filter_by_hearing_visible,
@@ -189,8 +188,8 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     Serializer for section instance.
     """
 
-    images = PublicFilteredRelatedField(serializer_class=SectionImageSerializer)
-    files = PublicFilteredRelatedField(serializer_class=SectionFileSerializer)
+    images = SectionImageSerializer(many=True, read_only=True)
+    files = SectionFileSerializer(many=True, read_only=True)
     questions = SectionPollSerializer(many=True, read_only=True, source="polls")
     type = serializers.SlugRelatedField(slug_field="identifier", read_only=True)
     type_name_singular = serializers.SlugRelatedField(source="type", slug_field="name_singular", read_only=True)
@@ -438,7 +437,15 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         id_or_slug = self.kwargs["hearing_pk"]
         hearing = Hearing.objects.get_by_id_or_slug(id_or_slug)
-        queryset = super().get_queryset().filter(hearing=hearing)
+        queryset = (
+            super()
+            .get_queryset()
+            .filter(hearing=hearing)
+            .prefetch_related(
+                Prefetch("images", image_qs_for_request(self.request)),
+                Prefetch("files", file_qs_for_request(self.request)),
+            )
+        )
         if not hearing.closed:
             queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
         return queryset
@@ -659,6 +666,22 @@ class SectionFilterSet(django_filters.rest_framework.FilterSet):
         fields = ["hearing", "type"]
 
 
+def show_unpublished_for_request(request):
+    return request and request.user and request.user.is_authenticated and request.user.is_superuser
+
+
+def image_qs_for_request(request):
+    if show_unpublished_for_request(request):
+        return SectionImage.objects.with_unpublished()
+    return SectionImage.objects.public()
+
+
+def file_qs_for_request(request):
+    if show_unpublished_for_request(request):
+        return SectionFile.objects.with_unpublished()
+    return SectionFile.objects.public()
+
+
 # root level Section endpoint
 class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
     serializer_class = RootSectionSerializer
@@ -671,7 +694,13 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
             super()
             .get_queryset()
             .select_related("type")
-            .prefetch_related("translations", "polls__translations", "polls__options__translations")
+            .prefetch_related(
+                "translations",
+                "polls__translations",
+                "polls__options__translations",
+                Prefetch("images", image_qs_for_request(self.request)),
+                Prefetch("files", file_qs_for_request(self.request)),
+            )
         )
         queryset = filter_by_hearing_visible(queryset, self.request)
 

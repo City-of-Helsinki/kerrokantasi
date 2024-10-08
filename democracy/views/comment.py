@@ -14,7 +14,7 @@ from audit_log.views import AuditLogApiView
 from democracy.models.comment import BaseComment
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
-from democracy.views.utils import AbstractSerializerMixin, GeoJSONField
+from democracy.views.utils import GeoJSONField
 
 COMMENT_FIELDS = [
     "id",
@@ -34,7 +34,7 @@ COMMENT_FIELDS = [
 ]
 
 
-class BaseCommentSerializer(AbstractSerializerMixin, CreatedBySerializer, serializers.ModelSerializer):
+class BaseCommentSerializer(CreatedBySerializer, serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
     is_registered = serializers.SerializerMethodField()
     organization = serializers.SerializerMethodField()

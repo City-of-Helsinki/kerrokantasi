@@ -6,7 +6,6 @@ from rest_framework import serializers
 from democracy.models.base import BaseModel
 from democracy.models.files import BaseFile
 from democracy.models.images import BaseImage
-from democracy.views.utils import AbstractSerializerMixin
 
 
 class UserFieldSerializer(serializers.ModelSerializer):
@@ -26,7 +25,7 @@ class CreatedBySerializer(serializers.ModelSerializer):
     created_by = UserFieldSerializer()
 
 
-class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
+class BaseImageSerializer(serializers.ModelSerializer):
     """
     Serializer for Image objects.
     """
@@ -53,7 +52,7 @@ class BaseImageSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
         return self.context.get("request")
 
 
-class BaseFileSerializer(AbstractSerializerMixin, serializers.ModelSerializer):
+class BaseFileSerializer(serializers.ModelSerializer):
     """
     Serializer for File objects.
     """

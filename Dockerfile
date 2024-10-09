@@ -1,7 +1,9 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-FROM python:3.8-bookworm AS appbase
+ARG BUILDER_FROM_IMAGE=python:3.9-bookworm
+
+FROM ${BUILDER_FROM_IMAGE} AS appbase
 
 RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
 

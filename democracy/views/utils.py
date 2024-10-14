@@ -10,6 +10,7 @@ from django.utils.crypto import get_random_string
 from django.utils.timezone import now
 from django.utils.translation import gettext_lazy as _
 from munigeo.api import build_bbox_filter, srid_to_srs
+from operator import attrgetter
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.filters import BaseFilterBackend
@@ -260,9 +261,14 @@ class TranslatableSerializer(serializers.Serializer):
     def to_representation(self, instance):
         ret = super(TranslatableSerializer, self).to_representation(instance)
         # enforce consistent order of translations in the API
-        translations = instance.translations.filter(language_code__in=self.Meta.translation_lang).order_by(
-            "language_code"
-        )
+        if "translations" in (cache := getattr(instance, "_prefetched_objects_cache", {})):
+            translations = [translation for translation in cache["translations"]]
+            translations.sort(key=attrgetter("language_code"))
+
+        else:
+            translations = instance.translations.filter(language_code__in=self.Meta.translation_lang).order_by(
+                "language_code"
+            )
 
         for translation in translations:
             for field in self.Meta.translated_fields:

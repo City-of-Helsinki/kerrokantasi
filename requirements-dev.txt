@@ -8,10 +8,6 @@ asgiref==3.8.1
     # via
     #   -c requirements.txt
     #   django
-autoflake==2.3.1
-    # via -r requirements-dev.in
-black==24.8.0
-    # via -r requirements-dev.in
 build==1.2.2
     # via pip-tools
 certifi==2024.8.30
@@ -23,9 +19,7 @@ charset-normalizer==3.3.2
     #   -c requirements.txt
     #   requests
 click==8.1.7
-    # via
-    #   black
-    #   pip-tools
+    # via pip-tools
 coverage==7.6.1
     # via
     #   coveralls
@@ -52,8 +46,6 @@ factory-boy==3.3.1
     #   pytest-factoryboy
 faker==29.0.0
     # via factory-boy
-flake8==7.1.1
-    # via -r requirements-dev.in
 freezegun==1.5.1
     # via -r requirements-dev.in
 idna==3.10
@@ -66,37 +58,18 @@ inflection==0.5.1
     # via pytest-factoryboy
 iniconfig==2.0.0
     # via pytest
-isort==5.13.2
-    # via -r requirements-dev.in
 jose==1.0.0
     # via -r requirements-dev.in
-mccabe==0.7.0
-    # via flake8
-mypy-extensions==1.0.0
-    # via black
 packaging==24.1
     # via
     #   -c requirements.txt
-    #   black
     #   build
     #   pytest
     #   pytest-factoryboy
-pathspec==0.12.1
-    # via black
 pip-tools==7.4.1
     # via -r requirements-dev.in
-platformdirs==4.3.6
-    # via
-    #   -c requirements.txt
-    #   black
 pluggy==1.5.0
     # via pytest
-pycodestyle==2.12.1
-    # via flake8
-pyflakes==3.2.0
-    # via
-    #   autoflake
-    #   flake8
 pyproject-hooks==1.1.0
     # via
     #   build
@@ -124,6 +97,8 @@ requests==2.32.3
     #   requests-mock
 requests-mock==1.12.1
     # via -r requirements-dev.in
+ruff==0.7.1
+    # via -r requirements-dev.in
 six==1.16.0
     # via
     #   -c requirements.txt
@@ -135,8 +110,6 @@ sqlparse==0.5.1
     #   django-debug-toolbar
 tomli==2.0.1
     # via
-    #   autoflake
-    #   black
     #   build
     #   coverage
     #   pip-tools
@@ -145,7 +118,6 @@ typing-extensions==4.12.2
     # via
     #   -c requirements.txt
     #   asgiref
-    #   black
     #   pytest-factoryboy
 urllib3==2.2.3
     # via

@@ -25,6 +25,8 @@ from democracy.tests.utils import (
     create_default_files,
     create_default_images,
     get_file_path,
+    sectionfile_base64_test_data,
+    sectionimage_test_json,
 )
 from kerrokantasi.tests.conftest import *  # noqa
 
@@ -92,6 +94,120 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
     hearing.contact_persons.add(contact_person)
 
     return hearing
+
+
+@pytest.fixture
+def valid_hearing_json(contact_person, default_label):
+    return {
+        "title": {
+            "en": "My first hearing",
+            "fi": "Finnish title (yes it is in Finnish...)",
+            "sv": "Swedish title (don't speak swedish either ...)",
+        },
+        "id": "nD6aC5herQM3X1yi9aNQf6rGm6ZogAlC",
+        "borough": {
+            "en": "Punavuori",
+            "fi": "Punavuori",
+            "sv": "Rooperi",
+        },
+        "n_comments": 0,
+        "published": False,
+        "labels": [
+            {"id": default_label.id, "label": {default_lang_code: default_label.label}}
+        ],
+        "open_at": "2016-09-29T11:39:12Z",
+        "close_at": "2016-09-29T11:39:12Z",
+        "created_at": "2016-10-04T10:30:38.066436Z",
+        "servicemap_url": "",
+        "sections": [
+            {
+                "type": "closure-info",
+                "voting": "registered",
+                "commenting": "none",
+                "commenting_map_tools": "none",
+                "title": {
+                    "en": "Section 3",
+                },
+                "abstract": {},
+                "content": {
+                    "en": "<p>Enter the introduction text for the hearing here.</p>",
+                    "fi": "<p>Enter the finnish text for the hearing here.</p>",
+                },
+                "created_at": "2016-10-04T12:12:06.798574Z",
+                "created_by": None,
+                "images": [],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "sulkeutumistiedote",
+                "type_name_plural": "sulkeutumistiedotteet",
+            },
+            {
+                "voting": "registered",
+                "commenting": "none",
+                "commenting_map_tools": "none",
+                "title": {
+                    "en": "Section 1",
+                },
+                "abstract": {},
+                "content": {
+                    "en": "<p>Enter the introduction text for the hearing here.</p>",
+                    "fi": "<p>Enter the Finnish introduction text for the hearing here.</p>",
+                },
+                "created_at": "2016-10-04T11:33:37.430091Z",
+                "created_by": None,
+                "images": [
+                    sectionimage_test_json(title_en="1"),
+                    sectionimage_test_json(title_en="2"),
+                    sectionimage_test_json(title_en="3"),
+                ],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "pääosio",
+                "type_name_plural": "pääosiot",
+                "type": "main",
+            },
+            {
+                "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
+                "type": "part",
+                "voting": "registered",
+                "commenting": "none",
+                "commenting_map_tools": "none",
+                "title": {
+                    "en": "Section 2",
+                },
+                "abstract": {},
+                "content": {
+                    "en": "<p>Enter the introduction text for the hearing here.eve</p>",
+                    "fi": "something in Finnish",
+                },
+                "created_at": "2016-10-04T12:09:16.818364Z",
+                "created_by": None,
+                "images": [
+                    sectionimage_test_json(),
+                ],
+                "files": [
+                    sectionfile_base64_test_data(),
+                ],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "osa-alue",
+                "type_name_plural": "osa-alueet",
+            },
+        ],
+        "closed": True,
+        "organization": None,
+        "geojson": None,
+        "main_image": None,
+        "contact_persons": [
+            {
+                "id": contact_person.id,
+            }
+        ],
+        "slug": "test-hearing",
+    }
 
 
 @pytest.fixture()

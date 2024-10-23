@@ -1,11 +1,12 @@
-import pytest
 from collections import Counter
 from datetime import datetime, timezone
+from unittest.mock import Mock
+
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from freezegun import freeze_time
 from rest_framework import status
-from unittest.mock import Mock
 
 from audit_log.enums import Operation, Role, Status
 from audit_log.models import AuditLogEntry
@@ -27,7 +28,9 @@ def _assert_basic_log_entry_data(log_entry):
     iso_8601_date = f"{current_time.replace(tzinfo=None).isoformat(sep='T', timespec='milliseconds')}Z"
 
     assert log_entry.message["audit_event"]["origin"] == audit_logging_settings.ORIGIN
-    assert log_entry.message["audit_event"]["date_time_epoch"] == int(current_time.timestamp() * 1000)
+    assert log_entry.message["audit_event"]["date_time_epoch"] == int(
+        current_time.timestamp() * 1000
+    )
     assert log_entry.message["audit_event"]["date_time"] == iso_8601_date
 
 
@@ -146,7 +149,9 @@ def test_commit_to_audit_log_actor_data(user_role, audit_role):
     if user_role == "anonymous":
         user = AnonymousUser()
     else:
-        user = UserFactory(is_staff=user_role == "staff", is_superuser=user_role == "superuser")
+        user = UserFactory(
+            is_staff=user_role == "staff", is_superuser=user_role == "superuser"
+        )
     req_mock = _create_default_request_mock(user)
     setattr(req_mock, audit_logging_settings.REQUEST_AUDIT_LOG_VAR, {1})
     res_mock = Mock(status_code=200)
@@ -218,7 +223,9 @@ def test_get_remote_address(remote_address, expected, x_forwarded_for):
 def test_get_target_queryset(queryset_type):
     user = UserFactory()
     req_mock = _create_default_request_mock(user)
-    req_mock._request = Mock(path="/v1/endpoint", **{audit_logging_settings.REQUEST_AUDIT_LOG_VAR: set()})
+    req_mock._request = Mock(
+        path="/v1/endpoint", **{audit_logging_settings.REQUEST_AUDIT_LOG_VAR: set()}
+    )
     if queryset_type == "queryset":
         UserFactory()
         instances = User.objects.all()
@@ -247,7 +254,9 @@ def test_get_target_queryset(queryset_type):
 def test_get_target_list(list_type):
     user = UserFactory()
     req_mock = _create_default_request_mock(user)
-    req_mock._request = Mock(path="/v1/endpoint", **{audit_logging_settings.REQUEST_AUDIT_LOG_VAR: set()})
+    req_mock._request = Mock(
+        path="/v1/endpoint", **{audit_logging_settings.REQUEST_AUDIT_LOG_VAR: set()}
+    )
     list_type_mapping = {
         "list": [user, UserFactory()],
         "list_of_objects_without_pks": [User(), User()],
@@ -276,7 +285,9 @@ def test_get_target_list(list_type):
 def test_get_target_object(object_type):
     user = UserFactory()
     req_mock = _create_default_request_mock(user)
-    req_mock._request = Mock(path="/v1/endpoint", **{audit_logging_settings.REQUEST_AUDIT_LOG_VAR: set()})
+    req_mock._request = Mock(
+        path="/v1/endpoint", **{audit_logging_settings.REQUEST_AUDIT_LOG_VAR: set()}
+    )
     object_type_mapping = {
         "object": user,
         "object_without_pk": User(),

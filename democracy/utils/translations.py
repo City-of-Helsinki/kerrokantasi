@@ -11,6 +11,8 @@ def get_translations_dict(obj, field_name):
     """
 
     return {
-        lang_code: getattr(obj.translations.filter(language_code=lang_code).first(), field_name, "")
+        lang_code: getattr(
+            obj.translations.filter(language_code=lang_code).first(), field_name, ""
+        )
         for lang_code, _ in settings.LANGUAGES
     }

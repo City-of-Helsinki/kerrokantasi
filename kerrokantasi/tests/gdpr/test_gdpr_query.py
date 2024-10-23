@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 import requests_mock
 from django.conf import settings
@@ -5,7 +7,6 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from typing import List
 
 from democracy.factories.hearing import (
     CommentImageFactory,
@@ -17,7 +18,14 @@ from democracy.factories.hearing import (
 from democracy.factories.organization import OrganizationFactory
 from democracy.factories.poll import SectionPollFactory
 from democracy.models import Hearing, Organization, SectionComment, SectionPollAnswer
-from democracy.models.section import CommentImage, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption
+from democracy.models.section import (
+    CommentImage,
+    Section,
+    SectionFile,
+    SectionImage,
+    SectionPoll,
+    SectionPollOption,
+)
 from democracy.utils.translations import get_translations_dict
 from kerrokantasi.tests.factories import UserFactory
 from kerrokantasi.tests.gdpr.conftest import get_api_token_for_user_with_scopes
@@ -32,7 +40,12 @@ def do_query(user, id_value, scopes=(settings.GDPR_API_QUERY_SCOPE,)):
         auth_header = get_api_token_for_user_with_scopes(user, scopes, req_mock)
         api_client.credentials(HTTP_AUTHORIZATION=auth_header)
 
-        response = api_client.get(reverse("helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: id_value}))
+        response = api_client.get(
+            reverse(
+                "helsinki_gdpr:gdpr_v1",
+                kwargs={settings.GDPR_API_MODEL_LOOKUP: id_value},
+            )
+        )
 
         return response
 
@@ -51,7 +64,10 @@ def _get_section_poll_option_data(section_poll_option: SectionPollOption) -> dic
         "children": [
             {"key": "ID", "value": section_poll_option.id},
             {"key": "ORDERING", "value": section_poll_option.ordering},
-            {"key": "TEXT_WITH_TRANSLATIONS", "value": get_translations_dict(section_poll_option, "text")},
+            {
+                "key": "TEXT_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_poll_option, "text"),
+            },
         ],
     }
 
@@ -64,10 +80,16 @@ def _get_section_poll_data(section_poll: SectionPoll) -> dict:
             {"key": "TYPE", "value": section_poll.type},
             {"key": "ORDERING", "value": section_poll.ordering},
             {"key": "IS_INDEPENDENT_POLL", "value": section_poll.is_independent_poll},
-            {"key": "TEXT_WITH_TRANSLATIONS", "value": get_translations_dict(section_poll, "text")},
+            {
+                "key": "TEXT_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_poll, "text"),
+            },
             {
                 "key": "OPTIONS",
-                "children": [_get_section_poll_option_data(option) for option in section_poll.options.all()],
+                "children": [
+                    _get_section_poll_option_data(option)
+                    for option in section_poll.options.all()
+                ],
             },
         ],
     }
@@ -78,13 +100,25 @@ def _get_section_image_data(section_image: SectionImage) -> dict:
         "key": "SECTIONIMAGE",
         "children": [
             {"key": "ID", "value": section_image.id},
-            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(section_image, "title")},
-            {"key": "CAPTION_WITH_TRANSLATIONS", "value": get_translations_dict(section_image, "caption")},
-            {"key": "ALT_TEXT_WITH_TRANSLATIONS", "value": get_translations_dict(section_image, "alt_text")},
+            {
+                "key": "TITLE_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_image, "title"),
+            },
+            {
+                "key": "CAPTION_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_image, "caption"),
+            },
+            {
+                "key": "ALT_TEXT_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_image, "alt_text"),
+            },
             {"key": "URL", "value": _get_full_url(section_image.image.url)},
             {"key": "PUBLISHED", "value": section_image.published},
             {"key": "CREATED_AT", "value": _format_datetime(section_image.created_at)},
-            {"key": "MODIFIED_AT", "value": _format_datetime(section_image.modified_at)},
+            {
+                "key": "MODIFIED_AT",
+                "value": _format_datetime(section_image.modified_at),
+            },
             {"key": "DELETED", "value": section_image.deleted},
             {"key": "DELETED_AT", "value": _format_datetime(section_image.deleted_at)},
         ],
@@ -96,8 +130,14 @@ def _get_section_file_data(section_file: SectionFile) -> dict:
         "key": "SECTIONFILE",
         "children": [
             {"key": "ID", "value": section_file.id},
-            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(section_file, "title")},
-            {"key": "CAPTION_WITH_TRANSLATIONS", "value": get_translations_dict(section_file, "caption")},
+            {
+                "key": "TITLE_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_file, "title"),
+            },
+            {
+                "key": "CAPTION_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section_file, "caption"),
+            },
             {"key": "URL", "value": _get_full_url(section_file.url)},
             {"key": "PUBLISHED", "value": section_file.published},
             {"key": "CREATED_AT", "value": _format_datetime(section_file.created_at)},
@@ -114,12 +154,36 @@ def _get_section_data(section: Section) -> dict:
         "children": [
             {"key": "ID", "value": section.id},
             {"key": "ORDERING", "value": section.ordering},
-            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(section, "title")},
-            {"key": "ABSTRACT_WITH_TRANSLATIONS", "value": get_translations_dict(section, "abstract")},
-            {"key": "CONTENT_WITH_TRANSLATIONS", "value": get_translations_dict(section, "content")},
-            {"key": "FILES", "children": [_get_section_file_data(file) for file in section.files.all()]},
-            {"key": "IMAGES", "children": [_get_section_image_data(image) for image in section.images.all()]},
-            {"key": "POLLS", "children": [_get_section_poll_data(poll) for poll in section.polls.all()]},
+            {
+                "key": "TITLE_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section, "title"),
+            },
+            {
+                "key": "ABSTRACT_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section, "abstract"),
+            },
+            {
+                "key": "CONTENT_WITH_TRANSLATIONS",
+                "value": get_translations_dict(section, "content"),
+            },
+            {
+                "key": "FILES",
+                "children": [
+                    _get_section_file_data(file) for file in section.files.all()
+                ],
+            },
+            {
+                "key": "IMAGES",
+                "children": [
+                    _get_section_image_data(image) for image in section.images.all()
+                ],
+            },
+            {
+                "key": "POLLS",
+                "children": [
+                    _get_section_poll_data(poll) for poll in section.polls.all()
+                ],
+            },
         ],
     }
 
@@ -129,9 +193,17 @@ def _get_hearing_data(hearing: Hearing) -> dict:
         "key": "HEARING",
         "children": [
             {"key": "ID", "value": hearing.id},
-            {"key": "TITLE_WITH_TRANSLATIONS", "value": get_translations_dict(hearing, "title")},
+            {
+                "key": "TITLE_WITH_TRANSLATIONS",
+                "value": get_translations_dict(hearing, "title"),
+            },
             {"key": "GEOJSON", "value": hearing.geojson},
-            {"key": "SECTIONS", "children": [_get_section_data(section) for section in hearing.sections.all()]},
+            {
+                "key": "SECTIONS",
+                "children": [
+                    _get_section_data(section) for section in hearing.sections.all()
+                ],
+            },
         ],
     }
 
@@ -156,7 +228,10 @@ def _get_comment_image_data(comment_image: CommentImage) -> dict:
             {"key": "URL", "value": _get_full_url(comment_image.image.url)},
             {"key": "PUBLISHED", "value": comment_image.published},
             {"key": "CREATED_AT", "value": _format_datetime(comment_image.created_at)},
-            {"key": "MODIFIED_AT", "value": _format_datetime(comment_image.modified_at)},
+            {
+                "key": "MODIFIED_AT",
+                "value": _format_datetime(comment_image.modified_at),
+            },
             {"key": "DELETED", "value": comment_image.deleted},
             {"key": "DELETED_AT", "value": _format_datetime(comment_image.deleted_at)},
         ],
@@ -169,7 +244,10 @@ def _get_poll_answer_data(poll_answer: SectionPollAnswer) -> dict:
         "children": [
             {"key": "ID", "value": poll_answer.id},
             {"key": "OPTION", "value": poll_answer.option.text},
-            {"key": "POLL_TEXT", "value": get_translations_dict(poll_answer.option.poll, "text")},
+            {
+                "key": "POLL_TEXT",
+                "value": get_translations_dict(poll_answer.option.poll, "text"),
+            },
         ],
     }
 
@@ -185,14 +263,32 @@ def _get_section_comment_data(section_comment: SectionComment) -> dict:
             {"key": "TITLE", "value": section_comment.title},
             {"key": "CONTENT", "value": section_comment.content},
             {"key": "PUBLISHED", "value": section_comment.published},
-            {"key": "CREATED_AT", "value": _format_datetime(section_comment.created_at)},
-            {"key": "MODIFIED_AT", "value": _format_datetime(section_comment.modified_at)},
+            {
+                "key": "CREATED_AT",
+                "value": _format_datetime(section_comment.created_at),
+            },
+            {
+                "key": "MODIFIED_AT",
+                "value": _format_datetime(section_comment.modified_at),
+            },
             {"key": "DELETED", "value": section_comment.deleted},
-            {"key": "DELETED_AT", "value": _format_datetime(section_comment.deleted_at)},
-            {"key": "IMAGES", "children": [_get_comment_image_data(image) for image in section_comment.images.all()]},
+            {
+                "key": "DELETED_AT",
+                "value": _format_datetime(section_comment.deleted_at),
+            },
+            {
+                "key": "IMAGES",
+                "children": [
+                    _get_comment_image_data(image)
+                    for image in section_comment.images.all()
+                ],
+            },
             {
                 "key": "POLL_ANSWERS",
-                "children": [_get_poll_answer_data(answer) for answer in section_comment.poll_answers.all()],
+                "children": [
+                    _get_poll_answer_data(answer)
+                    for answer in section_comment.poll_answers.all()
+                ],
             },
             {"key": "GEOJSON", "value": section_comment.geojson},
         ],
@@ -213,18 +309,30 @@ def _get_user_data(user: User) -> List[dict]:
             "key": "SECTIONCOMMENTS",
             "value": [
                 _get_section_comment_data(comment)
-                for comment in SectionComment.objects.everything(created_by=user).iterator()
+                for comment in SectionComment.objects.everything(
+                    created_by=user
+                ).iterator()
             ],
         },
         {
             "key": "FOLLOWED_HEARINGS",
-            "children": [_get_hearing_data(hearing) for hearing in user.followed_hearings.all()],
+            "children": [
+                _get_hearing_data(hearing) for hearing in user.followed_hearings.all()
+            ],
         },
         {
             "key": "ADMIN_ORGANIZATIONS",
-            "children": [_get_organization_data(organization) for organization in user.admin_organizations.all()],
+            "children": [
+                _get_organization_data(organization)
+                for organization in user.admin_organizations.all()
+            ],
         },
-        {"key": "HEARING_CREATED", "children": [_get_hearing_data(hearing) for hearing in user.hearing_created.all()]},
+        {
+            "key": "HEARING_CREATED",
+            "children": [
+                _get_hearing_data(hearing) for hearing in user.hearing_created.all()
+            ],
+        },
     ]
 
 
@@ -245,14 +353,22 @@ def test_get_user_information_from_gdpr_api(user, geojson_feature):
     poll = SectionPollFactory(section=section)
     poll_option = poll.options.first()
     comment = SectionCommentFactory(
-        section=section, created_by=user, author_name="Author Name", geojson=geojson_feature
+        section=section,
+        created_by=user,
+        author_name="Author Name",
+        geojson=geojson_feature,
     )
     comment_voted = SectionCommentFactory(section=section)
     comment_voted.voters.add(user)
-    SectionPollAnswer.objects.create(comment=comment, created_by=user, option=poll_option)
+    SectionPollAnswer.objects.create(
+        comment=comment, created_by=user, option=poll_option
+    )
 
     deleted_comment = SectionCommentFactory(
-        section=section, created_by=user, author_name="Name of the Author", geojson=geojson_feature
+        section=section,
+        created_by=user,
+        author_name="Name of the Author",
+        geojson=geojson_feature,
     )
     deleted_comment.soft_delete()
 
@@ -276,7 +392,9 @@ def test_get_user_information_from_gdpr_api(user, geojson_feature):
 
     # Match the comment count
     user_data = response.json()["children"]
-    section_comments = [child for child in user_data if child["key"] == "SECTIONCOMMENTS"][0]
+    section_comments = [
+        child for child in user_data if child["key"] == "SECTIONCOMMENTS"
+    ][0]
     all_comment_count = SectionComment.objects.everything().count()
     user_comment_count = SectionComment.objects.everything(created_by=user).count()
 
@@ -295,7 +413,11 @@ def test_user_can_only_access_his_own_information(user):
 
 @pytest.mark.django_db
 def test_gdpr_api_requires_authentication(api_client, user):
-    response = api_client.get(reverse("helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: user.uuid}))
+    response = api_client.get(
+        reverse(
+            "helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: user.uuid}
+        )
+    )
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 

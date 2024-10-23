@@ -48,4 +48,6 @@ class GeoJSONRenderer(JSONRenderer):
             return self.get_list_response(data)
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
-        return super().render(self.geojsonify(data), accepted_media_type, renderer_context)
+        return super().render(
+            self.geojsonify(data), accepted_media_type, renderer_context
+        )

@@ -1,4 +1,5 @@
 import json
+
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 
 

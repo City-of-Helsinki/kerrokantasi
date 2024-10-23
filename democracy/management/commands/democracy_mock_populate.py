@@ -19,7 +19,9 @@ class Command(BaseCommand):
         User = get_user_model()
         if issubclass(User, AbstractUser):
             if not User.objects.filter(username="admin").exists():
-                User.objects.create_superuser(username="admin", email="admin@example.com", password="admin")
+                User.objects.create_superuser(
+                    username="admin", email="admin@example.com", password="admin"
+                )
                 print("Admin user 'admin' (password 'admin') created")
             while User.objects.count() < 25:
                 user = UserFactory()

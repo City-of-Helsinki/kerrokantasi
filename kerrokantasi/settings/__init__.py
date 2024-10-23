@@ -16,7 +16,10 @@ settings["CKEDITOR_CONFIGS"] = {
                 "attributes": {"class": "lead"},
             },
         ],
-        "contentsCss": ["%sckeditor/ckeditor/contents.css" % settings["STATIC_URL"], ".lead { font-weight: bold;}"],
+        "contentsCss": [
+            "%sckeditor/ckeditor/contents.css" % settings["STATIC_URL"],
+            ".lead { font-weight: bold;}",
+        ],
         "extraAllowedContent": "video [*]{*}(*);source [*]{*}(*);",
         "extraPlugins": "video,dialog,fakeobjects,iframe",
         "toolbar": [

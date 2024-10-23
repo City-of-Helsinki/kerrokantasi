@@ -6,26 +6,25 @@ from django.db import migrations
 
 def map_iframe_urls_to_plugin_names(apps, schema_editor):
     # map existing urls in the database to the right plugin ids before we delete urls
-    Section = apps.get_model('democracy', 'Section')
+    Section = apps.get_model("democracy", "Section")
     for section in Section.objects.all():
-        if 'kerrokantasi-winterbiking' in section.plugin_iframe_url:
-            section.plugin_identifier = 'map-winterbiking'
+        if "kerrokantasi-winterbiking" in section.plugin_iframe_url:
+            section.plugin_identifier = "map-winterbiking"
             section.save()
-        if 'kerrokantasi-bikeracks' in section.plugin_iframe_url:
-            section.plugin_identifier = 'map-bikeracks'
+        if "kerrokantasi-bikeracks" in section.plugin_iframe_url:
+            section.plugin_identifier = "map-bikeracks"
             section.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0034_add_parent_to_organization'),
+        ("democracy", "0034_add_parent_to_organization"),
     ]
 
     operations = [
         migrations.RunPython(map_iframe_urls_to_plugin_names),
         migrations.RemoveField(
-            model_name='section',
-            name='plugin_iframe_url',
+            model_name="section",
+            name="plugin_iframe_url",
         ),
     ]

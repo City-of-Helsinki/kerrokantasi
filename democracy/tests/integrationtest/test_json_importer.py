@@ -1,8 +1,9 @@
 # Please ignore the mess.
 
 # Please ignore the mess.
-import pytest
 from copy import deepcopy
+
+import pytest
 from django.utils.crypto import get_random_string
 
 from democracy.enums import InitialSectionType
@@ -11,7 +12,12 @@ from democracy.models import Hearing
 from democracy.tests.utils import assert_datetime_fuzzy_equal
 from kerrokantasi.tests.conftest import default_geojson_feature
 
-LIKE = {"comment_id": "154", "created_at": "2014-11-27T18:02:53.874498", "id": "37", "user_id": "16"}
+LIKE = {
+    "comment_id": "154",
+    "created_at": "2014-11-27T18:02:53.874498",
+    "id": "37",
+    "user_id": "16",
+}
 
 SECTION = {
     "body": "qnn iqrzxdmft wrmtfnh kqmetge uk",
@@ -37,7 +43,12 @@ SECTION = {
             "lead": "rchcvjenxt szclinijw jbabqhzsdna",
             "like_count": "1",
             "likes": [
-                {"comment_id": "2351", "created_at": "2015-10-30T10:44:48.803608", "id": "5380", "user_id": "454"}
+                {
+                    "comment_id": "2351",
+                    "created_at": "2015-10-30T10:44:48.803608",
+                    "id": "5380",
+                    "user_id": "454",
+                }
             ],
             "main_image": None,
             "section_id": "3",
@@ -199,9 +210,18 @@ def test_json_importer():
     hearing_data["slug"] = hearing_id
     import_from_data(data)
     hearing = Hearing.objects.get(id=hearing_id)
-    assert_datetime_fuzzy_equal(hearing.modified_at, parse_aware_datetime(hearing_data["updated_at"]))
-    assert_datetime_fuzzy_equal(hearing.created_at, parse_aware_datetime(hearing_data["created_at"]))
+    assert_datetime_fuzzy_equal(
+        hearing.modified_at, parse_aware_datetime(hearing_data["updated_at"])
+    )
+    assert_datetime_fuzzy_equal(
+        hearing.created_at, parse_aware_datetime(hearing_data["created_at"])
+    )
     assert hearing.title == "ikwnydbg hjl riffyjsbrq shxv nkl"
-    assert hearing.sections.filter(type__identifier=InitialSectionType.SCENARIO).count() == 2
-    assert hearing.sections.filter(type__identifier=InitialSectionType.PART).count() == 1
+    assert (
+        hearing.sections.filter(type__identifier=InitialSectionType.SCENARIO).count()
+        == 2
+    )
+    assert (
+        hearing.sections.filter(type__identifier=InitialSectionType.PART).count() == 1
+    )
     # TODO: This test could probably be better

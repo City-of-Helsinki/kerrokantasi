@@ -1,5 +1,6 @@
 import json
 import logging
+
 from django.contrib import admin
 from django.core.paginator import Paginator
 from django.db import connection

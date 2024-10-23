@@ -5,20 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0006_remove-coords-add-geojson'),
+        ("democracy", "0006_remove-coords-add-geojson"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='section',
-            name='plugin_data',
-            field=models.TextField(blank=True, verbose_name='plugin data'),
+            model_name="section",
+            name="plugin_data",
+            field=models.TextField(blank=True, verbose_name="plugin data"),
         ),
         migrations.AddField(
-            model_name='section',
-            name='plugin_identifier',
-            field=models.CharField(blank=True, max_length=255, verbose_name='plugin identifier'),
+            model_name="section",
+            name="plugin_identifier",
+            field=models.CharField(
+                blank=True, max_length=255, verbose_name="plugin identifier"
+            ),
         ),
     ]

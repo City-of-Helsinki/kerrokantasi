@@ -4,20 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0060_contact_person_order'),
+        ("democracy", "0060_contact_person_order"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='contactperson',
-            name='additional_info',
-            field=models.CharField(blank=True, help_text='Additional info about the contact e.g. which external organization are they part of. This information is visible to users instead of their organization, if they they belong to an external organization.', max_length=255, null=True, verbose_name='additional_info'),
+            model_name="contactperson",
+            name="additional_info",
+            field=models.CharField(
+                blank=True,
+                help_text="Additional info about the contact e.g. which external organization are they part of. This information is visible to users instead of their organization, if they they belong to an external organization.",
+                max_length=255,
+                null=True,
+                verbose_name="additional_info",
+            ),
         ),
         migrations.AddField(
-            model_name='organization',
-            name='external_organization',
-            field=models.BooleanField(default=False, help_text='Enable this, if this organization is external from the city, (e.g. a company) and should be hidden from users.', verbose_name='external organization'),
+            model_name="organization",
+            name="external_organization",
+            field=models.BooleanField(
+                default=False,
+                help_text="Enable this, if this organization is external from the city, (e.g. a company) and should be hidden from users.",
+                verbose_name="external organization",
+            ),
         ),
     ]

@@ -1,13 +1,14 @@
-[tool.black]
-extend-exclude = "migrations"
-line_length = 120
+[tool.ruff]
+target-version = "py39"
 
-[tool.isort]
-profile = "black"
-py_version = 38
-atomic = true
-extend_skip_glob = ["*migrations*"]
-line_length = 120
-known_first_party = "democracy"
-known_standard_library = ["token", "tokenize"]
-known_third_party = ["django"]
+[tool.ruff.lint]
+select = [
+    # Pyflakes
+    "F",
+    # Pycodestyle
+    "E",
+    "W",
+    # isort
+    "I"
+]
+extend-per-file-ignores = { "*/migrations/*" = ["E501"], "*/tests/*" = ["E501"] }

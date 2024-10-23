@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+
 from django.core.management.base import BaseCommand, CommandError
 from django.db.transaction import atomic
 
@@ -10,7 +11,9 @@ from democracy.management.utils import nuke
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument("input_file", type=argparse.FileType("r", encoding="utf8"), nargs=1)
+        parser.add_argument(
+            "input_file", type=argparse.FileType("r", encoding="utf8"), nargs=1
+        )
         parser.add_argument("--hearing", nargs=1)
         parser.add_argument("--force", action="store_true")
         parser.add_argument("--patch", action="store_true")
@@ -42,7 +45,11 @@ class Command(BaseCommand):
         if hearing:
             # picks the hearing corresponding to given slug
             try:
-                hearing_data = next(value for key, value in json_data["hearings"].items() if value["slug"] == hearing)
+                hearing_data = next(
+                    value
+                    for key, value in json_data["hearings"].items()
+                    if value["slug"] == hearing
+                )
             except StopIteration:
                 raise CommandError('Hearing "%s" does not exist' % hearing)
             json_data = {"hearings": {"1": hearing_data}}

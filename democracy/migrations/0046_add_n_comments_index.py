@@ -5,20 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0045_add_subcomments_to_comments'),
+        ("democracy", "0045_add_subcomments_to_comments"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='section',
-            name='n_comments',
-            field=models.IntegerField(blank=True, db_index=True, default=0, editable=False, verbose_name='number of comments'),
+            model_name="section",
+            name="n_comments",
+            field=models.IntegerField(
+                blank=True,
+                db_index=True,
+                default=0,
+                editable=False,
+                verbose_name="number of comments",
+            ),
         ),
         migrations.AlterField(
-            model_name='sectioncomment',
-            name='n_comments',
-            field=models.IntegerField(blank=True, db_index=True, default=0, editable=False, verbose_name='number of comments'),
+            model_name="sectioncomment",
+            name="n_comments",
+            field=models.IntegerField(
+                blank=True,
+                db_index=True,
+                default=0,
+                editable=False,
+                verbose_name="number of comments",
+            ),
         ),
     ]

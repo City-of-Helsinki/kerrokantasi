@@ -5,15 +5,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0043_basefile_filename_max_len'),
+        ("democracy", "0043_basefile_filename_max_len"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='sectionfile',
-            old_name='uploaded_file',
-            new_name='file',
+            model_name="sectionfile",
+            old_name="uploaded_file",
+            new_name="file",
         ),
     ]

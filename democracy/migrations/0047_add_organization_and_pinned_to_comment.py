@@ -2,25 +2,30 @@
 from __future__ import unicode_literals
 
 import django.core.files.storage
-from django.db import migrations, models
 import django.db.models.deletion
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0046_add_n_comments_index'),
+        ("democracy", "0046_add_n_comments_index"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sectioncomment',
-            name='organization',
-            field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.CASCADE, to='democracy.Organization'),
+            model_name="sectioncomment",
+            name="organization",
+            field=models.ForeignKey(
+                blank=True,
+                default=None,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="democracy.Organization",
+            ),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='pinned',
+            model_name="sectioncomment",
+            name="pinned",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -4,38 +4,53 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0059_contact_person_order'),
+        ("democracy", "0059_contact_person_order"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='contactperson',
-            options={'ordering': ['contact_person_orders__hearing', 'contact_person_orders__order', 'name'], 'verbose_name': 'contact person', 'verbose_name_plural': 'contact persons'},
+            name="contactperson",
+            options={
+                "ordering": [
+                    "contact_person_orders__hearing",
+                    "contact_person_orders__order",
+                    "name",
+                ],
+                "verbose_name": "contact person",
+                "verbose_name_plural": "contact persons",
+            },
         ),
         migrations.AlterModelOptions(
-            name='contactpersonorder',
-            options={'ordering': ['hearing', 'order']},
+            name="contactpersonorder",
+            options={"ordering": ["hearing", "order"]},
         ),
         migrations.RenameField(
-            model_name='contactpersonorder',
-            old_name='contactperson',
-            new_name='contact_person',
+            model_name="contactpersonorder",
+            old_name="contactperson",
+            new_name="contact_person",
         ),
         migrations.AlterField(
-            model_name='contactpersonorder',
-            name='contact_person',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contact_person_orders', to='democracy.contactperson'),
+            model_name="contactpersonorder",
+            name="contact_person",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="contact_person_orders",
+                to="democracy.contactperson",
+            ),
         ),
         migrations.AlterField(
-            model_name='contactpersonorder',
-            name='hearing',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='contact_person_orders', to='democracy.hearing'),
+            model_name="contactpersonorder",
+            name="hearing",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="contact_person_orders",
+                to="democracy.hearing",
+            ),
         ),
         migrations.AddField(
-            model_name='contactpersonorder',
-            name='order',
+            model_name="contactpersonorder",
+            name="order",
             field=models.IntegerField(default=0),
         ),
     ]

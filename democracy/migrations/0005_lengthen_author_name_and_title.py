@@ -5,30 +5,41 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0004_lengthen_type_field'),
+        ("democracy", "0004_lengthen_type_field"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='hearingcomment',
-            name='author_name',
-            field=models.CharField(blank=True, editable=False, max_length=255, null=True, verbose_name='author name'),
+            model_name="hearingcomment",
+            name="author_name",
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                max_length=255,
+                null=True,
+                verbose_name="author name",
+            ),
         ),
         migrations.AlterField(
-            model_name='hearingcomment',
-            name='title',
-            field=models.CharField(blank=True, max_length=255, verbose_name='title'),
+            model_name="hearingcomment",
+            name="title",
+            field=models.CharField(blank=True, max_length=255, verbose_name="title"),
         ),
         migrations.AlterField(
-            model_name='sectioncomment',
-            name='author_name',
-            field=models.CharField(blank=True, editable=False, max_length=255, null=True, verbose_name='author name'),
+            model_name="sectioncomment",
+            name="author_name",
+            field=models.CharField(
+                blank=True,
+                editable=False,
+                max_length=255,
+                null=True,
+                verbose_name="author name",
+            ),
         ),
         migrations.AlterField(
-            model_name='sectioncomment',
-            name='title',
-            field=models.CharField(blank=True, max_length=255, verbose_name='title'),
+            model_name="sectioncomment",
+            name="title",
+            field=models.CharField(blank=True, max_length=255, verbose_name="title"),
         ),
     ]

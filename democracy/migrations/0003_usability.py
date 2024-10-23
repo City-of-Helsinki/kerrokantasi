@@ -5,35 +5,49 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0002_verbose_names'),
+        ("democracy", "0002_verbose_names"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='hearing',
-            name='latitude',
-            field=models.FloatField(blank=True, null=True, verbose_name='latitude'),
+            model_name="hearing",
+            name="latitude",
+            field=models.FloatField(blank=True, null=True, verbose_name="latitude"),
         ),
         migrations.AlterField(
-            model_name='hearing',
-            name='longitude',
-            field=models.FloatField(blank=True, null=True, verbose_name='longitude'),
+            model_name="hearing",
+            name="longitude",
+            field=models.FloatField(blank=True, null=True, verbose_name="longitude"),
         ),
         migrations.AlterField(
-            model_name='hearingimage',
-            name='ordering',
-            field=models.IntegerField(db_index=True, default=1, help_text='The ordering position for this object. Objects with smaller numbers appear first.', verbose_name='ordering'),
+            model_name="hearingimage",
+            name="ordering",
+            field=models.IntegerField(
+                db_index=True,
+                default=1,
+                help_text="The ordering position for this object. Objects with smaller numbers appear first.",
+                verbose_name="ordering",
+            ),
         ),
         migrations.AlterField(
-            model_name='section',
-            name='ordering',
-            field=models.IntegerField(db_index=True, default=1, help_text='The ordering position for this object. Objects with smaller numbers appear first.', verbose_name='ordering'),
+            model_name="section",
+            name="ordering",
+            field=models.IntegerField(
+                db_index=True,
+                default=1,
+                help_text="The ordering position for this object. Objects with smaller numbers appear first.",
+                verbose_name="ordering",
+            ),
         ),
         migrations.AlterField(
-            model_name='sectionimage',
-            name='ordering',
-            field=models.IntegerField(db_index=True, default=1, help_text='The ordering position for this object. Objects with smaller numbers appear first.', verbose_name='ordering'),
+            model_name="sectionimage",
+            name="ordering",
+            field=models.IntegerField(
+                db_index=True,
+                default=1,
+                help_text="The ordering position for this object. Objects with smaller numbers appear first.",
+                verbose_name="ordering",
+            ),
         ),
     ]

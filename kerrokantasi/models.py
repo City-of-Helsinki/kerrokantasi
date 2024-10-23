@@ -27,7 +27,10 @@ class User(AbstractUser, SerializableMixin):
     # Properties for GDPR api serialization
     @property
     def sectioncomments(self):
-        return [s.serialize() for s in SectionComment.objects.everything(created_by=self).iterator()]
+        return [
+            s.serialize()
+            for s in SectionComment.objects.everything(created_by=self).iterator()
+        ]
 
     def __str__(self):
         return " - ".join([super().__str__(), self.get_display_name(), self.email])

@@ -9,7 +9,7 @@ def load_local_settings(settings, module_name):
     Search for a `local_settings` module, load its code and execute it in the
     `settings` dict. All of the settings declared in the sertings dict are thus available
     to the local_settings module. The settings dict is updated.
-    """
+    """  # noqa: E501
 
     local_settings_spec = find_spec(module_name)
     if local_settings_spec:
@@ -25,5 +25,7 @@ def get_settings(settings_module):
     :type settings_module: module
     :return: Dict of settings
     :rtype: dict[str, object]
-    """
-    return copy.deepcopy({k: v for (k, v) in vars(settings_module).items() if k.isupper()})
+    """  # noqa: E501
+    return copy.deepcopy(
+        {k: v for (k, v) in vars(settings_module).items() if k.isupper()}
+    )

@@ -1,9 +1,10 @@
+from textwrap import dedent
+
 from django import forms
 from django.contrib.admin.widgets import AdminTextareaWidget
 from django.forms.widgets import SelectMultiple
 from django.templatetags.static import static
 from django.utils.safestring import mark_safe
-from textwrap import dedent
 
 
 class ShortTextAreaWidget(AdminTextareaWidget):
@@ -28,7 +29,10 @@ class Select2SelectMultiple(SelectMultiple):
     @property
     def media(self):
         return forms.Media(
-            js=[static("admin/hoist-jquery.js"), static("admin/select2/select2.min.js")],
+            js=[
+                static("admin/hoist-jquery.js"),
+                static("admin/select2/select2.min.js"),
+            ],
             css={"all": [static("admin/select2/select2.min.css")]},
         )
 

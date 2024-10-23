@@ -14,9 +14,15 @@ class Organization(StringIdBaseModel, SerializableMixin):
     )
 
     name = models.CharField(verbose_name=_("name"), max_length=255, unique=True)
-    admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations")
+    admin_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations"
+    )
     parent = models.ForeignKey(
-        "Organization", on_delete=models.SET_NULL, blank=True, null=True, related_name="children"
+        "Organization",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="children",
     )
     external_organization = models.BooleanField(
         verbose_name=_("external organization"),
@@ -38,8 +44,12 @@ class Organization(StringIdBaseModel, SerializableMixin):
 
 
 class ContactPersonOrder(models.Model):
-    hearing = models.ForeignKey("Hearing", on_delete=models.CASCADE, related_name="contact_person_orders")
-    contact_person = models.ForeignKey("ContactPerson", on_delete=models.CASCADE, related_name="contact_person_orders")
+    hearing = models.ForeignKey(
+        "Hearing", on_delete=models.CASCADE, related_name="contact_person_orders"
+    )
+    contact_person = models.ForeignKey(
+        "ContactPerson", on_delete=models.CASCADE, related_name="contact_person_orders"
+    )
     order = models.IntegerField(default=0)
 
     class Meta:
@@ -69,8 +79,8 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
         verbose_name=_("additional_info"),
         max_length=255,
         help_text=_(
-            "Additional info about the contact e.g. which external organization are they part of. This information is "
-            "visible to users instead of their organization, if they they belong to an external organization."
+            "Additional info about the contact e.g. which external organization are they part of. This information is "  # noqa: E501
+            "visible to users instead of their organization, if they they belong to an external organization."  # noqa: E501
         ),
         blank=True,
         null=True,
@@ -79,10 +89,18 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
     class Meta:
         verbose_name = _("contact person")
         verbose_name_plural = _("contact persons")
-        # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which
-        # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the
+        # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which  # noqa: E501
+        # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the  # noqa: E501
         # correct order when used nested serializer field under Hearing in the Rest API
-        ordering = ["contact_person_orders__hearing", "contact_person_orders__order", "name"]
+        ordering = [
+            "contact_person_orders__hearing",
+            "contact_person_orders__order",
+            "name",
+        ]
 
     def __str__(self):
-        return "%s, %s / %s" % (self.name, getattr(self, "title", ""), self.organization)
+        return "%s, %s / %s" % (
+            self.name,
+            getattr(self, "title", ""),
+            self.organization,
+        )

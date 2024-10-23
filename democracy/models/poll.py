@@ -77,7 +77,7 @@ class BasePollOption(BaseModel, TranslatableModel):
 
 
 class BasePollAnswer(BaseModel):
-    # `option` must be defined as a foreign key to the corresponding subclassed PollOption-model
+    # `option` must be defined as a foreign key to the corresponding subclassed PollOption-model  # noqa: E501
     # with related name `answers`
     option = None
     source_client = models.CharField(

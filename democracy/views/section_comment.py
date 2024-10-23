@@ -240,7 +240,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
                 else ""
             )
             return (
-                f"Viesti on poistettu{deleted_time}, koska se ei noudattanut Kerrokantasi-palvelun sääntöjä "
+                f"Viesti on poistettu{deleted_time}, koska se ei noudattanut Kerrokantasi-palvelun sääntöjä "  # noqa: E501
                 f"{urljoin(settings.DEMOCRACY_UI_BASE_URL, '/info')}"
             )
         return "Viesti on poistettu."
@@ -359,7 +359,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
                         {
                             "option": [
                                 _(
-                                    'Invalid id "{id}" - option does not exist in this poll.'
+                                    'Invalid id "{id}" - option does not exist in this poll.'  # noqa: E501
                                 ).format(id=option_id)
                             ]
                         }
@@ -389,7 +389,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
                         {
                             "option": [
                                 _(
-                                    'Invalid id "{id}" - option does not exist in this poll.'
+                                    'Invalid id "{id}" - option does not exist in this poll.'  # noqa: E501
                                 ).format(id=option_id)
                             ]
                         }
@@ -404,7 +404,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
         """
         Given request, this method returns comment parent id, which can be indicated in an alarming number of ways
         due to the variety of the API endpoints and methods involved.
-        """
+        """  # noqa: E501
         data = self.request.data
         params = self.request.query_params
         parent_id = None
@@ -460,13 +460,13 @@ class SectionCommentViewSet(BaseCommentViewSet):
                 {
                     "section": [
                         _(
-                            "The comment section has to be specified in URL or by JSON section or comment field."
+                            "The comment section has to be specified in URL or by JSON section or comment field."  # noqa: E501
                         )
                     ]
                 }
             )
 
-        # Unauthenticated user can answer polls in hearings that have open commenting. The following if statement should
+        # Unauthenticated user can answer polls in hearings that have open commenting. The following if statement should  # noqa: E501
         # never be true as unauthenticated users can't post comments if the
         # hearing doesn't have open commenting.
         if (
@@ -476,7 +476,7 @@ class SectionCommentViewSet(BaseCommentViewSet):
         ):
             return response.Response(
                 {
-                    "status": "Unauthenticated users cannot answer polls in hearings that do not have open commenting."
+                    "status": "Unauthenticated users cannot answer polls in hearings that do not have open commenting."  # noqa: E501
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
@@ -591,7 +591,7 @@ class CommentViewSet(SectionCommentViewSet):
         return False
 
     def get_serializer_context(self):
-        """Author name will be removed for privacy reasons if fetching unfiltered comments."""
+        """Author name will be removed for privacy reasons if fetching unfiltered comments."""  # noqa: E501
         context = super().get_serializer_context()
 
         if (

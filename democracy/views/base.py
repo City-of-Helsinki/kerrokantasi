@@ -82,14 +82,14 @@ class AdminsSeeUnpublishedMixin(object):
     def get_queryset(self):
         if not (self.model and issubclass(self.model, BaseModel)):  # pragma: no cover
             raise ImproperlyConfigured(
-                "AdminsSeeUnpublishedMixin requires `model` to be a BaseModel subclass (it's %r)"
+                "AdminsSeeUnpublishedMixin requires `model` to be a BaseModel subclass (it's %r)"  # noqa: E501
                 % self.model
             )
         user = self._get_user_from_request_or_context()
 
         if user is None:  # pragma: no cover
             raise ImproperlyConfigured(
-                "%r has no request or serialization context; AdminsSeeUnpublishedMixin requires one"
+                "%r has no request or serialization context; AdminsSeeUnpublishedMixin requires one"  # noqa: E501
                 % self
             )
 

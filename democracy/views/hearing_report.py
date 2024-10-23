@@ -149,7 +149,7 @@ class HearingReport(object):
         Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
         "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
         "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
-        """
+        """  # noqa: E501
 
         # add comments title
         row = self.section_worksheet_active_row
@@ -210,7 +210,7 @@ class HearingReport(object):
         """
         # noqa: E501
         "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
-        """
+        """  # noqa: E501
         row = self.section_worksheet_active_row
         col_index = 0
 

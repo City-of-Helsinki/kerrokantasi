@@ -115,8 +115,8 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
         obj = kwargs.pop("obj", None)
         if db_field.name == "content":
             kwargs["widget"] = CKEditorUploadingWidget
-            # Some initial value is needed for every section to workaround a bug in nested inlines
-            # that causes an integrity error to be raised when a section image is added but the parent
+            # Some initial value is needed for every section to workaround a bug in nested inlines  # noqa: E501
+            # that causes an integrity error to be raised when a section image is added but the parent  # noqa: E501
             # section isn't saved.
             kwargs["initial"] = _("Enter text here.")
         if not getattr(obj, "pk", None):

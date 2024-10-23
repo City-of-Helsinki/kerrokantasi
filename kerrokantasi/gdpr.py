@@ -17,7 +17,7 @@ def get_user(user: get_user_model()) -> get_user_model():
 
     :param user: the User instance whose GDPR data is being queried
     :return: the same User instance
-    """
+    """  # noqa: E501
     return user
 
 
@@ -28,7 +28,7 @@ def delete_data(user: get_user_model(), dry_run: bool) -> Optional[ErrorResponse
 
     :param  user: the User instance to be deleted along with related GDPR data
     :param dry_run: a boolean telling if this is a dry run of the function or not
-    """
+    """  # noqa: E501
 
     user.nickname = ""
     user.first_name = ""
@@ -48,7 +48,7 @@ class CurrentRequestMiddleware:
     Middleware to store the current request in a thread_locals.
 
     In the GDPR API user data fetch the files (images & files) need to contain the absolute URL to the file.
-    """
+    """  # noqa: E501
 
     def __init__(self, get_response):
         self.get_response = get_response

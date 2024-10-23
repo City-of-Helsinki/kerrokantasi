@@ -39,7 +39,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
                     """
                     <script type='text/javascript'>
                     window.parent.CKEDITOR.tools.callFunction({0}, '', 'Invalid file type.');
-                    </script>""".format(ck_func_num)
+                    </script>""".format(ck_func_num)  # noqa: E501
                 )
 
         section_file = self._save_file(request, uploaded_file)

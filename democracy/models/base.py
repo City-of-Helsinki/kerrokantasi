@@ -199,7 +199,7 @@ class Commentable(models.Model):
 
         If commenting is not allowed, the function must raise a ValidationError.
         It must never return a value other than None.
-        """
+        """  # noqa: E501
         is_authenticated = request.user.is_authenticated
         if self.commenting == Commenting.NONE:
             raise ValidationError(
@@ -236,7 +236,7 @@ class Commentable(models.Model):
 
         If voting is not allowed, the function must raise a ValidationError.
         It must never return a value other than None.
-        """
+        """  # noqa: E501
         is_authenticated = request.user.is_authenticated
         if self.voting == Commenting.NONE:
             raise ValidationError(

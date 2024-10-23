@@ -232,11 +232,11 @@ class BaseCommentViewSet(
         """
         Comment editing is only possible if the comment is created by user OR
         if the user has is_staff rights AND is the creator of the hearing that this comment is in.
-        """
+        """  # noqa: E501
         if not instance.can_edit(request):
             return response.Response(
                 {
-                    "status": "You do not have sufficient rights to edit a comment not owned by you."
+                    "status": "You do not have sufficient rights to edit a comment not owned by you."  # noqa: E501
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )
@@ -284,7 +284,7 @@ class BaseCommentViewSet(
         if not instance.can_delete(request):
             return response.Response(
                 {
-                    "status": "You do not have sufficient rights to delete a comment not owned by you."
+                    "status": "You do not have sufficient rights to delete a comment not owned by you."  # noqa: E501
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )

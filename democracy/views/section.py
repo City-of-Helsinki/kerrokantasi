@@ -276,7 +276,7 @@ class SectionCreateUpdateSerializer(
     voting = EnumField(enum_type=Commenting)
     commenting_map_tools = EnumField(enum_type=CommentingMapTools)
 
-    # this field is used only for incoming data validation, outgoing data is added manually
+    # this field is used only for incoming data validation, outgoing data is added manually  # noqa: E501
     # in to_representation()
     images = serializers.ListField(child=serializers.DictField(), write_only=True)
     questions = serializers.ListField(
@@ -332,8 +332,8 @@ class SectionCreateUpdateSerializer(
             image_data["ordering"] = index
 
             image = None
-            # NOTE: You can only use either pk or reference_id, not both. If you use both, pk will be used.
-            # reference_id is meant for "save as new" type of situations. Not sure how it should behave if
+            # NOTE: You can only use either pk or reference_id, not both. If you use both, pk will be used.  # noqa: E501
+            # reference_id is meant for "save as new" type of situations. Not sure how it should behave if  # noqa: E501
             # used in conjunction with pk.
             if pk := image_data.get("id"):
                 # Use an existing SectionImage.
@@ -369,8 +369,8 @@ class SectionCreateUpdateSerializer(
             file_data["ordering"] = index
 
             file = None
-            # NOTE: You can only use either pk or reference_id, not both. If you use both, pk will be used.
-            # reference_id is meant for "save as new" type of situations. Not sure how it should behave if
+            # NOTE: You can only use either pk or reference_id, not both. If you use both, pk will be used.  # noqa: E501
+            # reference_id is meant for "save as new" type of situations. Not sure how it should behave if  # noqa: E501
             # used in conjunction with pk.
             if pk := file_data.get("id"):
                 # Use an existing SectionFile.

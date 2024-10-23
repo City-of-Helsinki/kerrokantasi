@@ -157,7 +157,7 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
     def save(self, *args, **kwargs):
         slug_field = self._meta.get_field("slug")
 
-        # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
+        # we need to manually use autoslug utils here with ModelManager, because automatic slug populating  # noqa: E501
         # uses our default manager, which can lead to a slug collision between
         # this and a deleted hearing
         self.slug = generate_unique_slug(
@@ -195,7 +195,7 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
         return self.organization in user.admin_organizations.all()
 
     def soft_delete(self, user=None):
-        # we want deleted hearings to give way to new ones, the original slug from a deleted hearing
+        # we want deleted hearings to give way to new ones, the original slug from a deleted hearing  # noqa: E501
         # is now free to use
         self.slug += "-deleted"
         self.save()

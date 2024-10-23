@@ -115,7 +115,7 @@ class HearingCreateUpdateSerializer(
 ):
     geojson = GeoJSONField(required=False, allow_null=True)
 
-    # this field is used only for incoming data validation, outgoing data is added manually
+    # this field is used only for incoming data validation, outgoing data is added manually  # noqa: E501
     # in to_representation()
     sections = serializers.ListField(child=serializers.DictField(), write_only=True)
 
@@ -288,7 +288,7 @@ class HearingCreateUpdateSerializer(
           * If an id isn't given or it doesn't exist, create a new section (ignoring given id).
           * If a section with given id exists, update it.
           * Old sections whose ids aren't matched are (soft) deleted.
-        """
+        """  # noqa: E501
         if (
             instance.organization
             not in self.context["request"].user.admin_organizations.all()

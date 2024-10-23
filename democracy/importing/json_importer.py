@@ -225,7 +225,7 @@ def import_from_data(data, force=False, patch=False):
     :type patch: bool
     :return: The created hearings in a dict, keyed by original hearing key
     :rtype: dict[object, Hearing]
-    """
+    """  # noqa: E501
     hearings = {}
     for hearing_id, hearing_data in sorted(data.get("hearings", {}).items()):
         logger.info("Beginning import of hearing %s", hearing_id)

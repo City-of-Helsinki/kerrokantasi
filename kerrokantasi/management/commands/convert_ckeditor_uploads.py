@@ -30,7 +30,7 @@ class Command(BaseCommand):
 
     If the item is inside an image tag (not a link),
     convert the item to section image instead and move to image storage.
-    """
+    """  # noqa: E501
 
     CKEDITOR_UPLOAD_REGEX = r'(?P<tag>(<img.*?src="|<a.*?href="))[^"]*?({}/media/uploads/(?P<year>\d+)/(?P<month>\d+)/(?P<day>\d+)/(?P<filename>[\w.\-]+))"'  # noqa: E501
 

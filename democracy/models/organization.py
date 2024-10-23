@@ -79,8 +79,8 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
         verbose_name=_("additional_info"),
         max_length=255,
         help_text=_(
-            "Additional info about the contact e.g. which external organization are they part of. This information is "
-            "visible to users instead of their organization, if they they belong to an external organization."
+            "Additional info about the contact e.g. which external organization are they part of. This information is "  # noqa: E501
+            "visible to users instead of their organization, if they they belong to an external organization."  # noqa: E501
         ),
         blank=True,
         null=True,
@@ -89,8 +89,8 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
     class Meta:
         verbose_name = _("contact person")
         verbose_name_plural = _("contact persons")
-        # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which
-        # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the
+        # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which  # noqa: E501
+        # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the  # noqa: E501
         # correct order when used nested serializer field under Hearing in the Rest API
         ordering = [
             "contact_person_orders__hearing",

@@ -404,7 +404,7 @@ if not DEBUG and not SECRET_KEY:
 # problem for development.
 if not SECRET_KEY:
     logger.warning(
-        "SECRET_KEY was not defined in configuration. Generating a temporary key for dev."
+        "SECRET_KEY was not defined in configuration. Generating a temporary key for dev."  # noqa: E501
     )
     import random
 

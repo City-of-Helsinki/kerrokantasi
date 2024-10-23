@@ -31,7 +31,7 @@ def get_translation_list(
     :param obj: Any translated object that may have had Prefetch('translations', to_attr='translation_list') done
     :param language_codes: Iterable containing the languages to return
     :return: QuerySet or list containing the desired translations, if not the default
-    """
+    """  # noqa: E501
     prefetched_translations = getattr(obj, "translation_list", [])
     filtered_prefetched = [
         translation
@@ -107,7 +107,7 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
 
     The keyword argument 'expanded' defines whether the nested object is expanded or not.
     Default serializing is expanded=false.
-    """
+    """  # noqa: E501
 
     invalid_format_error = _(
         "Incorrect format. Expected dictionary, received %(data)s."
@@ -279,7 +279,7 @@ class TranslatableSerializer(serializers.Serializer):
 
     Translated fields may be provided either as JSON objects or stringified JSON objects. This means the
     serializer may be used for both JSON and multipart request formatting.
-    """
+    """  # noqa: E501
 
     def __init__(self, *args, **kwargs):
         self.Meta.translated_fields = [
@@ -378,7 +378,7 @@ class TranslatableSerializer(serializers.Serializer):
                         ret[field] = json.loads(v)
                     except json.decoder.JSONDecodeError:
                         errors[field] = _(
-                            'Not a valid translation format. Expecting {"lang_code": %(data)s}'
+                            'Not a valid translation format. Expecting {"lang_code": %(data)s}'  # noqa: E501
                             % {"data": v}
                         )
                 elif isinstance(v, dict):
@@ -386,7 +386,7 @@ class TranslatableSerializer(serializers.Serializer):
                     ret[field] = v
                 else:
                     errors[field] = _(
-                        'Not a valid translation format. Expecting {"lang_code": %(data)s}'
+                        'Not a valid translation format. Expecting {"lang_code": %(data)s}'  # noqa: E501
                         % {"data": v}
                     )
 

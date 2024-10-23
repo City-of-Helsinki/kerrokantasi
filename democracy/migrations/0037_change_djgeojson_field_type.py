@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 import django.contrib.gis.db.models.fields
-from django.db import migrations
 import djgeojson.fields
+from django.db import migrations
 
 
 class Migration(migrations.Migration):

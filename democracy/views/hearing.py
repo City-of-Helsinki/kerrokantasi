@@ -1,5 +1,6 @@
-import django_filters
 from collections import defaultdict
+
+import django_filters
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch, Q
@@ -12,14 +13,26 @@ from rest_framework.settings import api_settings
 from audit_log.utils import add_audit_logged_object_ids
 from audit_log.views import AuditLogApiView
 from democracy.enums import InitialSectionType
-from democracy.models import ContactPerson, ContactPersonOrder, Hearing, Label, Organization, Project, Section
+from democracy.models import (
+    ContactPerson,
+    ContactPersonOrder,
+    Hearing,
+    Label,
+    Organization,
+    Project,
+    Section,
+)
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.hearing_report import HearingReport
 from democracy.views.label import LabelSerializer
-from democracy.views.project import ProjectCreateUpdateSerializer, ProjectFieldSerializer, ProjectSerializer
+from democracy.views.project import (
+    ProjectCreateUpdateSerializer,
+    ProjectFieldSerializer,
+    ProjectSerializer,
+)
 from democracy.views.reports_v2.hearing_report_powerpoint import HearingReportPowerPoint
 from democracy.views.section import (
     SectionCreateUpdateSerializer,

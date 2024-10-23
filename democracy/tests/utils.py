@@ -1,10 +1,11 @@
 import json
 import os
 from collections import Counter
-from django.utils.dateparse import parse_datetime
 from io import BytesIO
-from PIL import Image
 from typing import Iterable, Mapping
+
+from django.utils.dateparse import parse_datetime
+from PIL import Image
 
 from audit_log.enums import Operation, Status
 from audit_log.models import AuditLogEntry

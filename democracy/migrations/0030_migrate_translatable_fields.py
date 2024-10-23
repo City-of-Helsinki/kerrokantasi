@@ -2,8 +2,8 @@
 from __future__ import unicode_literals
 
 from django.conf import settings
-from django.db import migrations
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import migrations
 
 IMPORT_LANGUAGE_CODE = 'fi'  # Assume that the existing content is in Finnish
 

@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 import django_filters
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -9,14 +11,27 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework.serializers import as_serializer_error
 from rest_framework.settings import api_settings
-from urllib.parse import urljoin
 
 from democracy.enums import Commenting
-from democracy.models import Label, Section, SectionComment, SectionPoll, SectionPollAnswer, SectionPollOption
+from democracy.models import (
+    Label,
+    Section,
+    SectionComment,
+    SectionPoll,
+    SectionPollAnswer,
+    SectionPollOption,
+)
 from democracy.models.section import CommentImage
 from democracy.pagination import DefaultLimitPagination
-from democracy.views.comment import COMMENT_FIELDS, BaseCommentSerializer, BaseCommentViewSet
-from democracy.views.comment_image import CommentImageCreateSerializer, CommentImageSerializer
+from democracy.views.comment import (
+    COMMENT_FIELDS,
+    BaseCommentSerializer,
+    BaseCommentViewSet,
+)
+from democracy.views.comment_image import (
+    CommentImageCreateSerializer,
+    CommentImageSerializer,
+)
 from democracy.views.label import LabelSerializer
 from democracy.views.utils import (
     GeoJSONField,

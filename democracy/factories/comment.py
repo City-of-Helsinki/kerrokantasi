@@ -1,7 +1,8 @@
-import factory
-import factory.fuzzy
 import random
 from datetime import timedelta
+
+import factory
+import factory.fuzzy
 
 from democracy.factories.utils import get_random_user
 

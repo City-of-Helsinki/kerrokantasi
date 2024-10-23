@@ -1,6 +1,7 @@
+from unittest.mock import Mock
+
 import pytest
 from django.contrib.admin import AdminSite
-from unittest.mock import Mock
 
 from audit_log.admin import AuditLogEntryAdmin, LargeTablePaginator
 from audit_log.models import AuditLogEntry

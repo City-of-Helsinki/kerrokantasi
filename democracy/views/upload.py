@@ -1,4 +1,5 @@
 import os
+
 from ckeditor_uploader import utils
 from ckeditor_uploader.backends import get_backend
 from ckeditor_uploader.views import ImageUploadView, SearchForm, get_files_browse_urls

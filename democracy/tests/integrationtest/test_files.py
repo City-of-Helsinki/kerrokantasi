@@ -1,5 +1,6 @@
-import pytest
 import re
+
+import pytest
 from django.urls import reverse
 
 from audit_log.enums import Operation

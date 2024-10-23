@@ -1,5 +1,6 @@
 import logging
 import re
+
 from autoslug import AutoSlugField
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -25,7 +26,12 @@ from democracy.models.files import BaseFile
 from democracy.models.gdpr_data_serialization_mixin import FileFieldUrlSerializerMixin
 from democracy.models.hearing import Hearing
 from democracy.models.images import BaseImage
-from democracy.models.poll import BasePoll, BasePollAnswer, BasePollOption, poll_option_recache_on_save
+from democracy.models.poll import (
+    BasePoll,
+    BasePollAnswer,
+    BasePollOption,
+    poll_option_recache_on_save,
+)
 from democracy.plugins import get_implementation
 from democracy.utils.translations import get_translations_dict
 

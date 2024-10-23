@@ -3,6 +3,8 @@ import io
 import math
 import os
 import re
+from typing import List
+
 from django.conf import settings
 from django.http import HttpResponse
 from django.utils import translation
@@ -11,7 +13,6 @@ from pptx import Presentation
 from pptx.chart.data import CategoryChartData
 from pptx.enum.chart import XL_CHART_TYPE
 from pptx.util import Inches
-from typing import List
 
 from democracy.enums import InitialSectionType
 from democracy.models.section import SectionComment

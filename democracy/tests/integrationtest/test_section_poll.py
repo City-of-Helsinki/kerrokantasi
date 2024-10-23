@@ -1,14 +1,14 @@
 import datetime
-import pytest
 from copy import deepcopy
 from sys import platform
 
+import pytest
+
 from democracy.enums import Commenting
-from democracy.factories.poll import SectionPollFactory, SectionPollOptionFactory
-from democracy.models import SectionPoll, SectionPollAnswer
+from democracy.factories.poll import SectionPollFactory
+from democracy.models import SectionPoll
 from democracy.tests.integrationtest.test_comment import get_comment_data
-from democracy.tests.integrationtest.test_hearing import valid_hearing_json
-from democracy.tests.utils import assert_common_keys_equal, get_data_from_response
+from democracy.tests.utils import get_data_from_response
 
 isArchLinux = False
 

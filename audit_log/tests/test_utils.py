@@ -1,11 +1,12 @@
-import pytest
 from collections import Counter
 from datetime import datetime, timezone
+from unittest.mock import Mock
+
+import pytest
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from freezegun import freeze_time
 from rest_framework import status
-from unittest.mock import Mock
 
 from audit_log.enums import Operation, Role, Status
 from audit_log.models import AuditLogEntry

@@ -1,5 +1,7 @@
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from collections import Counter
+from functools import partial
+
+from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django import forms
 from django.conf import settings
 from django.contrib import admin
@@ -18,7 +20,6 @@ from django.utils.html import format_html
 from django.utils.text import capfirst
 from django.utils.translation import gettext_lazy as _
 from djgeojson.fields import GeoJSONFormField
-from functools import partial
 from leaflet.admin import LeafletGeoAdmin
 from nested_admin.nested import NestedModelAdminMixin, NestedStackedInline
 from parler.admin import TranslatableAdmin, TranslatableStackedInline

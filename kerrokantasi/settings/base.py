@@ -1,8 +1,9 @@
-import environ
 import logging
 import os
-import sentry_sdk
 import subprocess
+
+import environ
+import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
 gettext = lambda s: s  # noqa makes possible to translate strings here

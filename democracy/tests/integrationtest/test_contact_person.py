@@ -5,7 +5,11 @@ from audit_log.enums import Operation
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import Organization
 from democracy.tests.conftest import default_lang_code
-from democracy.tests.utils import assert_audit_log_entry, assert_common_keys_equal, get_data_from_response
+from democracy.tests.utils import (
+    assert_audit_log_entry,
+    assert_common_keys_equal,
+    get_data_from_response,
+)
 
 LIST_ENDPOINT = reverse("contact_person-list")
 

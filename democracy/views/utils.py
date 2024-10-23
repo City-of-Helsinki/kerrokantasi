@@ -1,6 +1,7 @@
 import base64
 import json
 from collections import OrderedDict
+
 from django.conf import settings
 from django.contrib.gis.gdal.error import GDALException
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
@@ -13,7 +14,11 @@ from munigeo.api import build_bbox_filter, srid_to_srs
 from rest_framework import serializers
 from rest_framework.exceptions import ParseError, ValidationError
 from rest_framework.filters import BaseFilterBackend
-from rest_framework.relations import MANY_RELATION_KWARGS, ManyRelatedField, PrimaryKeyRelatedField
+from rest_framework.relations import (
+    MANY_RELATION_KWARGS,
+    ManyRelatedField,
+    PrimaryKeyRelatedField,
+)
 from rest_framework.utils import encoders
 
 

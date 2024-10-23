@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import json
 
 import django.contrib.gis.db.models.fields
-
 from django.contrib.gis.geos import GEOSGeometry
 from django.db import migrations
 

@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 import requests_mock
 from django.conf import settings
@@ -5,7 +7,6 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
-from typing import List
 
 from democracy.factories.hearing import (
     CommentImageFactory,
@@ -17,7 +18,14 @@ from democracy.factories.hearing import (
 from democracy.factories.organization import OrganizationFactory
 from democracy.factories.poll import SectionPollFactory
 from democracy.models import Hearing, Organization, SectionComment, SectionPollAnswer
-from democracy.models.section import CommentImage, Section, SectionFile, SectionImage, SectionPoll, SectionPollOption
+from democracy.models.section import (
+    CommentImage,
+    Section,
+    SectionFile,
+    SectionImage,
+    SectionPoll,
+    SectionPollOption,
+)
 from democracy.utils.translations import get_translations_dict
 from kerrokantasi.tests.factories import UserFactory
 from kerrokantasi.tests.gdpr.conftest import get_api_token_for_user_with_scopes

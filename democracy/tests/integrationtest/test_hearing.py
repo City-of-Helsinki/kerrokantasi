@@ -1,7 +1,8 @@
 import datetime
 import json
-import pytest
 from copy import deepcopy
+
+import pytest
 from django.urls import reverse
 from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now

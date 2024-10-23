@@ -1,13 +1,14 @@
 import datetime
 import logging
-import pytz
 from copy import deepcopy
+from operator import itemgetter
+
+import pytz
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
-from operator import itemgetter
 
 from democracy.enums import InitialSectionType
 from democracy.models import Hearing, Section, SectionType

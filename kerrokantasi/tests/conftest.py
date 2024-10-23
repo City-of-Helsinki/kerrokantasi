@@ -1,5 +1,6 @@
-import pytest
 import shutil
+
+import pytest
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
 

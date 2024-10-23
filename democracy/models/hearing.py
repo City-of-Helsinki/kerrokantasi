@@ -1,3 +1,5 @@
+from urllib.parse import urljoin
+
 from autoslug import AutoSlugField
 from autoslug.utils import generate_unique_slug
 from django.conf import settings
@@ -11,11 +13,14 @@ from djgeojson.fields import GeoJSONField
 from helsinki_gdpr.models import SerializableMixin
 from parler.managers import TranslatableQuerySet
 from parler.models import TranslatableModel, TranslatedFields
-from urllib.parse import urljoin
 
 from democracy.enums import InitialSectionType
 from democracy.models.base import SerializableBaseModelManager, StringIdBaseModel
-from democracy.models.organization import ContactPerson, ContactPersonOrder, Organization
+from democracy.models.organization import (
+    ContactPerson,
+    ContactPersonOrder,
+    Organization,
+)
 from democracy.models.project import ProjectPhase
 from democracy.utils.geo import get_geometry_from_geojson
 from democracy.utils.hmac_hash import get_hmac_b64_encoded

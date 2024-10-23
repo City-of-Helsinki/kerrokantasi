@@ -1,5 +1,4 @@
 import pytest
-from django.test.utils import override_settings
 from django.urls import reverse
 
 from democracy.models import Hearing

@@ -1,6 +1,7 @@
+import urllib.parse
+
 import pytest
 import requests_mock
-import urllib.parse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.urls import reverse

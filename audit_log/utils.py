@@ -1,9 +1,10 @@
 import json
 import logging
+from typing import Optional
+
 from django.db.models import QuerySet
 from django.utils import timezone
 from rest_framework import status
-from typing import Optional
 
 from audit_log.enums import Operation, Role, Status
 from audit_log.models import AuditLogEntry

@@ -1,14 +1,15 @@
 import datetime
-import pytest
 import urllib
 from copy import deepcopy
+from urllib.parse import urlparse
+
+import pytest
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 from rest_framework import status
 from reversion.models import Version
-from urllib.parse import urlparse
 
 from audit_log.enums import Operation
 from democracy.enums import Commenting, InitialSectionType

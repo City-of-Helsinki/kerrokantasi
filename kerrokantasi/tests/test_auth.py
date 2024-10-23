@@ -1,6 +1,7 @@
+from unittest.mock import Mock, patch
+
 from helusers._oidc_auth_impl import ApiTokenAuthentication
 from helusers.authz import UserAuthorization
-from unittest.mock import Mock, patch
 
 from kerrokantasi.oidc import StrongApiTokenAuthentication
 

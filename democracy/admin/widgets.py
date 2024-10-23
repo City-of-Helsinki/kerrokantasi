@@ -1,9 +1,10 @@
+from textwrap import dedent
+
 from django import forms
 from django.contrib.admin.widgets import AdminTextareaWidget
 from django.forms.widgets import SelectMultiple
 from django.templatetags.static import static
 from django.utils.safestring import mark_safe
-from textwrap import dedent
 
 
 class ShortTextAreaWidget(AdminTextareaWidget):

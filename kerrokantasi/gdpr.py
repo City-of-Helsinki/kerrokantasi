@@ -1,7 +1,8 @@
 import threading
+from typing import Optional
+
 from django.contrib.auth import get_user_model
 from helsinki_gdpr.types import ErrorResponse
-from typing import Optional
 
 from democracy.models import SectionComment
 

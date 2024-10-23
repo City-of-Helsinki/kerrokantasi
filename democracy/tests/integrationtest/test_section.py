@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
@@ -7,7 +8,11 @@ from democracy.enums import InitialSectionType
 from democracy.models import Organization, Section, SectionType
 from democracy.models.section import CLOSURE_INFO_ORDERING
 from democracy.tests.conftest import default_lang_code
-from democracy.tests.utils import assert_id_in_results, get_data_from_response, get_hearing_detail_url
+from democracy.tests.utils import (
+    assert_id_in_results,
+    get_data_from_response,
+    get_hearing_detail_url,
+)
 from democracy.views.section import SectionSerializer
 
 hearing_endpoint = "/v1/hearing/"

@@ -322,7 +322,8 @@ LOGGING = {
 }
 
 DEMOCRACY_PLUGINS = {
-    "mapdon-hkr": "democracy.plugins.Plugin",  # TODO: Create an actual class for this once we know the data format
+    # TODO: Create an actual class for this once we know the data format
+    "mapdon-hkr": "democracy.plugins.Plugin",
     "mapdon-ksv": "democracy.plugins.Plugin",
     "mapdon-ksv-visualize": "democracy.plugins.Plugin",
     "map-bikeracks": "democracy.plugins.Plugin",

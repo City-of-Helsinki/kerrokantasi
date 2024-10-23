@@ -30,7 +30,8 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # don't override existing translations even if the current hearing does not support all languages
+        # don't override existing translations even if the current hearing does
+        # not support all languages
         self.partial = True
 
     def get_has_hearings(self, project_phase):
@@ -110,7 +111,8 @@ class ProjectCreateUpdateSerializer(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # don't override existing translations even if the current hearing does not support all languages
+        # don't override existing translations even if the current hearing does
+        # not support all languages
         self.partial = True
 
     def validate_phases(self, data):

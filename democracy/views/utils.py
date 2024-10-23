@@ -91,7 +91,8 @@ def filter_by_hearing_visible(
     if user.is_authenticated:
         organizations = user.admin_organizations.all()
         if organizations.exists():
-            # regardless of publication status or date, admins will see everything from their organization
+            # regardless of publication status or date, admins will see everything
+            # from their organization
             q |= Q(**{"%sorganization__in" % hearing_lookup: organizations})
         if include_orphans:
             # include items belonging to no hearings
@@ -401,7 +402,8 @@ class TranslatableSerializer(serializers.Serializer):
         """
         translated_data = self._pop_translated_data()
         if not self.instance:
-            # forces the translation to be created, since the object cannot be saved without
+            # forces the translation to be created, since the object cannot be saved
+            # without
             self.validated_data[self.Meta.translated_fields[0]] = ""
         instance = super(TranslatableSerializer, self).save(**kwargs)
         self.save_translations(instance, translated_data)

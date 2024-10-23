@@ -171,7 +171,8 @@ class BaseCommentViewSet(
     def _check_may_comment(self, request):
         parent = self.get_comment_parent()
         try:
-            # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
+            # The `assert` checks that the function adheres to the protocol defined in
+            # `Commenting`.
             assert parent.check_commenting(request) is None
         except ValidationError as verr:
             return response.Response(
@@ -187,7 +188,8 @@ class BaseCommentViewSet(
     def _check_may_vote(self, request):
         parent = self.get_comment_parent()
         try:
-            # The `assert` checks that the function adheres to the protocol defined in `Commenting`.
+            # The `assert` checks that the function adheres to the protocol defined in
+            # `Commenting`.
             assert parent.check_voting(request) is None
         except ValidationError as verr:
             return response.Response(

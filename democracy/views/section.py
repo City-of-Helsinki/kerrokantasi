@@ -745,7 +745,8 @@ class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelView
         # sectionless file can be edited without section data by any admin
         # sectionless file can be put to section if admin in that org
         # section file can be edited if admin in that org
-        # section file can be put to another section if admin in both previous and next org
+        # section file can be put to another section if admin in both previous and
+        # next org
         section = serializer.validated_data.get("section")
         instance = serializer.instance
         return self._is_user_organisation_admin(

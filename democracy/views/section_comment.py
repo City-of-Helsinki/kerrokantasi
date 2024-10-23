@@ -268,7 +268,8 @@ class SectionCommentSerializer(BaseCommentSerializer):
         return [c.pk for c in obj.comments.all()]
 
     def get_deleted_by_type(self, obj):
-        # Used to display a different message in the frontend if comment was deleted by its creator
+        # Used to display a different message in the frontend if comment was
+        # deleted by its creator
 
         if not obj.deleted:
             # Not deleted
@@ -416,7 +417,8 @@ class SectionCommentViewSet(BaseCommentViewSet):
             # or the parent id might lurk in the nested URL
             parent_id = super().get_comment_parent_id()
         if not parent_id:
-            # the comment parent id might lurk in the shadows of the section parameter in the root endpoint
+            # the comment parent id might lurk in the shadows of the section parameter
+            # in the root endpoint
             parent_id = (
                 data.get("section")
                 if "section" in data and data["section"]
@@ -465,7 +467,8 @@ class SectionCommentViewSet(BaseCommentViewSet):
             )
 
         # Unauthenticated user can answer polls in hearings that have open commenting. The following if statement should
-        # never be true as unauthenticated users can't post comments if the hearing doesn't have open commenting.
+        # never be true as unauthenticated users can't post comments if the
+        # hearing doesn't have open commenting.
         if (
             len(request.data.get("answers", [])) > 0
             and not request.user.is_authenticated

@@ -29,7 +29,8 @@ class EnumField(ChoiceField):
     def to_representation(self, value):
         if not value:
             return None
-        # If the enum value is an int, assume the name (lowercased in case of CONSTANTS) is more representative:
+        # If the enum value is an int, assume the name (lowercased in case of
+        # CONSTANTS) is more representative:
         if isinstance(value.value, int):
             return value.name.lower()
         else:

@@ -100,7 +100,8 @@ class HearingReportPowerPoint:
         comment_slide_layout = self.prs.slide_layouts[SLD_LAYOUT_SECTION_COMMENTS]
         slide = self.prs.slides.add_slide(comment_slide_layout)
 
-        # Comments slide title exists only in Helsinki template, don't crash hard if it doesn't exist.
+        # Comments slide title exists only in Helsinki template, don't crash hard
+        # if it doesn't exist.
         try:
             title = slide.placeholders[0]
             title.text = f"{_('Comments')} {index}"

@@ -496,7 +496,8 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
 class HearingListSerializer(HearingSerializer):
     def get_fields(self):
         fields = super(HearingListSerializer, self).get_fields()
-        # Elide section, contact person and geo data when listing hearings; one can get to them via detail routes
+        # Elide section, contact person and geo data when listing hearings; one
+        # can get to them via detail routes
         fields.pop("sections")
         fields.pop("contact_persons")
         request = self.context.get("request", None)

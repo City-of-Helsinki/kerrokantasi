@@ -34,7 +34,8 @@ from democracy.plugins import get_implementation
 
 
 class FixedModelForm(TranslatableModelForm):
-    # Taken from https://github.com/asyncee/django-easy-select2/blob/master/easy_select2/forms.py
+    # Taken from
+    # https://github.com/asyncee/django-easy-select2/blob/master/easy_select2/forms.py
     """
     Simple child of ModelForm that removes the 'Hold down "Control" ...'
     message that is enforced in select multiple fields.
@@ -74,7 +75,8 @@ class SectionInlineFormSet(TranslatableBaseInlineFormSet):
     def clean(self):
         super().clean()
 
-        # validate that there is exactly one main and no more than one closure info sections
+        # validate that there is exactly one main and no more than one closure
+        # info sections
         mains = 0
         closure_infos = 0
         for form in self.forms:
@@ -253,7 +255,8 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         protected = [format_callback(obj) for obj in collector.protected]
         protected_model = {obj._meta.verbose_name_plural for obj in collector.protected}
         protected_model_count = dict(Counter(protected_model))
-        # since we are only performing soft delete, we may soft delete the protected objects later
+        # since we are only performing soft delete, we may soft delete the
+        # protected objects later
         return (
             to_delete + protected,
             {**model_count, **protected_model_count},
@@ -275,7 +278,8 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         for item, value in collector.model_objs.items():
             to_delete += value
         to_delete += collector.protected
-        # since we are only performing soft delete, we must soft_delete related objects too, if possible
+        # since we are only performing soft delete, we must soft_delete related
+        # objects too, if possible
         for obj in to_delete:
             if hasattr(obj, "soft_delete"):
                 obj.soft_delete(user=request.user)
@@ -288,7 +292,8 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
         for item, value in collector.model_objs.items():
             to_delete += value
         to_delete += collector.protected
-        # since we are only performing soft delete, we must soft_delete related objects too, if possible
+        # since we are only performing soft delete, we must soft_delete related
+        # objects too, if possible
         for obj in to_delete:
             if hasattr(obj, "soft_delete"):
                 obj.soft_delete()

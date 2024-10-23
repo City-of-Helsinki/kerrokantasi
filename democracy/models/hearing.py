@@ -158,7 +158,8 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
         slug_field = self._meta.get_field("slug")
 
         # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
-        # uses our default manager, which can lead to a slug collision between this and a deleted hearing
+        # uses our default manager, which can lead to a slug collision between
+        # this and a deleted hearing
         self.slug = generate_unique_slug(
             slug_field, self, self.slug, Hearing.original_manager
         )

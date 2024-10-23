@@ -65,7 +65,8 @@ class Command(BaseCommand):
                     if os.path.exists(uploaded_file.path) and match.group(
                         "tag"
                     ).startswith("<a"):
-                        # linked file exists in the mediaroot, move it to the protected root.
+                        # linked file exists in the mediaroot, move it to the protected
+                        # root.
                         protected_storage_destination = os.path.join(
                             settings.SENDFILE_ROOT,
                             uploaded_file.year,

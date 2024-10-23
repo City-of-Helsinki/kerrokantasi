@@ -341,7 +341,8 @@ class SectionComment(Commentable, BaseComment, SerializableMixin):
         super().soft_delete(user=user)
 
     def save(self, *args, **kwargs):
-        # we may create a comment by referring to another comment instead of section explicitly
+        # we may create a comment by referring to another comment instead of
+        # section explicitly
         if not (self.section_id or self.comment_id):
             raise Exception(
                 "Section comment must refer to section or another section comment."

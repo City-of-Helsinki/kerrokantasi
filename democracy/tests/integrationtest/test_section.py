@@ -185,7 +185,7 @@ def test_45_get_hearing_with_one_section_check_content(api_client, default_heari
 
 @pytest.mark.django_db
 def test_45_get_section_type(api_client, default_hearing):
-    sections = create_sections(default_hearing, 1)
+    create_sections(default_hearing, 1)
 
     response = api_client.get(get_hearing_detail_url(default_hearing.id))
 

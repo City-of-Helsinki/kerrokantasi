@@ -23,7 +23,7 @@ def test_api_token_authentication_regular():
         super_authenticate.return_value = (user, authorization)
         result = authentication.authenticate(request)
         assert result == (user, authorization)
-        assert user.has_strong_auth == False
+        assert user.has_strong_auth is False
 
 
 def test_api_token_authentication_strong(settings):
@@ -36,4 +36,4 @@ def test_api_token_authentication_strong(settings):
         super_authenticate.return_value = (user, authorization)
         result = authentication.authenticate(request)
         assert result == (user, authorization)
-        assert user.has_strong_auth == True
+        assert user.has_strong_auth is True

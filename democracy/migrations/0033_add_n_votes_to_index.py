@@ -5,19 +5,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0032_add_language_code_to_comment'),
+        ("democracy", "0032_add_language_code_to_comment"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='commentimage',
-            options={'ordering': ('ordering', 'title'), 'verbose_name': 'comment image', 'verbose_name_plural': 'comment images'},
+            name="commentimage",
+            options={
+                "ordering": ("ordering", "title"),
+                "verbose_name": "comment image",
+                "verbose_name_plural": "comment images",
+            },
         ),
         migrations.AlterField(
-            model_name='sectioncomment',
-            name='n_votes',
-            field=models.IntegerField(db_index=True, default=0, editable=False, help_text='number of votes given to this comment', verbose_name='vote count'),
+            model_name="sectioncomment",
+            name="n_votes",
+            field=models.IntegerField(
+                db_index=True,
+                default=0,
+                editable=False,
+                help_text="number of votes given to this comment",
+                verbose_name="vote count",
+            ),
         ),
     ]

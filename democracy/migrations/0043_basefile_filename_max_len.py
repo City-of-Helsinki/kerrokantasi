@@ -6,15 +6,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0042_sectionfile_section_nullable'),
+        ("democracy", "0042_sectionfile_section_nullable"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectionfile',
-            name='uploaded_file',
-            field=models.FileField(max_length=2048, storage=django.core.files.storage.FileSystemStorage(location='/home/heikkjus/code/helsinki/kerrokantasi/var/protected'), upload_to='files/%Y/%m', verbose_name='file'),
+            model_name="sectionfile",
+            name="uploaded_file",
+            field=models.FileField(
+                max_length=2048,
+                storage=django.core.files.storage.FileSystemStorage(
+                    location="/home/heikkjus/code/helsinki/kerrokantasi/var/protected"
+                ),
+                upload_to="files/%Y/%m",
+                verbose_name="file",
+            ),
         ),
     ]

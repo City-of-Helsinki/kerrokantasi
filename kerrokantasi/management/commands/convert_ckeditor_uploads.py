@@ -12,7 +12,14 @@ from democracy.models import Section, SectionFile, SectionImage
 class UploadedFile(namedtuple("UploadedFile", "url, year, month, day, filename")):
     @property
     def path(self):
-        return os.path.join(settings.MEDIA_ROOT, "uploads", self.year, self.month, self.day, self.filename)
+        return os.path.join(
+            settings.MEDIA_ROOT,
+            "uploads",
+            self.year,
+            self.month,
+            self.day,
+            self.filename,
+        )
 
 
 class Command(BaseCommand):
@@ -29,7 +36,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--dry", action="store_true", help="Execute dry run")
-        parser.add_argument("--domain", default="https://api.hel.fi/kerrokantasi", help="Root URL of the service")
+        parser.add_argument(
+            "--domain",
+            default="https://api.hel.fi/kerrokantasi",
+            help="Root URL of the service",
+        )
 
     def handle(self, **options):  # noqa: C901
         self.dry_run = options.pop("dry", False)
@@ -51,14 +62,21 @@ class Command(BaseCommand):
                         match.group("day"),
                         match.group("filename"),
                     )
-                    if os.path.exists(uploaded_file.path) and match.group("tag").startswith("<a"):
+                    if os.path.exists(uploaded_file.path) and match.group(
+                        "tag"
+                    ).startswith("<a"):
                         # linked file exists in the mediaroot, move it to the protected root.
                         protected_storage_destination = os.path.join(
-                            settings.SENDFILE_ROOT, uploaded_file.year, uploaded_file.month, uploaded_file.filename
+                            settings.SENDFILE_ROOT,
+                            uploaded_file.year,
+                            uploaded_file.month,
+                            uploaded_file.filename,
                         )
                         try:
                             if not self.dry_run:
-                                os.renames(uploaded_file.path, protected_storage_destination)
+                                os.renames(
+                                    uploaded_file.path, protected_storage_destination
+                                )
                         except IOError:
                             self.stdout.write(
                                 "* Failed to move file {} to {}\n".format(
@@ -68,7 +86,9 @@ class Command(BaseCommand):
                             continue
                         section_file = SectionFile(section=section)
                         section_file.file.name = os.path.join(
-                            uploaded_file.year, uploaded_file.month, uploaded_file.filename
+                            uploaded_file.year,
+                            uploaded_file.month,
+                            uploaded_file.filename,
                         )
                         # we have no idea what the file is about,
                         # so the file name is our best guess for the Finnish title
@@ -77,10 +97,14 @@ class Command(BaseCommand):
                         if not self.dry_run:
                             section_file.save()
                         self.stdout.write(
-                            "* Moved {} to {}\n".format(uploaded_file.path, protected_storage_destination)
+                            "* Moved {} to {}\n".format(
+                                uploaded_file.path, protected_storage_destination
+                            )
                         )
                         moved_files[uploaded_file] = section_file
-                    if os.path.exists(uploaded_file.path) and match.group("tag").startswith("<img"):
+                    if os.path.exists(uploaded_file.path) and match.group(
+                        "tag"
+                    ).startswith("<img"):
                         # image exists in the mediaroot, move it under images.
                         image_storage_destination = os.path.join(
                             settings.MEDIA_ROOT,
@@ -91,21 +115,36 @@ class Command(BaseCommand):
                         )
                         try:
                             if not self.dry_run:
-                                os.renames(uploaded_file.path, image_storage_destination)
+                                os.renames(
+                                    uploaded_file.path, image_storage_destination
+                                )
                         except IOError:
                             self.stdout.write(
-                                "* Failed to move file {} to {}\n".format(uploaded_file.path, image_storage_destination)
+                                "* Failed to move file {} to {}\n".format(
+                                    uploaded_file.path, image_storage_destination
+                                )
                             )
                             continue
                         section_image = SectionImage(
-                            section=section, ordering=SectionImage.objects.filter(section=section).count() + 1
+                            section=section,
+                            ordering=SectionImage.objects.filter(
+                                section=section
+                            ).count()
+                            + 1,
                         )
                         section_image.image.name = os.path.join(
-                            "images", uploaded_file.year, uploaded_file.month, uploaded_file.filename
+                            "images",
+                            uploaded_file.year,
+                            uploaded_file.month,
+                            uploaded_file.filename,
                         )
                         if not self.dry_run:
                             section_image.save()
-                        self.stdout.write("* Moved {} to {}\n".format(uploaded_file.path, image_storage_destination))
+                        self.stdout.write(
+                            "* Moved {} to {}\n".format(
+                                uploaded_file.path, image_storage_destination
+                            )
+                        )
                         moved_files[uploaded_file] = section_image
                 # rewrite urls in content
                 for uploaded_file, moved_file in moved_files.items():
@@ -116,13 +155,23 @@ class Command(BaseCommand):
                             else:
                                 new_url = "{}{}".format(
                                     self.domain,
-                                    reverse("serve_file", kwargs={"filetype": "sectionfile", "pk": moved_file.pk}),
+                                    reverse(
+                                        "serve_file",
+                                        kwargs={
+                                            "filetype": "sectionfile",
+                                            "pk": moved_file.pk,
+                                        },
+                                    ),
                                 )
                         else:
                             new_url = self.domain + "/media/" + moved_file.image.name
-                        translation.content = translation.content.replace(uploaded_file.url, new_url)
+                        translation.content = translation.content.replace(
+                            uploaded_file.url, new_url
+                        )
                         self.stdout.write(
-                            "* {}: Rewrote URL {} -> {}\n".format(translation.language_code, uploaded_file.url, new_url)
+                            "* {}: Rewrote URL {} -> {}\n".format(
+                                translation.language_code, uploaded_file.url, new_url
+                            )
                         )
                 if not self.dry_run:
                     translation.save()

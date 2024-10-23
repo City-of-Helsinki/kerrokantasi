@@ -9,45 +9,61 @@ def forwards(apps, schema_editor):
     """
     Convert Hearing images to introduction Section images
     """
-    hearing_images = apps.get_model('democracy', 'HearingImage').objects.filter(hearing__deleted=False)
-    section_image_model = apps.get_model('democracy', 'SectionImage')
+    hearing_images = apps.get_model("democracy", "HearingImage").objects.filter(
+        hearing__deleted=False
+    )
+    section_image_model = apps.get_model("democracy", "SectionImage")
 
     for hearing_image in hearing_images:
-        data = {field: getattr(hearing_image, field) for field in ('title', 'caption', 'height', 'width', 'image',
-                                                                   'ordering', 'created_by', 'created_at',
-                                                                   'modified_at', 'modified_by')}
+        data = {
+            field: getattr(hearing_image, field)
+            for field in (
+                "title",
+                "caption",
+                "height",
+                "width",
+                "image",
+                "ordering",
+                "created_by",
+                "created_at",
+                "modified_at",
+                "modified_by",
+            )
+        }
 
-        section = hearing_image.hearing.sections.filter(type__identifier='introduction', deleted=False).first()
+        section = hearing_image.hearing.sections.filter(
+            type__identifier="introduction", deleted=False
+        ).first()
         if not section:
-            raise CommandError("Hearing '%s' has HearingImage(s) but not an introduction section for those." %
-                               hearing_image.hearing_id)
+            raise CommandError(
+                "Hearing '%s' has HearingImage(s) but not an introduction section for those."
+                % hearing_image.hearing_id
+            )
 
-        data['section'] = section
+        data["section"] = section
         section_image_model.objects.create(**data)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0016_merge_comments'),
+        ("democracy", "0016_merge_comments"),
     ]
 
     operations = [
         migrations.RunPython(forwards, migrations.RunPython.noop),
-
         migrations.RemoveField(
-            model_name='hearingimage',
-            name='created_by',
+            model_name="hearingimage",
+            name="created_by",
         ),
         migrations.RemoveField(
-            model_name='hearingimage',
-            name='hearing',
+            model_name="hearingimage",
+            name="hearing",
         ),
         migrations.RemoveField(
-            model_name='hearingimage',
-            name='modified_by',
+            model_name="hearingimage",
+            name="modified_by",
         ),
         migrations.DeleteModel(
-            name='HearingImage',
+            name="HearingImage",
         ),
     ]

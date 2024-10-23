@@ -59,7 +59,9 @@ def valid_hearing_json(contact_person, default_label):
         },
         "n_comments": 0,
         "published": False,
-        "labels": [{"id": default_label.id, "label": {default_lang_code: default_label.label}}],
+        "labels": [
+            {"id": default_label.id, "label": {default_lang_code: default_label.label}}
+        ],
         "open_at": "2016-09-29T11:39:12Z",
         "close_at": "2016-09-29T11:39:12Z",
         "created_at": "2016-10-04T10:30:38.066436Z",
@@ -352,7 +354,9 @@ def test_filter_hearings_by_title(api_client):
 
 
 @pytest.mark.django_db
-def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_doe_api_client, stark_doe_api_client):
+def test_filter_hearings_created_by_me(
+    api_client, john_smith_api_client, jane_doe_api_client, stark_doe_api_client
+):
     # Retrieves hearings that are created by the user
     main_organization = Organization.objects.create(name="main organization")
 
@@ -391,33 +395,45 @@ def test_filter_hearings_created_by_me(api_client, john_smith_api_client, jane_d
 
     # Filtering with main_organization.name
     # Jane should get 9 results when filtering with main_organization id
-    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    jane_response = jane_doe_api_client.get(
+        list_endpoint, data={"created_by": main_organization.name}
+    )
     jane_data = get_data_from_response(jane_response)
     assert len(jane_data["results"]) == 9
 
     # John should get 9 results when filtering with main_organization id
-    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    john_response = john_smith_api_client.get(
+        list_endpoint, data={"created_by": main_organization.name}
+    )
     john_data = get_data_from_response(john_response)
     assert len(john_data["results"]) == 9
 
     # Stark should get 9 results when filtering with main_organization id
-    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": main_organization.name})
+    stark_response = stark_doe_api_client.get(
+        list_endpoint, data={"created_by": main_organization.name}
+    )
     stark_data = get_data_from_response(stark_response)
     assert len(stark_data["results"]) == 9
 
     # Filtering with second_organization.name
     # Jane should get 1 result when filtering with second_organization id
-    jane_response = jane_doe_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    jane_response = jane_doe_api_client.get(
+        list_endpoint, data={"created_by": second_organization.name}
+    )
     jane_data = get_data_from_response(jane_response)
     assert len(jane_data["results"]) == 1
 
     # John should get 1 result when filtering with second_organization id
-    john_response = john_smith_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    john_response = john_smith_api_client.get(
+        list_endpoint, data={"created_by": second_organization.name}
+    )
     john_data = get_data_from_response(john_response)
     assert len(john_data["results"]) == 1
 
     # Stark should get 1 result when filtering with second_organization id
-    stark_response = stark_doe_api_client.get(list_endpoint, data={"created_by": second_organization.name})
+    stark_response = stark_doe_api_client.get(
+        list_endpoint, data={"created_by": second_organization.name}
+    )
     stark_data = get_data_from_response(stark_response)
     assert len(stark_data["results"]) == 1
 
@@ -430,7 +446,9 @@ def test_filter_hearings_by_following(john_doe_api_client):
     third_hearing = Hearing.objects.create(title="Third Hearing")
 
     # John starts following the first hearing
-    response = john_doe_api_client.post(get_hearing_detail_url(first_hearing.id, "follow"))
+    response = john_doe_api_client.post(
+        get_hearing_detail_url(first_hearing.id, "follow")
+    )
     assert response.status_code == 201
     # John fetches hearings that he follows, only 1 hearing is returned.
     response = john_doe_api_client.get(list_endpoint, data={"following": True})
@@ -439,7 +457,9 @@ def test_filter_hearings_by_following(john_doe_api_client):
     assert len(data["results"]) == 1
 
     # John starts following the second hearing
-    response = john_doe_api_client.post(get_hearing_detail_url(second_hearing.id, "follow"))
+    response = john_doe_api_client.post(
+        get_hearing_detail_url(second_hearing.id, "follow")
+    )
     assert response.status_code == 201
     # John fetches hearings that he follows, 2 hearings are returned.
     response = john_doe_api_client.get(list_endpoint, data={"following": True})
@@ -449,7 +469,9 @@ def test_filter_hearings_by_following(john_doe_api_client):
     assert len(data["results"]) == 2
 
     # John starts following the third hearing
-    response = john_doe_api_client.post(get_hearing_detail_url(third_hearing.id, "follow"))
+    response = john_doe_api_client.post(
+        get_hearing_detail_url(third_hearing.id, "follow")
+    )
     assert response.status_code == 201
     # John fetches hearings that he follows, 3 hearings are returned.
     response = john_doe_api_client.get(list_endpoint, data={"following": True})
@@ -481,7 +503,9 @@ def test_filter_hearings_by_following_anonymous_user(api_client, john_doe):
     ],
 )
 @pytest.mark.django_db
-def test_list_hearings_check_default_to_fullscreen(api_client, default_hearing, plugin_fullscreen):
+def test_list_hearings_check_default_to_fullscreen(
+    api_client, default_hearing, plugin_fullscreen
+):
     main_section = default_hearing.get_main_section()
     main_section.plugin_fullscreen = plugin_fullscreen
     main_section.save()
@@ -602,7 +626,9 @@ def test_8_get_detail_organization(api_client, default_hearing, default_organiza
 
 
 @pytest.mark.django_db
-def test_get_detail_contact_person(api_client, default_hearing, default_organization, contact_person):
+def test_get_detail_contact_person(
+    api_client, default_hearing, default_organization, contact_person
+):
     response = api_client.get(get_detail_url(default_hearing.id))
     data = get_data_from_response(response)
 
@@ -645,15 +671,21 @@ def test_get_report_pptx_anonymous(api_client, default_hearing):
 
 
 @pytest.mark.django_db
-def test_get_report_pptx_user_without_organization(john_doe_api_client, default_hearing):
-    response = john_doe_api_client.get("%s%s/report_pptx/" % (endpoint, default_hearing.id))
+def test_get_report_pptx_user_without_organization(
+    john_doe_api_client, default_hearing
+):
+    response = john_doe_api_client.get(
+        "%s%s/report_pptx/" % (endpoint, default_hearing.id)
+    )
     assert response.status_code == 403
     assert len(response.content) > 0
 
 
 @pytest.mark.django_db
 def test_get_report_pptx_user_with_organization(john_smith_api_client, default_hearing):
-    response = john_smith_api_client.get("%s%s/report_pptx/" % (endpoint, default_hearing.id))
+    response = john_smith_api_client.get(
+        "%s%s/report_pptx/" % (endpoint, default_hearing.id)
+    )
     assert response.status_code == 200
     assert len(response.content) > 0
 
@@ -685,10 +717,14 @@ def test_admin_can_see_unpublished_and_published(
     unpublished_hearing.published = False  # This one should be visible to admin only
     unpublished_hearing.save()
     hearing_outside_organization = hearings[1]
-    hearing_outside_organization.organization = None  # This one should be visible to J. Doe too, n'est ce pas?
+    hearing_outside_organization.organization = (
+        None  # This one should be visible to J. Doe too, n'est ce pas?
+    )
     hearing_outside_organization.save()
     future_hearing = hearings[2]
-    future_hearing.open_at = now() + datetime.timedelta(days=1)  # This one should be visible to admin only
+    future_hearing.open_at = now() + datetime.timedelta(
+        days=1
+    )  # This one should be visible to admin only
     future_hearing.close_at = now() + datetime.timedelta(days=2)
     future_hearing.save()
     not_own_organization_unpublished_hearing = hearings[3]
@@ -704,8 +740,12 @@ def test_admin_can_see_unpublished_and_published(
     data = get_data_from_response(john_doe_api_client.get(list_endpoint))
     assert len(data["results"]) == 1  # Can't see them as registered
     data = get_data_from_response(john_smith_api_client.get(list_endpoint))
-    assert len(data["results"]) == 4  # Can all as admin, except unpublished from other orgs
-    assert len([1 for h in data["results"] if not h["published"]]) == 2  # Two unpublished
+    assert (
+        len(data["results"]) == 4
+    )  # Can all as admin, except unpublished from other orgs
+    assert (
+        len([1 for h in data["results"] if not h["published"]]) == 2
+    )  # Two unpublished
 
 
 @pytest.mark.django_db
@@ -715,8 +755,12 @@ def test_can_see_unpublished_with_preview_code(api_client):
     unpublished_hearing.published = False
     unpublished_hearing.open_at = now() + datetime.timedelta(hours=1)
     unpublished_hearing.save()
-    get_data_from_response(api_client.get(get_detail_url(unpublished_hearing.id)), status_code=404)
-    preview_url = "{}?preview={}".format(get_detail_url(unpublished_hearing.id), unpublished_hearing.preview_code)
+    get_data_from_response(
+        api_client.get(get_detail_url(unpublished_hearing.id)), status_code=404
+    )
+    preview_url = "{}?preview={}".format(
+        get_detail_url(unpublished_hearing.id), unpublished_hearing.preview_code
+    )
     get_data_from_response(api_client.get(preview_url), status_code=200)
 
 
@@ -727,8 +771,12 @@ def test_can_see_published_with_preview_code(api_client):
     published_hearing.published = True
     published_hearing.open_at = now() + datetime.timedelta(hours=1)
     published_hearing.save()
-    get_data_from_response(api_client.get(get_detail_url(published_hearing.id)), status_code=404)
-    preview_url = "{}?preview={}".format(get_detail_url(published_hearing.id), published_hearing.preview_code)
+    get_data_from_response(
+        api_client.get(get_detail_url(published_hearing.id)), status_code=404
+    )
+    preview_url = "{}?preview={}".format(
+        get_detail_url(published_hearing.id), published_hearing.preview_code
+    )
     response = api_client.get(preview_url)
     get_data_from_response(response, status_code=200)
 
@@ -740,7 +788,8 @@ def test_preview_code_in_unpublished(john_smith_api_client, default_organization
     unpublished_hearing.published = False
     unpublished_hearing.save()
     hearing_data = get_data_from_response(
-        john_smith_api_client.get(get_detail_url(unpublished_hearing.pk)), status_code=200
+        john_smith_api_client.get(get_detail_url(unpublished_hearing.pk)),
+        status_code=200,
     )
     assert hearing_data["preview_url"] == unpublished_hearing.preview_url
 
@@ -772,18 +821,24 @@ def test_preview_code_not_in_published(john_smith_api_client, default_organizati
         "geojson_multilinestring",
     ],
 )
-def test_hearing_geojson_feature(request, john_smith_api_client, valid_hearing_json, geometry_fixture_name):
+def test_hearing_geojson_feature(
+    request, john_smith_api_client, valid_hearing_json, geometry_fixture_name
+):
     geometry = request.getfixturevalue(geometry_fixture_name)
     feature = get_feature_with_geometry(geometry)
     valid_hearing_json["geojson"] = feature
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     hearing_data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.get(pk=hearing_data["id"])
     hearing_geometry = json.loads(hearing.geometry.geojson)
     assert hearing.geojson == feature
     assert hearing_data["geojson"] == feature
     assert hearing_data["geojson"]["geometry"] == hearing_geometry["geometries"][0]
-    geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {"format": "geojson"}))
+    geojson_data = get_data_from_response(
+        john_smith_api_client.get(get_detail_url(hearing.pk), {"format": "geojson"})
+    )
     assert geojson_data["id"] == hearing.pk
     assert_common_keys_equal(geojson_data["geometry"], feature["geometry"])
     assert_common_keys_equal(geojson_data["properties"], feature["properties"])
@@ -804,17 +859,23 @@ def test_hearing_geojson_feature(request, john_smith_api_client, valid_hearing_j
         "geojson_multilinestring",
     ],
 )
-def test_hearing_geojson_geometry_only(request, john_smith_api_client, valid_hearing_json, geometry_fixture_name):
+def test_hearing_geojson_geometry_only(
+    request, john_smith_api_client, valid_hearing_json, geometry_fixture_name
+):
     geojson_geometry = request.getfixturevalue(geometry_fixture_name)
     valid_hearing_json["geojson"] = geojson_geometry
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     hearing_data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.get(pk=hearing_data["id"])
     hearing_geometry = json.loads(hearing.geometry.geojson)
     assert hearing.geojson == geojson_geometry
     assert hearing_data["geojson"] == geojson_geometry
     assert hearing_data["geojson"] == hearing_geometry["geometries"][0]
-    geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {"format": "geojson"}))
+    geojson_data = get_data_from_response(
+        john_smith_api_client.get(get_detail_url(hearing.pk), {"format": "geojson"})
+    )
     assert geojson_data["id"] == hearing.pk
     assert_common_keys_equal(geojson_data["geometry"], geojson_geometry)
     assert_common_keys_equal(geojson_data["properties"], hearing_data)
@@ -834,14 +895,21 @@ def test_hearing_geojson_featurecollection_only(
 ):
     geojson_geometry = request.getfixturevalue(geometry_fixture_name)
     valid_hearing_json["geojson"] = geojson_geometry
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     hearing_data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.get(pk=hearing_data["id"])
     hearing_geometry = json.loads(hearing.geometry.geojson)
     assert hearing.geojson == geojson_geometry
     assert hearing_data["geojson"] == geojson_geometry
-    assert hearing_data["geojson"]["features"][0]["geometry"] == hearing_geometry["geometries"][0]
-    geojson_data = get_data_from_response(john_smith_api_client.get(get_detail_url(hearing.pk), {"format": "geojson"}))
+    assert (
+        hearing_data["geojson"]["features"][0]["geometry"]
+        == hearing_geometry["geometries"][0]
+    )
+    geojson_data = get_data_from_response(
+        john_smith_api_client.get(get_detail_url(hearing.pk), {"format": "geojson"})
+    )
     assert geojson_data["id"] == hearing.pk
     assert_common_keys_equal(geojson_data, geojson_geometry)
     assert_common_keys_equal(geojson_data["properties"], hearing_data)
@@ -856,12 +924,18 @@ def test_hearing_geojson_featurecollection_only(
         "geojson_geometrycollection",
     ],
 )
-def test_hearing_geojson_unsupported_types(request, john_smith_api_client, valid_hearing_json, geojson_fixture_name):
+def test_hearing_geojson_unsupported_types(
+    request, john_smith_api_client, valid_hearing_json, geojson_fixture_name
+):
     geojson = request.getfixturevalue(geojson_fixture_name)
     valid_hearing_json["geojson"] = geojson
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
-    assert data["geojson"][0].startswith("Invalid geojson format. Type is not supported.")
+    assert data["geojson"][0].startswith(
+        "Invalid geojson format. Type is not supported."
+    )
 
 
 @pytest.mark.django_db
@@ -874,18 +948,31 @@ def test_hearing_copy(default_hearing, random_label):
         content="",
     )
     default_hearing.labels.add(random_label)
-    new_hearing = copy_hearing(default_hearing, published=False, title="overridden title")
+    new_hearing = copy_hearing(
+        default_hearing, published=False, title="overridden title"
+    )
     assert Hearing.objects.count() == 2
 
     # check that num of sections and images has doubled
-    assert Section.objects.count() == 7  # 3 sections per hearing + 1 old closure info section
-    assert SectionImage.objects.count() == 18  # 3 section images per non closure section
+    assert (
+        Section.objects.count() == 7
+    )  # 3 sections per hearing + 1 old closure info section
+    assert (
+        SectionImage.objects.count() == 18
+    )  # 3 section images per non closure section
 
     # check that num of labels hasn't changed
     assert Label.objects.count() == 1
 
     # check hearing model fields
-    for field_name in ("open_at", "close_at", "force_closed", "borough", "servicemap_url", "geojson"):
+    for field_name in (
+        "open_at",
+        "close_at",
+        "force_closed",
+        "borough",
+        "servicemap_url",
+        "geojson",
+    ):
         assert getattr(new_hearing, field_name) == getattr(default_hearing, field_name)
 
     # check overridden fields
@@ -893,7 +980,9 @@ def test_hearing_copy(default_hearing, random_label):
     assert new_hearing.title == "overridden title"
 
     assert new_hearing.sections.count() == 3
-    for i, new_section in enumerate(new_hearing.sections.all().order_by("translations__abstract"), 1):
+    for i, new_section in enumerate(
+        new_hearing.sections.all().order_by("translations__abstract"), 1
+    ):
         # each section should have 3 images, 1 file, the correct abstract and no comments
         assert new_section.images.count() == 3
         assert new_section.files.count() == 1
@@ -907,11 +996,14 @@ def test_hearing_copy(default_hearing, random_label):
     assert new_hearing.n_comments == 0
 
     # closure info section should not have been copied
-    assert not new_hearing.sections.filter(type__identifier=InitialSectionType.CLOSURE_INFO).exists()
+    assert not new_hearing.sections.filter(
+        type__identifier=InitialSectionType.CLOSURE_INFO
+    ).exists()
 
 
 @pytest.mark.parametrize(
-    "client, expected", [("api_client", False), ("jane_doe_api_client", False), ("admin_api_client", True)]
+    "client, expected",
+    [("api_client", False), ("jane_doe_api_client", False), ("admin_api_client", True)],
 )
 @pytest.mark.django_db
 def test_hearing_open_at_filtering(default_hearing, request, client, expected):
@@ -1000,7 +1092,9 @@ def test_abstract_is_populated_from_main_abstract(api_client, default_hearing):
     ],
 )
 @pytest.mark.django_db
-def test_hearing_filters(admin_api_client, default_hearing, updates, filters, expected_count):
+def test_hearing_filters(
+    admin_api_client, default_hearing, updates, filters, expected_count
+):
     Hearing.objects.filter(id=default_hearing.id).update(**updates)
 
     response = admin_api_client.get(list_endpoint, filters)
@@ -1050,7 +1144,9 @@ def test_POST_hearing_anonymous_user(valid_hearing_json, api_client):
 
 @pytest.mark.django_db
 def test_POST_hearing_unauthorized_user(valid_hearing_json, john_doe_api_client):
-    response = john_doe_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_doe_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=403)
     assert data == {"status": "User without organization cannot POST hearings."}
 
@@ -1058,9 +1154,14 @@ def test_POST_hearing_unauthorized_user(valid_hearing_json, john_doe_api_client)
 # Test that a user can POST a hearing
 @pytest.mark.django_db
 def test_POST_hearing(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
-    assert data["organization"] == john_smith_api_client.user.get_default_organization().name
+    assert (
+        data["organization"]
+        == john_smith_api_client.user.get_default_organization().name
+    )
     assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
 
 
@@ -1087,7 +1188,9 @@ def test_POST_hearing_with_file_upload(valid_hearing_json, john_smith_api_client
     # Add the freshly uploaded file to the hearing data.
     valid_hearing_json["sections"][0]["files"] = [data]
 
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
 
     assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
@@ -1131,7 +1234,9 @@ def test_POST_save_hearing_as_new(valid_hearing_json, john_smith_api_client):
             "type": "main",
         },
     ]
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     hearing = get_data_from_response(response, status_code=201)
 
     # Do some edits before saving as new...
@@ -1151,7 +1256,9 @@ def test_POST_save_hearing_as_new(valid_hearing_json, john_smith_api_client):
     image["reference_id"] = image["id"]
     image["id"] = None
 
-    response = john_smith_api_client.post(endpoint, data=save_as_new_payload, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=save_as_new_payload, format="json"
+    )
     new_hearing = get_data_from_response(response, status_code=201)
 
     # Assert for content that should match between the original and the new hearing.
@@ -1187,16 +1294,25 @@ def test_POST_save_hearing_as_new(valid_hearing_json, john_smith_api_client):
 @pytest.mark.django_db
 def test_POST_hearing_no_title(valid_hearing_json, john_smith_api_client):
     del valid_hearing_json["title"]
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "Title is required at least in one locale" in data["non_field_errors"]
 
 
 @pytest.mark.django_db
-def test_POST_hearing_with_new_project(valid_hearing_json_with_project, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json_with_project, format="json")
+def test_POST_hearing_with_new_project(
+    valid_hearing_json_with_project, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json_with_project, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
-    assert data["organization"] == john_smith_api_client.user.get_default_organization().name
+    assert (
+        data["organization"]
+        == john_smith_api_client.user.get_default_organization().name
+    )
     assert "project" in data
     project = data["project"]
     assert "phases" in project
@@ -1211,9 +1327,14 @@ def test_POST_hearing_with_new_project(valid_hearing_json_with_project, john_smi
 @pytest.mark.django_db
 def test_POST_hearing_with_null_project(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["project"] = None
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
-    assert data["organization"] == john_smith_api_client.user.get_default_organization().name
+    assert (
+        data["organization"]
+        == john_smith_api_client.user.get_default_organization().name
+    )
     assert_hearing_equals(data, valid_hearing_json, john_smith_api_client.user)
 
 
@@ -1223,7 +1344,9 @@ def test_POST_hearing_with_existing_project(
 ):
     valid_hearing_json.update(default_project_json)
     default_project_phase_ids = set(default_project.phases.values_list("id", flat=True))
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     assert "project" in data
     project = data["project"]
@@ -1255,7 +1378,9 @@ def test_POST_hearing_with_updated_project(
     )
 
     valid_hearing_json.update(default_project_json)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     assert "project" in data
     project = data["project"]
@@ -1281,7 +1406,9 @@ def test_POST_hearing_with_updated_project_add_translation(
     default_project_json["project"]["title"] = {"fi": "Oletusprojekti"}
     default_project_json["project"]["phases"][2]["title"] = {"fi": "Vaihe 3"}
     valid_hearing_json.update(default_project_json)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     assert "project" in data
     project = data["project"]
@@ -1303,7 +1430,9 @@ def test_POST_hearing_with_updated_project_delete_phase(
     deleted_phase_id = default_project_json["project"]["phases"][2]["id"]
     del default_project_json["project"]["phases"][2]
     valid_hearing_json.update(default_project_json)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     project = data["project"]
     assert len(data["project"]["phases"]) == 2
@@ -1314,7 +1443,11 @@ def test_POST_hearing_with_updated_project_delete_phase(
 
 @pytest.mark.django_db
 def test_POST_hearing_delete_phase_with_hearings(
-    default_hearing, valid_hearing_json, default_project, default_project_json, john_smith_api_client
+    default_hearing,
+    valid_hearing_json,
+    default_project,
+    default_project_json,
+    john_smith_api_client,
 ):
     initial_default_project_phase_count = default_project.phases.count()
     default_hearing_phase = default_hearing.project_phase
@@ -1327,8 +1460,12 @@ def test_POST_hearing_delete_phase_with_hearings(
     ), "Test fixture error: Default hearing should contain a project phase from default project"
     default_project_json["project"]["phases"][0]["is_active"] = True
     valid_hearing_json.update(default_project_json)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
-    assert response.status_code == 400, "Should not be able to delete phase with default_hearing associated to it"
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
+    assert (
+        response.status_code == 400
+    ), "Should not be able to delete phase with default_hearing associated to it"
     assert (
         default_project.phases.count() == initial_default_project_phase_count
     ), "Project phase count should not change"
@@ -1339,14 +1476,18 @@ def test_POST_hearing_delete_phase_with_hearings(
 @pytest.mark.django_db
 def test_POST_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["title"] = {"fi": ""}
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "Title is required at least in one locale" in data["non_field_errors"]
 
 
 @pytest.mark.parametrize("inverted", [False, True])
 @pytest.mark.django_db
-def test_POST_hearing_contact_person_order(valid_hearing_json, john_smith_api_client, default_organization, inverted):
+def test_POST_hearing_contact_person_order(
+    valid_hearing_json, john_smith_api_client, default_organization, inverted
+):
     contact_kwargs = {
         "title": "Chief",
         "phone": "555-555",
@@ -1363,7 +1504,9 @@ def test_POST_hearing_contact_person_order(valid_hearing_json, john_smith_api_cl
     contact_person_id_list = [{"id": contact.id} for contact in contact_persons]
     valid_hearing_json.update({"contact_persons": contact_person_id_list})
 
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
 
     # Make sure contact persons stay in the order they are sent to the server to, and are not ordered alphabetically
@@ -1372,7 +1515,9 @@ def test_POST_hearing_contact_person_order(valid_hearing_json, john_smith_api_cl
 
 
 @pytest.mark.django_db
-def test_PUT_hearing_contact_person_order(valid_hearing_json, john_smith_api_client, default_organization):
+def test_PUT_hearing_contact_person_order(
+    valid_hearing_json, john_smith_api_client, default_organization
+):
     contact_kwargs = {
         "title": "Chief",
         "phone": "555-555",
@@ -1387,14 +1532,18 @@ def test_PUT_hearing_contact_person_order(valid_hearing_json, john_smith_api_cli
     contact_person_id_list = [{"id": contact.id} for contact in contact_persons]
     valid_hearing_json.update({"contact_persons": contact_person_id_list})
 
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
 
     # Reverse order and update hearing
     contact_person_id_list.reverse()
     data.update({"contact_persons": contact_person_id_list})
 
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=200)
 
     # Make sure contact persons stay in the order they are sent to the server to, and are not ordered alphabetically
@@ -1404,38 +1553,54 @@ def test_PUT_hearing_contact_person_order(valid_hearing_json, john_smith_api_cli
 
 @pytest.mark.django_db
 def test_PUT_hearing_no_title(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data1 = get_data_from_response(response, status_code=201)
     del data1["title"]
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data1["id"]), data=data1, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data1["id"]), data=data1, format="json"
+    )
     data2 = get_data_from_response(response, status_code=400)
     assert "Title is required at least in one locale" in data2["non_field_errors"]
 
 
 @pytest.mark.django_db
 def test_PUT_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data1 = get_data_from_response(response, status_code=201)
     data1["title"] = {"fi": ""}
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data1["id"]), data=data1, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data1["id"]), data=data1, format="json"
+    )
     data2 = get_data_from_response(response, status_code=400)
     assert "Title is required at least in one locale" in data2["non_field_errors"]
 
 
 @pytest.mark.django_db
 def test_PATCH_hearing_no_title(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data1 = get_data_from_response(response, status_code=201)
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data1["id"]), data={}, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data1["id"]), data={}, format="json"
+    )
     get_data_from_response(response, status_code=200)
 
 
 @pytest.mark.django_db
 def test_PATCH_hearing_no_title_locale(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data1 = get_data_from_response(response, status_code=201)
     data = {"title": {"fi": ""}}
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data1["id"]), data=data, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data1["id"]), data=data, format="json"
+    )
     data2 = get_data_from_response(response, status_code=400)
     assert "Title is required at least in one locale" in data2["non_field_errors"]
 
@@ -1443,12 +1608,16 @@ def test_PATCH_hearing_no_title_locale(valid_hearing_json, john_smith_api_client
 @pytest.mark.django_db
 def test_POST_hearing_no_slug(valid_hearing_json, john_smith_api_client):
     del valid_hearing_json["slug"]
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "This field is required" in data["slug"][0]
     # With empty value
     valid_hearing_json["slug"] = ""
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "This field may not be blank" in data["slug"][0]
 
@@ -1456,36 +1625,50 @@ def test_POST_hearing_no_slug(valid_hearing_json, john_smith_api_client):
 @pytest.mark.django_db
 def test_POST_hearing_invalid_slug(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["slug"] = "foo-bar-´"
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert 'Enter a valid "slug"' in data["slug"][0]
 
 
 @pytest.mark.django_db
 def test_PUT_hearing_no_slug(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data1 = get_data_from_response(response, status_code=201)
     del data1["slug"]
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data1["id"]), data=data1, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data1["id"]), data=data1, format="json"
+    )
     data2 = get_data_from_response(response, status_code=400)
     assert "This field is required" in data2["slug"][0]
     # with empty value
     data1["slug"] = ""
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data1["id"]), data=data1, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data1["id"]), data=data1, format="json"
+    )
     data3 = get_data_from_response(response, status_code=400)
     assert "This field may not be blank" in data3["slug"][0]
 
 
 @pytest.mark.django_db
 def test_PATCH_hearing_no_slug(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data1 = get_data_from_response(response, status_code=201)
     # first with empty data with no slug key
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data1["id"]), data={}, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data1["id"]), data={}, format="json"
+    )
     get_data_from_response(response, status_code=200)
     # with empty value
     data = {"slug": ""}
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data1["id"]), data=data, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data1["id"]), data=data, format="json"
+    )
     data2 = get_data_from_response(response, status_code=400)
     assert "This field may not be blank" in data2["slug"][0]
 
@@ -1494,65 +1677,99 @@ def test_PATCH_hearing_no_slug(valid_hearing_json, john_smith_api_client):
 @pytest.mark.django_db
 def test_POST_hearing_untranslated(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["title"] = valid_hearing_json["title"]["en"]
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
-    assert 'Not a valid translation format. Expecting {"lang_code": %s}' % valid_hearing_json["title"] in data["title"]
+    assert (
+        'Not a valid translation format. Expecting {"lang_code": %s}'
+        % valid_hearing_json["title"]
+        in data["title"]
+    )
 
 
 # Test that a user cannot POST a hearing with an unsupported language
 @pytest.mark.django_db
 def test_POST_hearing_unsupported_language(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["title"]["fr"] = valid_hearing_json["title"]["en"]
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "fr is not a supported languages (['en', 'fi', 'sv'])" in data["title"]
 
 
 # Test that an anonymous user fails to update a hearing
 @pytest.mark.django_db
-def test_PUT_hearing_anonymous_user(valid_hearing_json, api_client, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+def test_PUT_hearing_anonymous_user(
+    valid_hearing_json, api_client, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
-    response = api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=401)
     assert data == {"detail": "Authentication credentials were not provided."}
 
 
 # Test that a user without organization fails to update a hearing
 @pytest.mark.django_db
-def test_PUT_hearing_unauthorized_user(valid_hearing_json, john_doe_api_client, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+def test_PUT_hearing_unauthorized_user(
+    valid_hearing_json, john_doe_api_client, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
-    response = john_doe_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_doe_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=403)
     assert data == {"status": "User without organization cannot PUT hearings."}
 
 
 # Test that a user cannot update a hearing from another organization
 @pytest.mark.django_db
-def test_PUT_hearing_other_organization_hearing(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+def test_PUT_hearing_other_organization_hearing(
+    valid_hearing_json, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.first()
-    hearing.organization = Organization.objects.create(name="The department for squirrel warfare")
+    hearing.organization = Organization.objects.create(
+        name="The department for squirrel warfare"
+    )
     hearing.published = True
     hearing.save()
     _update_hearing_data(data)
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=403)
-    assert data == {"detail": "Only organization admins can update organization hearings."}
+    assert data == {
+        "detail": "Only organization admins can update organization hearings."
+    }
 
 
 # Test that a user can update a hearing
 @pytest.mark.django_db
 def test_PUT_hearing_success(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     created_at = data["created_at"]
     _update_hearing_data(data)
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
     assert updated_data["created_at"] == created_at
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
@@ -1560,8 +1777,12 @@ def test_PUT_hearing_success(valid_hearing_json, john_smith_api_client):
 
 # Test that updating hearing with project returns a response with phases' is_active value
 @pytest.mark.django_db
-def test_PUT_hearing_with_project_phase_is_active(valid_hearing_json_with_project, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json_with_project, format="json")
+def test_PUT_hearing_with_project_phase_is_active(
+    valid_hearing_json_with_project, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json_with_project, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
 
@@ -1570,11 +1791,15 @@ def test_PUT_hearing_with_project_phase_is_active(valid_hearing_json_with_projec
     for index, phase in enumerate(phases):
         data["project"]["phases"][index]["is_active"] = phase["is_active"]
 
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
 
     for index, phase in enumerate(phases):
-        assert updated_data["project"]["phases"][index]["is_active"] == phase["is_active"]
+        assert (
+            updated_data["project"]["phases"][index]["is_active"] == phase["is_active"]
+        )
 
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
 
@@ -1582,23 +1807,34 @@ def test_PUT_hearing_with_project_phase_is_active(valid_hearing_json_with_projec
 # Test that a user cannot PUT a hearing without the translation
 @pytest.mark.django_db
 def test_PUT_hearing_untranslated(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
     data["title"] = data["title"]["en"]
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=400)
-    assert 'Not a valid translation format. Expecting {"lang_code": %s}' % data["title"] in updated_data["title"]
+    assert (
+        'Not a valid translation format. Expecting {"lang_code": %s}' % data["title"]
+        in updated_data["title"]
+    )
 
 
 # Test that a user cannot PUT a hearing with an unsupported language
 @pytest.mark.django_db
 def test_PUT_hearing_unsupported_language(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
     data["title"]["fr"] = data["title"]["en"]
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "fr is not a supported languages (['en', 'fi', 'sv'])" in data["title"]
 
@@ -1606,11 +1842,15 @@ def test_PUT_hearing_unsupported_language(valid_hearing_json, john_smith_api_cli
 # Test that a user can PUT a hearing with less translations
 @pytest.mark.django_db
 def test_PUT_hearing_remove_translation(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
     data["title"].pop("sv")
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
     assert updated_data["title"].get("sv") is None
     assert updated_data["title"]["en"] == data["title"]["en"]
@@ -1620,36 +1860,54 @@ def test_PUT_hearing_remove_translation(valid_hearing_json, john_smith_api_clien
 # Test that a user cannot update a hearing having no organization
 @pytest.mark.django_db
 def test_PUT_hearing_no_organization(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     _update_hearing_data(data)
     hearing = Hearing.objects.filter(id=data["id"]).first()
     hearing.organization = None
     hearing.published = True
     hearing.save()
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=403)
-    assert data == {"detail": "Only organization admins can update organization hearings."}
+    assert data == {
+        "detail": "Only organization admins can update organization hearings."
+    }
 
 
 # Test that a user cannot steal an section while updating a hearing
 @pytest.mark.django_db
-def test_PUT_hearing_steal_section(valid_hearing_json, john_smith_api_client, default_hearing):
+def test_PUT_hearing_steal_section(
+    valid_hearing_json, john_smith_api_client, default_hearing
+):
     hearing = default_hearing
     hearing.save()
     other_hearing_section_id = hearing.get_main_section().id
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     data["sections"][0]["id"] = other_hearing_section_id
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=400)
-    assert ("The Hearing does not have a section with ID %s" % other_hearing_section_id) in updated_data["sections"]
+    assert (
+        "The Hearing does not have a section with ID %s" % other_hearing_section_id
+    ) in updated_data["sections"]
 
 
 # Test that hearing sections ordering is saved when updating sections
 @pytest.mark.django_db
-def test_PUT_hearing_section_ordering(valid_hearing_json, john_smith_api_client, default_hearing):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+def test_PUT_hearing_section_ordering(
+    valid_hearing_json, john_smith_api_client, default_hearing
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     reordered_sections = [
         data["sections"][0],
@@ -1657,7 +1915,9 @@ def test_PUT_hearing_section_ordering(valid_hearing_json, john_smith_api_client,
         data["sections"][1],
     ]
     data["sections"] = reordered_sections
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
     assert reordered_sections[0]["id"] == updated_data["sections"][0]["id"]
     assert reordered_sections[1]["id"] == updated_data["sections"][1]["id"]
@@ -1667,7 +1927,9 @@ def test_PUT_hearing_section_ordering(valid_hearing_json, john_smith_api_client,
 # Test that the section are deleted upon updating the hearing
 @pytest.mark.django_db
 def test_PUT_hearing_delete_sections(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
 
     closure_section_id = data["sections"][0]["id"]
@@ -1677,7 +1939,9 @@ def test_PUT_hearing_delete_sections(valid_hearing_json, john_smith_api_client):
     data["sections"] = [
         data["sections"][1],
     ]
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
     assert updated_data["created_at"] == created_at
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
@@ -1693,7 +1957,9 @@ def test_PUT_hearing_delete_sections(valid_hearing_json, john_smith_api_client):
 @pytest.mark.django_db
 def test_POST_hearing_no_main_section(valid_hearing_json, john_smith_api_client):
     del valid_hearing_json["sections"][1]
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "A hearing must have exactly one main section" in data["sections"]
 
@@ -1702,7 +1968,9 @@ def test_POST_hearing_no_main_section(valid_hearing_json, john_smith_api_client)
 @pytest.mark.django_db
 def test_POST_hearing_two_main_sections(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["sections"][2]["type"] = "main"
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "A hearing must have exactly one main section" in data["sections"]
 
@@ -1711,18 +1979,26 @@ def test_POST_hearing_two_main_sections(valid_hearing_json, john_smith_api_clien
 @pytest.mark.django_db
 def test_POST_hearing_two_closure_sections(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["sections"][2]["type"] = "closure-info"
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
-    assert "A hearing cannot have more than one closure info sections" in data["sections"]
+    assert (
+        "A hearing cannot have more than one closure info sections" in data["sections"]
+    )
 
 
 # Test that a hearing cannot be updated without 1 main section
 @pytest.mark.django_db
 def test_PUT_hearing_no_main_section(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     data["sections"][1]["type"] = "part"
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "A hearing must have exactly one main section" in data["sections"]
 
@@ -1730,10 +2006,14 @@ def test_PUT_hearing_no_main_section(valid_hearing_json, john_smith_api_client):
 # Test that a hearing cannot be updated with more than 1 main section
 @pytest.mark.django_db
 def test_PUT_hearing_two_main_sections(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     data["sections"][2]["type"] = "main"
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "A hearing must have exactly one main section" in data["sections"]
 
@@ -1741,18 +2021,28 @@ def test_PUT_hearing_two_main_sections(valid_hearing_json, john_smith_api_client
 # Test that a hearing cannot be updated with more than 1 closure-info section
 @pytest.mark.django_db
 def test_PUT_hearing_two_closure_sections(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     data["sections"][2]["type"] = "closure-info"
-    response = john_smith_api_client.put("%s%s/" % (endpoint, data["id"]), data=data, format="json")
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
-    assert "A hearing cannot have more than one closure info sections" in data["sections"]
+    assert (
+        "A hearing cannot have more than one closure info sections" in data["sections"]
+    )
 
 
 # Test that an anonymous user cannot GET an unpublished hearing
 @pytest.mark.django_db
-def test_GET_unpublished_hearing_anon_user(unpublished_hearing_json, john_smith_api_client, api_client):
-    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format="json")
+def test_GET_unpublished_hearing_anon_user(
+    unpublished_hearing_json, john_smith_api_client, api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=unpublished_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     response = api_client.get("%s%s/" % (endpoint, data["id"]), format="json")
     data = get_data_from_response(response, status_code=404)
@@ -1763,8 +2053,12 @@ def test_GET_unpublished_hearing_anon_user(unpublished_hearing_json, john_smith_
 
 # Test that a regular user cannot GET an unpublished hearing
 @pytest.mark.django_db
-def test_GET_unpublished_hearing_regular_user(unpublished_hearing_json, john_smith_api_client, john_doe_api_client):
-    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format="json")
+def test_GET_unpublished_hearing_regular_user(
+    unpublished_hearing_json, john_smith_api_client, john_doe_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=unpublished_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     response = john_doe_api_client.get("%s%s/" % (endpoint, data["id"]), format="json")
     data = get_data_from_response(response, status_code=404)
@@ -1775,13 +2069,21 @@ def test_GET_unpublished_hearing_regular_user(unpublished_hearing_json, john_smi
 
 # Test that a user cannot GET an unpublished hearing from another organization
 @pytest.mark.django_db
-def test_GET_unpublished_hearing_other_org(unpublished_hearing_json, john_smith_api_client, john_doe_api_client):
-    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format="json")
+def test_GET_unpublished_hearing_other_org(
+    unpublished_hearing_json, john_smith_api_client, john_doe_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=unpublished_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.filter(id=data["id"]).first()
-    hearing.organization = Organization.objects.create(name="The department for squirrel warfare")
+    hearing.organization = Organization.objects.create(
+        name="The department for squirrel warfare"
+    )
     hearing.save()
-    response = john_smith_api_client.get("%s%s/" % (endpoint, data["id"]), format="json")
+    response = john_smith_api_client.get(
+        "%s%s/" % (endpoint, data["id"]), format="json"
+    )
     data = get_data_from_response(response, status_code=404)
     response = john_smith_api_client.get(endpoint, format="json")
     data = get_data_from_response(response, status_code=200)
@@ -1790,13 +2092,19 @@ def test_GET_unpublished_hearing_other_org(unpublished_hearing_json, john_smith_
 
 # Test that a user cannot GET unpublished hearing without organization
 @pytest.mark.django_db
-def test_GET_unpublished_hearing_no_organization(unpublished_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format="json")
+def test_GET_unpublished_hearing_no_organization(
+    unpublished_hearing_json, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=unpublished_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     hearing = Hearing.objects.filter(id=data["id"]).first()
     hearing.organization = None
     hearing.save()
-    response = john_smith_api_client.get("%s%s/" % (endpoint, data["id"]), format="json")
+    response = john_smith_api_client.get(
+        "%s%s/" % (endpoint, data["id"]), format="json"
+    )
     data = get_data_from_response(response, status_code=404)
     response = john_smith_api_client.get(endpoint, format="json")
     data = get_data_from_response(response, status_code=200)
@@ -1806,10 +2114,14 @@ def test_GET_unpublished_hearing_no_organization(unpublished_hearing_json, john_
 # Test that a user can GET unpublished hearing from his organization
 @pytest.mark.django_db
 def test_GET_unpublished_hearing(unpublished_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=unpublished_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=unpublished_hearing_json, format="json"
+    )
     data_created = get_data_from_response(response, status_code=201)
     assert data_created["published"] is False
-    response = john_smith_api_client.get("%s%s/" % (endpoint, data_created["id"]), format="json")
+    response = john_smith_api_client.get(
+        "%s%s/" % (endpoint, data_created["id"]), format="json"
+    )
     data = get_data_from_response(response, status_code=200)
     response = john_smith_api_client.get(endpoint, format="json")
     list_data = get_data_from_response(response, status_code=200)
@@ -1820,21 +2132,33 @@ def test_GET_unpublished_hearing(unpublished_hearing_json, john_smith_api_client
 
 @pytest.mark.django_db
 def test_PATCH_hearing(valid_hearing_json, john_smith_api_client):
-    valid_hearing_json["close_at"] = datetime.datetime.now() + datetime.timedelta(days=1)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    valid_hearing_json["close_at"] = datetime.datetime.now() + datetime.timedelta(
+        days=1
+    )
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     assert data["closed"] is False
     before = datetime.datetime.now() - datetime.timedelta(days=1)
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data={"close_at": before}, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data["id"]), data={"close_at": before}, format="json"
+    )
     data = get_data_from_response(response, status_code=200)
     assert data["closed"] is True
 
 
 # Test that updating hearing with project returns a response with phases' is_active value
 @pytest.mark.django_db
-def test_PATCH_hearing_with_project_phase_is_active(valid_hearing_json_with_project, john_smith_api_client):
-    valid_hearing_json_with_project["close_at"] = datetime.datetime.now() + datetime.timedelta(days=1)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json_with_project, format="json")
+def test_PATCH_hearing_with_project_phase_is_active(
+    valid_hearing_json_with_project, john_smith_api_client
+):
+    valid_hearing_json_with_project["close_at"] = (
+        datetime.datetime.now() + datetime.timedelta(days=1)
+    )
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json_with_project, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
 
     # add is_active which is not included in POST response
@@ -1844,7 +2168,9 @@ def test_PATCH_hearing_with_project_phase_is_active(valid_hearing_json_with_proj
 
     assert data["closed"] is False
     before = datetime.datetime.now() - datetime.timedelta(days=1)
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data={"close_at": before}, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data["id"]), data={"close_at": before}, format="json"
+    )
     data = get_data_from_response(response, status_code=200)
 
     assert data["closed"] is True
@@ -1855,21 +2181,33 @@ def test_PATCH_hearing_with_project_phase_is_active(valid_hearing_json_with_proj
 # Test that a user cannot PATCH a hearing without the translation
 @pytest.mark.django_db
 def test_PATCH_hearing_untranslated(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     patch_data = {"title": data["title"]["en"]}
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data=patch_data, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data["id"]), data=patch_data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=400)
-    assert 'Not a valid translation format. Expecting {"lang_code": %s}' % patch_data["title"] in updated_data["title"]
+    assert (
+        'Not a valid translation format. Expecting {"lang_code": %s}'
+        % patch_data["title"]
+        in updated_data["title"]
+    )
 
 
 # Test that a user cannot PATCH a hearing with an unsupported language
 @pytest.mark.django_db
 def test_PATCH_hearing_unsupported_language(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     patch_data = {"title": {"fr": data["title"]["en"]}}
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data=patch_data, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data["id"]), data=patch_data, format="json"
+    )
     data = get_data_from_response(response, status_code=400)
     assert "fr is not a supported languages (['en', 'fi', 'sv'])" in data["title"]
 
@@ -1877,10 +2215,14 @@ def test_PATCH_hearing_unsupported_language(valid_hearing_json, john_smith_api_c
 # Test that a user can PATCH a translation
 @pytest.mark.django_db
 def test_PATCH_hearing_patch_language(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     patch_data = {"title": {"fi": data["title"]["en"]}}
-    response = john_smith_api_client.patch("%s%s/" % (endpoint, data["id"]), data=patch_data, format="json")
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data["id"]), data=patch_data, format="json"
+    )
     data = get_data_from_response(response, status_code=200)
     assert data["title"]["fi"] == valid_hearing_json["title"]["en"]
     assert data["title"]["en"] == valid_hearing_json["title"]["en"]
@@ -1889,7 +2231,9 @@ def test_PATCH_hearing_patch_language(valid_hearing_json, john_smith_api_client)
 
 @pytest.mark.django_db
 def test_PATCH_hearing_update_section(valid_hearing_json, john_smith_api_client):
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     response = john_smith_api_client.patch(
         "%s%s/" % (endpoint, data["id"]),
@@ -1910,26 +2254,38 @@ def test_PATCH_hearing_update_section(valid_hearing_json, john_smith_api_client)
 @pytest.mark.django_db
 def test_DELETE_unpublished_hearing(valid_hearing_json, john_smith_api_client):
     valid_hearing_json["published"] = False
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
-    response = john_smith_api_client.delete("%s%s/" % (endpoint, data["id"]), format="json")
+    response = john_smith_api_client.delete(
+        "%s%s/" % (endpoint, data["id"]), format="json"
+    )
     assert response.status_code == 200
-    response = john_smith_api_client.get("%s%s/" % (endpoint, data["id"]), format="json")
+    response = john_smith_api_client.get(
+        "%s%s/" % (endpoint, data["id"]), format="json"
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
-def test_DELETE_unpublished_hearing_with_comments(default_hearing, john_smith_api_client):
+def test_DELETE_unpublished_hearing_with_comments(
+    default_hearing, john_smith_api_client
+):
     default_hearing.published = False
     default_hearing.save()
-    response = john_smith_api_client.delete("%s%s/" % (endpoint, default_hearing.pk), format="json")
+    response = john_smith_api_client.delete(
+        "%s%s/" % (endpoint, default_hearing.pk), format="json"
+    )
     data = get_data_from_response(response, status_code=403)
     assert "Cannot DELETE hearing with comments." in data["status"]
 
 
 @pytest.mark.django_db
 def test_DELETE_published_hearing(default_hearing, john_smith_api_client):
-    response = john_smith_api_client.delete("%s%s/" % (endpoint, default_hearing.pk), format="json")
+    response = john_smith_api_client.delete(
+        "%s%s/" % (endpoint, default_hearing.pk), format="json"
+    )
     data = get_data_from_response(response, status_code=403)
     assert "Cannot DELETE published hearing." in data["status"]
 
@@ -1940,7 +2296,9 @@ def test_get_project_data_in_hearing(default_hearing, api_client):
     data = get_data_from_response(api_client.get(endpoint))
     assert data["id"] == default_hearing.id
     assert "project" in data, "hearing should contain project data"
-    assert len(data["project"]["phases"]) == 3, "default hearing should contain 3 project phases"
+    assert (
+        len(data["project"]["phases"]) == 3
+    ), "default hearing should contain 3 project phases"
     for phase in data["project"]["phases"]:
         is_active_phase = phase["id"] == default_hearing.project_phase_id
         assert phase["has_hearings"] == is_active_phase
@@ -1955,20 +2313,29 @@ def test_hearing_ids_are_audit_logged_on_map(
 ):
     feature = get_feature_with_geometry(geojson_point)
     valid_hearing_json["geojson"] = feature
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     hearing_1_data = get_data_from_response(response, status_code=201)
-    response = john_smith_api_client.post(endpoint, data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
     hearing_2_data = get_data_from_response(response, status_code=201)
 
     john_smith_api_client.get(reverse("hearing-map"))
 
     assert_audit_log_entry(
-        reverse("hearing-map"), [hearing_1_data["id"], hearing_2_data["id"]], count=3, operation=Operation.READ
+        reverse("hearing-map"),
+        [hearing_1_data["id"], hearing_2_data["id"]],
+        count=3,
+        operation=Operation.READ,
     )
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_report(api_client, default_hearing, audit_log_configure):
+def test_hearing_id_is_audit_logged_on_report(
+    api_client, default_hearing, audit_log_configure
+):
     url = reverse("hearing-report", kwargs={"pk": default_hearing.pk})
 
     api_client.get(url)
@@ -1977,7 +2344,9 @@ def test_hearing_id_is_audit_logged_on_report(api_client, default_hearing, audit
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_report_pptx(john_smith_api_client, default_hearing, audit_log_configure):
+def test_hearing_id_is_audit_logged_on_report_pptx(
+    john_smith_api_client, default_hearing, audit_log_configure
+):
     url = reverse("hearing-report-pptx", kwargs={"pk": default_hearing.pk})
 
     john_smith_api_client.get(url)
@@ -1986,7 +2355,9 @@ def test_hearing_id_is_audit_logged_on_report_pptx(john_smith_api_client, defaul
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_retrieve(api_client, default_hearing, audit_log_configure):
+def test_hearing_id_is_audit_logged_on_retrieve(
+    api_client, default_hearing, audit_log_configure
+):
     url = reverse("hearing-detail", kwargs={"pk": default_hearing.pk})
 
     api_client.get(url)
@@ -2005,7 +2376,9 @@ def test_hearing_ids_are_audit_logged_on_list(api_client, audit_log_configure):
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_create(john_smith_api_client, valid_hearing_json, audit_log_configure):
+def test_hearing_id_is_audit_logged_on_create(
+    john_smith_api_client, valid_hearing_json, audit_log_configure
+):
     url = reverse("hearing-list")
 
     response = john_smith_api_client.post(url, data=valid_hearing_json, format="json")
@@ -2015,37 +2388,55 @@ def test_hearing_id_is_audit_logged_on_create(john_smith_api_client, valid_heari
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_update_PATCH(john_smith_api_client, valid_hearing_json, audit_log_configure):
-    response = john_smith_api_client.post(reverse("hearing-list"), data=valid_hearing_json, format="json")
+def test_hearing_id_is_audit_logged_on_update_PATCH(
+    john_smith_api_client, valid_hearing_json, audit_log_configure
+):
+    response = john_smith_api_client.post(
+        reverse("hearing-list"), data=valid_hearing_json, format="json"
+    )
     patch_data = {"title": {"fi": "Title"}}
     hearing_data = get_data_from_response(response, status_code=201)
     detail_url = reverse("hearing-detail", kwargs={"pk": hearing_data["id"]})
 
     john_smith_api_client.patch(detail_url, data=patch_data, format="json")
 
-    assert_audit_log_entry(detail_url, [hearing_data["id"]], count=2, operation=Operation.UPDATE)
+    assert_audit_log_entry(
+        detail_url, [hearing_data["id"]], count=2, operation=Operation.UPDATE
+    )
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_update_PUT(john_smith_api_client, valid_hearing_json, audit_log_configure):
-    response = john_smith_api_client.post(reverse("hearing-list"), data=valid_hearing_json, format="json")
+def test_hearing_id_is_audit_logged_on_update_PUT(
+    john_smith_api_client, valid_hearing_json, audit_log_configure
+):
+    response = john_smith_api_client.post(
+        reverse("hearing-list"), data=valid_hearing_json, format="json"
+    )
     hearing_data = get_data_from_response(response, status_code=201)
     detail_url = reverse("hearing-detail", kwargs={"pk": hearing_data["id"]})
     hearing_data["title"]["fi"] = "Title"
 
     john_smith_api_client.put(detail_url, data=hearing_data, format="json")
 
-    assert_audit_log_entry(detail_url, [hearing_data["id"]], count=2, operation=Operation.UPDATE)
+    assert_audit_log_entry(
+        detail_url, [hearing_data["id"]], count=2, operation=Operation.UPDATE
+    )
 
 
 @pytest.mark.django_db
-def test_hearing_id_is_audit_logged_on_delete(john_smith_api_client, valid_hearing_json, audit_log_configure):
+def test_hearing_id_is_audit_logged_on_delete(
+    john_smith_api_client, valid_hearing_json, audit_log_configure
+):
     """Deleting an unpublished hearing should be logged."""
     valid_hearing_json["published"] = False
-    response = john_smith_api_client.post(reverse("hearing-list"), data=valid_hearing_json, format="json")
+    response = john_smith_api_client.post(
+        reverse("hearing-list"), data=valid_hearing_json, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     detail_url = reverse("hearing-detail", kwargs={"pk": data["id"]})
 
     john_smith_api_client.delete(detail_url, format="json")
 
-    assert_audit_log_entry(detail_url, [data["id"]], count=2, operation=Operation.DELETE)
+    assert_audit_log_entry(
+        detail_url, [data["id"]], count=2, operation=Operation.DELETE
+    )

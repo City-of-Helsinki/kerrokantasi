@@ -17,7 +17,16 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
     class Meta:
         model = ProjectPhase
-        fields = ("id", "description", "has_hearings", "is_active", "schedule", "title", "hearings", "ordering")
+        fields = (
+            "id",
+            "description",
+            "has_hearings",
+            "is_active",
+            "schedule",
+            "title",
+            "hearings",
+            "ordering",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -31,7 +40,9 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
         return [
             hearing.slug
             for hearing in filter_by_hearing_visible(
-                project_phase.hearings.with_unpublished(), self.context.get("request"), hearing_lookup=""
+                project_phase.hearings.with_unpublished(),
+                self.context.get("request"),
+                hearing_lookup="",
             )
         ]
 
@@ -43,7 +54,9 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
         # include is_active when updating a hearing with a project
         if self.context["request"].method in ["PUT", "PATCH"]:
-            data["is_active"] = self.context["view"].get_object().project_phase_id == instance.pk
+            data["is_active"] = (
+                self.context["view"].get_object().project_phase_id == instance.pk
+            )
 
         if "hearing" in self.context:
             data["is_active"] = self.context["hearing"].project_phase_id == instance.pk
@@ -66,7 +79,10 @@ class ProjectPhaseSerializer(serializers.ModelSerializer, TranslatableSerializer
 
 class ProjectSerializer(serializers.ModelSerializer, TranslatableSerializer):
     phases = NestedPKRelatedField(
-        queryset=ProjectPhase.objects.all(), many=True, expanded=True, serializer=ProjectPhaseSerializer
+        queryset=ProjectPhase.objects.all(),
+        many=True,
+        expanded=True,
+        serializer=ProjectPhaseSerializer,
     )
 
     class Meta:
@@ -83,7 +99,9 @@ class ProjectFieldSerializer(serializers.RelatedField):
         return ProjectSerializer(project, context=self.context).data
 
 
-class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
+class ProjectCreateUpdateSerializer(
+    serializers.ModelSerializer, TranslatableSerializer
+):
     phases = serializers.ListField(child=serializers.DictField(), write_only=True)
 
     class Meta:
@@ -98,7 +116,9 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     def validate_phases(self, data):
         if not self.instance:
             return data
-        deleted_phases = self.instance.phases.exclude(pk__in=[p["id"] for p in data if "id" in p])
+        deleted_phases = self.instance.phases.exclude(
+            pk__in=[p["id"] for p in data if "id" in p]
+        )
         for phase in deleted_phases:
             if phase.hearings.exists():
                 raise ValidationError("Can not delete phase which has hearings")
@@ -123,9 +143,15 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         for ordering, phase in enumerate(phases_data):
             phase["ordering"] = ordering + 1
         project = super().update(instance, validated_data)
-        existing_phases = {phase.pk: phase for phase in project.phases.exclude(deleted=True)}
+        existing_phases = {
+            phase.pk: phase for phase in project.phases.exclude(deleted=True)
+        }
         # create new phases
-        [self._create_phase(phase, project) for phase in phases_data if phase.get("id") not in existing_phases.keys()]
+        [
+            self._create_phase(phase, project)
+            for phase in phases_data
+            if phase.get("id") not in existing_phases.keys()
+        ]
         updated_phases = [
             self._update_phase(existing_phases[phase["id"]], phase, project)
             for phase in phases_data
@@ -142,7 +168,9 @@ class ProjectCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
         return serializer.save(project=project)
 
     def _update_phase(self, instance, phase_data, project):
-        serializer = ProjectPhaseSerializer(instance=instance, data=phase_data, context=self.context)
+        serializer = ProjectPhaseSerializer(
+            instance=instance, data=phase_data, context=self.context
+        )
         serializer.is_valid(raise_exception=True)
         return serializer.save(project=project)
 

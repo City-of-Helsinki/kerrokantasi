@@ -23,7 +23,9 @@ def get_git_revision_hash():
     """
     try:
         # We are not interested in gits complaints
-        git_hash = subprocess.check_output(["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, encoding="utf8")
+        git_hash = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, encoding="utf8"
+        )
     # ie. "git" was not found
     # should we return a more generic meta hash here?
     # like "undefined"?
@@ -148,7 +150,11 @@ SESSION_COOKIE_NAME = "{}-sessionid".format(env("COOKIE_PREFIX"))
 SESSION_COOKIE_SECURE = False if DEBUG else True
 
 # Set django FILE_UPLOAD_PERMISSIONS, parse octal value from string
-FILE_UPLOAD_PERMISSIONS = None if env("FILE_UPLOAD_PERMISSIONS") == "None" else int(env("FILE_UPLOAD_PERMISSIONS"), 8)
+FILE_UPLOAD_PERMISSIONS = (
+    None
+    if env("FILE_UPLOAD_PERMISSIONS") == "None"
+    else int(env("FILE_UPLOAD_PERMISSIONS"), 8)
+)
 
 
 # Useful when kerrokantasi API is served from a sub-path of a shared
@@ -277,7 +283,9 @@ REST_FRAMEWORK = {
     ),
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
+    ],
     "DEFAULT_VERSION": "1",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
@@ -351,7 +359,9 @@ OIDC_API_TOKEN_AUTH = {
     "AUDIENCE": env("OIDC_API_AUDIENCE"),
     "API_SCOPE_PREFIX": env("OIDC_API_SCOPE_PREFIX"),
     "API_AUTHORIZATION_FIELD": env("OIDC_API_AUTHORIZATION_FIELD"),
-    "REQUIRE_API_SCOPE_FOR_AUTHENTICATION": env("OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION"),
+    "REQUIRE_API_SCOPE_FOR_AUTHENTICATION": env(
+        "OIDC_API_REQUIRE_SCOPE_FOR_AUTHENTICATION"
+    ),
     "ISSUER": env("OIDC_API_ISSUER"),
 }
 
@@ -392,12 +402,17 @@ if not DEBUG and not SECRET_KEY:
 # expecting SECRET_KEY to stay same will break upon restart. Should not be a
 # problem for development.
 if not SECRET_KEY:
-    logger.warning("SECRET_KEY was not defined in configuration. Generating a temporary key for dev.")
+    logger.warning(
+        "SECRET_KEY was not defined in configuration. Generating a temporary key for dev."
+    )
     import random
 
     system_random = random.SystemRandom()
     SECRET_KEY = "".join(
-        [system_random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)") for i in range(64)]
+        [
+            system_random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)")
+            for i in range(64)
+        ]
     )
 
 LOGIN_URL = "/"

@@ -126,7 +126,16 @@ class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerial
 
     class Meta:
         model = SectionImage
-        fields = ["title", "url", "width", "height", "caption", "alt_text", "image", "ordering"]
+        fields = [
+            "title",
+            "url",
+            "width",
+            "height",
+            "caption",
+            "alt_text",
+            "image",
+            "ordering",
+        ]
 
 
 class SectionFileSerializer(BaseFileSerializer, TranslatableSerializer):
@@ -173,7 +182,9 @@ class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer)
                 try:
                     option = self.instance.options.get(pk=pk)
                 except SectionPollOption.DoesNotExist:
-                    raise ValidationError("The Poll does not have an option with ID %s" % repr(pk))
+                    raise ValidationError(
+                        "The Poll does not have an option with ID %s" % repr(pk)
+                    )
                 serializer_params["instance"] = option
             serializer = SectionPollOptionSerializer(**serializer_params)
             serializer.is_valid(raise_exception=True)
@@ -192,7 +203,9 @@ class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer)
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        data["options"] = SectionPollOptionSerializer(instance.options.all(), many=True).data
+        data["options"] = SectionPollOptionSerializer(
+            instance.options.all(), many=True
+        ).data
         return data
 
 
@@ -205,8 +218,12 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     files = SectionFileSerializer(many=True, read_only=True)
     questions = SectionPollSerializer(many=True, read_only=True, source="polls")
     type = serializers.SlugRelatedField(slug_field="identifier", read_only=True)
-    type_name_singular = serializers.SlugRelatedField(source="type", slug_field="name_singular", read_only=True)
-    type_name_plural = serializers.SlugRelatedField(source="type", slug_field="name_plural", read_only=True)
+    type_name_singular = serializers.SlugRelatedField(
+        source="type", slug_field="name_singular", read_only=True
+    )
+    type_name_plural = serializers.SlugRelatedField(
+        source="type", slug_field="name_plural", read_only=True
+    )
     commenting = EnumField(enum_type=Commenting)
     commenting_map_tools = EnumField(enum_type=CommentingMapTools)
     voting = EnumField(enum_type=Commenting)
@@ -244,13 +261,17 @@ class SectionFieldSerializer(serializers.RelatedField):
         return SectionSerializer(section, context=self.context).data
 
 
-class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSerializer):
+class SectionCreateUpdateSerializer(
+    serializers.ModelSerializer, TranslatableSerializer
+):
     """
     Serializer for section create/update.
     """
 
     id = serializers.CharField(required=False)
-    type = serializers.SlugRelatedField(slug_field="identifier", queryset=SectionType.objects.all())
+    type = serializers.SlugRelatedField(
+        slug_field="identifier", queryset=SectionType.objects.all()
+    )
     commenting = EnumField(enum_type=Commenting)
     voting = EnumField(enum_type=Commenting)
     commenting_map_tools = EnumField(enum_type=CommentingMapTools)
@@ -258,8 +279,12 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
     # this field is used only for incoming data validation, outgoing data is added manually
     # in to_representation()
     images = serializers.ListField(child=serializers.DictField(), write_only=True)
-    questions = serializers.ListField(child=serializers.DictField(), write_only=True, required=False)
-    files = serializers.ListField(child=serializers.DictField(), write_only=True, required=False)
+    questions = serializers.ListField(
+        child=serializers.DictField(), write_only=True, required=False
+    )
+    files = serializers.ListField(
+        child=serializers.DictField(), write_only=True, required=False
+    )
 
     class Meta:
         model = Section
@@ -314,9 +339,13 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 # Use an existing SectionImage.
                 try:
                     # only allow orphan images or images within this section already
-                    image = SectionImage.objects.filter(Q(section=None) | Q(section=self.instance)).get(pk=pk)
+                    image = SectionImage.objects.filter(
+                        Q(section=None) | Q(section=self.instance)
+                    ).get(pk=pk)
                 except SectionImage.DoesNotExist:
-                    raise ValidationError("No image with ID %s available in this section" % pk)
+                    raise ValidationError(
+                        "No image with ID %s available in this section" % pk
+                    )
             elif reference_id := image_data.get("reference_id"):
                 # Create a new SectionImage based on an existing image.
                 try:
@@ -325,7 +354,9 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                     raise ValidationError("Image %s does not exist" % reference_id)
                 image.pk = None
 
-            serializer = SectionImageCreateUpdateSerializer(data=image_data, instance=image)
+            serializer = SectionImageCreateUpdateSerializer(
+                data=image_data, instance=image
+            )
             serializer.is_valid(raise_exception=True)
 
             # save serializer in data, so it can be used when handling the images
@@ -345,9 +376,13 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 # Use an existing SectionFile.
                 try:
                     # only allow orphan files or files within this section already
-                    file = SectionFile.objects.filter(Q(section=None) | Q(section=self.instance)).get(pk=pk)
+                    file = SectionFile.objects.filter(
+                        Q(section=None) | Q(section=self.instance)
+                    ).get(pk=pk)
                 except SectionFile.DoesNotExist:
-                    raise ValidationError("No file with ID %s available in this section" % pk)
+                    raise ValidationError(
+                        "No file with ID %s available in this section" % pk
+                    )
             elif reference_id := file_data.get("reference_id"):
                 # Create a new SectionFile based on an existing file.
                 try:
@@ -357,7 +392,9 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 file.pk = None
 
             serializer = RootFileBase64Serializer(
-                data=file_data, instance=file, context={"request": self.context["request"]}
+                data=file_data,
+                instance=file,
+                context={"request": self.context["request"]},
             )
             serializer.is_valid(raise_exception=True)
 
@@ -400,10 +437,15 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
             old_poll_data = SectionPollSerializer(poll).data
             assert compare_serialized(old_poll_data["text"], poll_data["text"])
             assert len(old_poll_data["options"]) == len(poll_data["options"])
-            for old_option, option in zip(old_poll_data["options"], poll_data["options"]):
+            for old_option, option in zip(
+                old_poll_data["options"], poll_data["options"]
+            ):
                 assert compare_serialized(old_option["text"], option["text"])
         except AssertionError:
-            raise ValidationError("Poll with ID %s has answers - editing it is not allowed" % repr(poll.pk))
+            raise ValidationError(
+                "Poll with ID %s has answers - editing it is not allowed"
+                % repr(poll.pk)
+            )
 
     def validate_questions(self, data):
         for index, poll_data in enumerate(data):
@@ -414,7 +456,9 @@ class SectionCreateUpdateSerializer(serializers.ModelSerializer, TranslatableSer
                 try:
                     poll = self.instance.polls.get(pk=pk)
                 except SectionPoll.DoesNotExist:
-                    raise ValidationError("The Section does not have a poll with ID %s" % repr(pk))
+                    raise ValidationError(
+                        "The Section does not have a poll with ID %s" % repr(pk)
+                    )
                 self._validate_question_update(poll_data, poll)
                 serializer_params["instance"] = poll
             serializer = SectionPollSerializer(**serializer_params)
@@ -460,11 +504,15 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
             )
         )
         if not hearing.closed:
-            queryset = queryset.exclude(type__identifier=InitialSectionType.CLOSURE_INFO)
+            queryset = queryset.exclude(
+                type__identifier=InitialSectionType.CLOSURE_INFO
+            )
         return queryset
 
 
-class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpdateSerializer):
+class RootSectionImageSerializer(
+    ThumbnailImageSerializer, SectionImageCreateUpdateSerializer
+):
     """
     Serializer for root level SectionImage endpoint /v1/image/
     """
@@ -478,19 +526,30 @@ class RootSectionImageSerializer(ThumbnailImageSerializer, SectionImageCreateUpd
                 self.fields["section"].required = False
 
     class Meta(SectionImageCreateUpdateSerializer.Meta):
-        fields = SectionImageCreateUpdateSerializer.Meta.fields + ["id", "section", "hearing", "ordering"]
+        fields = SectionImageCreateUpdateSerializer.Meta.fields + [
+            "id",
+            "section",
+            "hearing",
+            "ordering",
+        ]
 
     @transaction.atomic()
     def create(self, validated_data):
         section_image = super().create(validated_data)
         section_images = section_image.section.images.all()
         if section_images.exists():
-            section_image.ordering = section_images.aggregate(Max("ordering"))["ordering__max"] + 1
+            section_image.ordering = (
+                section_images.aggregate(Max("ordering"))["ordering__max"] + 1
+            )
             section_image.save()
         return section_image
 
     def to_internal_value(self, value):
-        if self.instance and "image" in value and self.get_url(self.instance) == value["image"]:
+        if (
+            self.instance
+            and "image" in value
+            and self.get_url(self.instance) == value["image"]
+        ):
             # do not try to save the local path in the field
             del value["image"]
         ret = super().to_internal_value(value)
@@ -515,13 +574,21 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_queryset(self):
-        queryset = super().get_queryset().select_related("section__hearing").prefetch_related("translations")
+        queryset = (
+            super()
+            .get_queryset()
+            .select_related("section__hearing")
+            .prefetch_related("translations")
+        )
         queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing")
         return queryset.filter(deleted=False)
 
     def _is_user_organisation_admin(self, section):
         target_org = section.hearing.organization
-        return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+        return (
+            target_org
+            and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+        )
 
     def perform_create(self, serializer):
         if self._is_user_organisation_admin(serializer.validated_data["section"]):
@@ -544,7 +611,9 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
 
 class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
     filetype = "sectionfile"
-    hearing = serializers.CharField(source="section.hearing_id", read_only=True, allow_null=True)
+    hearing = serializers.CharField(
+        source="section.hearing_id", read_only=True, allow_null=True
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -554,7 +623,16 @@ class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
 
     class Meta:
         model = SectionFile
-        fields = ["id", "title", "caption", "file", "ordering", "section", "hearing", "url"]
+        fields = [
+            "id",
+            "title",
+            "caption",
+            "file",
+            "ordering",
+            "section",
+            "hearing",
+            "url",
+        ]
 
     @transaction.atomic()
     def create(self, validated_data):
@@ -564,22 +642,32 @@ class RootFileSerializer(BaseFileSerializer, TranslatableSerializer):
 
     @transaction.atomic()
     def update(self, instance, validated_data):
-        is_section_changed = instance.section != validated_data.get("section", instance.section)
+        is_section_changed = instance.section != validated_data.get(
+            "section", instance.section
+        )
         section_file = super().update(instance, validated_data)
         if is_section_changed:
             self._update_ordering(section_file)
         return section_file
 
     def _update_ordering(self, section_file):
-        existing_section_files = SectionFile.objects.filter(section=section_file.section).exclude(pk=section_file.pk)
+        existing_section_files = SectionFile.objects.filter(
+            section=section_file.section
+        ).exclude(pk=section_file.pk)
         if section_file.section and existing_section_files.exists():
-            section_file.ordering = existing_section_files.aggregate(Max("ordering"))["ordering__max"] + 1
+            section_file.ordering = (
+                existing_section_files.aggregate(Max("ordering"))["ordering__max"] + 1
+            )
         else:
             section_file.ordering = 1
         section_file.save()
 
     def to_internal_value(self, value):
-        if self.instance and "file" in value and self.get_url(self.instance) == value["file"]:
+        if (
+            self.instance
+            and "file" in value
+            and self.get_url(self.instance) == value["file"]
+        ):
             # do not try to save the protected local path in the field
             del value["file"]
         ret = super().to_internal_value(value)
@@ -603,14 +691,18 @@ class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelView
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def get_serializer_class(self):
-        if "CONTENT_TYPE" in self.request.META and self.request.META["CONTENT_TYPE"].startswith("multipart"):
+        if "CONTENT_TYPE" in self.request.META and self.request.META[
+            "CONTENT_TYPE"
+        ].startswith("multipart"):
             # multipart requests go to non-base64 serializer
             return RootFileSerializer
         return RootFileBase64Serializer
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing", include_orphans=True)
+        queryset = filter_by_hearing_visible(
+            queryset, self.request, "section__hearing", include_orphans=True
+        )
         return queryset.filter(deleted=False)
 
     def perform_create(self, serializer):
@@ -640,7 +732,12 @@ class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelView
     def _is_user_organisation_admin(self, user, section=None):
         if section:
             target_org = section.hearing.organization
-            return target_org and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+            return (
+                target_org
+                and self.request.user.admin_organizations.filter(
+                    id=target_org.id
+                ).exists()
+            )
         else:
             return self.request.user.admin_organizations.exists()
 
@@ -651,9 +748,9 @@ class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelView
         # section file can be put to another section if admin in both previous and next org
         section = serializer.validated_data.get("section")
         instance = serializer.instance
-        return self._is_user_organisation_admin(user, section) and self._is_user_organisation_admin(
-            user, instance.section
-        )
+        return self._is_user_organisation_admin(
+            user, section
+        ) and self._is_user_organisation_admin(user, instance.section)
 
     def _can_user_destroy(self, user, instance):
         # organisation admin can destroy a file with a section,
@@ -680,7 +777,12 @@ class SectionFilterSet(django_filters.rest_framework.FilterSet):
 
 
 def show_unpublished_for_request(request):
-    return request and request.user and request.user.is_authenticated and request.user.is_superuser
+    return (
+        request
+        and request.user
+        and request.user.is_authenticated
+        and request.user.is_superuser
+    )
 
 
 def image_qs_for_request(request):
@@ -718,8 +820,14 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
         queryset = filter_by_hearing_visible(queryset, self.request)
 
         n = now()
-        open_hearings = Q(hearing__force_closed=False) & Q(hearing__open_at__lte=n) & Q(hearing__close_at__gt=n)
-        queryset = queryset.exclude(open_hearings, type__identifier=InitialSectionType.CLOSURE_INFO)
+        open_hearings = (
+            Q(hearing__force_closed=False)
+            & Q(hearing__open_at__lte=n)
+            & Q(hearing__close_at__gt=n)
+        )
+        queryset = queryset.exclude(
+            open_hearings, type__identifier=InitialSectionType.CLOSURE_INFO
+        )
 
         return queryset
 
@@ -739,7 +847,9 @@ class ServeFileView(View, SingleObjectMixin):
 
     def get_queryset(self):
         queryset = super(ServeFileView, self).get_queryset()
-        queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing", include_orphans=True)
+        queryset = filter_by_hearing_visible(
+            queryset, self.request, "section__hearing", include_orphans=True
+        )
         return queryset.filter(deleted=False)
 
     def get(self, request, *args, **kwargs):

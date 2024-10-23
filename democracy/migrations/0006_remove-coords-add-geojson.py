@@ -6,23 +6,24 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0005_lengthen_author_name_and_title'),
+        ("democracy", "0005_lengthen_author_name_and_title"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='hearing',
-            name='latitude',
+            model_name="hearing",
+            name="latitude",
         ),
         migrations.RemoveField(
-            model_name='hearing',
-            name='longitude',
+            model_name="hearing",
+            name="longitude",
         ),
         migrations.AlterField(
-            model_name='hearing',
-            name='geojson',
-            field=djgeojson.fields.GeometryField(blank=True, null=True, verbose_name='area'),
+            model_name="hearing",
+            name="geojson",
+            field=djgeojson.fields.GeometryField(
+                blank=True, null=True, verbose_name="area"
+            ),
         ),
     ]

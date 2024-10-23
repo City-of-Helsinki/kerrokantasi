@@ -13,26 +13,25 @@ def forwards(apps, schema_editor):
     """
     Add slugs to existing Hearings.
     """
-    hearing_model = apps.get_model('democracy', 'Hearing')
+    hearing_model = apps.get_model("democracy", "Hearing")
     for hearing in hearing_model.objects.all():
-
         # populate slugs from ids to avoid collisions which aren't easy to deal with here
-        hearing.slug = hearing._meta.get_field('slug').slugify(hearing.id)
-        hearing.save(update_fields=('slug',))
+        hearing.slug = hearing._meta.get_field("slug").slugify(hearing.id)
+        hearing.save(update_fields=("slug",))
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0011_contentless_comments'),
+        ("democracy", "0011_contentless_comments"),
     ]
 
     operations = [
-
         migrations.AddField(
-            model_name='hearing',
-            name='slug',
-            field=autoslug.fields.AutoSlugField(verbose_name='slug', editable=True, blank=True, populate_from='title'),
+            model_name="hearing",
+            name="slug",
+            field=autoslug.fields.AutoSlugField(
+                verbose_name="slug", editable=True, blank=True, populate_from="title"
+            ),
         ),
         migrations.RunPython(forwards, backwards),
     ]

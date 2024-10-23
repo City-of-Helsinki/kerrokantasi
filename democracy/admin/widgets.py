@@ -29,7 +29,10 @@ class Select2SelectMultiple(SelectMultiple):
     @property
     def media(self):
         return forms.Media(
-            js=[static("admin/hoist-jquery.js"), static("admin/select2/select2.min.js")],
+            js=[
+                static("admin/hoist-jquery.js"),
+                static("admin/select2/select2.min.js"),
+            ],
             css={"all": [static("admin/select2/select2.min.css")]},
         )
 

@@ -22,7 +22,9 @@ from rest_framework.relations import (
 from rest_framework.utils import encoders
 
 
-def get_translation_list(obj, language_codes=[lang["code"] for lang in settings.PARLER_LANGUAGES[None]]):
+def get_translation_list(
+    obj, language_codes=[lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
+):
     """
     This method uses translation_list attribute created by Prefetch to obtain translations without database hit.
 
@@ -32,9 +34,15 @@ def get_translation_list(obj, language_codes=[lang["code"] for lang in settings.
     """
     prefetched_translations = getattr(obj, "translation_list", [])
     filtered_prefetched = [
-        translation for translation in prefetched_translations if translation.language_code in language_codes
+        translation
+        for translation in prefetched_translations
+        if translation.language_code in language_codes
     ]
-    return filtered_prefetched if prefetched_translations else obj.translations.filter(language_code__in=language_codes)
+    return (
+        filtered_prefetched
+        if prefetched_translations
+        else obj.translations.filter(language_code__in=language_codes)
+    )
 
 
 def compare_serialized(a, b):
@@ -59,7 +67,9 @@ class AbstractFieldSerializer(serializers.RelatedField):
         return cls.many_field_class(**list_kwargs)
 
 
-def filter_by_hearing_visible(queryset, request, hearing_lookup="hearing", include_orphans=False):
+def filter_by_hearing_visible(
+    queryset, request, hearing_lookup="hearing", include_orphans=False
+):
     if hearing_lookup:
         hearing_lookup = "%s__" % hearing_lookup
 
@@ -98,8 +108,12 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
     Default serializing is expanded=false.
     """
 
-    invalid_format_error = _("Incorrect format. Expected dictionary, received %(data)s.")
-    missing_id_error = _('The primary key is missing. Expected {"id": id, ...}, received %(data)s.')
+    invalid_format_error = _(
+        "Incorrect format. Expected dictionary, received %(data)s."
+    )
+    missing_id_error = _(
+        'The primary key is missing. Expected {"id": id, ...}, received %(data)s.'
+    )
 
     def __init__(self, *args, **kwargs):
         self.related_serializer = kwargs.pop("serializer", None)
@@ -121,7 +135,9 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
 
     def to_internal_value(self, value):
         if not isinstance(value, dict):
-            raise ValidationError(self.invalid_format_error % {"data": type(value).__name__})
+            raise ValidationError(
+                self.invalid_format_error % {"data": type(value).__name__}
+            )
         if "id" not in value:
             raise ValidationError(self.missing_id_error % {"data": value})
 
@@ -142,7 +158,10 @@ class GeoJSONField(serializers.JSONField):
         gc = GeometryCollection()
 
         if "type" not in data:
-            raise ValidationError('Invalid geojson format. "type" field is required. Got %(data)s' % {"data": data})
+            raise ValidationError(
+                'Invalid geojson format. "type" field is required. Got %(data)s'
+                % {"data": data}
+            )
 
         supported_types = [
             "Feature",
@@ -157,7 +176,8 @@ class GeoJSONField(serializers.JSONField):
         if data["type"] not in supported_types:
             raise ValidationError(
                 "Invalid geojson format. Type is not supported."
-                "Supported types are %(types)s. Got %(data)s" % {"types": ", ".join(supported_types), "data": data}
+                "Supported types are %(types)s. Got %(data)s"
+                % {"types": ", ".join(supported_types), "data": data}
             )
 
         try:
@@ -201,13 +221,21 @@ class Base64ImageField(serializers.ImageField):
 
             ext = format.split("/")[-1]  # guess file extension
 
-            data = ContentFile(base64.b64decode(imgstr), name="%s.%s" % (get_random_string(8), ext))
+            data = ContentFile(
+                base64.b64decode(imgstr), name="%s.%s" % (get_random_string(8), ext)
+            )
 
             # Do not limit image size if there is no settings for that
             if data.size <= getattr(settings, "MAX_IMAGE_SIZE", data.size):
                 return super(Base64ImageField, self).to_internal_value(data)
             else:
-                raise ValidationError(_("Image size should be smaller than {} bytes.".format(settings.MAX_IMAGE_SIZE)))
+                raise ValidationError(
+                    _(
+                        "Image size should be smaller than {} bytes.".format(
+                            settings.MAX_IMAGE_SIZE
+                        )
+                    )
+                )
         raise ValidationError(_('Invalid content. Expected "data:image"'))
 
 
@@ -222,13 +250,21 @@ class Base64FileField(serializers.FileField):
 
             ext = format.split("/")[-1]  # guess file extension
 
-            data = ContentFile(base64.b64decode(filestr), name="%s.%s" % (get_random_string(8), ext))
+            data = ContentFile(
+                base64.b64decode(filestr), name="%s.%s" % (get_random_string(8), ext)
+            )
 
             # Do not limit file size if there is no settings for that
             if data.size <= getattr(settings, "MAX_FILE_SIZE", data.size):
                 return super().to_internal_value(data)
             else:
-                raise ValidationError(_("File size should be smaller than {} bytes.".format(settings.MAX_FILE_SIZE)))
+                raise ValidationError(
+                    _(
+                        "File size should be smaller than {} bytes.".format(
+                            settings.MAX_FILE_SIZE
+                        )
+                    )
+                )
         raise ValidationError(_('Invalid content. Expected "data:application"'))
 
 
@@ -246,14 +282,22 @@ class TranslatableSerializer(serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         self.Meta.translated_fields = [
-            field for field in self.Meta.model._parler_meta._fields_to_model if field in self.Meta.fields
+            field
+            for field in self.Meta.model._parler_meta._fields_to_model
+            if field in self.Meta.fields
         ]
-        non_translated_fields = [field for field in self.Meta.fields if field not in self.Meta.translated_fields]
+        non_translated_fields = [
+            field
+            for field in self.Meta.fields
+            if field not in self.Meta.translated_fields
+        ]
         self.Meta.fields = non_translated_fields
         super(TranslatableSerializer, self).__init__(*args, **kwargs)
         self.Meta.fields = non_translated_fields + self.Meta.translated_fields
         if not hasattr(self.Meta, "translation_lang"):
-            self.Meta.translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
+            self.Meta.translation_lang = [
+                lang["code"] for lang in settings.PARLER_LANGUAGES[None]
+            ]
 
     def _update_lang(self, ret, field, value, lang_code):
         if not ret.get(field) or isinstance(ret[field], str):
@@ -265,22 +309,29 @@ class TranslatableSerializer(serializers.Serializer):
     def to_representation(self, instance):
         ret = super(TranslatableSerializer, self).to_representation(instance)
         # enforce consistent order of translations in the API
-        translations = instance.translations.filter(language_code__in=self.Meta.translation_lang).order_by(
-            "language_code"
-        )
+        translations = instance.translations.filter(
+            language_code__in=self.Meta.translation_lang
+        ).order_by("language_code")
 
         for translation in translations:
             for field in self.Meta.translated_fields:
-                self._update_lang(ret, field, getattr(translation, field), translation.language_code)
+                self._update_lang(
+                    ret, field, getattr(translation, field), translation.language_code
+                )
         return ret
 
     def _validate_translated_field(self, field, data):
-        assert field in self.Meta.translated_fields, "%s is not a translated field" % field
+        assert field in self.Meta.translated_fields, (
+            "%s is not a translated field" % field
+        )
         if data is None:
             return
         if not isinstance(data, dict):
             raise ValidationError(
-                _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {"data": data})
+                _(
+                    'Not a valid translation format. Expecting {"lang_code": %(data)s}'
+                    % {"data": data}
+                )
             )
         for lang in data:
             if lang not in self.Meta.translation_lang:
@@ -326,13 +377,17 @@ class TranslatableSerializer(serializers.Serializer):
                         ret[field] = json.loads(v)
                     except json.decoder.JSONDecodeError:
                         errors[field] = _(
-                            'Not a valid translation format. Expecting {"lang_code": %(data)s}' % {"data": v}
+                            'Not a valid translation format. Expecting {"lang_code": %(data)s}'
+                            % {"data": v}
                         )
                 elif isinstance(v, dict):
                     # as well as JSON objects
                     ret[field] = v
                 else:
-                    errors[field] = _('Not a valid translation format. Expecting {"lang_code": %(data)s}' % {"data": v})
+                    errors[field] = _(
+                        'Not a valid translation format. Expecting {"lang_code": %(data)s}'
+                        % {"data": v}
+                    )
 
         if errors:
             # can't raise ValidationError here
@@ -371,10 +426,14 @@ class TranslatableSerializer(serializers.Serializer):
         for field in self.Meta.translated_fields:
             translations = {}
             if not self.partial:
-                translations = {lang_code: "" for lang_code in self.Meta.translation_lang}
+                translations = {
+                    lang_code: "" for lang_code in self.Meta.translation_lang
+                }
             translations.update(translated_data.get(field, {}))
 
             for lang_code, value in translations.items():
-                translation = instance._get_translated_model(lang_code, auto_create=True)
+                translation = instance._get_translated_model(
+                    lang_code, auto_create=True
+                )
                 setattr(translation, field, value)
         instance.save_translations()

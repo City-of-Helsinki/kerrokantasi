@@ -13,7 +13,7 @@ def get_geometry_from_geojson(geojson):
     if geojson is None:
         return None
 
-    geometry_data = geojson.get('geometry', None) or geojson
+    geometry_data = geojson.get("geometry", None) or geojson
     geometry = GEOSGeometry(json.dumps(geometry_data))
     gc.append(geometry)
 
@@ -21,23 +21,24 @@ def get_geometry_from_geojson(geojson):
 
 
 def hearings_geometry_migration(apps, schema_editor):
-    Hearing = apps.get_model('democracy', 'Hearing')
+    Hearing = apps.get_model("democracy", "Hearing")
     for hearing in Hearing.objects.filter(geojson__isnull=False):
         hearing.geometry = get_geometry_from_geojson(hearing.geojson)
         hearing.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0053_auto_20200813_1112'),
+        ("democracy", "0053_auto_20200813_1112"),
     ]
 
     operations = [
         migrations.RunPython(hearings_geometry_migration),
         migrations.AlterField(
-            model_name='hearing',
-            name='geometry',
-            field=django.contrib.gis.db.models.fields.GeometryCollectionField(blank=True, null=True, srid=4326, verbose_name='area geometry'),
+            model_name="hearing",
+            name="geometry",
+            field=django.contrib.gis.db.models.fields.GeometryCollectionField(
+                blank=True, null=True, srid=4326, verbose_name="area geometry"
+            ),
         ),
     ]

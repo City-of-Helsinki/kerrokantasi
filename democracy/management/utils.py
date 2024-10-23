@@ -11,5 +11,7 @@ def nuke(command_options):
         if os.path.isfile(db_file):
             os.unlink(db_file)
     else:
-        raise NotImplementedError("Not implemented -- dunno how to nuke %s" % default_db)
+        raise NotImplementedError(
+            "Not implemented -- dunno how to nuke %s" % default_db
+        )
     call_command("migrate", **command_options.copy())

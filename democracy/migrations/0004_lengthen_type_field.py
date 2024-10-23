@@ -15,15 +15,16 @@ class SectionType(Enum):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0003_usability'),
+        ("democracy", "0003_usability"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='section',
-            name='type',
-            field=enumfields.fields.EnumField(default='plain', enum=SectionType, max_length=64, verbose_name='type'),
+            model_name="section",
+            name="type",
+            field=enumfields.fields.EnumField(
+                default="plain", enum=SectionType, max_length=64, verbose_name="type"
+            ),
         ),
     ]

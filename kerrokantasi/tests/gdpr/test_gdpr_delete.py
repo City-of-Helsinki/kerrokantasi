@@ -35,7 +35,11 @@ def do_delete(
             request_kwargs["data"] = data
 
         return api_client.delete(
-            reverse("helsinki_gdpr:gdpr_v1", kwargs={settings.GDPR_API_MODEL_LOOKUP: id_value}) + query,
+            reverse(
+                "helsinki_gdpr:gdpr_v1",
+                kwargs={settings.GDPR_API_MODEL_LOOKUP: id_value},
+            )
+            + query,
             **request_kwargs,
         )
 

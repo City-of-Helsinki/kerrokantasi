@@ -32,14 +32,20 @@ router.register(r"organization", OrganizationViewSet, basename="organization")
 hearing_child_router = routers.NestedSimpleRouter(router, r"hearing", lookup="hearing")
 hearing_child_router.register(r"sections", SectionViewSet, basename="sections")
 
-section_comments_router = routers.NestedSimpleRouter(hearing_child_router, r"sections", lookup="comment_parent")
-section_comments_router.register(r"comments", SectionCommentViewSet, basename="comments")
+section_comments_router = routers.NestedSimpleRouter(
+    hearing_child_router, r"sections", lookup="comment_parent"
+)
+section_comments_router.register(
+    r"comments", SectionCommentViewSet, basename="comments"
+)
 
 urlpatterns = [
     path("", include(router.urls)),
     path("", include(hearing_child_router.urls)),
     path("", include(section_comments_router.urls)),
     re_path(
-        r"^download/(?P<filetype>sectionfile|sectionimage)/(?P<pk>\d+)/$", ServeFileView.as_view(), name="serve_file"
+        r"^download/(?P<filetype>sectionfile|sectionimage)/(?P<pk>\d+)/$",
+        ServeFileView.as_view(),
+        name="serve_file",
     ),
 ]

@@ -6,15 +6,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0039_add_projects'),
+        ("democracy", "0039_add_projects"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hearing',
-            name='project_phase',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='hearings', to='democracy.ProjectPhase', verbose_name='project phase'),
+            model_name="hearing",
+            name="project_phase",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="hearings",
+                to="democracy.ProjectPhase",
+                verbose_name="project phase",
+            ),
         ),
     ]

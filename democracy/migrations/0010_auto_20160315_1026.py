@@ -5,20 +5,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0009_section_type_model'),
+        ("democracy", "0009_section_type_model"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hearingcomment',
-            name='authorization_code',
-            field=models.CharField(blank=True, max_length=32, verbose_name='authorization code'),
+            model_name="hearingcomment",
+            name="authorization_code",
+            field=models.CharField(
+                blank=True, max_length=32, verbose_name="authorization code"
+            ),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='authorization_code',
-            field=models.CharField(blank=True, max_length=32, verbose_name='authorization code'),
+            model_name="sectioncomment",
+            name="authorization_code",
+            field=models.CharField(
+                blank=True, max_length=32, verbose_name="authorization code"
+            ),
         ),
     ]

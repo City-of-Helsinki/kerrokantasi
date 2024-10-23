@@ -6,15 +6,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0041_add_file_models'),
+        ("democracy", "0041_add_file_models"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectionfile',
-            name='section',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='files', to='democracy.Section'),
+            model_name="sectionfile",
+            name="section",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="files",
+                to="democracy.Section",
+            ),
         ),
     ]

@@ -42,7 +42,11 @@ def default_organization():
 @pytest.fixture()
 def contact_person(default_organization):
     return ContactPerson.objects.create(
-        name="John Contact", title="Chief", phone="555-555", email="john@contact.eu", organization=default_organization
+        name="John Contact",
+        title="Chief",
+        phone="555-555",
+        email="john@contact.eu",
+        organization=default_organization,
     )
 
 
@@ -63,7 +67,9 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 4):
-        section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        section_type = (
+            InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        )
         section = Section.objects.create(
             abstract="Section %d abstract" % x,
             hearing=hearing,
@@ -73,9 +79,13 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
         )
         create_default_images(section)
         create_default_files(section)
-        section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=default_comment_content[::-1]
+        )
         section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
-        section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=green_comment_content[::-1]
+        )
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
@@ -100,14 +110,21 @@ def comment_image(default_hearing):
 
 
 @pytest.fixture()
-def hearing__with_4_different_commenting(john_doe, contact_person, default_organization, default_project):
+def hearing__with_4_different_commenting(
+    john_doe, contact_person, default_organization, default_project
+):
     """
     Fixture for a "default" hearing with four sections (one main, three other sections).
     All objects will have the 3 default images attached.
     All objects will have commenting_map_tools all.
     Each section will have a different commenting rule.
     """
-    commenting_restrictions = [Commenting.NONE, Commenting.OPEN, Commenting.REGISTERED, Commenting.STRONG]
+    commenting_restrictions = [
+        Commenting.NONE,
+        Commenting.OPEN,
+        Commenting.REGISTERED,
+        Commenting.STRONG,
+    ]
     hearing = Hearing.objects.create(
         title="Default test hearing One",
         open_at=now() - datetime.timedelta(days=1),
@@ -117,7 +134,9 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 5):
-        section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        section_type = (
+            InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        )
         section = Section.objects.create(
             abstract="Section %d abstract" % x,
             hearing=hearing,
@@ -127,9 +146,13 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
         )
         create_default_images(section)
         create_default_files(section)
-        section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=default_comment_content[::-1]
+        )
         section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
-        section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=green_comment_content[::-1]
+        )
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
@@ -168,7 +191,9 @@ def hearing_without_comments(contact_person, default_organization, default_proje
 
 
 @pytest.fixture()
-def hearing_with_comments_on_comments(jane_doe, john_doe, contact_person, default_organization, default_project):
+def hearing_with_comments_on_comments(
+    jane_doe, john_doe, contact_person, default_organization, default_project
+):
     """
     Fixture for a simple hearing with comments that have replies.
     """
@@ -191,14 +216,22 @@ def hearing_with_comments_on_comments(jane_doe, john_doe, contact_person, defaul
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
     hearing.contact_persons.add(contact_person)
-    parent_comment = section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
-    parent_comment.comments.create(created_by=jane_doe, content=default_comment_content[::-1], section=section)
-    parent_comment.comments.create(created_by=john_doe, content=default_comment_content[::-1], section=section)
+    parent_comment = section.comments.create(
+        created_by=john_doe, content=default_comment_content[::-1]
+    )
+    parent_comment.comments.create(
+        created_by=jane_doe, content=default_comment_content[::-1], section=section
+    )
+    parent_comment.comments.create(
+        created_by=john_doe, content=default_comment_content[::-1], section=section
+    )
     return hearing
 
 
 @pytest.fixture()
-def strong_auth_hearing(john_doe, contact_person, default_organization, default_project):
+def strong_auth_hearing(
+    john_doe, contact_person, default_organization, default_project
+):
     """
     Fixture for a "strong auth requiring" hearing with one main section.
     Commenting requires strong auth.
@@ -266,7 +299,9 @@ def john_doe():
     """
     user = get_user_model().objects.filter(username="john_doe").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("john_doe", "john@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "john_doe", "john@example.com", password="password"
+        )
     return user
 
 
@@ -288,7 +323,9 @@ def jane_doe():
     """
     user = get_user_model().objects.filter(username="jane_doe").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("jane_doe", "jane@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "jane_doe", "jane@example.com", password="password"
+        )
     return user
 
 
@@ -310,7 +347,9 @@ def stark_doe():
     """
     user = get_user_model().objects.filter(username="stark_doe").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("stark_doe", "stark@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "stark_doe", "stark@example.com", password="password"
+        )
     return user
 
 
@@ -334,7 +373,9 @@ def john_smith(default_organization):
     """
     user = get_user_model().objects.filter(username="john_smith").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("john_smith", "john_smith@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "john_smith", "john_smith@example.com", password="password"
+        )
         user.admin_organizations.add(default_organization)
     return user
 
@@ -357,7 +398,9 @@ def steve_staff(default_organization):
     """
     user = get_user_model().objects.filter(username="steve_staff").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("steve_staff", "staff_steve@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "steve_staff", "staff_steve@example.com", password="password"
+        )
         user.is_staff = True
         user.admin_organizations.add(default_organization)
     return user
@@ -406,7 +449,10 @@ def geojson_point():
 
 @pytest.fixture()
 def geojson_multipoint():
-    return {"type": "MultiPoint", "coordinates": [[24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]]}
+    return {
+        "type": "MultiPoint",
+        "coordinates": [[24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]],
+    }
 
 
 @pytest.fixture()

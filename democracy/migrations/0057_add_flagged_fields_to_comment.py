@@ -6,21 +6,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('democracy', '0056_comment_delete_reason'),
+        ("democracy", "0056_comment_delete_reason"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sectioncomment',
-            name='flagged_at',
-            field=models.DateTimeField(blank=True, default=None, editable=False, null=True),
+            model_name="sectioncomment",
+            name="flagged_at",
+            field=models.DateTimeField(
+                blank=True, default=None, editable=False, null=True
+            ),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='flagged_by',
-            field=models.ForeignKey(blank=True, editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='sectioncomment_flagged', to=settings.AUTH_USER_MODEL),
+            model_name="sectioncomment",
+            name="flagged_by",
+            field=models.ForeignKey(
+                blank=True,
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="sectioncomment_flagged",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
     ]

@@ -10,10 +10,14 @@ class ForeignKeyListSerializer(serializers.ReadOnlyField):
 
 
 class UserDataSerializer(serializers.ModelSerializer):
-    voted_section_comments = ForeignKeyListSerializer(source="voted_democracy_sectioncomment")
+    voted_section_comments = ForeignKeyListSerializer(
+        source="voted_democracy_sectioncomment"
+    )
     answered_questions = serializers.SerializerMethodField(read_only=True)
     followed_hearings = ForeignKeyListSerializer()
-    admin_organizations = serializers.SlugRelatedField("name", many=True, read_only=True)
+    admin_organizations = serializers.SlugRelatedField(
+        "name", many=True, read_only=True
+    )
 
     class Meta:
         model = get_user_model()
@@ -31,7 +35,9 @@ class UserDataSerializer(serializers.ModelSerializer):
         ]
 
     def get_answered_questions(self, obj):
-        return SectionPollAnswer.objects.filter(comment__created_by=obj).values_list("option__poll_id", flat=True)
+        return SectionPollAnswer.objects.filter(comment__created_by=obj).values_list(
+            "option__poll_id", flat=True
+        )
 
 
 class UserDataViewSet(viewsets.ReadOnlyModelViewSet):

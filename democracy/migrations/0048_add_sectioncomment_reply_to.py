@@ -5,15 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0047_add_organization_and_pinned_to_comment'),
+        ("democracy", "0047_add_organization_and_pinned_to_comment"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sectioncomment',
-            name='reply_to',
-            field=models.CharField(blank=True, max_length=255, verbose_name='reply to'),
+            model_name="sectioncomment",
+            name="reply_to",
+            field=models.CharField(blank=True, max_length=255, verbose_name="reply to"),
         ),
     ]

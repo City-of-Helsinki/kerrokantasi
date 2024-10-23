@@ -26,4 +26,6 @@ def get_settings(settings_module):
     :return: Dict of settings
     :rtype: dict[str, object]
     """
-    return copy.deepcopy({k: v for (k, v) in vars(settings_module).items() if k.isupper()})
+    return copy.deepcopy(
+        {k: v for (k, v) in vars(settings_module).items() if k.isupper()}
+    )

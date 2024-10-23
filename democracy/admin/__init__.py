@@ -47,7 +47,9 @@ class FixedModelForm(TranslatableModelForm):
     def __init__(self, *args, **kwargs):
         super(FixedModelForm, self).__init__(*args, **kwargs)
 
-        msg = force_text(_('Hold down "Control", or "Command" on a Mac, to select more than one.'))
+        msg = force_text(
+            _('Hold down "Control", or "Command" on a Mac, to select more than one.')
+        )
 
         for name, field in self.fields.items():
             if isinstance(field, GeoJSONFormField):
@@ -92,7 +94,9 @@ class SectionInlineFormSet(TranslatableBaseInlineFormSet):
             raise ValidationError(_("There must be exactly one main section."))
 
         if closure_infos > 1:
-            raise ValidationError(_("There cannot be more than one closure info section."))
+            raise ValidationError(
+                _("There cannot be more than one closure info section.")
+            )
 
 
 class SectionInline(NestedStackedInline, TranslatableStackedInline):
@@ -115,9 +119,13 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
             kwargs["initial"] = _("Enter text here.")
         if not getattr(obj, "pk", None):
             if db_field.name == "type":
-                kwargs["initial"] = models.SectionType.objects.get(identifier=InitialSectionType.MAIN)
+                kwargs["initial"] = models.SectionType.objects.get(
+                    identifier=InitialSectionType.MAIN
+                )
             elif db_field.name == "content":
-                kwargs["initial"] = _("Enter the introduction text for the hearing here.")
+                kwargs["initial"] = _(
+                    "Enter the introduction text for the hearing here."
+                )
         field = super().formfield_for_dbfield(db_field, **kwargs)
         if db_field.name == "plugin_identifier":
             widget = self._get_plugin_selection_widget(hearing=obj)
@@ -131,7 +139,9 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
         choices = [("", "------")]
         plugins = getattr(settings, "DEMOCRACY_PLUGINS")
         if hearing and hearing.pk:
-            current_plugin_identifiers = set(hearing.sections.values_list("plugin_identifier", flat=True))
+            current_plugin_identifiers = set(
+                hearing.sections.values_list("plugin_identifier", flat=True)
+            )
         else:
             current_plugin_identifiers = set()
         for plugin_identifier in sorted(current_plugin_identifiers):
@@ -144,7 +154,9 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
         return widget
 
     def get_formset(self, request, obj=None, **kwargs):
-        kwargs["formfield_callback"] = partial(self.formfield_for_dbfield, request=request, obj=obj)
+        kwargs["formfield_callback"] = partial(
+            self.formfield_for_dbfield, request=request, obj=obj
+        )
         if getattr(obj, "pk", None):
             kwargs["extra"] = 0
         return super().get_formset(request, obj, **kwargs)
@@ -180,7 +192,10 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
     fieldsets = (
         (None, {"fields": ("title", "labels", "slug", "preview_url", "organization")}),
         (_("Project"), {"fields": ("project_phase",)}),
-        (_("Availability"), {"fields": ("published", "open_at", "close_at", "force_closed")}),
+        (
+            _("Availability"),
+            {"fields": ("published", "open_at", "close_at", "force_closed")},
+        ),
         (_("Area"), {"fields": ("geometry",)}),
     )
     formfield_overrides = {
@@ -193,7 +208,9 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
     def copy_as_draft(self, request, queryset):
         for hearing in queryset:
             copy_hearing(hearing, published=False)
-            self.message_user(request, _('Copied Hearing "%s" as a draft.' % hearing.title))
+            self.message_user(
+                request, _('Copied Hearing "%s" as a draft.' % hearing.title)
+            )
 
     @admin.display(description=_("Preview URL"))
     def preview_url(self, obj):
@@ -228,13 +245,21 @@ class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
             return "%s: %s" % (capfirst(obj._meta.verbose_name), obj)
 
         to_delete = collector.nested(format_callback)
-        model_count = {model._meta.verbose_name_plural: len(objs) for model, objs in collector.model_objs.items()}
+        model_count = {
+            model._meta.verbose_name_plural: len(objs)
+            for model, objs in collector.model_objs.items()
+        }
         # we need to display count by model of the protected items too
         protected = [format_callback(obj) for obj in collector.protected]
         protected_model = {obj._meta.verbose_name_plural for obj in collector.protected}
         protected_model_count = dict(Counter(protected_model))
         # since we are only performing soft delete, we may soft delete the protected objects later
-        return to_delete + protected, {**model_count, **protected_model_count}, set(), []
+        return (
+            to_delete + protected,
+            {**model_count, **protected_model_count},
+            set(),
+            [],
+        )
 
     def delete_queryset(self, request, queryset):
         # this method is called by delete_selected and can be overridden
@@ -293,7 +318,9 @@ class SectionTypeAdmin(admin.ModelAdmin):
 
 class OrganizationAdmin(admin.ModelAdmin):
     formfield_overrides = {
-        ManyToManyField: {"widget": FilteredSelectMultiple("ylläpitäjät", is_stacked=False)},
+        ManyToManyField: {
+            "widget": FilteredSelectMultiple("ylläpitäjät", is_stacked=False)
+        },
     }
     exclude = ("published",)
 
@@ -305,7 +332,14 @@ class ContactPersonAdmin(TranslatableAdmin, admin.ModelAdmin):
 
 
 class CommentAdmin(VersionAdmin):
-    list_display = ("id", "section", "author_name", "content", "is_published", "flagged_at")
+    list_display = (
+        "id",
+        "section",
+        "author_name",
+        "content",
+        "is_published",
+        "flagged_at",
+    )
     list_filter = (
         "deleted",
         "moderated",
@@ -386,7 +420,8 @@ class CommentAdmin(VersionAdmin):
             user_url = reverse("admin:app_list", args=["kerrokantasi"])
             user_url += "user/{}/change/".format(obj.created_by_id)
             user_info = "{} - {}".format(
-                obj.created_by.get_display_name(), get_user_model().objects.get(id=obj.created_by_id).email
+                obj.created_by.get_display_name(),
+                get_user_model().objects.get(id=obj.created_by_id).email,
             )
             return format_html('<a href="{}">{}</a>', user_url, user_info)
 
@@ -421,9 +456,9 @@ class CommentAdmin(VersionAdmin):
 
     def changelist_view(self, request, extra_context=None):
         """Use deleted=False filter by default"""
-        if not request.META["QUERY_STRING"] and not request.META.get("HTTP_REFERER", "").startswith(
-            request.build_absolute_uri()
-        ):
+        if not request.META["QUERY_STRING"] and not request.META.get(
+            "HTTP_REFERER", ""
+        ).startswith(request.build_absolute_uri()):
             return HttpResponseRedirect(request.path + "?deleted__exact=0")
         return super().changelist_view(request, extra_context=extra_context)
 
@@ -480,7 +515,9 @@ def get_any_language(obj, attr_name):
     translation = obj.safe_translation_getter(attr_name)
     if not translation:
         for lang in settings.PARLER_LANGUAGES[None]:
-            translation = obj.safe_translation_getter(attr_name, language_code=lang["code"])
+            translation = obj.safe_translation_getter(
+                attr_name, language_code=lang["code"]
+            )
             if translation:
                 break
     return translation

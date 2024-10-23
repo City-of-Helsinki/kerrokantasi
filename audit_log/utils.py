@@ -24,7 +24,10 @@ _OPERATION_MAPPING = {
 def get_response_status(response) -> Optional[str]:
     if 200 <= response.status_code < 300:
         return Status.SUCCESS.value
-    elif response.status_code == status.HTTP_401_UNAUTHORIZED or response.status_code == status.HTTP_403_FORBIDDEN:
+    elif (
+        response.status_code == status.HTTP_401_UNAUTHORIZED
+        or response.status_code == status.HTTP_403_FORBIDDEN
+    ):
         return Status.FORBIDDEN.value
 
     return None
@@ -76,7 +79,9 @@ def _get_target(request, audit_logged_object_ids):
 
 
 def commit_to_audit_log(request, response):
-    audit_logged_object_ids = getattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR, None)
+    audit_logged_object_ids = getattr(
+        request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR, None
+    )
     if not audit_logged_object_ids:
         return
 
@@ -88,7 +93,8 @@ def commit_to_audit_log(request, response):
     message = {
         "audit_event": {
             "origin": audit_logging_settings.ORIGIN,
-            "status": get_response_status(response) or f"Unknown: {response.status_code}",
+            "status": get_response_status(response)
+            or f"Unknown: {response.status_code}",
             "date_time_epoch": int(current_time.timestamp() * 1000),
             "date_time": iso_8601_datetime,
             "actor": _get_actor_data(request),
@@ -122,6 +128,12 @@ def add_audit_logged_object_ids(request, instances):
         add_instance(instances)
 
     if hasattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR):
-        getattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR).update(audit_logged_object_ids)
+        getattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR).update(
+            audit_logged_object_ids
+        )
     else:
-        setattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR, audit_logged_object_ids)
+        setattr(
+            request,
+            audit_logging_settings.REQUEST_AUDIT_LOG_VAR,
+            audit_logged_object_ids,
+        )

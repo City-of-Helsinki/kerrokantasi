@@ -6,15 +6,19 @@ import democracy.models.files
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0062_edited_moderated_edit_reason_fields'),
+        ("democracy", "0062_edited_moderated_edit_reason_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectionfile',
-            name='file',
-            field=models.FileField(max_length=2048, storage=democracy.models.files.ProtectedFileSystemStorage(), upload_to='files/%Y/%m', verbose_name='file'),
+            model_name="sectionfile",
+            name="file",
+            field=models.FileField(
+                max_length=2048,
+                storage=democracy.models.files.ProtectedFileSystemStorage(),
+                upload_to="files/%Y/%m",
+                verbose_name="file",
+            ),
         ),
     ]

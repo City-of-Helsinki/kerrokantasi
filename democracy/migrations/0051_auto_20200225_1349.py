@@ -5,15 +5,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0050_add_on_deletes'),
+        ("democracy", "0050_add_on_deletes"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectionfile',
-            name='file',
-            field=models.FileField(max_length=2048, storage=django.core.files.storage.FileSystemStorage(location='/home/santtua/kerrokantasi/protected_media'), upload_to='files/%Y/%m', verbose_name='file'),
+            model_name="sectionfile",
+            name="file",
+            field=models.FileField(
+                max_length=2048,
+                storage=django.core.files.storage.FileSystemStorage(
+                    location="/home/santtua/kerrokantasi/protected_media"
+                ),
+                upload_to="files/%Y/%m",
+                verbose_name="file",
+            ),
         ),
     ]

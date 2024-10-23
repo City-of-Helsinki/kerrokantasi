@@ -69,7 +69,8 @@ def import_images(target, datum):
         assert main_image_id == main_image["id"]
     alt_images = datum.pop("images", ())
     images = sorted(
-        [i for i in [main_image] + list(alt_images) if i], key=lambda i: (i.get("position", "0"), i.get("id"))
+        [i for i in [main_image] + list(alt_images) if i],
+        key=lambda i: (i.get("position", "0"), i.get("id")),
     )
     for index, image_datum in enumerate(images):
         import_image(target, image_datum, index)
@@ -90,7 +91,9 @@ def import_image(target, datum, position):
     image = ImageModel(**i_args)
     image.image.name = image_path
     if not image.image.storage.exists(str(image.image)):  # pragma: no cover
-        logger.warning("Image %s (for %r) not in storage -- continuing anyway", image_path, target)
+        logger.warning(
+            "Image %s (for %r) not in storage -- continuing anyway", image_path, target
+        )
     image.save()
     return image
 
@@ -116,7 +119,9 @@ def import_section(hearing, section_datum, section_type, force=False):
         old_section = Section.objects.everything().filter(pk=pk).first()
         if old_section:
             if settings.DEBUG or force:
-                logger.info("Section %s already exists, importing new entry with mutated pk", pk)
+                logger.info(
+                    "Section %s already exists, importing new entry with mutated pk", pk
+                )
                 pk = "%s_%s" % (pk[:26], get_random_string(5))
             else:
                 logger.info("Section %s already exists, skipping", pk)
@@ -128,14 +133,20 @@ def import_section(hearing, section_datum, section_type, force=False):
 
 
 def import_sections(hearing, hearing_datum, force=False):
-    for section_datum in sorted(hearing_datum.pop("sections", ()), key=itemgetter("position")):
+    for section_datum in sorted(
+        hearing_datum.pop("sections", ()), key=itemgetter("position")
+    ):
         import_section(hearing, section_datum, InitialSectionType.PART, force)
-    for alt_datum in sorted(hearing_datum.pop("alternatives", ()), key=itemgetter("position")):
+    for alt_datum in sorted(
+        hearing_datum.pop("alternatives", ()), key=itemgetter("position")
+    ):
         import_section(hearing, alt_datum, InitialSectionType.SCENARIO, force)
 
 
 def import_hearing(hearing_datum, force=False, patch=False):
-    hearing_datum = deepcopy(hearing_datum)  # We'll be mutating the data as we go, so it's courteous to take a copy.
+    hearing_datum = deepcopy(
+        hearing_datum
+    )  # We'll be mutating the data as we go, so it's courteous to take a copy.
     hearing_datum.pop("id")
     slug = hearing_datum.pop("slug")
     old_hearing = Hearing.objects.filter(id=slug).first()
@@ -145,7 +156,9 @@ def import_hearing(hearing_datum, force=False, patch=False):
             # force is needed to import all the components with new ids if need be
             force = True
         elif settings.DEBUG or force:
-            logger.info("Hearing %s already exists, importing new entry with mutated slug", slug)
+            logger.info(
+                "Hearing %s already exists, importing new entry with mutated slug", slug
+            )
             slug += "_%s" % get_random_string(5)
         else:
             logger.info("Hearing %s already exists, skipping", slug)
@@ -181,7 +194,11 @@ def import_hearing(hearing_datum, force=False, patch=False):
     import_sections(hearing, hearing_datum, force)
     compact_section_ordering(hearing)
     if hearing_datum.keys():  # pragma: no cover
-        logger.warning("These keys were not handled while importing %s: %s", hearing, hearing_datum.keys())
+        logger.warning(
+            "These keys were not handled while importing %s: %s",
+            hearing,
+            hearing_datum.keys(),
+        )
     return hearing
 
 

@@ -4,25 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0061_external_organizations'),
+        ("democracy", "0061_external_organizations"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sectioncomment',
-            name='edit_reason',
-            field=models.TextField(blank=True, verbose_name='edit reason'),
+            model_name="sectioncomment",
+            name="edit_reason",
+            field=models.TextField(blank=True, verbose_name="edit reason"),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='edited',
-            field=models.BooleanField(default=False, verbose_name='is comment edited'),
+            model_name="sectioncomment",
+            name="edited",
+            field=models.BooleanField(default=False, verbose_name="is comment edited"),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='moderated',
-            field=models.BooleanField(default=False, verbose_name='is comment edited by admin'),
+            model_name="sectioncomment",
+            name="moderated",
+            field=models.BooleanField(
+                default=False, verbose_name="is comment edited by admin"
+            ),
         ),
     ]

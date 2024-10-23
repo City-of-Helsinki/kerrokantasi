@@ -5,15 +5,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0057_add_flagged_fields_to_comment'),
+        ("democracy", "0057_add_flagged_fields_to_comment"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectionpollanswer',
-            name='comment',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='poll_answers', to='democracy.SectionComment'),
+            model_name="sectionpollanswer",
+            name="comment",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="poll_answers",
+                to="democracy.SectionComment",
+            ),
         ),
     ]

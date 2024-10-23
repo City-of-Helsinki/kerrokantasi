@@ -5,15 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0025_add_unregistered_votes'),
+        ("democracy", "0025_add_unregistered_votes"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='section',
-            name='plugin_iframe_url',
-            field=models.URLField(blank=True, verbose_name='plugin iframe url'),
+            model_name="section",
+            name="plugin_iframe_url",
+            field=models.URLField(blank=True, verbose_name="plugin iframe url"),
         ),
     ]

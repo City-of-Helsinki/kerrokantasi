@@ -44,15 +44,25 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
     )
 
     open_at = models.DateTimeField(verbose_name=_("opening time"), default=timezone.now)
-    close_at = models.DateTimeField(verbose_name=_("closing time"), default=timezone.now)
-    force_closed = models.BooleanField(verbose_name=_("force hearing closed"), default=False)
+    close_at = models.DateTimeField(
+        verbose_name=_("closing time"), default=timezone.now
+    )
+    force_closed = models.BooleanField(
+        verbose_name=_("force hearing closed"), default=False
+    )
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_("title"), max_length=255),
-        borough=models.CharField(verbose_name=_("borough"), blank=True, default="", max_length=200),
+        borough=models.CharField(
+            verbose_name=_("borough"), blank=True, default="", max_length=200
+        ),
     )
-    servicemap_url = models.CharField(verbose_name=_("service map URL"), default="", max_length=255, blank=True)
+    servicemap_url = models.CharField(
+        verbose_name=_("service map URL"), default="", max_length=255, blank=True
+    )
     geojson = GeoJSONField(blank=True, null=True, verbose_name=_("area"))
-    geometry = models.GeometryCollectionField(blank=True, null=True, verbose_name=_("area geometry"))
+    geometry = models.GeometryCollectionField(
+        blank=True, null=True, verbose_name=_("area geometry")
+    )
     organization = models.ForeignKey(
         Organization,
         verbose_name=_("organization"),
@@ -78,9 +88,14 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
         blank=True,
         help_text=_("You may leave this empty to automatically generate a slug"),
     )
-    n_comments = models.IntegerField(verbose_name=_("number of comments"), blank=True, default=0, editable=False)
+    n_comments = models.IntegerField(
+        verbose_name=_("number of comments"), blank=True, default=0, editable=False
+    )
     contact_persons = models.ManyToManyField(
-        ContactPerson, verbose_name=_("contact persons"), related_name="hearings", through=ContactPersonOrder
+        ContactPerson,
+        verbose_name=_("contact persons"),
+        related_name="hearings",
+        through=ContactPersonOrder,
     )
     project_phase = models.ForeignKey(
         ProjectPhase,
@@ -111,11 +126,17 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
 
     def check_commenting(self, request):
         if self.closed:
-            raise ValidationError(_("%s is closed and does not allow comments anymore") % self, code="hearing_closed")
+            raise ValidationError(
+                _("%s is closed and does not allow comments anymore") % self,
+                code="hearing_closed",
+            )
 
     def check_voting(self, request):
         if self.closed:
-            raise ValidationError(_("%s is closed and does not allow voting anymore") % self, code="hearing_closed")
+            raise ValidationError(
+                _("%s is closed and does not allow voting anymore") % self,
+                code="hearing_closed",
+            )
 
     @property
     def preview_code(self):
@@ -127,7 +148,10 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
     def preview_url(self):
         if not (self.preview_code and hasattr(settings, "DEMOCRACY_UI_BASE_URL")):
             return None
-        url = urljoin(settings.DEMOCRACY_UI_BASE_URL, "/%s/?preview=%s" % (self.pk, self.preview_code))
+        url = urljoin(
+            settings.DEMOCRACY_UI_BASE_URL,
+            "/%s/?preview=%s" % (self.pk, self.preview_code),
+        )
         return url
 
     def save(self, *args, **kwargs):
@@ -135,14 +159,18 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
 
         # we need to manually use autoslug utils here with ModelManager, because automatic slug populating
         # uses our default manager, which can lead to a slug collision between this and a deleted hearing
-        self.slug = generate_unique_slug(slug_field, self, self.slug, Hearing.original_manager)
+        self.slug = generate_unique_slug(
+            slug_field, self, self.slug, Hearing.original_manager
+        )
 
         self.geometry = get_geometry_from_geojson(self.geojson)
 
         super().save(*args, **kwargs)
 
     def recache_n_comments(self):
-        new_n_comments = self.sections.all().aggregate(Sum("n_comments")).get("n_comments__sum") or 0
+        new_n_comments = (
+            self.sections.all().aggregate(Sum("n_comments")).get("n_comments__sum") or 0
+        )
         if new_n_comments != self.n_comments:
             self.n_comments = new_n_comments
             self.save(update_fields=("n_comments",))

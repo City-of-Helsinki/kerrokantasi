@@ -22,13 +22,16 @@ hearing_list_endpoint = hearing_endpoint
 @pytest.fixture()
 def closure_info_section(default_hearing):
     return Section.objects.create(
-        type=SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO), hearing=default_hearing
+        type=SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO),
+        hearing=default_hearing,
     )
 
 
 @pytest.fixture()
 def new_section_type():
-    return SectionType.objects.create(name_singular="new section type", name_plural="new section types")
+    return SectionType.objects.create(
+        name_singular="new section type", name_plural="new section types"
+    )
 
 
 @pytest.fixture(params=["nested", "root"])
@@ -79,7 +82,9 @@ def test_45_get_one_section_check_amount(api_client, default_hearing, get_sectio
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_abstract(api_client, default_hearing, get_sections_url):
+def test_45_get_one_section_check_abstract(
+    api_client, default_hearing, get_sections_url
+):
     sections = create_sections(default_hearing, 1)
 
     response = api_client.get(get_sections_url(default_hearing))
@@ -89,7 +94,9 @@ def test_45_get_one_section_check_abstract(api_client, default_hearing, get_sect
 
 
 @pytest.mark.django_db
-def test_45_get_one_section_check_content(api_client, default_hearing, get_sections_url):
+def test_45_get_one_section_check_content(
+    api_client, default_hearing, get_sections_url
+):
     sections = create_sections(default_hearing, 1)
 
     response = api_client.get(get_sections_url(default_hearing))
@@ -99,7 +106,9 @@ def test_45_get_one_section_check_content(api_client, default_hearing, get_secti
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_amount(api_client, default_hearing, get_sections_url):
+def test_45_get_many_sections_check_amount(
+    api_client, default_hearing, get_sections_url
+):
     create_sections(default_hearing, 3)
 
     response = api_client.get(get_sections_url(default_hearing))
@@ -109,7 +118,9 @@ def test_45_get_many_sections_check_amount(api_client, default_hearing, get_sect
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_abstract(api_client, default_hearing, get_sections_url):
+def test_45_get_many_sections_check_abstract(
+    api_client, default_hearing, get_sections_url
+):
     sections = create_sections(default_hearing, 3)
 
     response = api_client.get(get_sections_url(default_hearing))
@@ -126,7 +137,9 @@ def test_45_get_many_sections_check_abstract(api_client, default_hearing, get_se
 
 
 @pytest.mark.django_db
-def test_45_get_many_sections_check_content(api_client, default_hearing, get_sections_url):
+def test_45_get_many_sections_check_content(
+    api_client, default_hearing, get_sections_url
+):
     sections = create_sections(default_hearing, 3)
 
     response = api_client.get(get_sections_url(default_hearing))
@@ -257,17 +270,20 @@ def test_section_stringification(random_hearing):
 
 @pytest.mark.django_db
 def test_closure_info_ordering(closure_info_section):
-
     # check new section
     assert closure_info_section.ordering == CLOSURE_INFO_ORDERING
 
     # check changing type from closure info
-    closure_info_section.type = SectionType.objects.get(identifier=InitialSectionType.PART)
+    closure_info_section.type = SectionType.objects.get(
+        identifier=InitialSectionType.PART
+    )
     closure_info_section.save()
     assert closure_info_section.ordering != CLOSURE_INFO_ORDERING
 
     # check changing type to closure info
-    closure_info_section.type = SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO)
+    closure_info_section.type = SectionType.objects.get(
+        identifier=InitialSectionType.CLOSURE_INFO
+    )
     closure_info_section.save()
     assert closure_info_section.ordering == CLOSURE_INFO_ORDERING
 
@@ -316,7 +332,9 @@ def test_new_section_type(new_section_type):
     assert SectionType.objects.filter(identifier="new-section-type").exists()
 
     # test duplicate name
-    another_new_section_type = SectionType.objects.create(name_singular="new section type", name_plural="foos")
+    another_new_section_type = SectionType.objects.create(
+        name_singular="new section type", name_plural="foos"
+    )
     assert another_new_section_type.identifier != "new-section-type"
     assert SectionType.objects.filter(id=another_new_section_type.id).exists()
     assert SectionType.objects.filter(identifier="new-section-type").exists()
@@ -357,16 +375,25 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 3
 
-    response = api_client.get("%s?hearing=%s&type=%s" % (url, default_hearing.id, "main"))
+    response = api_client.get(
+        "%s?hearing=%s&type=%s" % (url, default_hearing.id, "main")
+    )
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 1
 
 
 @pytest.mark.parametrize(
-    "hearing_update", [("deleted", True), ("published", False), ("open_at", now() + datetime.timedelta(days=1))]
+    "hearing_update",
+    [
+        ("deleted", True),
+        ("published", False),
+        ("open_at", now() + datetime.timedelta(days=1)),
+    ],
 )
 @pytest.mark.django_db
-def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
+def test_root_endpoint_filtering_by_hearing_visibility(
+    api_client, default_hearing, hearing_update
+):
     setattr(default_hearing, hearing_update[0], hearing_update[1])
     default_hearing.save()
 
@@ -398,7 +425,9 @@ def test_hearing_visibility_no_org(john_doe_api_client, default_hearing):
 @pytest.mark.django_db
 def test_hearing_visibility_different_org(john_smith_api_client, default_hearing):
     default_hearing.published = False
-    default_hearing.organization = Organization.objects.create(name="The department for squirrel warfare")
+    default_hearing.organization = Organization.objects.create(
+        name="The department for squirrel warfare"
+    )
     default_hearing.save()
 
     response = john_smith_api_client.get("/v1/section/")

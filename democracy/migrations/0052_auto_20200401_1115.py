@@ -8,30 +8,46 @@ import democracy.enums
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0051_auto_20200225_1349'),
+        ("democracy", "0051_auto_20200225_1349"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='section',
-            name='commenting_map_tools',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=democracy.enums.CommentingMapTools, verbose_name='commenting_map_tools'),
+            model_name="section",
+            name="commenting_map_tools",
+            field=enumfields.fields.EnumIntegerField(
+                default=0,
+                enum=democracy.enums.CommentingMapTools,
+                verbose_name="commenting_map_tools",
+            ),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='commenting_map_tools',
-            field=enumfields.fields.EnumIntegerField(default=0, enum=democracy.enums.CommentingMapTools, verbose_name='commenting_map_tools'),
+            model_name="sectioncomment",
+            name="commenting_map_tools",
+            field=enumfields.fields.EnumIntegerField(
+                default=0,
+                enum=democracy.enums.CommentingMapTools,
+                verbose_name="commenting_map_tools",
+            ),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='map_comment_text',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='map_comment_text'),
+            model_name="sectioncomment",
+            name="map_comment_text",
+            field=models.CharField(
+                blank=True, max_length=255, null=True, verbose_name="map_comment_text"
+            ),
         ),
         migrations.AlterField(
-            model_name='sectionfile',
-            name='file',
-            field=models.FileField(max_length=2048, storage=django.core.files.storage.FileSystemStorage(location='/home/hienous/kerrokantasi/protected_media'), upload_to='files/%Y/%m', verbose_name='file'),
+            model_name="sectionfile",
+            name="file",
+            field=models.FileField(
+                max_length=2048,
+                storage=django.core.files.storage.FileSystemStorage(
+                    location="/home/hienous/kerrokantasi/protected_media"
+                ),
+                upload_to="files/%Y/%m",
+                verbose_name="file",
+            ),
         ),
     ]

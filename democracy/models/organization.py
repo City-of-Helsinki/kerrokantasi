@@ -14,9 +14,15 @@ class Organization(StringIdBaseModel, SerializableMixin):
     )
 
     name = models.CharField(verbose_name=_("name"), max_length=255, unique=True)
-    admin_users = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations")
+    admin_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="admin_organizations"
+    )
     parent = models.ForeignKey(
-        "Organization", on_delete=models.SET_NULL, blank=True, null=True, related_name="children"
+        "Organization",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="children",
     )
     external_organization = models.BooleanField(
         verbose_name=_("external organization"),
@@ -38,8 +44,12 @@ class Organization(StringIdBaseModel, SerializableMixin):
 
 
 class ContactPersonOrder(models.Model):
-    hearing = models.ForeignKey("Hearing", on_delete=models.CASCADE, related_name="contact_person_orders")
-    contact_person = models.ForeignKey("ContactPerson", on_delete=models.CASCADE, related_name="contact_person_orders")
+    hearing = models.ForeignKey(
+        "Hearing", on_delete=models.CASCADE, related_name="contact_person_orders"
+    )
+    contact_person = models.ForeignKey(
+        "ContactPerson", on_delete=models.CASCADE, related_name="contact_person_orders"
+    )
     order = models.IntegerField(default=0)
 
     class Meta:
@@ -82,7 +92,15 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
         # Use contact_person_orders ordering as default. It may cause duplicate ContactPersons to be returned, which
         # should be fixed elsewhere. If this is not the default ordering, we can't return the ContactPersons in the
         # correct order when used nested serializer field under Hearing in the Rest API
-        ordering = ["contact_person_orders__hearing", "contact_person_orders__order", "name"]
+        ordering = [
+            "contact_person_orders__hearing",
+            "contact_person_orders__order",
+            "name",
+        ]
 
     def __str__(self):
-        return "%s, %s / %s" % (self.name, getattr(self, "title", ""), self.organization)
+        return "%s, %s / %s" % (
+            self.name,
+            getattr(self, "title", ""),
+            self.organization,
+        )

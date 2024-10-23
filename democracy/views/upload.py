@@ -39,14 +39,14 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
                     """
                     <script type='text/javascript'>
                     window.parent.CKEDITOR.tools.callFunction({0}, '', 'Invalid file type.');
-                    </script>""".format(
-                        ck_func_num
-                    )
+                    </script>""".format(ck_func_num)
                 )
 
         section_file = self._save_file(request, uploaded_file)
 
-        url = reverse("serve_file", kwargs={"filetype": "sectionfile", "pk": section_file.pk})
+        url = reverse(
+            "serve_file", kwargs={"filetype": "sectionfile", "pk": section_file.pk}
+        )
         url = request.build_absolute_uri(url)
 
         # Respond with Javascript sending ckeditor upload url.
@@ -54,9 +54,7 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
             """
         <script type='text/javascript'>
             window.parent.CKEDITOR.tools.callFunction({0}, '{1}');
-        </script>""".format(
-                ck_func_num, url
-            )
+        </script>""".format(ck_func_num, url)
         )
 
     @staticmethod
@@ -78,15 +76,15 @@ class AbsoluteUrlImageUploadView(ImageUploadView):
         IMAGE_QUALITY = getattr(settings, "IMAGE_QUALITY", 60)
 
         if str(img_format).lower() == "png":
-
             img = Image.open(section_file_obj.file.path)
             img = img.resize(img.size, Image.LANCZOS)
             img.save("{}.jpg".format(img_name), quality=IMAGE_QUALITY, optimize=True)
-            section_file_obj.file.name = section_file_obj.file.name.replace(".png", ".jpg")
+            section_file_obj.file.name = section_file_obj.file.name.replace(
+                ".png", ".jpg"
+            )
             section_file_obj.file.save()
 
         elif str(img_format).lower() == "jpg" or str(img_format).lower() == "jpeg":
-
             img = Image.open(uploaded_file)
             img = img.resize(img.size, Image.LANCZOS)
             img.save(section_file_obj.file.path, quality=IMAGE_QUALITY, optimize=True)
@@ -110,7 +108,9 @@ def browse(request):
         form = SearchForm(request.POST)
         if form.is_valid():
             query = form.cleaned_data.get("q", "").lower()
-            files = list(filter(lambda d: query in d["visible_filename"].lower(), files))
+            files = list(
+                filter(lambda d: query in d["visible_filename"].lower(), files)
+            )
     else:
         form = SearchForm()
 
@@ -125,5 +125,8 @@ def browse(request):
     for f in files:
         f["src"] = request.build_absolute_uri(f["src"])
 
-    context = RequestContext(request, {"show_dirs": show_dirs, "dirs": dir_list, "files": files, "form": form})
+    context = RequestContext(
+        request,
+        {"show_dirs": show_dirs, "dirs": dir_list, "files": files, "form": form},
+    )
     return render(request, "ckeditor/browse.html", context)

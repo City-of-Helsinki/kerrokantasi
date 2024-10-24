@@ -167,10 +167,6 @@ SENDFILE_URL = env("PROTECTED_URL")
 
 # Settings below do not usually need changing
 
-# CKEDITOR_CONFIGS is in __init__.py
-CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_IMAGE_BACKEND = "pillow"
-
 # Image files should not exceed 1MB (SI)
 MAX_IMAGE_SIZE = 10**6
 
@@ -196,8 +192,6 @@ INSTALLED_APPS = [
     "rest_framework_nested",
     "djgeojson",
     "leaflet",
-    "ckeditor",
-    "ckeditor_uploader",
     "munigeo",
     "kerrokantasi",  # User model is project-wide
     "audit_log",

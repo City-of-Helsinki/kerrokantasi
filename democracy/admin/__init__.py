@@ -1,4 +1,3 @@
-from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from collections import Counter
 from django import forms
 from django.conf import settings
@@ -107,7 +106,6 @@ class SectionInline(NestedStackedInline, TranslatableStackedInline):
     def formfield_for_dbfield(self, db_field, **kwargs):
         obj = kwargs.pop("obj", None)
         if db_field.name == "content":
-            kwargs["widget"] = CKEditorUploadingWidget
             # Some initial value is needed for every section to workaround a bug in nested inlines
             # that causes an integrity error to be raised when a section image is added but the parent
             # section isn't saved.
@@ -167,9 +165,6 @@ class HearingGeoAdmin(LeafletGeoAdmin):
 
 
 class HearingAdmin(NestedModelAdminMixin, HearingGeoAdmin, TranslatableAdmin):
-    class Media:
-        js = ("admin/ckeditor-nested-inline-fix.js",)
-
     inlines = [SectionInline, ContactPersonInline]
     list_display = ("slug", "published", "title", "open_at", "close_at", "force_closed")
     list_filter = ("published",)

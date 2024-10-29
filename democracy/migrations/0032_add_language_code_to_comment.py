@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 
 def forwards_func(apps, schema_editor):
-    SectionComment = apps.get_model('democracy', 'SectionComment')
+    SectionComment = apps.get_model("democracy", "SectionComment")
     for comment in SectionComment.objects.all():
         comment._detect_lang()
         comment.save()
@@ -16,22 +16,27 @@ def backwards_func(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0031_remove_untranslated_fields'),
+        ("democracy", "0031_remove_untranslated_fields"),
         # comment.save() database operations will require a recent user model with all the fields included
-        ('kerrokantasi', '0002_user_nickname'),
+        ("kerrokantasi", "0002_user_nickname"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='sectionimage',
-            options={'ordering': ('ordering', 'translations__title'), 'verbose_name': 'section image', 'verbose_name_plural': 'section images'},
+            name="sectionimage",
+            options={
+                "ordering": ("ordering", "translations__title"),
+                "verbose_name": "section image",
+                "verbose_name_plural": "section images",
+            },
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='language_code',
-            field=models.CharField(blank=True, max_length=15, verbose_name='language code'),
+            model_name="sectioncomment",
+            name="language_code",
+            field=models.CharField(
+                blank=True, max_length=15, verbose_name="language code"
+            ),
         ),
         migrations.RunPython(forwards_func, backwards_func),
     ]

@@ -1,5 +1,6 @@
 import logging
 import re
+
 from autoslug import AutoSlugField
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -25,13 +26,20 @@ from democracy.models.files import BaseFile
 from democracy.models.gdpr_data_serialization_mixin import FileFieldUrlSerializerMixin
 from democracy.models.hearing import Hearing
 from democracy.models.images import BaseImage
-from democracy.models.poll import BasePoll, BasePollAnswer, BasePollOption, poll_option_recache_on_save
+from democracy.models.poll import (
+    BasePoll,
+    BasePollAnswer,
+    BasePollOption,
+    poll_option_recache_on_save,
+)
 from democracy.plugins import get_implementation
 from democracy.utils.translations import get_translations_dict
 
 CLOSURE_INFO_ORDERING = -10000
 
-INITIAL_SECTION_TYPE_IDS = set(value for key, value in InitialSectionType.__dict__.items() if key[:1] != "_")
+INITIAL_SECTION_TYPE_IDS = set(
+    value for key, value in InitialSectionType.__dict__.items() if key[:1] != "_"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -72,15 +80,23 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         {"name": "polls"},
     )
 
-    hearing = models.ForeignKey(Hearing, related_name="sections", on_delete=models.PROTECT)
-    ordering = models.IntegerField(verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP)
-    type = models.ForeignKey(SectionType, related_name="sections", on_delete=models.PROTECT)
+    hearing = models.ForeignKey(
+        Hearing, related_name="sections", on_delete=models.PROTECT
+    )
+    ordering = models.IntegerField(
+        verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP
+    )
+    type = models.ForeignKey(
+        SectionType, related_name="sections", on_delete=models.PROTECT
+    )
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_("title"), max_length=255, blank=True),
         abstract=models.TextField(verbose_name=_("abstract"), blank=True),
         content=models.TextField(verbose_name=_("content"), blank=True),
     )
-    plugin_identifier = models.CharField(verbose_name=_("plugin identifier"), blank=True, max_length=255)
+    plugin_identifier = models.CharField(
+        verbose_name=_("plugin identifier"), blank=True, max_length=255
+    )
     plugin_data = models.TextField(verbose_name=_("plugin data"), blank=True)
     plugin_fullscreen = models.BooleanField(default=False)
     objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
@@ -108,12 +124,19 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
     def save(self, *args, **kwargs):
         if self.hearing_id:
             # Closure info should be the first
-            if self.type == SectionType.objects.get(identifier=InitialSectionType.CLOSURE_INFO):
+            if self.type == SectionType.objects.get(
+                identifier=InitialSectionType.CLOSURE_INFO
+            ):
                 self.ordering = CLOSURE_INFO_ORDERING
-            elif (not self.pk and self.ordering == 1) or self.ordering == CLOSURE_INFO_ORDERING:
+            elif (
+                not self.pk and self.ordering == 1
+            ) or self.ordering == CLOSURE_INFO_ORDERING:
                 # This is a new section or changing type from closure info,
                 # automatically derive next ordering, if possible
-                self.ordering = max(self.hearing.sections.values_list("ordering", flat=True) or [0]) + 1
+                self.ordering = (
+                    max(self.hearing.sections.values_list("ordering", flat=True) or [0])
+                    + 1
+                )
         obj = super(Section, self).save(*args, **kwargs)
         self.claim_orphan_files()
         return obj
@@ -139,7 +162,9 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         for translation in self.translations.all():
             for match in re.finditer(pattern, translation.content):
                 sectionfile_pks.append(match.groupdict()["pk"])
-        return SectionFile.objects.filter(section__isnull=True, pk__in=sectionfile_pks).update(section_id=self.pk)
+        return SectionFile.objects.filter(
+            section__isnull=True, pk__in=sectionfile_pks
+        ).update(section_id=self.pk)
 
     def check_commenting(self, request):
         super().check_commenting(request)
@@ -154,7 +179,9 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         return get_implementation(self.plugin_identifier)
 
 
-class SectionImage(BaseImage, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin):
+class SectionImage(
+    BaseImage, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin
+):
     field_to_use_as_url_field = "image"
 
     serialize_fields = (
@@ -171,9 +198,13 @@ class SectionImage(BaseImage, TranslatableModel, SerializableMixin, FileFieldUrl
     )
 
     parent_field = "section"
-    section = models.ForeignKey(Section, related_name="images", on_delete=models.CASCADE)
+    section = models.ForeignKey(
+        Section, related_name="images", on_delete=models.CASCADE
+    )
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_("title"), max_length=255, blank=True, default=""),
+        title=models.CharField(
+            verbose_name=_("title"), max_length=255, blank=True, default=""
+        ),
         caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
         alt_text=models.TextField(verbose_name=_("alt text"), blank=True, default=""),
     )
@@ -197,7 +228,9 @@ class SectionImage(BaseImage, TranslatableModel, SerializableMixin, FileFieldUrl
         return get_translations_dict(self, "alt_text")
 
 
-class SectionFile(BaseFile, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin):
+class SectionFile(
+    BaseFile, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin
+):
     field_to_use_as_url_field = "file"
 
     serialize_fields = (
@@ -213,9 +246,13 @@ class SectionFile(BaseFile, TranslatableModel, SerializableMixin, FileFieldUrlSe
     )
 
     parent_field = "section"
-    section = models.ForeignKey(Section, related_name="files", blank=True, null=True, on_delete=models.CASCADE)
+    section = models.ForeignKey(
+        Section, related_name="files", blank=True, null=True, on_delete=models.CASCADE
+    )
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_("title"), max_length=255, blank=True, default=""),
+        title=models.CharField(
+            verbose_name=_("title"), max_length=255, blank=True, default=""
+        ),
         caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
     )
     objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
@@ -259,17 +296,25 @@ class SectionComment(Commentable, BaseComment, SerializableMixin):
 
     parent_field = "section"
     parent_model = Section
-    section = models.ForeignKey(Section, related_name="comments", on_delete=models.PROTECT)
-    comment = models.ForeignKey("self", related_name="comments", null=True, on_delete=models.SET_NULL)
+    section = models.ForeignKey(
+        Section, related_name="comments", on_delete=models.PROTECT
+    )
+    comment = models.ForeignKey(
+        "self", related_name="comments", null=True, on_delete=models.SET_NULL
+    )
     title = models.CharField(verbose_name=_("title"), blank=True, max_length=255)
     content = models.TextField(verbose_name=_("content"), blank=True)
     reply_to = models.CharField(verbose_name=_("reply to"), blank=True, max_length=255)
     pinned = models.BooleanField(default=False)
     edited = models.BooleanField(verbose_name=_("is comment edited"), default=False)
-    moderated = models.BooleanField(verbose_name=_("is comment edited by admin"), default=False)
+    moderated = models.BooleanField(
+        verbose_name=_("is comment edited by admin"), default=False
+    )
     edit_reason = models.TextField(verbose_name=_("edit reason"), blank=True)
     delete_reason = models.TextField(verbose_name=_("delete reason"), blank=True)
-    flagged_at = models.DateTimeField(default=None, editable=False, null=True, blank=True)
+    flagged_at = models.DateTimeField(
+        default=None, editable=False, null=True, blank=True
+    )
     flagged_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -296,13 +341,18 @@ class SectionComment(Commentable, BaseComment, SerializableMixin):
         super().soft_delete(user=user)
 
     def save(self, *args, **kwargs):
-        # we may create a comment by referring to another comment instead of section explicitly
+        # we may create a comment by referring to another comment instead of
+        # section explicitly
         if not (self.section_id or self.comment_id):
-            raise Exception("Section comment must refer to section or another section comment.")
+            raise Exception(
+                "Section comment must refer to section or another section comment."
+            )
         if not self.section_id:
             self.section_id = self.comment.section_id
         if self.comment_id and self.section_id != self.comment.section_id:
-            raise Exception("Comment must belong to the same section as the original comment.")
+            raise Exception(
+                "Comment must belong to the same section as the original comment."
+            )
         super().save(*args, **kwargs)
 
     def recache_parent_n_comments(self):
@@ -400,7 +450,9 @@ class SectionPollOption(BasePollOption, SerializableMixin):
     def text_with_translations(self):
         return get_translations_dict(self, "text")
 
-    poll = models.ForeignKey(SectionPoll, related_name="options", on_delete=models.PROTECT)
+    poll = models.ForeignKey(
+        SectionPoll, related_name="options", on_delete=models.PROTECT
+    )
     translations = TranslatedFields(
         text=models.TextField(verbose_name=_("option text")),
     )
@@ -415,9 +467,17 @@ class SectionPollOption(BasePollOption, SerializableMixin):
 
 @poll_option_recache_on_save
 class SectionPollAnswer(BasePollAnswer, SerializableMixin):
-    serialize_fields = ({"name": "id"}, {"name": "option", "accessor": lambda x: x.text}, {"name": "poll_text"})
-    comment = models.ForeignKey(SectionComment, related_name="poll_answers", on_delete=models.CASCADE)
-    option = models.ForeignKey(SectionPollOption, related_name="answers", on_delete=models.PROTECT)
+    serialize_fields = (
+        {"name": "id"},
+        {"name": "option", "accessor": lambda x: x.text},
+        {"name": "poll_text"},
+    )
+    comment = models.ForeignKey(
+        SectionComment, related_name="poll_answers", on_delete=models.CASCADE
+    )
+    option = models.ForeignKey(
+        SectionPollOption, related_name="answers", on_delete=models.PROTECT
+    )
 
     objects = SerializableBaseModelManager()
 
@@ -445,10 +505,14 @@ class CommentImage(BaseImage, SerializableMixin, FileFieldUrlSerializerMixin):
         {"name": "deleted_at"},
     )
 
-    title = models.CharField(verbose_name=_("title"), max_length=255, blank=True, default="")
+    title = models.CharField(
+        verbose_name=_("title"), max_length=255, blank=True, default=""
+    )
     caption = models.TextField(verbose_name=_("caption"), blank=True, default="")
     parent_field = "sectioncomment"
-    comment = models.ForeignKey(SectionComment, related_name="images", on_delete=models.CASCADE)
+    comment = models.ForeignKey(
+        SectionComment, related_name="images", on_delete=models.CASCADE
+    )
 
     objects = SerializableBaseModelManager()
 

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0055_add_deletion_details'),
+        ("democracy", "0055_add_deletion_details"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sectioncomment',
-            name='delete_reason',
-            field=models.TextField(blank=True, verbose_name='delete reason'),
+            model_name="sectioncomment",
+            name="delete_reason",
+            field=models.TextField(blank=True, verbose_name="delete reason"),
         ),
     ]

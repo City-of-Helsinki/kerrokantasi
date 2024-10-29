@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0027_add_plugin_fullscreen_to_section'),
+        ("democracy", "0027_add_plugin_fullscreen_to_section"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectioncomment',
-            name='n_unregistered_votes',
-            field=models.IntegerField(default=0, editable=False, help_text='number of unregistered votes', verbose_name='unregistered vote count'),
+            model_name="sectioncomment",
+            name="n_unregistered_votes",
+            field=models.IntegerField(
+                default=0,
+                editable=False,
+                help_text="number of unregistered votes",
+                verbose_name="unregistered vote count",
+            ),
         ),
     ]

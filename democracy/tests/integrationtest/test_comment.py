@@ -1,14 +1,15 @@
 import datetime
-import pytest
 import urllib
 from copy import deepcopy
+from urllib.parse import urlparse
+
+import pytest
 from django.test.utils import override_settings
 from django.urls import reverse
 from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 from rest_framework import status
 from reversion.models import Version
-from urllib.parse import urlparse
 
 from audit_log.enums import Operation
 from democracy.enums import Commenting, InitialSectionType
@@ -34,7 +35,11 @@ def get_root_detail_url(comment):
 
 
 def get_nested_detail_url(comment):
-    return "/v1/hearing/%s/sections/%s/comments/%s/" % (comment.section.hearing.id, comment.section.id, comment.id)
+    return "/v1/hearing/%s/sections/%s/comments/%s/" % (
+        comment.section.hearing.id,
+        comment.section.id,
+        comment.id,
+    )
 
 
 @pytest.fixture(params=["nested", "root"])
@@ -58,11 +63,16 @@ def get_comment_data(**extra):
 
 
 def get_main_comments_url(hearing, lookup_field="id"):
-    return "/v1/hearing/%s/sections/%s/comments/" % (getattr(hearing, lookup_field), hearing.get_main_section().id)
+    return "/v1/hearing/%s/sections/%s/comments/" % (
+        getattr(hearing, lookup_field),
+        hearing.get_main_section().id,
+    )
 
 
 def get_section_comment_flag_url(hearing_id, section_id, comment_id):
-    return get_hearing_detail_url(hearing_id, "sections/%s/comments/%s/flag" % (section_id, comment_id))
+    return get_hearing_detail_url(
+        hearing_id, "sections/%s/comments/%s/flag" % (section_id, comment_id)
+    )
 
 
 @pytest.fixture(params=["nested_by_id", "nested_by_slug", "root"])
@@ -78,9 +88,18 @@ def get_comments_url_and_data(request):
     """
     nested_url = "/v1/hearing/%s/sections/%s/comments/"
     return {
-        "nested_by_id": lambda hearing, section: (nested_url % (hearing.id, section.id), get_comment_data()),
-        "nested_by_slug": lambda hearing, section: (nested_url % (hearing.id, section.id), get_comment_data()),
-        "root": lambda hearing, section: ("/v1/comment/?section=%s" % section.id, get_comment_data(section=section.id)),
+        "nested_by_id": lambda hearing, section: (
+            nested_url % (hearing.id, section.id),
+            get_comment_data(),
+        ),
+        "nested_by_slug": lambda hearing, section: (
+            nested_url % (hearing.id, section.id),
+            get_comment_data(),
+        ),
+        "root": lambda hearing, section: (
+            "/v1/comment/?section=%s" % section.id,
+            get_comment_data(section=section.id),
+        ),
     }[request.param]
 
 
@@ -90,7 +109,9 @@ def lookup_field(request):
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_authentication(api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_to_section_without_authentication(
+    api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     response = api_client.post(url, data=data)
@@ -166,7 +187,9 @@ def test_56_add_comment_to_section_requiring_strong_auth_with_organization(
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_without_data(api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_to_section_without_data(
+    api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     post_data = {"section": data["section"]} if "section" in data else None
@@ -176,7 +199,9 @@ def test_56_add_comment_to_section_without_data(api_client, default_hearing, get
 
 
 @pytest.mark.django_db
-def test_56_pin_comment_to_section_without_authentication(api_client, default_hearing, get_comments_url_and_data):
+def test_56_pin_comment_to_section_without_authentication(
+    api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     data["pinned"] = True
@@ -187,7 +212,9 @@ def test_56_pin_comment_to_section_without_authentication(api_client, default_he
 
 
 @pytest.mark.django_db
-def test_56_pin_comment_to_section_with_authentication(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_pin_comment_to_section_with_authentication(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     data["pinned"] = True
@@ -198,7 +225,9 @@ def test_56_pin_comment_to_section_with_authentication(john_doe_api_client, defa
 
 
 @pytest.mark.django_db
-def test_56_pin_comment_to_section_as_admin(john_smith_api_client, default_hearing, get_comments_url_and_data):
+def test_56_pin_comment_to_section_as_admin(
+    john_smith_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     data["pinned"] = True
@@ -208,7 +237,9 @@ def test_56_pin_comment_to_section_as_admin(john_smith_api_client, default_heari
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature):
+def test_56_add_comment_to_section(
+    john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -246,7 +277,9 @@ def test_56_add_comment_to_section(john_doe_api_client, default_hearing, get_com
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_comment(john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature):
+def test_56_add_comment_to_comment(
+    john_doe_api_client, default_hearing, get_comments_url_and_data, geojson_feature
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -289,7 +322,9 @@ def test_56_add_comment_to_comment(john_doe_api_client, default_hearing, get_com
 
 
 @pytest.mark.django_db
-def test_add_comment_to_deleted_comment(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_add_comment_to_deleted_comment(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -308,7 +343,9 @@ def test_add_comment_to_deleted_comment(john_doe_api_client, default_hearing, ge
     assert data["comment"] == old_comment_list[0]["id"]
 
     # Check that the comment is available in the comment endpoint now
-    new_comment_list = get_data_from_response(john_doe_api_client.get(f"{url}?comment={old_comment_list[0]['id']}"))
+    new_comment_list = get_data_from_response(
+        john_doe_api_client.get(f"{url}?comment={old_comment_list[0]['id']}")
+    )
     if "results" in new_comment_list:
         new_comment_list = new_comment_list["results"]
 
@@ -348,10 +385,14 @@ def test_226_add_comment_to_section_detect_lang(
 
 
 @pytest.mark.django_db
-def test_56_add_comment_to_section_test_geojson(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_to_section_test_geojson(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
-    old_comment_list = get_data_from_response(john_doe_api_client.get(url, {"format": "geojson"}))
+    old_comment_list = get_data_from_response(
+        john_doe_api_client.get(url, {"format": "geojson"})
+    )
 
     # set section explicitly
     comment_data = get_comment_data(section=section.pk)
@@ -359,16 +400,24 @@ def test_56_add_comment_to_section_test_geojson(john_doe_api_client, default_hea
     data = get_data_from_response(response, status_code=201)
 
     # Check that the comment is available in the comment endpoint now
-    new_comment_list = get_data_from_response(john_doe_api_client.get(url, {"format": "geojson"}))
+    new_comment_list = get_data_from_response(
+        john_doe_api_client.get(url, {"format": "geojson"})
+    )
 
     assert len(new_comment_list["features"]) == len(old_comment_list["features"]) + 1
     new_comment = [c for c in new_comment_list["features"] if c["id"] == data["id"]][0]
-    assert_common_keys_equal(new_comment["geometry"], comment_data["geojson"]["geometry"])
-    assert_common_keys_equal(new_comment["properties"], comment_data["geojson"]["properties"])
+    assert_common_keys_equal(
+        new_comment["geometry"], comment_data["geojson"]["geometry"]
+    )
+    assert_common_keys_equal(
+        new_comment["properties"], comment_data["geojson"]["properties"]
+    )
 
 
 @pytest.mark.django_db
-def test_add_empty_comment(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_add_empty_comment(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -397,7 +446,9 @@ def test_56_add_comment_to_section_with_invalid_geojson(
         old_comment_list = old_comment_list["results"]
 
     # set section and invalid geojson explicitly
-    comment_data = get_comment_data(section=section.pk, geojson={"type": "Feature", "geometry": {"hello": "world"}})
+    comment_data = get_comment_data(
+        section=section.pk, geojson={"type": "Feature", "geometry": {"hello": "world"}}
+    )
     response = john_doe_api_client.post(url, data=comment_data, format="json")
 
     data = get_data_from_response(response, status_code=400)
@@ -421,11 +472,16 @@ def test_56_add_comment_to_section_with_no_geometry_in_geojson(
     response = john_doe_api_client.post(url, data=comment_data, format="json")
 
     data = get_data_from_response(response, status_code=400)
-    assert data["geojson"][0] == "Invalid geojson format. \"type\" field is required. Got {'hello': 'world'}"
+    assert (
+        data["geojson"][0]
+        == "Invalid geojson format. \"type\" field is required. Got {'hello': 'world'}"
+    )
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_label_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_with_label_to_section(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     label_one = Label(id=1, label="The Label")
     label_one.save()
 
@@ -447,7 +503,9 @@ def test_56_add_comment_with_label_to_section(john_doe_api_client, default_heari
     # Check that the comment is available in the comment endpoint now
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
-    comment_data = get_comment_data(section=section.pk, label={"label": {default_lang_code: "The Label"}, "id": 1})
+    comment_data = get_comment_data(
+        section=section.pk, label={"label": {default_lang_code: "The Label"}, "id": 1}
+    )
 
     # If pagination is used the actual data is in "results"
     if "results" in new_comment_list:
@@ -462,7 +520,9 @@ def test_56_add_comment_with_label_to_section(john_doe_api_client, default_heari
 
 
 @pytest.mark.django_db
-def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_add_empty_comment_with_label(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     label_one = Label(id=1, label="The Label")
     label_one.save()
     section = default_hearing.sections.first()
@@ -474,7 +534,9 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
         old_comment_list = old_comment_list["results"]
 
     # set section explicitly
-    comment_data = get_comment_data(section=section.pk, content="", label={"id": 1}, geojson=None)
+    comment_data = get_comment_data(
+        section=section.pk, content="", label={"id": 1}, geojson=None
+    )
     response = john_doe_api_client.post(url, data=comment_data, format="json")
     data = get_data_from_response(response, status_code=201)
 
@@ -484,7 +546,10 @@ def test_add_empty_comment_with_label(john_doe_api_client, default_hearing, get_
     new_comment_list = get_data_from_response(john_doe_api_client.get(url))
 
     comment_data = get_comment_data(
-        section=section.pk, label={"label": {default_lang_code: "The Label"}, "id": 1}, content="", geojson=None
+        section=section.pk,
+        label={"label": {default_lang_code: "The Label"}, "id": 1},
+        content="",
+        geojson=None,
     )
     # If pagination is used the actual data is in "results"
     if "results" in new_comment_list:
@@ -537,7 +602,9 @@ def test_56_add_empty_comment_with_geojson(
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_inexistant_label(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_with_inexistant_label(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -554,7 +621,9 @@ def test_56_add_comment_with_inexistant_label(john_doe_api_client, default_heari
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_no_label_id(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_with_no_label_id(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     label_one = Label(id=1, label="The Label")
     label_one.save()
     section = default_hearing.sections.first()
@@ -569,13 +638,17 @@ def test_56_add_comment_with_no_label_id(john_doe_api_client, default_hearing, g
     comment_data = get_comment_data(section=section.pk, label={"pk": 1})
     response = john_doe_api_client.post(url, data=comment_data, format="json")
     data = get_data_from_response(response, status_code=400)
-    assert data["label"][0] == 'The primary key is missing. Expected {"id": id, ...}, received %(data)s.' % {
+    assert data["label"][
+        0
+    ] == 'The primary key is missing. Expected {"id": id, ...}, received %(data)s.' % {
         "data": {"pk": 1}
     }
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_images_to_section(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_with_images_to_section(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
     old_comment_list = get_data_from_response(john_doe_api_client.get(url))
@@ -642,7 +715,9 @@ def test_56_add_comment_with_empty_image_field_to_section(
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_invalid_content_as_images(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_with_invalid_content_as_images(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
 
@@ -658,11 +733,16 @@ def test_56_add_comment_with_invalid_content_as_images(john_doe_api_client, defa
     response = john_doe_api_client.post(url, data=comment_data, format="json")
     data = get_data_from_response(response, status_code=400)
     error = data["images"][0]["image"][0]
-    assert error == "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
+    assert (
+        error
+        == "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
+    )
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_image_too_big(john_doe_api_client, default_hearing, get_comments_url_and_data):
+def test_56_add_comment_with_image_too_big(
+    john_doe_api_client, default_hearing, get_comments_url_and_data
+):
     section = default_hearing.sections.first()
     url, data = get_comments_url_and_data(default_hearing, section)
 
@@ -671,7 +751,9 @@ def test_56_add_comment_with_image_too_big(john_doe_api_client, default_hearing,
     with override_settings(MAX_IMAGE_SIZE=10):
         response = john_doe_api_client.post(url, data=comment_data, format="json")
     data = get_data_from_response(response, status_code=400)
-    assert data["images"][0]["image"][0] == "Image size should be smaller than 10 bytes."
+    assert (
+        data["images"][0]["image"][0] == "Image size should be smaller than 10 bytes."
+    )
 
 
 @pytest.mark.django_db
@@ -763,7 +845,9 @@ def test_add_comment_to_section_user_update_nickname(
 
 
 @pytest.mark.django_db
-def test_56_get_hearing_with_section_check_n_comments_property(api_client, get_comments_url_and_data):
+def test_56_get_hearing_with_section_check_n_comments_property(
+    api_client, get_comments_url_and_data
+):
     hearing = Hearing.objects.create(
         title="Test Hearing",
         open_at=now() - datetime.timedelta(days=1),
@@ -796,7 +880,9 @@ def get_section_comments(hearing, section, api_client):
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_email_as_regular_user_not_public(john_doe_api_client, default_hearing, settings):
+def test_get_section_comment_creator_email_as_regular_user_not_public(
+    john_doe_api_client, default_hearing, settings
+):
     settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
     section = default_hearing.sections.first()
 
@@ -807,7 +893,9 @@ def test_get_section_comment_creator_email_as_regular_user_not_public(john_doe_a
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_email_as_regular_user_public(john_doe_api_client, default_hearing, settings):
+def test_get_section_comment_creator_email_as_regular_user_public(
+    john_doe_api_client, default_hearing, settings
+):
     settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
     section = default_hearing.sections.first()
 
@@ -818,7 +906,9 @@ def test_get_section_comment_creator_email_as_regular_user_public(john_doe_api_c
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_email_as_admin_not_public(admin_api_client, default_hearing, settings):
+def test_get_section_comment_creator_email_as_admin_not_public(
+    admin_api_client, default_hearing, settings
+):
     settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = False
     section = default_hearing.sections.first()
 
@@ -829,7 +919,9 @@ def test_get_section_comment_creator_email_as_admin_not_public(admin_api_client,
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_email_as_admin_public(admin_api_client, default_hearing, settings):
+def test_get_section_comment_creator_email_as_admin_public(
+    admin_api_client, default_hearing, settings
+):
     settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
     section = default_hearing.sections.first()
 
@@ -842,7 +934,9 @@ def test_get_section_comment_creator_email_as_admin_public(admin_api_client, def
 
 
 @pytest.mark.django_db
-def test_get_section_comment_creator_email_as_admin_public_when_deleted(admin_api_client, default_hearing, settings):
+def test_get_section_comment_creator_email_as_admin_public_when_deleted(
+    admin_api_client, default_hearing, settings
+):
     settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES = True
     section = default_hearing.sections.first()
     section.comments.update(deleted=True)
@@ -856,7 +950,9 @@ def test_get_section_comment_creator_email_as_admin_public_when_deleted(admin_ap
 
 
 @pytest.mark.django_db
-def test_get_section_comment_author_name_when_posted_by_anon(admin_api_client, hearing_without_comments):
+def test_get_section_comment_author_name_when_posted_by_anon(
+    admin_api_client, hearing_without_comments
+):
     section = hearing_without_comments.sections.first()
     section.comments.create(created_by=None, content="Anon content")
 
@@ -882,7 +978,9 @@ def test_get_section_comment_author_name_when_posted_by_registered_user(
 
     section = hearing_without_comments.sections.first()
     section.comments.create(created_by=john_doe, content="john doe's content")
-    url = get_hearing_detail_url(hearing_without_comments.id, "sections/%s/comments" % section.id)
+    url = get_hearing_detail_url(
+        hearing_without_comments.id, "sections/%s/comments" % section.id
+    )
     response = admin_api_client.get(url)
     data = get_data_from_response(response, 200)
     first_comment = data[0]
@@ -900,7 +998,9 @@ def test_n_comments_updates(admin_user, default_hearing):
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 10
     assert section.n_comments == 4
     assert comment.n_comments == 0
-    subcomment = comment.comments.create(created_by=admin_user, content="Hello you!", section=section)
+    subcomment = comment.comments.create(
+        created_by=admin_user, content="Hello you!", section=section
+    )
     assert Hearing.objects.get(pk=default_hearing.pk).n_comments == 11
     assert section.n_comments == 5
     assert comment.n_comments == 1
@@ -939,7 +1039,9 @@ def test_comment_edit_versioning(john_doe_api_client, default_hearing, lookup_fi
     assert comment.content.isupper()  # Oh my, all that screaming :(
     assert Version.objects.get_for_object(comment).count() == 1  # Initial revision
 
-    response = john_doe_api_client.patch("%s%s/" % (url, comment_id), data={"content": expected_content})
+    response = john_doe_api_client.patch(
+        "%s%s/" % (url, comment_id), data={"content": expected_content}
+    )
 
     assert response.status_code == status.HTTP_200_OK
     comment = SectionComment.objects.get(pk=comment_id)
@@ -970,9 +1072,13 @@ def test_comment_delete_versioning(john_doe_api_client, default_hearing, lookup_
 @pytest.mark.django_db
 def test_correct_m2m_fks(admin_user, default_hearing):
     first_section = default_hearing.sections.first()
-    section_comment = first_section.comments.create(created_by=admin_user, content="hello")
+    section_comment = first_section.comments.create(
+        created_by=admin_user, content="hello"
+    )
     sc_voters_query = force_text(section_comment.voters.all().query)
-    assert "sectioncomment" in sc_voters_query and "hearingcomment" not in sc_voters_query
+    assert (
+        "sectioncomment" in sc_voters_query and "hearingcomment" not in sc_voters_query
+    )
 
 
 comment_status_spec = {
@@ -998,7 +1104,9 @@ def test_commenting_modes(api_client, john_doe_api_client, default_hearing, comm
 
 
 @pytest.mark.django_db
-def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client, default_hearing, lookup_field):
+def test_comment_edit_auth(
+    john_doe_api_client, jane_doe_api_client, api_client, default_hearing, lookup_field
+):
     url = get_main_comments_url(default_hearing, lookup_field)
 
     # John posts an innocuous comment:
@@ -1008,14 +1116,18 @@ def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client,
     comment_id = data["id"]
 
     # Now Jane (in the guise of Mallory) attempts a rogue edit:
-    response = jane_doe_api_client.patch("%s%s/" % (url, comment_id), data={"content": "hOI! I'M TEMMIE"})
+    response = jane_doe_api_client.patch(
+        "%s%s/" % (url, comment_id), data={"content": "hOI! I'M TEMMIE"}
+    )
 
     # But her attempts are foiled!
     data = get_data_from_response(response, 403)
     assert SectionComment.objects.get(pk=comment_id).content == johns_message
 
     # Jane, thinking she can bamboozle our authentication by logging out, tries again!
-    response = api_client.patch("%s%s/" % (url, comment_id), data={"content": "I'm totally John"})
+    response = api_client.patch(
+        "%s%s/" % (url, comment_id), data={"content": "I'm totally John"}
+    )
 
     # But still, no!
     data = get_data_from_response(response, 403)
@@ -1025,12 +1137,17 @@ def test_comment_edit_auth(john_doe_api_client, jane_doe_api_client, api_client,
 @pytest.mark.django_db
 def test_comment_editing_disallowed_after_closure(john_doe_api_client, default_hearing):
     # Post a comment:
-    url = "/v1/hearing/%s/sections/%s/comments/" % (default_hearing.id, default_hearing.get_main_section().id)
+    url = "/v1/hearing/%s/sections/%s/comments/" % (
+        default_hearing.id,
+        default_hearing.get_main_section().id,
+    )
     response = john_doe_api_client.post(url, data=get_comment_data())
     data = get_data_from_response(response, status_code=201)
     comment_id = data["id"]
     # Successfully edit the comment:
-    response = john_doe_api_client.patch("%s%s/" % (url, comment_id), data={"content": "Hello"})
+    response = john_doe_api_client.patch(
+        "%s%s/" % (url, comment_id), data={"content": "Hello"}
+    )
     data = get_data_from_response(response, status_code=200)
     assert data["content"] == "Hello"
     assert data["can_edit"]
@@ -1038,26 +1155,36 @@ def test_comment_editing_disallowed_after_closure(john_doe_api_client, default_h
     default_hearing.close_at = default_hearing.open_at
     default_hearing.save()
     # Futilely attempt to edit the comment:
-    response = john_doe_api_client.patch("%s%s/" % (url, comment_id), data={"content": "No"})
+    response = john_doe_api_client.patch(
+        "%s%s/" % (url, comment_id), data={"content": "No"}
+    )
     assert response.status_code == 403
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("case", ("plug-valid", "plug-invalid", "noplug"))
 def test_add_plugin_data_to_comment(api_client, default_hearing, case):
-    with override_settings(DEMOCRACY_PLUGINS={"test_plugin": "democracy.tests.plug.TestPlugin"}):
+    with override_settings(
+        DEMOCRACY_PLUGINS={"test_plugin": "democracy.tests.plug.TestPlugin"}
+    ):
         section = default_hearing.sections.first()
         if case.startswith("plug"):
             section.plugin_identifier = "test_plugin"
         section.save()
-        url = get_hearing_detail_url(default_hearing.id, "sections/%s/comments" % section.id)
-        comment_data = get_comment_data(content="", plugin_data=("foo6" if case == "plug-valid" else "invalid555"))
+        url = get_hearing_detail_url(
+            default_hearing.id, "sections/%s/comments" % section.id
+        )
+        comment_data = get_comment_data(
+            content="", plugin_data=("foo6" if case == "plug-valid" else "invalid555")
+        )
         response = api_client.post(url, data=comment_data)
         if case == "plug-valid":
             assert response.status_code == 201
             created_comment = SectionComment.objects.first()
             assert created_comment.plugin_identifier == section.plugin_identifier
-            assert created_comment.plugin_data == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
+            assert (
+                created_comment.plugin_data == comment_data["plugin_data"][::-1]
+            )  # The TestPlugin reverses data
         elif case == "plug-invalid":
             data = get_data_from_response(response, status_code=400)
             assert data == {"plugin_data": ["The data must contain a 6."]}
@@ -1070,11 +1197,15 @@ def test_add_plugin_data_to_comment(api_client, default_hearing, case):
 
 @pytest.mark.django_db
 def test_do_not_get_plugin_data_for_comment(api_client, default_hearing):
-    with override_settings(DEMOCRACY_PLUGINS={"test_plugin": "democracy.tests.plug.TestPlugin"}):
+    with override_settings(
+        DEMOCRACY_PLUGINS={"test_plugin": "democracy.tests.plug.TestPlugin"}
+    ):
         section = default_hearing.sections.first()
         section.plugin_identifier = "test_plugin"
         section.save()
-        url = get_hearing_detail_url(default_hearing.id, "sections/%s/comments" % section.id)
+        url = get_hearing_detail_url(
+            default_hearing.id, "sections/%s/comments" % section.id
+        )
         comment_data = get_comment_data(content="", plugin_data="foo6")
         response = api_client.post(url, data=comment_data)
         response_data = get_data_from_response(response, status_code=201)
@@ -1085,25 +1216,39 @@ def test_do_not_get_plugin_data_for_comment(api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_get_plugin_data_for_comment(api_client, default_hearing):
-    with override_settings(DEMOCRACY_PLUGINS={"test_plugin": "democracy.tests.plug.TestPlugin"}):
+    with override_settings(
+        DEMOCRACY_PLUGINS={"test_plugin": "democracy.tests.plug.TestPlugin"}
+    ):
         section = default_hearing.sections.first()
         section.plugin_identifier = "test_plugin"
         section.save()
-        url = get_hearing_detail_url(default_hearing.id, "sections/%s/comments" % section.id)
+        url = get_hearing_detail_url(
+            default_hearing.id, "sections/%s/comments" % section.id
+        )
         comment_data = get_comment_data(content="", plugin_data="foo6")
         response = api_client.post(url, data=comment_data)
         response_data = get_data_from_response(response, status_code=201)
-        comment_list = get_data_from_response(api_client.get(url, {"include": "plugin_data"}))
+        comment_list = get_data_from_response(
+            api_client.get(url, {"include": "plugin_data"})
+        )
         created_comment = [c for c in comment_list if c["id"] == response_data["id"]][0]
-        assert created_comment["plugin_data"] == comment_data["plugin_data"][::-1]  # The TestPlugin reverses data
+        assert (
+            created_comment["plugin_data"] == comment_data["plugin_data"][::-1]
+        )  # The TestPlugin reverses data
 
 
 @pytest.mark.parametrize(
     "data",
-    [{"section": "nonexistingsection", "content": "blah"}, {"section": None, "content": "blah"}, {"content": "blah"}],
+    [
+        {"section": "nonexistingsection", "content": "blah"},
+        {"section": None, "content": "blah"},
+        {"content": "blah"},
+    ],
 )
 @pytest.mark.django_db
-def test_post_to_root_endpoint_invalid_section(john_doe_api_client, default_hearing, data):
+def test_post_to_root_endpoint_invalid_section(
+    john_doe_api_client, default_hearing, data
+):
     url = "/v1/comment/"
 
     response = john_doe_api_client.post(url, data=data)
@@ -1113,10 +1258,16 @@ def test_post_to_root_endpoint_invalid_section(john_doe_api_client, default_hear
 
 @pytest.mark.parametrize(
     "data",
-    [{"section": "nonexistingsection", "content": "blah"}, {"section": None, "content": "blah"}, {"content": "blah"}],
+    [
+        {"section": "nonexistingsection", "content": "blah"},
+        {"section": None, "content": "blah"},
+        {"content": "blah"},
+    ],
 )
 @pytest.mark.django_db
-def test_put_to_root_endpoint_invalid_section(john_doe_api_client, default_hearing, data):
+def test_put_to_root_endpoint_invalid_section(
+    john_doe_api_client, default_hearing, data
+):
     url = "/v1/comment/"
     comment = default_hearing.sections.first().comments.first()
     url = "%s%s/" % (url, comment.id)
@@ -1138,7 +1289,9 @@ def test_root_endpoint_filters(api_client, default_hearing, random_hearing):
         comment.label = label
         comment.save(update_fields=("authorization_code", "label"))
 
-    response = api_client.get("%s?authorization_code=%s" % (url, section.comments.first().authorization_code))
+    response = api_client.get(
+        "%s?authorization_code=%s" % (url, section.comments.first().authorization_code)
+    )
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 1
 
@@ -1166,20 +1319,31 @@ def test_root_endpoint_timestamp_filters(api_client, default_hearing):
     future_comment.created_at = timestamp_comment
     future_comment.save(update_fields=("created_at",))
 
-    response = api_client.get("%s?created_at__gt=%s" % (url, urllib.parse.quote(timestamp_check.isoformat())))
+    response = api_client.get(
+        "%s?created_at__gt=%s" % (url, urllib.parse.quote(timestamp_check.isoformat()))
+    )
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == 1
 
-    response = api_client.get("%s?created_at__lt=%s" % (url, urllib.parse.quote(timestamp_check.isoformat())))
+    response = api_client.get(
+        "%s?created_at__lt=%s" % (url, urllib.parse.quote(timestamp_check.isoformat()))
+    )
     response_data = get_data_from_response(response)
     assert len(response_data["results"]) == comment_count - 1
 
 
 @pytest.mark.parametrize(
-    "hearing_update", [("deleted", True), ("published", False), ("open_at", now() + datetime.timedelta(days=1))]
+    "hearing_update",
+    [
+        ("deleted", True),
+        ("published", False),
+        ("open_at", now() + datetime.timedelta(days=1)),
+    ],
 )
 @pytest.mark.django_db
-def test_root_endpoint_filtering_by_hearing_visibility(api_client, default_hearing, hearing_update):
+def test_root_endpoint_filtering_by_hearing_visibility(
+    api_client, default_hearing, hearing_update
+):
     setattr(default_hearing, hearing_update[0], hearing_update[1])
     default_hearing.save()
 
@@ -1216,7 +1380,9 @@ def test_comment_patch(john_doe_api_client, default_hearing, get_detail_url):
 
 
 @pytest.mark.django_db
-def test_cannot_change_comment_section(john_doe_api_client, default_hearing, get_detail_url):
+def test_cannot_change_comment_section(
+    john_doe_api_client, default_hearing, get_detail_url
+):
     section = default_hearing.sections.all()[0]
     second_section = default_hearing.sections.all()[1]
     comment = section.comments.all()[0]
@@ -1233,7 +1399,9 @@ def test_cannot_change_comment_section(john_doe_api_client, default_hearing, get
 
 
 @pytest.mark.django_db
-def test_cannot_change_comment_comment(john_doe_api_client, default_hearing, get_detail_url):
+def test_cannot_change_comment_comment(
+    john_doe_api_client, default_hearing, get_detail_url
+):
     section = default_hearing.sections.all()[0]
     comment = section.comments.all()[0]
     other_comment = section.comments.all()[1]
@@ -1275,13 +1443,17 @@ def test_cannot_modify_others_comments(
 
 
 @pytest.mark.django_db
-def test_comment_delete(john_doe_api_client, default_hearing, comment_image, get_detail_url):
+def test_comment_delete(
+    john_doe_api_client, default_hearing, comment_image, get_detail_url
+):
     # Arrange
     section = default_hearing.get_main_section()
     comment = section.comments.all()[0]
     comment.geojson = default_geojson_feature
     comment.save()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
     answer = SectionPollAnswer.objects.create(option=option, comment=comment)
     url = get_detail_url(comment)
@@ -1349,7 +1521,11 @@ def test_cannot_delete_others_comments(
 @pytest.mark.parametrize("anonymous_comment", [True, False])
 @pytest.mark.django_db
 def test_hearing_creator_cannot_delete_others_comments(
-    api_client, steve_staff_api_client, default_hearing, get_detail_url, anonymous_comment
+    api_client,
+    steve_staff_api_client,
+    default_hearing,
+    get_detail_url,
+    anonymous_comment,
 ):
     default_hearing.created_by_id = steve_staff_api_client.user.id
     default_hearing.save()
@@ -1390,7 +1566,9 @@ def test_comment_ordering(api_client, ordering, expected_order, default_hearing)
 
     for i in range(3):
         comment = SectionCommentFactory(section=section)
-        SectionComment.objects.filter(id=comment.id).update(n_votes=i, created_at=datetime.datetime.now())
+        SectionComment.objects.filter(id=comment.id).update(
+            n_votes=i, created_at=datetime.datetime.now()
+        )
 
     response = api_client.get(root_list_url + "?ordering=" + ordering)
     results = get_data_from_response(response)["results"]
@@ -1400,7 +1578,9 @@ def test_comment_ordering(api_client, ordering, expected_order, default_hearing)
 
 
 @pytest.mark.django_db
-def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, get_comments_url_and_data):
+def test_get_comments_created_by_user(
+    john_doe_api_client, jane_doe_api_client, get_comments_url_and_data
+):
     hearings = []
     sections = []
     # Create 3 hearings with a section that can be commented.
@@ -1426,13 +1606,17 @@ def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, 
     for i in range(len(hearings)):
         url, data = get_comments_url_and_data(hearings[i], sections[i])
         comment_data = get_comment_data(
-            section=sections[i].pk, author_name="John", content="Comment for Hearing %s" % (i + 1)
+            section=sections[i].pk,
+            author_name="John",
+            content="Comment for Hearing %s" % (i + 1),
         )
         expected_john_comment_content.insert(0, "Comment for Hearing %s" % (i + 1))
         john_doe_api_client.post(url, data=comment_data)
 
     # Jane comments on the first hearing.
-    comment_data = get_comment_data(section=sections[0].pk, author_name="Jane", content="Jane created this comment")
+    comment_data = get_comment_data(
+        section=sections[0].pk, author_name="Jane", content="Jane created this comment"
+    )
     jane_doe_api_client.post(url, data=comment_data)
 
     # John fetches all comments he has made.
@@ -1461,9 +1645,13 @@ def test_get_comments_created_by_user(john_doe_api_client, jane_doe_api_client, 
     assert data["results"][0]["content"] == "Jane created this comment"
 
 
-@pytest.mark.parametrize("query_params,expected", [({"created_by": "me"}, 0), (None, 9)])
+@pytest.mark.parametrize(
+    "query_params,expected", [({"created_by": "me"}, 0), (None, 9)]
+)
 @pytest.mark.django_db
-def test_get_comments_created_by_user__unauthenticated(query_params, expected, api_client, default_hearing):
+def test_get_comments_created_by_user__unauthenticated(
+    query_params, expected, api_client, default_hearing
+):
     """Unauthenticated users get no results with created_by filter."""
     url = reverse("comment-list")
     response = api_client.get(url, query_params)
@@ -1478,43 +1666,55 @@ def test_deleted_comments_data_returned(john_doe_api_client, default_hearing):
     section = default_hearing.sections.first()
     section.comments.first().soft_delete()
 
-    url = get_hearing_detail_url(default_hearing.id, "sections/%s/comments" % section.id)
+    url = get_hearing_detail_url(
+        default_hearing.id, "sections/%s/comments" % section.id
+    )
     data = get_data_from_response(john_doe_api_client.get(url), 200)
 
     comment_data = data[0]
     assert comment_data["deleted"]
     assert comment_data["deleted_at"] is not None
     assert (
-        SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
-        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" in comment_data["content"]
+        SectionComment.objects.everything().get(pk=comment_data["id"]).content
+        != comment_data["content"]
+        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä"
+        in comment_data["content"]
     )
     assert comment_data["author_name"] is None
     assert comment_data["organization"] is None
 
 
 @pytest.mark.django_db
-def test_deleted_comments_data_returned_author_self_deleted(john_doe_api_client, default_hearing):
+def test_deleted_comments_data_returned_author_self_deleted(
+    john_doe_api_client, default_hearing
+):
     """Comments deleted by their creator show a different message"""
 
     section = default_hearing.sections.first()
     section.comments.first().soft_delete(user=john_doe_api_client.user)
 
-    url = get_hearing_detail_url(default_hearing.id, "sections/%s/comments" % section.id)
+    url = get_hearing_detail_url(
+        default_hearing.id, "sections/%s/comments" % section.id
+    )
     data = get_data_from_response(john_doe_api_client.get(url), 200)
 
     comment_data = data[0]
     assert comment_data["deleted"]
     assert comment_data["deleted_at"] is not None
     assert (
-        SectionComment.objects.everything().get(pk=comment_data["id"]).content != comment_data["content"]
-        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä" not in comment_data["content"]
+        SectionComment.objects.everything().get(pk=comment_data["id"]).content
+        != comment_data["content"]
+        and "koska se ei noudattanut Kerrokantasi-palvelun sääntöjä"
+        not in comment_data["content"]
     )
     assert comment_data["author_name"] is None
     assert comment_data["organization"] is None
 
 
 @pytest.mark.django_db
-def test_section_comment_flag_without_proper_authentication(john_doe_api_client, default_hearing):
+def test_section_comment_flag_without_proper_authentication(
+    john_doe_api_client, default_hearing
+):
     section = default_hearing.sections.first()
     comment = section.comments.first()
     url = get_section_comment_flag_url(default_hearing.id, section.id, comment.id)
@@ -1523,7 +1723,9 @@ def test_section_comment_flag_without_proper_authentication(john_doe_api_client,
 
 
 @pytest.mark.django_db
-def test_section_comment_flag_with_proper_authentication(john_smith_api_client, default_hearing):
+def test_section_comment_flag_with_proper_authentication(
+    john_smith_api_client, default_hearing
+):
     """User with the same organization as the hearing can flag a comment"""
     section = default_hearing.sections.first()
     comment = section.comments.first()
@@ -1540,24 +1742,64 @@ def test_section_comment_flag_with_proper_authentication(john_smith_api_client, 
     "user_api_client,comment_creator,hearing_creator,expected_items",
     [
         # Client's own comment in the client's hearing
-        ("john_doe_api_client", "john_doe", "john_doe", {"can_edit": True, "can_delete": True}),
+        (
+            "john_doe_api_client",
+            "john_doe",
+            "john_doe",
+            {"can_edit": True, "can_delete": True},
+        ),
         # Client's own comment in someone else's hearing
-        ("john_doe_api_client", "john_doe", "jane_doe", {"can_edit": True, "can_delete": True}),
+        (
+            "john_doe_api_client",
+            "john_doe",
+            "jane_doe",
+            {"can_edit": True, "can_delete": True},
+        ),
         # Someone else's comment in client's hearing
-        ("john_doe_api_client", "jane_doe", "john_doe", {"can_edit": False, "can_delete": False}),
+        (
+            "john_doe_api_client",
+            "jane_doe",
+            "john_doe",
+            {"can_edit": False, "can_delete": False},
+        ),
         # Anonymous comment in client's hearing
-        ("john_doe_api_client", None, "john_doe", {"can_edit": False, "can_delete": False}),
+        (
+            "john_doe_api_client",
+            None,
+            "john_doe",
+            {"can_edit": False, "can_delete": False},
+        ),
         # Someone else's comment in someone else's hearing as staff user
-        ("steve_staff_api_client", "john_doe", "john_doe", {"can_edit": False, "can_delete": False}),
+        (
+            "steve_staff_api_client",
+            "john_doe",
+            "john_doe",
+            {"can_edit": False, "can_delete": False},
+        ),
         # Someone else's comment in the client's hearing as staff user
-        ("steve_staff_api_client", "john_doe", "steve_staff", {"can_edit": False, "can_delete": False}),
+        (
+            "steve_staff_api_client",
+            "john_doe",
+            "steve_staff",
+            {"can_edit": False, "can_delete": False},
+        ),
         # Anonymous comment in the client's hearing as staff user
-        ("steve_staff_api_client", None, "steve_staff", {"can_edit": False, "can_delete": False}),
+        (
+            "steve_staff_api_client",
+            None,
+            "steve_staff",
+            {"can_edit": False, "can_delete": False},
+        ),
     ],
 )
 @pytest.mark.django_db
 def test_get_section_comment_edit_delete_rights(
-    user_api_client, comment_creator, hearing_creator, expected_items, default_hearing, request
+    user_api_client,
+    comment_creator,
+    hearing_creator,
+    expected_items,
+    default_hearing,
+    request,
 ):
     """Test that the can_edit and can_delete properties are correct for different users and comments"""
     # Get fixtures
@@ -1574,13 +1816,17 @@ def test_get_section_comment_edit_delete_rights(
     section.comments.create(created_by=comment_creator, content="test")
 
     # Get comment data
-    url = get_hearing_detail_url(default_hearing.id, "sections/%s/comments" % section.id)
+    url = get_hearing_detail_url(
+        default_hearing.id, "sections/%s/comments" % section.id
+    )
     response = user_api_client.get(url)
     data = get_data_from_response(response, 200)
 
     # Check that the properties are correct
     for key, value in expected_items.items():
-        assert data[0][key] == value, f"Expected '{key}' to be {value} (was: {data[0][key]})"
+        assert (
+            data[0][key] == value
+        ), f"Expected '{key}' to be {value} (was: {data[0][key]})"
 
 
 @pytest.mark.django_db
@@ -1638,7 +1884,9 @@ def test_comment_author_name_hidden_from_unfiltered_requests(
         "section": section.id,
         "comment": comment.id,
     }
-    query_params = {query_filter: possible_params[query_filter]} if query_filter else None
+    query_params = (
+        {query_filter: possible_params[query_filter]} if query_filter else None
+    )
 
     response = client.get(url, query_params)
 
@@ -1655,7 +1903,9 @@ def test_comment_author_name_hidden_from_unfiltered_requests__created_by(
     client = john_doe_api_client
     user = john_doe_api_client.user
     section = hearing_without_comments.sections.first()
-    comment = SectionCommentFactory(section=section, created_by=user, author_name="Name")
+    comment = SectionCommentFactory(
+        section=section, created_by=user, author_name="Name"
+    )
     SectionCommentFactory(section=section, comment=comment, author_name="Name")
 
     response = client.get(url, {"created_by": "me"})
@@ -1664,7 +1914,9 @@ def test_comment_author_name_hidden_from_unfiltered_requests__created_by(
 
 
 @pytest.mark.django_db
-def test_section_comment_num_queries(django_assert_num_queries, john_doe_api_client, hearing_with_comments_on_comments):
+def test_section_comment_num_queries(
+    django_assert_num_queries, john_doe_api_client, hearing_with_comments_on_comments
+):
     url = reverse("comment-list")
 
     with django_assert_num_queries(10):
@@ -1690,7 +1942,9 @@ def test_hearing_sections_comment_num_queries(
 
 
 @pytest.mark.django_db
-def test_comment_id_is_audit_logged_on_flag(john_smith_api_client, default_hearing, audit_log_configure):
+def test_comment_id_is_audit_logged_on_flag(
+    john_smith_api_client, default_hearing, audit_log_configure
+):
     section = default_hearing.sections.first()
     comment = section.comments.first()
     url = get_section_comment_flag_url(default_hearing.id, section.id, comment.id)
@@ -1714,7 +1968,9 @@ def test_comment_id_is_audit_logged_on_create(
 
 
 @pytest.mark.django_db
-def test_comment_id_is_audit_logged_on_edit(john_doe_api_client, default_hearing, get_detail_url, audit_log_configure):
+def test_comment_id_is_audit_logged_on_edit(
+    john_doe_api_client, default_hearing, get_detail_url, audit_log_configure
+):
     section = default_hearing.get_main_section()
     comment = section.comments.all()[0]
     url = get_detail_url(comment)
@@ -1761,4 +2017,8 @@ def test_comment_ids_are_audit_logged_on_list(
 
     john_doe_api_client.get(url)
 
-    assert_audit_log_entry(urlparse(url).path, comments.values_list("pk", flat=True), operation=Operation.READ)
+    assert_audit_log_entry(
+        urlparse(url).path,
+        comments.values_list("pk", flat=True),
+        operation=Operation.READ,
+    )

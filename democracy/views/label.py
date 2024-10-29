@@ -8,7 +8,9 @@ from democracy.views.utils import TranslatableSerializer
 
 
 class LabelFilterSet(django_filters.rest_framework.FilterSet):
-    label = django_filters.CharFilter(lookup_expr="icontains", field_name="translations__label")
+    label = django_filters.CharFilter(
+        lookup_expr="icontains", field_name="translations__label"
+    )
 
     class Meta:
         model = Label
@@ -21,7 +23,9 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
         fields = ("id", "label")
 
 
-class LabelViewSet(AuditLogApiView, viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
+class LabelViewSet(
+    AuditLogApiView, viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin
+):
     serializer_class = LabelSerializer
     queryset = Label.objects.all().prefetch_related("translations")
     pagination_class = DefaultLimitPagination
@@ -32,6 +36,7 @@ class LabelViewSet(AuditLogApiView, viewsets.ReadOnlyModelViewSet, mixins.Create
     def create(self, request):
         if not request.user or not request.user.get_default_organization():
             return response.Response(
-                {"status": "User without organization cannot POST labels."}, status=status.HTTP_403_FORBIDDEN
+                {"status": "User without organization cannot POST labels."},
+                status=status.HTTP_403_FORBIDDEN,
             )
         return super().create(request)

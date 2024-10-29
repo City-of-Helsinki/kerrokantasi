@@ -8,28 +8,27 @@ def forwards(apps, schema_editor):
     """
     Set empty intro section abstract based on Hearing abstract
     """
-    hearing_model = apps.get_model('democracy', 'Hearing')
+    hearing_model = apps.get_model("democracy", "Hearing")
 
-    for hearing in hearing_model.objects.exclude(abstract=''):
-        intro_sections = hearing.sections.filter(type__identifier='introduction', abstract='')
+    for hearing in hearing_model.objects.exclude(abstract=""):
+        intro_sections = hearing.sections.filter(
+            type__identifier="introduction", abstract=""
+        )
 
         for intro_section in intro_sections:
             intro_section.abstract = hearing.abstract
-            intro_section.save(update_fields=('abstract',))
+            intro_section.save(update_fields=("abstract",))
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0018_remove_hearing_commenting'),
+        ("democracy", "0018_remove_hearing_commenting"),
     ]
 
     operations = [
         migrations.RunPython(forwards, migrations.RunPython.noop),
-
         migrations.RemoveField(
-            model_name='hearing',
-            name='abstract',
+            model_name="hearing",
+            name="abstract",
         ),
-
     ]

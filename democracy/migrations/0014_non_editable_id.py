@@ -6,25 +6,43 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0013_unique_hearing_slug'),
+        ("democracy", "0013_unique_hearing_slug"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='hearing',
-            name='id',
-            field=models.CharField(editable=False, max_length=32, primary_key=True, serialize=False, verbose_name='identifier'),
+            model_name="hearing",
+            name="id",
+            field=models.CharField(
+                editable=False,
+                max_length=32,
+                primary_key=True,
+                serialize=False,
+                verbose_name="identifier",
+            ),
         ),
         migrations.AlterField(
-            model_name='section',
-            name='id',
-            field=models.CharField(editable=False, max_length=32, primary_key=True, serialize=False, verbose_name='identifier'),
+            model_name="section",
+            name="id",
+            field=models.CharField(
+                editable=False,
+                max_length=32,
+                primary_key=True,
+                serialize=False,
+                verbose_name="identifier",
+            ),
         ),
         migrations.AlterField(
-            model_name='hearing',
-            name='slug',
-            field=autoslug.fields.AutoSlugField(blank=True, editable=True, help_text='You may leave this empty to automatically generate a slug', populate_from='title', unique=True, verbose_name='slug'),
+            model_name="hearing",
+            name="slug",
+            field=autoslug.fields.AutoSlugField(
+                blank=True,
+                editable=True,
+                help_text="You may leave this empty to automatically generate a slug",
+                populate_from="title",
+                unique=True,
+                verbose_name="slug",
+            ),
         ),
     ]

@@ -29,7 +29,7 @@ def run_npm_script():
         if args and args[0] == "--":
             args.pop(0)
         command = (command + " " + " ".join(args)).strip()
-        print(">", command)
+        print(">", command)  # noqa: T201
         os.system(command)
         return True
     return False

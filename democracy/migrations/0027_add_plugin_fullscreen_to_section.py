@@ -5,15 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0026_add_plugin_iframe_url_to_section'),
+        ("democracy", "0026_add_plugin_iframe_url_to_section"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='section',
-            name='plugin_fullscreen',
+            model_name="section",
+            name="plugin_fullscreen",
             field=models.BooleanField(default=False),
         ),
     ]

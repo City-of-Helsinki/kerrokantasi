@@ -16,17 +16,19 @@ class Command(BaseCommand):
         if options.pop("nuke", False):
             nuke(command_options=options)
 
-        User = get_user_model()
+        User = get_user_model()  # noqa: N806
         if issubclass(User, AbstractUser):
             if not User.objects.filter(username="admin").exists():
-                User.objects.create_superuser(username="admin", email="admin@example.com", password="admin")
-                print("Admin user 'admin' (password 'admin') created")
+                User.objects.create_superuser(
+                    username="admin", email="admin@example.com", password="admin"
+                )
+                print("Admin user 'admin' (password 'admin') created")  # noqa: T201
             while User.objects.count() < 25:
                 user = UserFactory()
-                print("Created user %s" % user.pk)
+                print("Created user %s" % user.pk)  # noqa: T201
         while Label.objects.count() < 5:
             label = LabelFactory()
-            print("Created label %s" % label.pk)
+            print("Created label %s" % label.pk)  # noqa: T201
         while Hearing.objects.count() < 10:
             hearing = HearingFactory()
-            print("Created hearing %s" % hearing.pk)
+            print("Created hearing %s" % hearing.pk)  # noqa: T201

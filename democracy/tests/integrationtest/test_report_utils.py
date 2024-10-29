@@ -46,7 +46,9 @@ def test_get_selected_language_returns_correct_lang_code(lang_code, expected):
         ("2022-03-24T22:00:00Z", "2023-04-29T21:00:00Z", "24.03.2022-29.04.2023"),
     ],
 )
-def test_get_formatted_hearing_timerange_returns_correct_time_string(open_at, close_at, expected):
+def test_get_formatted_hearing_timerange_returns_correct_time_string(
+    open_at, close_at, expected
+):
     """Tests that time range is formatted and returned correctly"""
     assert get_formatted_hearing_timerange(open_at, close_at) == expected
 
@@ -65,6 +67,10 @@ def test_get_formatted_hearing_timerange_returns_correct_time_string(open_at, cl
         (240, False, 28),
     ],
 )
-def test_get_powerpoint_title_font_size_returns_correct_val(text_length, is_main_title, expected):
+def test_get_powerpoint_title_font_size_returns_correct_val(
+    text_length, is_main_title, expected
+):
     """Tests that correct font sizes are returned for given text and title type"""
-    assert get_powerpoint_title_font_size("x" * text_length, is_main_title) == Pt(expected)
+    assert get_powerpoint_title_font_size("x" * text_length, is_main_title) == Pt(
+        expected
+    )

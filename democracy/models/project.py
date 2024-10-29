@@ -7,7 +7,13 @@ from democracy.models.base import ORDERING_HELP, BaseModelManager, StringIdBaseM
 
 
 class Project(StringIdBaseModel, TranslatableModel):
-    identifier = models.CharField(max_length=50, verbose_name=_("identifier"), db_index=True, blank=True, null=True)
+    identifier = models.CharField(
+        max_length=50,
+        verbose_name=_("identifier"),
+        db_index=True,
+        blank=True,
+        null=True,
+    )
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_("title"), max_length=255, blank=True),
     )
@@ -20,11 +26,19 @@ class Project(StringIdBaseModel, TranslatableModel):
 class ProjectPhase(StringIdBaseModel, TranslatableModel):
     translations = TranslatedFields(
         title=models.CharField(verbose_name=_("title"), max_length=255, blank=True),
-        description=models.CharField(verbose_name=_("description"), max_length=2048, blank=True),
-        schedule=models.CharField(verbose_name=_("schedule"), max_length=2048, blank=True),
+        description=models.CharField(
+            verbose_name=_("description"), max_length=2048, blank=True
+        ),
+        schedule=models.CharField(
+            verbose_name=_("schedule"), max_length=2048, blank=True
+        ),
     )
-    project = models.ForeignKey(Project, related_name="phases", on_delete=models.CASCADE)
-    ordering = models.IntegerField(verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP)
+    project = models.ForeignKey(
+        Project, related_name="phases", on_delete=models.CASCADE
+    )
+    ordering = models.IntegerField(
+        verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP
+    )
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:

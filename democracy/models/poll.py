@@ -15,11 +15,20 @@ class BasePoll(BaseModel, TranslatableModel):
         (TYPE_MULTIPLE_CHOICE, _("multiple choice poll")),
     )
 
-    type = models.CharField(verbose_name=_("poll type"), choices=TYPE_CHOICES, max_length=255)
-    ordering = models.IntegerField(verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP)
-    is_independent_poll = models.BooleanField(verbose_name=_("poll may be used independently"), default=False)
+    type = models.CharField(
+        verbose_name=_("poll type"), choices=TYPE_CHOICES, max_length=255
+    )
+    ordering = models.IntegerField(
+        verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP
+    )
+    is_independent_poll = models.BooleanField(
+        verbose_name=_("poll may be used independently"), default=False
+    )
     n_answers = models.IntegerField(
-        verbose_name=_("answer count"), help_text=_("number of answers given to this poll"), default=0, editable=False
+        verbose_name=_("answer count"),
+        help_text=_("number of answers given to this poll"),
+        default=0,
+        editable=False,
     )
 
     class Meta:
@@ -36,7 +45,9 @@ class BasePollOption(BaseModel, TranslatableModel):
     # `poll` must be defined as a foreign key to the corresponding subclassed Poll-model
     # with related name `options`
     poll = None
-    ordering = models.IntegerField(verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP)
+    ordering = models.IntegerField(
+        verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP
+    )
     n_answers = models.IntegerField(
         verbose_name=_("answer count"),
         help_text=_("number of answers given with this option"),
@@ -50,7 +61,10 @@ class BasePollOption(BaseModel, TranslatableModel):
 
     def save(self, *args, **kwargs):
         if not self.pk and self.ordering == 1:
-            max_ordering = self.poll.options.all().aggregate(Max("ordering")).get("ordering__max") or 0
+            max_ordering = (
+                self.poll.options.all().aggregate(Max("ordering")).get("ordering__max")
+                or 0
+            )
             self.ordering = max_ordering + 1
         return super().save(*args, **kwargs)
 
@@ -63,10 +77,12 @@ class BasePollOption(BaseModel, TranslatableModel):
 
 
 class BasePollAnswer(BaseModel):
-    # `option` must be defined as a foreign key to the corresponding subclassed PollOption-model
+    # `option` must be defined as a foreign key to the corresponding subclassed PollOption-model  # noqa: E501
     # with related name `answers`
     option = None
-    source_client = models.CharField(verbose_name=_("name for sender client"), max_length=255)
+    source_client = models.CharField(
+        verbose_name=_("name for sender client"), max_length=255
+    )
 
     def recache_option_n_answers(self):
         self.option.recache_n_answers()

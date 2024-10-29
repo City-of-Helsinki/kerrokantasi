@@ -4,20 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('kerrokantasi', '0003_update_helusers_fields'),
+        ("kerrokantasi", "0003_update_helusers_fields"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='has_strong_auth',
+            model_name="user",
+            name="has_strong_auth",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='last_name',
-            field=models.CharField(blank=True, max_length=150, verbose_name='last name'),
+            model_name="user",
+            name="last_name",
+            field=models.CharField(
+                blank=True, max_length=150, verbose_name="last name"
+            ),
         ),
     ]

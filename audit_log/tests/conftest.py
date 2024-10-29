@@ -9,5 +9,5 @@ def setup_audit_logging(settings):
 
 @pytest.fixture
 def superuser():
-    User = get_user_model()
+    User = get_user_model()  # noqa: N806
     return User.objects.create_superuser("admin", "admin@example.com", "admin")

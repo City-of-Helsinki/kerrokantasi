@@ -1,6 +1,7 @@
+from unittest.mock import Mock
+
 import pytest
 from django.contrib.admin import AdminSite
-from unittest.mock import Mock
 
 from audit_log.admin import AuditLogEntryAdmin, LargeTablePaginator
 from audit_log.models import AuditLogEntry
@@ -42,7 +43,9 @@ def test_large_table_paginator_count_without_data():
 
 @pytest.mark.django_db
 def test_large_table_paginator_count_with_data():
-    AuditLogEntry.objects.bulk_create([AuditLogEntry(message={"test": "test"}) for _ in range(1000)])
+    AuditLogEntry.objects.bulk_create(
+        [AuditLogEntry(message={"test": "test"}) for _ in range(1000)]
+    )
     qs = AuditLogEntry.objects.all().order_by("created_at")
 
     paginator = LargeTablePaginator(qs, per_page=1)

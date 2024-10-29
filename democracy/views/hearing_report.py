@@ -1,6 +1,7 @@
 import io
 import json
 import re
+
 import xlsxwriter
 from django.conf import settings
 from django.db.models import F
@@ -23,7 +24,9 @@ class HearingReport(object):
         self.section_worksheet_active_row = 0
 
         self.format_bold = self.xlsdoc.add_format({"bold": True})
-        self.format_merge_title = self.xlsdoc.add_format({"align": "center", "underline": True})
+        self.format_merge_title = self.xlsdoc.add_format(
+            {"align": "center", "underline": True}
+        )
         self.format_percent = self.xlsdoc.add_format({"num_format": "0 %"})
 
         self.context = context
@@ -31,14 +34,16 @@ class HearingReport(object):
     def add_hearing_row(self, label, content):
         row = self.hearing_worksheet_active_row
         self.hearing_worksheet.write(row, 0, label, self.format_bold)
-        self.hearing_worksheet.write(row, 1, self.mitigate_cell_formula_injection(content))
+        self.hearing_worksheet.write(
+            row, 1, self.mitigate_cell_formula_injection(content)
+        )
         self.hearing_worksheet_active_row += 1
 
     def _get_default_translation(self, field):
         lang = settings.LANGUAGE_CODE
         if field.get(lang):
             return field.get(lang)
-        for lang, value in field.items():
+        for _, value in field.items():
             if value:
                 return value
 
@@ -47,7 +52,9 @@ class HearingReport(object):
         self.hearing_worksheet.set_column("B:B", 200)
 
         # add header to hearing worksheet
-        self.hearing_worksheet.set_header(self._get_default_translation(self.json["title"]))
+        self.hearing_worksheet.set_header(
+            self._get_default_translation(self.json["title"])
+        )
 
         for lang, title in self.json["title"].items():
             self.add_hearing_row("Title (%s)" % lang, title)
@@ -60,7 +67,15 @@ class HearingReport(object):
             self.add_hearing_row("Borough (%s)" % lang, borough)
         self.add_hearing_row(
             "Labels",
-            str("%s" % ", ".join([self._get_default_translation(label["label"]) for label in self.json["labels"]])),
+            str(
+                "%s"
+                % ", ".join(
+                    [
+                        self._get_default_translation(label["label"])
+                        for label in self.json["labels"]
+                    ]
+                )
+            ),
         )
         self.add_hearing_row("Comments", str(self.json["n_comments"]))
         self.add_hearing_row("Sections", str(len(self.json["sections"])))
@@ -91,7 +106,9 @@ class HearingReport(object):
             else:
                 section_name = section["type_name_singular"]
 
-        section_worksheet = self.xlsdoc.add_worksheet(self._get_formatted_sheet_name(section_name, section_index))
+        section_worksheet = self.xlsdoc.add_worksheet(
+            self._get_formatted_sheet_name(section_name, section_index)
+        )
         section_worksheet.set_landscape()
         section_worksheet.set_column("A:A", 50)
         section_worksheet.set_column("B:B", 50)
@@ -106,10 +123,14 @@ class HearingReport(object):
 
         # add section title
         self.section_worksheet_active_row = 0
-        section_worksheet.write(self.section_worksheet_active_row, 0, "Section", self.format_bold)
+        section_worksheet.write(
+            self.section_worksheet_active_row, 0, "Section", self.format_bold
+        )
         self.section_worksheet_active_row += 1
         section_worksheet.write(
-            self.section_worksheet_active_row, 0, self.mitigate_cell_formula_injection(section_name)
+            self.section_worksheet_active_row,
+            0,
+            self.mitigate_cell_formula_injection(section_name),
         )
         self.section_worksheet_active_row += 2
 
@@ -128,18 +149,23 @@ class HearingReport(object):
         Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
         "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
         "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
-        """
+        """  # noqa: E501
 
         # add comments title
         row = self.section_worksheet_active_row
-        section_worksheet.merge_range(row, 0, row, 4, "Comments", self.format_merge_title)
+        section_worksheet.merge_range(
+            row, 0, row, 4, "Comments", self.format_merge_title
+        )
         self.section_worksheet_active_row += 1
 
         # add column headers
         row = self.section_worksheet_active_row
         col_index = 0
 
-        user_is_staff = self.context["request"].user.is_staff or self.context["request"].user.is_superuser
+        user_is_staff = (
+            self.context["request"].user.is_staff
+            or self.context["request"].user.is_superuser
+        )
         if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
             section_worksheet.write(row, col_index, "Author", self.format_bold)
             col_index += 1
@@ -171,7 +197,9 @@ class HearingReport(object):
             SectionCommentSerializer(c, context=self.context).data
             for c in (
                 SectionComment.objects.filter(section=section["id"])
-                .annotate(parent_created_at=Coalesce(F("comment__created_at"), "created_at"))
+                .annotate(
+                    parent_created_at=Coalesce(F("comment__created_at"), "created_at")
+                )
                 .order_by("-parent_created_at", "created_at")
             )
         ]
@@ -182,27 +210,38 @@ class HearingReport(object):
         """
         # noqa: E501
         "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
-        """
+        """  # noqa: E501
         row = self.section_worksheet_active_row
         col_index = 0
 
-        user_is_staff = self.context["request"].user.is_staff or self.context["request"].user.is_superuser
+        user_is_staff = (
+            self.context["request"].user.is_staff
+            or self.context["request"].user.is_superuser
+        )
         if settings.HEARING_REPORT_PUBLIC_AUTHOR_NAMES and user_is_staff:
             name = comment.get("author_name")
-            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(name))
+            section_worksheet.write(
+                row, col_index, self.mitigate_cell_formula_injection(name)
+            )
             col_index += 1
 
             email = comment.get("creator_email")
-            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(email))
+            section_worksheet.write(
+                row, col_index, self.mitigate_cell_formula_injection(email)
+            )
             col_index += 1
 
         # add content
         if not comment["comment"]:
-            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment["content"]))
+            section_worksheet.write(
+                row, col_index, self.mitigate_cell_formula_injection(comment["content"])
+            )
         col_index += 1
         # add Subcontent
         if comment["comment"]:
-            section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment["content"]))
+            section_worksheet.write(
+                row, col_index, self.mitigate_cell_formula_injection(comment["content"])
+            )
         col_index += 1
         # add creation date
         section_worksheet.write(row, col_index, comment["created_at"])
@@ -215,18 +254,30 @@ class HearingReport(object):
             row,
             col_index,
             self.mitigate_cell_formula_injection(
-                self._get_default_translation(comment["label"].get("label") if comment["label"] else {})
+                self._get_default_translation(
+                    comment["label"].get("label") if comment["label"] else {}
+                )
             ),
         )
         col_index += 1
         # add map comment
-        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(comment["map_comment_text"]))
+        section_worksheet.write(
+            row,
+            col_index,
+            self.mitigate_cell_formula_injection(comment["map_comment_text"]),
+        )
         col_index += 1
         # add geojson
-        section_worksheet.write(row, col_index, self.mitigate_cell_formula_injection(json.dumps(comment["geojson"])))
+        section_worksheet.write(
+            row,
+            col_index,
+            self.mitigate_cell_formula_injection(json.dumps(comment["geojson"])),
+        )
         col_index += 1
         # add img
-        section_worksheet.write(row, col_index, ",".join(image["url"] for image in comment["images"]))
+        section_worksheet.write(
+            row, col_index, ",".join(image["url"] for image in comment["images"])
+        )
         col_index += 1
         self.section_worksheet_active_row += 1
 
@@ -244,7 +295,9 @@ class HearingReport(object):
         # add polls title if polls exist
         if len(questions) > 0:
             row = self.section_worksheet_active_row
-            section_worksheet.merge_range(row, 0, row, 4, "Polls", self.format_merge_title)
+            section_worksheet.merge_range(
+                row, 0, row, 4, "Polls", self.format_merge_title
+            )
             self.section_worksheet_active_row += 1
 
         # add question data for each question
@@ -264,7 +317,9 @@ class HearingReport(object):
         section_worksheet.write(row, 0, "Poll question", self.format_bold)
         section_worksheet.write(row, 1, "Poll type", self.format_bold)
         section_worksheet.write(row, 2, "Total votes", self.format_bold)
-        section_worksheet.write(row, 3, "How many people answered the question", self.format_bold)
+        section_worksheet.write(
+            row, 3, "How many people answered the question", self.format_bold
+        )
         self.section_worksheet_active_row += 1
 
         # options total vote count
@@ -277,7 +332,9 @@ class HearingReport(object):
         row = self.section_worksheet_active_row
         question_text = self._get_default_translation(question["text"])
 
-        section_worksheet.write(row, 0, self.mitigate_cell_formula_injection(question_text))
+        section_worksheet.write(
+            row, 0, self.mitigate_cell_formula_injection(question_text)
+        )
         section_worksheet.write(row, 1, question["type"])
         section_worksheet.write(row, 2, total_options_answers)
         section_worksheet.write(row, 3, question["n_answers"])
@@ -286,17 +343,25 @@ class HearingReport(object):
         self.section_worksheet_active_row += 1
 
         # add option rows, store option cell info
-        option_cells = self.add_poll_question_option_rows(options, total_answers_cell, section_worksheet)
+        option_cells = self.add_poll_question_option_rows(
+            options, total_answers_cell, section_worksheet
+        )
 
         # add space after options to make room for chart (2 rows per option)
         empty_rows_after_options = len(options) * 2
         self.section_worksheet_active_row += empty_rows_after_options
         # add chart
         self.add_poll_question_chart(
-            question_text, option_cells, chart_location, section_worksheet, empty_rows_after_options
+            question_text,
+            option_cells,
+            chart_location,
+            section_worksheet,
+            empty_rows_after_options,
         )
 
-    def add_poll_question_option_rows(self, options, total_answers_cell, section_worksheet):
+    def add_poll_question_option_rows(
+        self, options, total_answers_cell, section_worksheet
+    ):
         """
         Options     | Votes | Votes %
         "1) option" | 1     | 10 %
@@ -314,14 +379,27 @@ class HearingReport(object):
         # values under headers
         for index, option in enumerate(options, start=1):
             row = self.section_worksheet_active_row
-            section_worksheet.write(row, 0, f"{index}) {self._get_default_translation(option['text'])}")
+            section_worksheet.write(
+                row, 0, f"{index}) {self._get_default_translation(option['text'])}"
+            )
             section_worksheet.write(row, 1, option["n_answers"])
-            section_worksheet.write(row, 2, f"={xl_rowcol_to_cell(row, 1)}/{total_answers_cell}", self.format_percent)
+            section_worksheet.write(
+                row,
+                2,
+                f"={xl_rowcol_to_cell(row, 1)}/{total_answers_cell}",
+                self.format_percent,
+            )
             self.section_worksheet_active_row += 1
 
         # store category and value end locations for later calculations
-        categories_end = (self.section_worksheet_active_row - 1, 0)  # -1 row to not include empty row
-        values_end = (self.section_worksheet_active_row - 1, 2)  # -1 row to not include empty row
+        categories_end = (
+            self.section_worksheet_active_row - 1,
+            0,
+        )  # -1 row to not include empty row
+        values_end = (
+            self.section_worksheet_active_row - 1,
+            2,
+        )  # -1 row to not include empty row
 
         # return dict containing option cell info
         return {
@@ -365,7 +443,10 @@ class HearingReport(object):
 
         # Add a chart title and remove series title
         chart.set_title(
-            {"name": question_text, "name_font": {"name": "Calibri", "size": 14, "bold": False}}
+            {
+                "name": question_text,
+                "name_font": {"name": "Calibri", "size": 14, "bold": False},
+            }
         )  # poll question
         chart.set_legend({"none": True})  # removes "series 1" chart title
 
@@ -405,11 +486,16 @@ class HearingReport(object):
 
     def get_response(self):
         response = HttpResponse(
-            self.get_xlsx(), content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            self.get_xlsx(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
         # remove special characters from filename to avoid potential file naming issues
-        response["Content-Disposition"] = 'attachment; filename="{filename}.xlsx"'.format(
-            filename=re.sub(r"\W+|_", " ", self._get_default_translation(self.json["title"]))
+        response["Content-Disposition"] = (
+            'attachment; filename="{filename}.xlsx"'.format(
+                filename=re.sub(
+                    r"\W+|_", " ", self._get_default_translation(self.json["title"])
+                )
+            )
         )
         return response
 

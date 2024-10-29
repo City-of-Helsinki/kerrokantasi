@@ -1,16 +1,16 @@
 import datetime
-import pytest
 from copy import deepcopy
 from sys import platform
 
-from democracy.enums import Commenting
-from democracy.factories.poll import SectionPollFactory, SectionPollOptionFactory
-from democracy.models import SectionPoll, SectionPollAnswer
-from democracy.tests.integrationtest.test_comment import get_comment_data
-from democracy.tests.integrationtest.test_hearing import valid_hearing_json
-from democracy.tests.utils import assert_common_keys_equal, get_data_from_response
+import pytest
 
-isArchLinux = False
+from democracy.enums import Commenting
+from democracy.factories.poll import SectionPollFactory
+from democracy.models import SectionPoll
+from democracy.tests.integrationtest.test_comment import get_comment_data
+from democracy.tests.utils import get_data_from_response
+
+is_arch_linux = False
 
 if platform in ["linux", "darwin"]:
     # Arch based distros (arch vanilla/manjaro) (And also MacOS) seem to handle http get/post request response order
@@ -23,8 +23,12 @@ if platform in ["linux", "darwin"]:
     # This does not affect kerrokantasi normal operation.
     import distro
 
-    if distro.linux_distribution()[0].lower() in ["arch linux", "manjaro linux", "darwin"]:
-        isArchLinux = True
+    if distro.linux_distribution()[0].lower() in [
+        "arch linux",
+        "manjaro linux",
+        "darwin",
+    ]:
+        is_arch_linux = True
 
 
 @pytest.fixture
@@ -96,40 +100,69 @@ def test_get_section_with_poll(api_client, default_hearing):
 
 @pytest.mark.django_db
 def test_post_section_with_poll(valid_hearing_json_with_poll, john_smith_api_client):
-    response = john_smith_api_client.post("/v1/hearing/", data=valid_hearing_json_with_poll, format="json")
+    response = john_smith_api_client.post(
+        "/v1/hearing/", data=valid_hearing_json_with_poll, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     questions1 = valid_hearing_json_with_poll["sections"][0]["questions"]
     questions2 = data["sections"][0]["questions"]
     assert len(questions1) == len(questions2)
     assert len(questions1[0]["options"]) == len(questions2[0]["options"])
     assert questions1[0]["text"]["fi"] == questions2[0]["text"]["fi"]
-    assert questions1[0]["options"][0]["text"]["fi"] == questions2[0]["options"][0]["text"]["fi"]
-    assert questions1[1]["options"][1]["text"]["fi"] == questions2[1]["options"][1]["text"]["fi"]
+    assert (
+        questions1[0]["options"][0]["text"]["fi"]
+        == questions2[0]["options"][0]["text"]["fi"]
+    )
+    assert (
+        questions1[1]["options"][1]["text"]["fi"]
+        == questions2[1]["options"][1]["text"]["fi"]
+    )
 
 
 @pytest.mark.django_db
 def test_put_section_with_poll(valid_hearing_json_with_poll, john_smith_api_client):
-    response = john_smith_api_client.post("/v1/hearing/", data=valid_hearing_json_with_poll, format="json")
+    response = john_smith_api_client.post(
+        "/v1/hearing/", data=valid_hearing_json_with_poll, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     data["sections"][0]["questions"] = list(reversed(data["sections"][0]["questions"]))
-    data["sections"][0]["questions"][0]["options"] = list(reversed(data["sections"][0]["questions"][0]["options"]))
+    data["sections"][0]["questions"][0]["options"] = list(
+        reversed(data["sections"][0]["questions"][0]["options"])
+    )
     data["sections"][0]["questions"][0]["text"]["en"] = "Edited question"
     data["sections"][0]["questions"][0]["options"][0]["text"]["en"] = "Edited option"
-    response = john_smith_api_client.put("/v1/hearing/%s/" % data["id"], data=data, format="json")
+    response = john_smith_api_client.put(
+        "/v1/hearing/%s/" % data["id"], data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
-    assert updated_data["sections"][0]["questions"][0]["text"]["en"] == "Edited question"
-    assert updated_data["sections"][0]["questions"][1]["text"]["en"] == "Which is better?"
-    assert updated_data["sections"][0]["questions"][0]["options"][0]["text"]["en"] == "Edited option"
-    assert updated_data["sections"][0]["questions"][0]["options"][1]["text"]["en"] == "Yes"
+    assert (
+        updated_data["sections"][0]["questions"][0]["text"]["en"] == "Edited question"
+    )
+    assert (
+        updated_data["sections"][0]["questions"][1]["text"]["en"] == "Which is better?"
+    )
+    assert (
+        updated_data["sections"][0]["questions"][0]["options"][0]["text"]["en"]
+        == "Edited option"
+    )
+    assert (
+        updated_data["sections"][0]["questions"][0]["options"][1]["text"]["en"] == "Yes"
+    )
 
 
 @pytest.mark.django_db
-def test_removing_poll_from_section(valid_hearing_json_with_poll, john_smith_api_client):
-    response = john_smith_api_client.post("/v1/hearing/", data=valid_hearing_json_with_poll, format="json")
+def test_removing_poll_from_section(
+    valid_hearing_json_with_poll, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        "/v1/hearing/", data=valid_hearing_json_with_poll, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
     assert data["sections"][0]["questions"][0]["text"]["en"] == "Which is better?"
     del data["sections"][0]["questions"][0]
-    response = john_smith_api_client.put("/v1/hearing/%s/" % data["id"], data=data, format="json")
+    response = john_smith_api_client.put(
+        "/v1/hearing/%s/" % data["id"], data=data, format="json"
+    )
     updated_data = get_data_from_response(response, status_code=200)
     response = john_smith_api_client.get("/v1/hearing/%s/" % data["id"], format="json")
     updated_data = get_data_from_response(response, status_code=200)
@@ -137,10 +170,16 @@ def test_removing_poll_from_section(valid_hearing_json_with_poll, john_smith_api
 
 
 @pytest.mark.django_db
-def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_client, john_smith_api_client):
-    valid_hearing_json_with_poll["close_at"] = datetime.datetime.now() + datetime.timedelta(days=5)
+def test_update_poll_having_answers(
+    valid_hearing_json_with_poll, john_doe_api_client, john_smith_api_client
+):
+    valid_hearing_json_with_poll["close_at"] = (
+        datetime.datetime.now() + datetime.timedelta(days=5)
+    )
     valid_hearing_json_with_poll["sections"][0]["commenting"] = "open"
-    response = john_smith_api_client.post("/v1/hearing/", data=valid_hearing_json_with_poll, format="json")
+    response = john_smith_api_client.post(
+        "/v1/hearing/", data=valid_hearing_json_with_poll, format="json"
+    )
     data = get_data_from_response(response, status_code=201)
 
     hearing_id = data["id"]
@@ -148,7 +187,13 @@ def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_c
     poll_id = data["sections"][0]["questions"][0]["id"]
     option_id = data["sections"][0]["questions"][0]["options"][0]["id"]
     data = get_comment_data()
-    data["answers"] = [{"question": poll_id, "type": SectionPoll.TYPE_MULTIPLE_CHOICE, "answers": [option_id]}]
+    data["answers"] = [
+        {
+            "question": poll_id,
+            "type": SectionPoll.TYPE_MULTIPLE_CHOICE,
+            "answers": [option_id],
+        }
+    ]
     comment_response = john_doe_api_client.post(
         "/v1/hearing/%s/sections/%s/comments/" % (hearing_id, section_id), data=data
     )
@@ -157,38 +202,59 @@ def test_update_poll_having_answers(valid_hearing_json_with_poll, john_doe_api_c
     # Edit question
     data = get_data_from_response(response, status_code=201)
     data["sections"][0]["questions"][0]["text"]["en"] = "Edited question"
-    update_response = john_smith_api_client.put("/v1/hearing/%s/" % data["id"], data=data, format="json")
+    update_response = john_smith_api_client.put(
+        "/v1/hearing/%s/" % data["id"], data=data, format="json"
+    )
     assert update_response.status_code == 400
 
     # Edit option
     data = get_data_from_response(response, status_code=201)
     data["sections"][0]["questions"][0]["options"][0]["text"]["en"] = "Edited option"
-    update_response = john_smith_api_client.put("/v1/hearing/%s/" % data["id"], data=data, format="json")
+    update_response = john_smith_api_client.put(
+        "/v1/hearing/%s/" % data["id"], data=data, format="json"
+    )
     assert update_response.status_code == 400
 
     # Add option
     data = get_data_from_response(response, status_code=201)
     new_option = deepcopy(data["sections"][0]["questions"][0]["options"][0])
     data["sections"][0]["questions"][0]["options"].append(new_option)
-    update_response = john_smith_api_client.put("/v1/hearing/%s/" % data["id"], data=data, format="json")
+    update_response = john_smith_api_client.put(
+        "/v1/hearing/%s/" % data["id"], data=data, format="json"
+    )
     assert update_response.status_code == 400
 
     # Remove option
     data = get_data_from_response(response, status_code=201)
     del data["sections"][0]["questions"][0]["options"][1]
-    update_response = john_smith_api_client.put("/v1/hearing/%s/" % data["id"], data=data, format="json")
+    update_response = john_smith_api_client.put(
+        "/v1/hearing/%s/" % data["id"], data=data, format="json"
+    )
     assert update_response.status_code == 400
 
 
-@pytest.mark.parametrize("commenting_restriction", (Commenting.NONE, Commenting.REGISTERED, Commenting.STRONG))
+@pytest.mark.parametrize(
+    "commenting_restriction",
+    (Commenting.NONE, Commenting.REGISTERED, Commenting.STRONG),
+)
 @pytest.mark.django_db
 def test_post_section_poll_answer_unauthenticated_but_not_allowed(
-    api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction
+    api_client,
+    hearing__with_4_different_commenting,
+    geojson_feature,
+    commenting_restriction,
 ):
-    section = hearing__with_4_different_commenting.sections.filter(commenting=commenting_restriction).first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    section = hearing__with_4_different_commenting.sections.filter(
+        commenting=commenting_restriction
+    ).first()
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
-    url = "/v1/hearing/%s/sections/%s/comments/" % (hearing__with_4_different_commenting.id, section.id)
+    url = "/v1/hearing/%s/sections/%s/comments/" % (
+        hearing__with_4_different_commenting.id,
+        section.id,
+    )
     data = get_comment_data()
     data["answers"] = [
         {
@@ -205,11 +271,18 @@ def test_post_section_poll_answer_unauthenticated_but_not_allowed(
 def test_post_section_poll_answer_unauthenticated_single_choice(
     api_client, hearing__with_4_different_commenting, geojson_feature
 ):
-    section = hearing__with_4_different_commenting.sections.filter(commenting=Commenting.OPEN).first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    section = hearing__with_4_different_commenting.sections.filter(
+        commenting=Commenting.OPEN
+    ).first()
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
 
-    url = "/v1/hearing/%s/sections/%s/comments/" % (hearing__with_4_different_commenting.id, section.id)
+    url = "/v1/hearing/%s/sections/%s/comments/" % (
+        hearing__with_4_different_commenting.id,
+        section.id,
+    )
     data = get_comment_data()
     data["answers"] = [
         {
@@ -225,13 +298,19 @@ def test_post_section_poll_answer_unauthenticated_single_choice(
     assert poll.n_answers == 1
     assert option.n_answers == 1
     assert created_data["answers"][0]["type"] == data["answers"][0]["type"]
-    assert set(created_data["answers"][0]["answers"]) == set(data["answers"][0]["answers"])
+    assert set(created_data["answers"][0]["answers"]) == set(
+        data["answers"][0]["answers"]
+    )
 
 
 @pytest.mark.django_db
-def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hearing, geojson_feature):
+def test_post_section_poll_answer_single_choice(
+    john_doe_api_client, default_hearing, geojson_feature
+):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
 
     url = "/v1/hearing/%s/sections/%s/comments/" % (default_hearing.id, section.id)
@@ -250,18 +329,30 @@ def test_post_section_poll_answer_single_choice(john_doe_api_client, default_hea
     assert poll.n_answers == 1
     assert option.n_answers == 1
     assert created_data["answers"][0]["type"] == data["answers"][0]["type"]
-    assert set(created_data["answers"][0]["answers"]) == set(data["answers"][0]["answers"])
+    assert set(created_data["answers"][0]["answers"]) == set(
+        data["answers"][0]["answers"]
+    )
 
 
 @pytest.mark.parametrize("commenting_restriction", (Commenting.NONE, Commenting.STRONG))
 @pytest.mark.django_db
 def test_post_section_poll_answer_authenticated_but_not_allowed(
-    john_doe_api_client, hearing__with_4_different_commenting, geojson_feature, commenting_restriction
+    john_doe_api_client,
+    hearing__with_4_different_commenting,
+    geojson_feature,
+    commenting_restriction,
 ):
-    section = hearing__with_4_different_commenting.sections.filter(commenting=commenting_restriction).first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    section = hearing__with_4_different_commenting.sections.filter(
+        commenting=commenting_restriction
+    ).first()
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
-    url = "/v1/hearing/%s/sections/%s/comments/" % (hearing__with_4_different_commenting.id, section.id)
+    url = "/v1/hearing/%s/sections/%s/comments/" % (
+        hearing__with_4_different_commenting.id,
+        section.id,
+    )
     data = get_comment_data()
     data["answers"] = [
         {
@@ -278,11 +369,18 @@ def test_post_section_poll_answer_authenticated_but_not_allowed(
 def test_post_section_poll_answer_authenticated_open_commenting(
     john_doe_api_client, hearing__with_4_different_commenting, geojson_feature
 ):
-    section = hearing__with_4_different_commenting.sections.filter(commenting=Commenting.OPEN).first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    section = hearing__with_4_different_commenting.sections.filter(
+        commenting=Commenting.OPEN
+    ).first()
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
 
-    url = "/v1/hearing/%s/sections/%s/comments/" % (hearing__with_4_different_commenting.id, section.id)
+    url = "/v1/hearing/%s/sections/%s/comments/" % (
+        hearing__with_4_different_commenting.id,
+        section.id,
+    )
     data = get_comment_data()
     data["answers"] = [
         {
@@ -298,13 +396,19 @@ def test_post_section_poll_answer_authenticated_open_commenting(
     assert poll.n_answers == 1
     assert option.n_answers == 1
     assert created_data["answers"][0]["type"] == data["answers"][0]["type"]
-    assert set(created_data["answers"][0]["answers"]) == set(data["answers"][0]["answers"])
+    assert set(created_data["answers"][0]["answers"]) == set(
+        data["answers"][0]["answers"]
+    )
 
 
 @pytest.mark.django_db
-def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_hearing, geojson_feature):
+def test_post_section_poll_answer_multiple_choice(
+    john_doe_api_client, default_hearing, geojson_feature
+):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE
+    )
     option1, option2, option3 = poll.options.all()
 
     url = "/v1/hearing/%s/sections/%s/comments/" % (default_hearing.id, section.id)
@@ -327,13 +431,19 @@ def test_post_section_poll_answer_multiple_choice(john_doe_api_client, default_h
     assert option2.n_answers == 0
     assert option3.n_answers == 1
     assert created_data["answers"][0]["type"] == data["answers"][0]["type"]
-    assert set(created_data["answers"][0]["answers"]) == set(data["answers"][0]["answers"])
+    assert set(created_data["answers"][0]["answers"]) == set(
+        data["answers"][0]["answers"]
+    )
 
 
 @pytest.mark.django_db
-def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_client, default_hearing, geojson_feature):
+def test_post_section_poll_answer_multiple_choice_second_answers(
+    john_doe_api_client, default_hearing, geojson_feature
+):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE
+    )
     option1, option2, option3 = poll.options.all()
 
     url = "/v1/hearing/%s/sections/%s/comments/" % (default_hearing.id, section.id)
@@ -356,13 +466,20 @@ def test_post_section_poll_answer_multiple_choice_second_answers(john_doe_api_cl
 
 
 @pytest.mark.skipif(
-    isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed"
+    is_arch_linux,
+    reason="Arch based distros handle get/post request response order differently/order is reversed",
 )
 @pytest.mark.django_db
-def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
+def test_patch_section_poll_answer(
+    john_doe_api_client, default_hearing, geojson_feature
+):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
-    poll2 = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE
+    )
+    poll2 = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option1, option2, option3 = poll.options.all()
     optionyes, optionno, optiondunno = poll2.options.all()
 
@@ -383,7 +500,11 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 201
 
-    url = "/v1/hearing/%s/sections/%s/comments/%s/" % (default_hearing.id, section.id, response.data["id"])
+    url = "/v1/hearing/%s/sections/%s/comments/%s/" % (
+        default_hearing.id,
+        section.id,
+        response.data["id"],
+    )
     data = response.data
     data["answers"] = [
         {
@@ -416,13 +537,18 @@ def test_patch_section_poll_answer(john_doe_api_client, default_hearing, geojson
 
 
 @pytest.mark.skipif(
-    isArchLinux, reason="Arch based distros handle get/post request response order differently/order is reversed"
+    is_arch_linux,
+    reason="Arch based distros handle get/post request response order differently/order is reversed",
 )
 @pytest.mark.django_db
 def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_feature):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE)
-    poll2 = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_MULTIPLE_CHOICE
+    )
+    poll2 = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option1, option2, option3 = poll.options.all()
     optionyes, optionno, optiondunno = poll2.options.all()
 
@@ -443,7 +569,11 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
     response = john_doe_api_client.post(url, data=data)
     assert response.status_code == 201
 
-    url = "/v1/hearing/%s/sections/%s/comments/%s/" % (default_hearing.id, section.id, response.data["id"])
+    url = "/v1/hearing/%s/sections/%s/comments/%s/" % (
+        default_hearing.id,
+        section.id,
+        response.data["id"],
+    )
     data = response.data
     data["answers"] = [
         {
@@ -477,10 +607,21 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
 @pytest.mark.django_db
 def test_answers_appear_in_user_data(john_doe_api_client, default_hearing):
     section = default_hearing.sections.first()
-    poll = SectionPollFactory(section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE)
+    poll = SectionPollFactory(
+        section=section, option_count=3, type=SectionPoll.TYPE_SINGLE_CHOICE
+    )
     option = poll.options.all().first()
     data = get_comment_data()
-    data["answers"] = [{"question": poll.id, "type": SectionPoll.TYPE_SINGLE_CHOICE, "answers": [option.id]}]
-    john_doe_api_client.post("/v1/hearing/%s/sections/%s/comments/" % (default_hearing.id, section.id), data=data)
+    data["answers"] = [
+        {
+            "question": poll.id,
+            "type": SectionPoll.TYPE_SINGLE_CHOICE,
+            "answers": [option.id],
+        }
+    ]
+    john_doe_api_client.post(
+        "/v1/hearing/%s/sections/%s/comments/" % (default_hearing.id, section.id),
+        data=data,
+    )
     response = john_doe_api_client.get("/v1/users/")
     assert poll.pk in response.data[0]["answered_questions"]

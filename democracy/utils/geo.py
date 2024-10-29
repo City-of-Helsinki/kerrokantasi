@@ -1,4 +1,5 @@
 import json
+
 from django.contrib.gis.geos import GeometryCollection, GEOSGeometry
 
 
@@ -11,8 +12,8 @@ def get_geometry_from_geojson(geojson):
     if geometry_data.get("features"):
         for feature in geometry_data.get("features"):
             feature_geometry = feature.get("geometry")
-            feature_GEOS = GEOSGeometry(json.dumps(feature_geometry))
-            gc.append(feature_GEOS)
+            feature_geos = GEOSGeometry(json.dumps(feature_geometry))
+            gc.append(feature_geos)
     else:
         geometry = GEOSGeometry(json.dumps(geometry_data))
         gc.append(geometry)

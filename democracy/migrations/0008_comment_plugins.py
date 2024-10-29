@@ -5,30 +5,33 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0007_section_plugins'),
+        ("democracy", "0007_section_plugins"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='hearingcomment',
-            name='plugin_data',
-            field=models.TextField(blank=True, verbose_name='plugin data'),
+            model_name="hearingcomment",
+            name="plugin_data",
+            field=models.TextField(blank=True, verbose_name="plugin data"),
         ),
         migrations.AddField(
-            model_name='hearingcomment',
-            name='plugin_identifier',
-            field=models.CharField(blank=True, max_length=255, verbose_name='plugin identifier'),
+            model_name="hearingcomment",
+            name="plugin_identifier",
+            field=models.CharField(
+                blank=True, max_length=255, verbose_name="plugin identifier"
+            ),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='plugin_data',
-            field=models.TextField(blank=True, verbose_name='plugin data'),
+            model_name="sectioncomment",
+            name="plugin_data",
+            field=models.TextField(blank=True, verbose_name="plugin data"),
         ),
         migrations.AddField(
-            model_name='sectioncomment',
-            name='plugin_identifier',
-            field=models.CharField(blank=True, max_length=255, verbose_name='plugin identifier'),
+            model_name="sectioncomment",
+            name="plugin_identifier",
+            field=models.CharField(
+                blank=True, max_length=255, verbose_name="plugin identifier"
+            ),
         ),
     ]

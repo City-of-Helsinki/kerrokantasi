@@ -8,28 +8,23 @@ def forwards(apps, schema_editor):
     """
     Rename introduction section type to main
     """
-    apps.get_model('democracy', 'SectionType').objects.filter(identifier='introduction').update(
-        identifier='main',
-        name_singular='pääosio',
-        name_plural='pääosiot'
-    )
+    apps.get_model("democracy", "SectionType").objects.filter(
+        identifier="introduction"
+    ).update(identifier="main", name_singular="pääosio", name_plural="pääosiot")
 
 
 def backwards(apps, schema_editor):
     """
     Rename main section type back to introduction
     """
-    apps.get_model('democracy', 'SectionType').objects.filter(identifier='main').update(
-        identifier='introduction',
-        name_singular='johdanto',
-        name_plural='johdannot'
+    apps.get_model("democracy", "SectionType").objects.filter(identifier="main").update(
+        identifier="introduction", name_singular="johdanto", name_plural="johdannot"
     )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0019_remove_hearing_abstract'),
+        ("democracy", "0019_remove_hearing_abstract"),
     ]
 
     operations = [

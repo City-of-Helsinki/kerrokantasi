@@ -8,28 +8,25 @@ def forwards(apps, schema_editor):
     """
     Set intro section commenting based on Hearing commenting
     """
-    hearing_model = apps.get_model('democracy', 'Hearing')
+    hearing_model = apps.get_model("democracy", "Hearing")
 
     for hearing in hearing_model.objects.all():
-        intro_sections = hearing.sections.filter(type__identifier='introduction')
+        intro_sections = hearing.sections.filter(type__identifier="introduction")
 
         for intro_section in intro_sections:
             intro_section.commenting = hearing.commenting
-            intro_section.save(update_fields=('commenting',))
+            intro_section.save(update_fields=("commenting",))
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0017_merge_images'),
+        ("democracy", "0017_merge_images"),
     ]
 
     operations = [
         migrations.RunPython(forwards, migrations.RunPython.noop),
-
         migrations.RemoveField(
-            model_name='hearing',
-            name='commenting',
+            model_name="hearing",
+            name="commenting",
         ),
-
     ]

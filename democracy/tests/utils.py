@@ -1,10 +1,11 @@
 import json
 import os
 from collections import Counter
-from django.utils.dateparse import parse_datetime
 from io import BytesIO
-from PIL import Image
 from typing import Iterable, Mapping
+
+from django.utils.dateparse import parse_datetime
+from PIL import Image
 
 from audit_log.enums import Operation, Status
 from audit_log.models import AuditLogEntry
@@ -124,7 +125,7 @@ def create_image(instance, filename):
 
 
 def create_default_images(instance):
-    for key, filename in IMAGES.items():
+    for _key, filename in IMAGES.items():
         create_image(instance, filename)
 
 
@@ -152,15 +153,18 @@ def create_file(instance, filename):
 
 
 def create_default_files(instance):
-    for key, filename in FILES.items():
+    for _key, filename in FILES.items():
         create_file(instance, filename)
 
 
 def get_data_from_response(response, status_code=200):
     if status_code:  # pragma: no branch
-        assert response.status_code == status_code, "Status code mismatch (%s is not the expected %s)" % (
-            response.status_code,
-            status_code,
+        assert response.status_code == status_code, (
+            "Status code mismatch (%s is not the expected %s)"
+            % (
+                response.status_code,
+                status_code,
+            )
         )
     return json.loads(response.content.decode("utf-8"))
 
@@ -200,11 +204,14 @@ def assert_id_in_results(id, results, expected=True):
 
 def assert_common_keys_equal(dict1, dict2):
     for key in set(dict1) & set(dict2):
-        assert dict1[key] == dict2[key], 'dict1["%(key)s"] = %(v1)s while dict2["%(key)s"] = %(v2)s' % {
-            "key": key,
-            "v1": dict1[key],
-            "v2": dict2[key],
-        }
+        assert dict1[key] == dict2[key], (
+            'dict1["%(key)s"] = %(v1)s while dict2["%(key)s"] = %(v2)s'
+            % {
+                "key": key,
+                "v1": dict1[key],
+                "v2": dict2[key],
+            }
+        )
 
 
 def get_nested(data: Mapping, keys: Iterable):
@@ -230,6 +237,8 @@ def assert_audit_log_entry(
     assert AuditLogEntry.objects.count() == count
     audit_log_entry = AuditLogEntry.objects.order_by("-created_at").first()
     assert path in audit_log_entry.message["audit_event"]["target"]["path"]
-    assert Counter(audit_log_entry.message["audit_event"]["target"]["object_ids"]) == Counter(object_ids)
+    assert Counter(
+        audit_log_entry.message["audit_event"]["target"]["object_ids"]
+    ) == Counter(object_ids)
     assert audit_log_entry.message["audit_event"]["status"] == status.value
     assert audit_log_entry.message["audit_event"]["operation"] == operation.value

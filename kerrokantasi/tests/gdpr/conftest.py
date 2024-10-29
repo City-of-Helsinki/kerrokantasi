@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 from helusers.settings import api_token_auth_settings
 from jose import jwt
@@ -64,7 +65,9 @@ def get_api_token_for_user_with_scopes(user, scopes: list, requests_mock):
         # Use hardcoded keycloak field, see override_settings_oidc_api_authorization_field
         "authorization": {"permissions": [{"scopes": scopes}]},
     }
-    encoded_jwt = jwt.encode(jwt_data, key=rsa_key.private_key_pem, algorithm=rsa_key.jose_algorithm)
+    encoded_jwt = jwt.encode(
+        jwt_data, key=rsa_key.private_key_pem, algorithm=rsa_key.jose_algorithm
+    )
 
     requests_mock.get(config_url, json=configuration)
     requests_mock.get(jwks_url, json=keys)

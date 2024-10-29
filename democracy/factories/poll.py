@@ -16,10 +16,10 @@ class SectionPollFactory(factory.django.DjangoModelFactory):
     is_independent_poll = False
 
     @factory.post_generation
-    def generate_options(obj, create, extracted, **kwargs):
+    def generate_options(self, create, extracted, **kwargs):
         option_count = kwargs.pop("option_count", 3)
-        for x in range(option_count):
-            SectionPollOptionFactory(poll=obj)
+        for _x in range(option_count):
+            SectionPollOptionFactory(poll=self)
 
 
 class SectionPollOptionFactory(factory.django.DjangoModelFactory):

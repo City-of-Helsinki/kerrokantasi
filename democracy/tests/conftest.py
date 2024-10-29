@@ -1,4 +1,5 @@
 import datetime
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.base import ContentFile
@@ -24,6 +25,8 @@ from democracy.tests.utils import (
     create_default_files,
     create_default_images,
     get_file_path,
+    sectionfile_base64_test_data,
+    sectionimage_test_json,
 )
 from kerrokantasi.tests.conftest import *  # noqa
 
@@ -41,7 +44,11 @@ def default_organization():
 @pytest.fixture()
 def contact_person(default_organization):
     return ContactPerson.objects.create(
-        name="John Contact", title="Chief", phone="555-555", email="john@contact.eu", organization=default_organization
+        name="John Contact",
+        title="Chief",
+        phone="555-555",
+        email="john@contact.eu",
+        organization=default_organization,
     )
 
 
@@ -62,7 +69,9 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 4):
-        section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        section_type = (
+            InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        )
         section = Section.objects.create(
             abstract="Section %d abstract" % x,
             hearing=hearing,
@@ -72,15 +81,133 @@ def default_hearing(john_doe, contact_person, default_organization, default_proj
         )
         create_default_images(section)
         create_default_files(section)
-        section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=default_comment_content[::-1]
+        )
         section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
-        section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=green_comment_content[::-1]
+        )
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
     hearing.contact_persons.add(contact_person)
 
     return hearing
+
+
+@pytest.fixture
+def valid_hearing_json(contact_person, default_label):
+    return {
+        "title": {
+            "en": "My first hearing",
+            "fi": "Finnish title (yes it is in Finnish...)",
+            "sv": "Swedish title (don't speak swedish either ...)",
+        },
+        "id": "nD6aC5herQM3X1yi9aNQf6rGm6ZogAlC",
+        "borough": {
+            "en": "Punavuori",
+            "fi": "Punavuori",
+            "sv": "Rooperi",
+        },
+        "n_comments": 0,
+        "published": False,
+        "labels": [
+            {"id": default_label.id, "label": {default_lang_code: default_label.label}}
+        ],
+        "open_at": "2016-09-29T11:39:12Z",
+        "close_at": "2016-09-29T11:39:12Z",
+        "created_at": "2016-10-04T10:30:38.066436Z",
+        "servicemap_url": "",
+        "sections": [
+            {
+                "type": "closure-info",
+                "voting": "registered",
+                "commenting": "none",
+                "commenting_map_tools": "none",
+                "title": {
+                    "en": "Section 3",
+                },
+                "abstract": {},
+                "content": {
+                    "en": "<p>Enter the introduction text for the hearing here.</p>",
+                    "fi": "<p>Enter the finnish text for the hearing here.</p>",
+                },
+                "created_at": "2016-10-04T12:12:06.798574Z",
+                "created_by": None,
+                "images": [],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "sulkeutumistiedote",
+                "type_name_plural": "sulkeutumistiedotteet",
+            },
+            {
+                "voting": "registered",
+                "commenting": "none",
+                "commenting_map_tools": "none",
+                "title": {
+                    "en": "Section 1",
+                },
+                "abstract": {},
+                "content": {
+                    "en": "<p>Enter the introduction text for the hearing here.</p>",
+                    "fi": "<p>Enter the Finnish introduction text for the hearing here.</p>",
+                },
+                "created_at": "2016-10-04T11:33:37.430091Z",
+                "created_by": None,
+                "images": [
+                    sectionimage_test_json(title_en="1"),
+                    sectionimage_test_json(title_en="2"),
+                    sectionimage_test_json(title_en="3"),
+                ],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "pääosio",
+                "type_name_plural": "pääosiot",
+                "type": "main",
+            },
+            {
+                "id": "3adn7MGkOJ8e4NlhsElxKggbfdmrSmVE",
+                "type": "part",
+                "voting": "registered",
+                "commenting": "none",
+                "commenting_map_tools": "none",
+                "title": {
+                    "en": "Section 2",
+                },
+                "abstract": {},
+                "content": {
+                    "en": "<p>Enter the introduction text for the hearing here.eve</p>",
+                    "fi": "something in Finnish",
+                },
+                "created_at": "2016-10-04T12:09:16.818364Z",
+                "created_by": None,
+                "images": [
+                    sectionimage_test_json(),
+                ],
+                "files": [
+                    sectionfile_base64_test_data(),
+                ],
+                "n_comments": 0,
+                "plugin_identifier": "",
+                "plugin_data": "",
+                "type_name_singular": "osa-alue",
+                "type_name_plural": "osa-alueet",
+            },
+        ],
+        "closed": True,
+        "organization": None,
+        "geojson": None,
+        "main_image": None,
+        "contact_persons": [
+            {
+                "id": contact_person.id,
+            }
+        ],
+        "slug": "test-hearing",
+    }
 
 
 @pytest.fixture()
@@ -99,14 +226,21 @@ def comment_image(default_hearing):
 
 
 @pytest.fixture()
-def hearing__with_4_different_commenting(john_doe, contact_person, default_organization, default_project):
+def hearing__with_4_different_commenting(
+    john_doe, contact_person, default_organization, default_project
+):
     """
     Fixture for a "default" hearing with four sections (one main, three other sections).
     All objects will have the 3 default images attached.
     All objects will have commenting_map_tools all.
     Each section will have a different commenting rule.
     """
-    commenting_restrictions = [Commenting.NONE, Commenting.OPEN, Commenting.REGISTERED, Commenting.STRONG]
+    commenting_restrictions = [
+        Commenting.NONE,
+        Commenting.OPEN,
+        Commenting.REGISTERED,
+        Commenting.STRONG,
+    ]
     hearing = Hearing.objects.create(
         title="Default test hearing One",
         open_at=now() - datetime.timedelta(days=1),
@@ -116,7 +250,9 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
         project_phase=default_project.phases.all()[0],
     )
     for x in range(1, 5):
-        section_type = InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        section_type = (
+            InitialSectionType.MAIN if x == 1 else InitialSectionType.SCENARIO
+        )
         section = Section.objects.create(
             abstract="Section %d abstract" % x,
             hearing=hearing,
@@ -126,9 +262,13 @@ def hearing__with_4_different_commenting(john_doe, contact_person, default_organ
         )
         create_default_images(section)
         create_default_files(section)
-        section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=default_comment_content[::-1]
+        )
         section.comments.create(created_by=john_doe, content=red_comment_content[::-1])
-        section.comments.create(created_by=john_doe, content=green_comment_content[::-1])
+        section.comments.create(
+            created_by=john_doe, content=green_comment_content[::-1]
+        )
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
 
@@ -167,7 +307,9 @@ def hearing_without_comments(contact_person, default_organization, default_proje
 
 
 @pytest.fixture()
-def hearing_with_comments_on_comments(jane_doe, john_doe, contact_person, default_organization, default_project):
+def hearing_with_comments_on_comments(
+    jane_doe, john_doe, contact_person, default_organization, default_project
+):
     """
     Fixture for a simple hearing with comments that have replies.
     """
@@ -190,14 +332,22 @@ def hearing_with_comments_on_comments(jane_doe, john_doe, contact_person, defaul
 
     assert_ascending_sequence([s.ordering for s in hearing.sections.all()])
     hearing.contact_persons.add(contact_person)
-    parent_comment = section.comments.create(created_by=john_doe, content=default_comment_content[::-1])
-    parent_comment.comments.create(created_by=jane_doe, content=default_comment_content[::-1], section=section)
-    parent_comment.comments.create(created_by=john_doe, content=default_comment_content[::-1], section=section)
+    parent_comment = section.comments.create(
+        created_by=john_doe, content=default_comment_content[::-1]
+    )
+    parent_comment.comments.create(
+        created_by=jane_doe, content=default_comment_content[::-1], section=section
+    )
+    parent_comment.comments.create(
+        created_by=john_doe, content=default_comment_content[::-1], section=section
+    )
     return hearing
 
 
 @pytest.fixture()
-def strong_auth_hearing(john_doe, contact_person, default_organization, default_project):
+def strong_auth_hearing(
+    john_doe, contact_person, default_organization, default_project
+):
     """
     Fixture for a "strong auth requiring" hearing with one main section.
     Commenting requires strong auth.
@@ -265,7 +415,9 @@ def john_doe():
     """
     user = get_user_model().objects.filter(username="john_doe").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("john_doe", "john@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "john_doe", "john@example.com", password="password"
+        )
     return user
 
 
@@ -287,7 +439,9 @@ def jane_doe():
     """
     user = get_user_model().objects.filter(username="jane_doe").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("jane_doe", "jane@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "jane_doe", "jane@example.com", password="password"
+        )
     return user
 
 
@@ -309,7 +463,9 @@ def stark_doe():
     """
     user = get_user_model().objects.filter(username="stark_doe").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("stark_doe", "stark@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "stark_doe", "stark@example.com", password="password"
+        )
     return user
 
 
@@ -333,7 +489,9 @@ def john_smith(default_organization):
     """
     user = get_user_model().objects.filter(username="john_smith").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("john_smith", "john_smith@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "john_smith", "john_smith@example.com", password="password"
+        )
         user.admin_organizations.add(default_organization)
     return user
 
@@ -356,7 +514,9 @@ def steve_staff(default_organization):
     """
     user = get_user_model().objects.filter(username="steve_staff").first()
     if not user:  # pragma: no branch
-        user = get_user_model().objects.create_user("steve_staff", "staff_steve@example.com", password="password")
+        user = get_user_model().objects.create_user(
+            "steve_staff", "staff_steve@example.com", password="password"
+        )
         user.is_staff = True
         user.admin_organizations.add(default_organization)
     return user
@@ -405,7 +565,10 @@ def geojson_point():
 
 @pytest.fixture()
 def geojson_multipoint():
-    return {"type": "MultiPoint", "coordinates": [[24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]]}
+    return {
+        "type": "MultiPoint",
+        "coordinates": [[24.9386, 60.1849], [24.9389, 60.1831], [24.9407, 60.1845]],
+    }
 
 
 @pytest.fixture()

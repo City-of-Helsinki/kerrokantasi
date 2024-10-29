@@ -1,9 +1,10 @@
-import factory
-import factory.fuzzy
 import logging
 import os
 import random
 from datetime import timedelta
+
+import factory
+import factory.fuzzy
 from django.utils.timezone import now
 
 from democracy.enums import Commenting
@@ -57,19 +58,19 @@ class HearingFactory(factory.django.DjangoModelFactory):
     borough = factory.Faker("city")
 
     @factory.post_generation
-    def post(obj, create, extracted, **kwargs):
-        for x in range(random.randint(0, 3)):
+    def post(self, create, extracted, **kwargs):
+        for _x in range(random.randint(0, 3)):
             label = Label.objects.order_by("?").first()
             if label:  # pragma: no branch
-                obj.labels.add(label)
+                self.labels.add(label)
 
-        SectionFactory(hearing=obj, type=SectionType.objects.get(identifier="main"))
+        SectionFactory(hearing=self, type=SectionType.objects.get(identifier="main"))
 
-        for x in range(random.randint(1, 4)):
-            section = SectionFactory(hearing=obj)
-            logger.info("Hearing %s: Created section %s", obj, section)
+        for _x in range(random.randint(1, 4)):
+            section = SectionFactory(hearing=self)
+            logger.info("Hearing %s: Created section %s", self, section)
 
-        obj.recache_n_comments()
+        self.recache_n_comments()
 
 
 class SectionFactory(factory.django.DjangoModelFactory):
@@ -79,21 +80,30 @@ class SectionFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     abstract = factory.Faker("paragraph")
     content = factory.Faker("text")
-    type = factory.fuzzy.FuzzyChoice(choices=SectionType.objects.exclude(identifier="main"))
+    type = factory.fuzzy.FuzzyChoice(
+        choices=SectionType.objects.exclude(identifier="main")
+    )
     commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
 
     @factory.post_generation
-    def post(obj, create, extracted, **kwargs):
-        for x in range(random.randint(1, 5)):
-            comment = SectionCommentFactory(section=obj)
-            logger.info("Hearing %s: Section %s: Created section comment %s", obj.hearing, obj, comment.pk)
-        obj.recache_n_comments()
+    def post(self, create, extracted, **kwargs):
+        for _x in range(random.randint(1, 5)):
+            comment = SectionCommentFactory(section=self)
+            logger.info(
+                "Hearing %s: Section %s: Created section comment %s",
+                self.hearing,
+                self,
+                comment.pk,
+            )
+        self.recache_n_comments()
 
 
 class SectionFileFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("word")
     caption = factory.Faker("word")
-    file = factory.django.FileField(from_path=os.path.join(FILE_SOURCE_PATH, FILES["PDF"]))
+    file = factory.django.FileField(
+        from_path=os.path.join(FILE_SOURCE_PATH, FILES["PDF"])
+    )
 
     class Meta:
         model = SectionFile

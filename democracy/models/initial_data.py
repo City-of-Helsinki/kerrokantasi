@@ -26,4 +26,6 @@ INITIAL_SECTION_TYPE_DATA = [
 
 def create_initial_section_types(section_type_model):
     for section in INITIAL_SECTION_TYPE_DATA:
-        section_type_model.objects.update_or_create(identifier=section["identifier"], defaults=section)
+        section_type_model.objects.update_or_create(
+            identifier=section["identifier"], defaults=section
+        )

@@ -1,6 +1,7 @@
+from unittest.mock import Mock, patch
+
 import pytest
 from rest_framework import status
-from unittest.mock import Mock, patch
 
 from audit_log.middleware import AuditLogMiddleware
 

@@ -15,15 +15,35 @@ class BaseComment(BaseModel):
     parent_field = None  # Required for factories and API
     parent_model = None  # Required for factories and API
     geojson = GeoJSONField(blank=True, null=True, verbose_name=_("location"))
-    map_comment_text = models.CharField(verbose_name=_("map_comment_text"), max_length=255, blank=True, null=True)
-    geometry = models.GeometryField(blank=True, null=True, verbose_name=_("location geometry"))
-    authorization_code = models.CharField(verbose_name=_("authorization code"), max_length=32, blank=True)
-    author_name = models.CharField(verbose_name=_("author name"), max_length=255, blank=True, null=True)
-    organization = models.ForeignKey("Organization", blank=True, null=True, default=None, on_delete=models.PROTECT)
-    plugin_identifier = models.CharField(verbose_name=_("plugin identifier"), blank=True, max_length=255)
+    map_comment_text = models.CharField(
+        verbose_name=_("map_comment_text"), max_length=255, blank=True, null=True
+    )
+    geometry = models.GeometryField(
+        blank=True, null=True, verbose_name=_("location geometry")
+    )
+    authorization_code = models.CharField(
+        verbose_name=_("authorization code"), max_length=32, blank=True
+    )
+    author_name = models.CharField(
+        verbose_name=_("author name"), max_length=255, blank=True, null=True
+    )
+    organization = models.ForeignKey(
+        "Organization", blank=True, null=True, default=None, on_delete=models.PROTECT
+    )
+    plugin_identifier = models.CharField(
+        verbose_name=_("plugin identifier"), blank=True, max_length=255
+    )
     plugin_data = models.TextField(verbose_name=_("plugin data"), blank=True)
-    label = models.ForeignKey("Label", verbose_name=_("label"), blank=True, null=True, on_delete=models.PROTECT)
-    language_code = models.CharField(verbose_name=_("language code"), blank=True, max_length=15)
+    label = models.ForeignKey(
+        "Label",
+        verbose_name=_("label"),
+        blank=True,
+        null=True,
+        on_delete=models.PROTECT,
+    )
+    language_code = models.CharField(
+        verbose_name=_("language code"), blank=True, max_length=15
+    )
     n_votes = models.IntegerField(
         verbose_name=_("vote count"),
         help_text=_("number of votes given to this comment"),
@@ -67,7 +87,9 @@ class BaseComment(BaseModel):
         try:
             candidates = detect_langs(self.content.lower())
             for candidate in candidates:
-                if candidate.lang in [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]:
+                if candidate.lang in [
+                    lang["code"] for lang in settings.PARLER_LANGUAGES[None]
+                ]:
                     if candidate.prob > settings.DETECT_LANGS_MIN_PROBA:
                         self.language_code = candidate.lang
                     break
@@ -78,14 +100,19 @@ class BaseComment(BaseModel):
     def save(self, *args, **kwargs):
         if not any((getattr(self, field) for field in self.fields_to_check_for_data)):
             raise ValidationError(
-                "You must supply at least one of the following data in a comment: " + str(self.fields_to_check_for_data)
+                "You must supply at least one of the following data in a comment: "
+                + str(self.fields_to_check_for_data)
             )
         if not self.author_name:
             if self.created_by_id:
                 self.author_name = self.created_by.get_display_name() or None
             else:
                 self.author_name = "Anonymous"
-        if not self.organization and self.created_by and self.created_by.admin_organizations:
+        if (
+            not self.organization
+            and self.created_by
+            and self.created_by.admin_organizations
+        ):
             self.organization = self.created_by.admin_organizations.first()
         if not self.language_code and self.content:
             self._detect_lang()

@@ -6,70 +6,77 @@ from django.utils.translation import gettext_lazy as _
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0030_migrate_translatable_fields'),
+        ("democracy", "0030_migrate_translatable_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='contactperson',
-            name='title',
-            field=models.CharField(verbose_name=_('title'), max_length=255, default='', null=True),
+            model_name="contactperson",
+            name="title",
+            field=models.CharField(
+                verbose_name=_("title"), max_length=255, default="", null=True
+            ),
             preserve_default=False,
         ),
         migrations.RemoveField(
-            model_name='contactperson',
-            name='title',
+            model_name="contactperson",
+            name="title",
         ),
         migrations.RemoveField(
-            model_name='hearing',
-            name='borough',
+            model_name="hearing",
+            name="borough",
         ),
         migrations.AlterField(
-            model_name='hearing',
-            name='title',
-            field=models.CharField(verbose_name=_('title'), max_length=255, default='', null=True),
+            model_name="hearing",
+            name="title",
+            field=models.CharField(
+                verbose_name=_("title"), max_length=255, default="", null=True
+            ),
             preserve_default=False,
         ),
         migrations.RemoveField(
-            model_name='hearing',
-            name='title',
+            model_name="hearing",
+            name="title",
         ),
         migrations.RemoveField(
-            model_name='label',
-            name='label',
+            model_name="label",
+            name="label",
         ),
         migrations.RemoveField(
-            model_name='section',
-            name='abstract',
+            model_name="section",
+            name="abstract",
         ),
         migrations.RemoveField(
-            model_name='section',
-            name='content',
+            model_name="section",
+            name="content",
         ),
         migrations.AlterField(
-            model_name='section',
-            name='title',
-            field=models.CharField(verbose_name=_('title'), max_length=255, default='', null=True),
+            model_name="section",
+            name="title",
+            field=models.CharField(
+                verbose_name=_("title"), max_length=255, default="", null=True
+            ),
             preserve_default=False,
         ),
         migrations.RemoveField(
-            model_name='section',
-            name='title',
+            model_name="section",
+            name="title",
         ),
         migrations.RemoveField(
-            model_name='sectionimage',
-            name='caption',
+            model_name="sectionimage",
+            name="caption",
         ),
         migrations.AlterField(
-            model_name='sectionimage',
-            name='title',
-            field=models.CharField(verbose_name=_('title'), max_length=255, default='', null=True),
+            model_name="sectionimage",
+            name="title",
+            field=models.CharField(
+                verbose_name=_("title"), max_length=255, default="", null=True
+            ),
             preserve_default=False,
         ),
         migrations.RemoveField(
-            model_name='sectionimage',
-            name='title',
+            model_name="sectionimage",
+            name="title",
         ),
     ]

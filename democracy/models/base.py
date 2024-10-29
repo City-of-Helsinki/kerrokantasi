@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -6,12 +8,13 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
 from enumfields.fields import EnumIntegerField
-from functools import lru_cache
 from helsinki_gdpr.models import SerializableMixin
 
 from democracy.enums import Commenting, CommentingMapTools
 
-ORDERING_HELP = _("The ordering position for this object. Objects with smaller numbers appear first.")
+ORDERING_HELP = _(
+    "The ordering position for this object. Objects with smaller numbers appear first."
+)
 
 
 def generate_id():
@@ -35,13 +38,18 @@ class BaseModelManager(models.Manager):
         return super().get_queryset().filter(*args, **kwargs)
 
 
-class SerializableBaseModelManager(SerializableMixin.SerializableManager, BaseModelManager):
+class SerializableBaseModelManager(
+    SerializableMixin.SerializableManager, BaseModelManager
+):
     """Add serialization support needed for GDPR API to the base model manager."""
 
 
 class BaseModel(models.Model):
     created_at = models.DateTimeField(
-        verbose_name=_("time of creation"), default=timezone.now, editable=False, db_index=True
+        verbose_name=_("time of creation"),
+        default=timezone.now,
+        editable=False,
+        db_index=True,
     )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -53,7 +61,9 @@ class BaseModel(models.Model):
         on_delete=models.SET_NULL,
     )
     modified_at = models.DateTimeField(
-        verbose_name=_("time of last modification"), default=timezone.now, editable=False
+        verbose_name=_("time of last modification"),
+        default=timezone.now,
+        editable=False,
     )
     modified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -64,9 +74,15 @@ class BaseModel(models.Model):
         editable=False,
         on_delete=models.SET_NULL,
     )
-    published = models.BooleanField(verbose_name=_("public"), default=True, db_index=True)
+    published = models.BooleanField(
+        verbose_name=_("public"), default=True, db_index=True
+    )
     deleted_at = models.DateTimeField(
-        verbose_name=_("time of deletion"), default=None, editable=False, null=True, blank=True
+        verbose_name=_("time of deletion"),
+        default=None,
+        editable=False,
+        null=True,
+        blank=True,
     )
     deleted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -77,7 +93,9 @@ class BaseModel(models.Model):
         editable=False,
         on_delete=models.SET_NULL,
     )
-    deleted = models.BooleanField(verbose_name=_("deleted"), default=False, db_index=True, editable=False)
+    deleted = models.BooleanField(
+        verbose_name=_("deleted"), default=False, db_index=True, editable=False
+    )
     objects = BaseModelManager()
 
     def save(self, *args, **kwargs):
@@ -124,7 +142,9 @@ class BaseModel(models.Model):
         :rtype: class|None
         """
         for field in parent_model._meta.get_fields():  # pragma: no branch
-            if isinstance(field, ManyToOneRel) and issubclass(field.related_model, cls):  # pragma: no branch
+            if isinstance(field, ManyToOneRel) and issubclass(
+                field.related_model, cls
+            ):  # pragma: no branch
                 return field.related_model
 
     class Meta:
@@ -132,7 +152,9 @@ class BaseModel(models.Model):
 
 
 class StringIdBaseModel(BaseModel):
-    id = models.CharField(verbose_name=_("identifier"), primary_key=True, max_length=32, editable=False)
+    id = models.CharField(
+        verbose_name=_("identifier"), primary_key=True, max_length=32, editable=False
+    )
 
     class Meta:
         abstract = True
@@ -144,13 +166,23 @@ class Commentable(models.Model):
     """
 
     n_comments = models.IntegerField(
-        verbose_name=_("number of comments"), blank=True, default=0, editable=False, db_index=True
+        verbose_name=_("number of comments"),
+        blank=True,
+        default=0,
+        editable=False,
+        db_index=True,
     )
-    commenting = EnumIntegerField(Commenting, verbose_name=_("commenting"), default=Commenting.NONE)
+    commenting = EnumIntegerField(
+        Commenting, verbose_name=_("commenting"), default=Commenting.NONE
+    )
     commenting_map_tools = EnumIntegerField(
-        CommentingMapTools, verbose_name=_("commenting_map_tools"), default=CommentingMapTools.NONE
+        CommentingMapTools,
+        verbose_name=_("commenting_map_tools"),
+        default=CommentingMapTools.NONE,
     )
-    voting = EnumIntegerField(Commenting, verbose_name=_("voting"), default=Commenting.REGISTERED)
+    voting = EnumIntegerField(
+        Commenting, verbose_name=_("voting"), default=Commenting.REGISTERED
+    )
 
     def recache_n_comments(self):
         new_n_comments = self.comments.count()
@@ -167,21 +199,31 @@ class Commentable(models.Model):
 
         If commenting is not allowed, the function must raise a ValidationError.
         It must never return a value other than None.
-        """
+        """  # noqa: E501
         is_authenticated = request.user.is_authenticated
         if self.commenting == Commenting.NONE:
-            raise ValidationError(_("%s does not allow commenting") % self, code="commenting_none")
+            raise ValidationError(
+                _("%s does not allow commenting") % self, code="commenting_none"
+            )
         elif self.commenting == Commenting.REGISTERED:
             if not is_authenticated:
-                raise ValidationError(_("%s does not allow anonymous commenting") % self, code="commenting_registered")
+                raise ValidationError(
+                    _("%s does not allow anonymous commenting") % self,
+                    code="commenting_registered",
+                )
         elif self.commenting == Commenting.STRONG:
             if not is_authenticated:
                 raise ValidationError(
-                    _("%s requires strong authentication for commenting") % self, code="commenting_registered_strong"
+                    _("%s requires strong authentication for commenting") % self,
+                    code="commenting_registered_strong",
                 )
-            elif not request.user.has_strong_auth and not request.user.get_default_organization():
+            elif (
+                not request.user.has_strong_auth
+                and not request.user.get_default_organization()
+            ):
                 raise ValidationError(
-                    _("%s requires strong authentication for commenting") % self, code="commenting_registered_strong"
+                    _("%s requires strong authentication for commenting") % self,
+                    code="commenting_registered_strong",
                 )
         elif self.commenting == Commenting.OPEN:
             return
@@ -194,21 +236,31 @@ class Commentable(models.Model):
 
         If voting is not allowed, the function must raise a ValidationError.
         It must never return a value other than None.
-        """
+        """  # noqa: E501
         is_authenticated = request.user.is_authenticated
         if self.voting == Commenting.NONE:
-            raise ValidationError(_("%s does not allow voting") % self, code="voting_none")
+            raise ValidationError(
+                _("%s does not allow voting") % self, code="voting_none"
+            )
         elif self.voting == Commenting.REGISTERED:
             if not is_authenticated:
-                raise ValidationError(_("%s does not allow anonymous voting") % self, code="voting_registered")
+                raise ValidationError(
+                    _("%s does not allow anonymous voting") % self,
+                    code="voting_registered",
+                )
         elif self.voting == Commenting.STRONG:
             if not is_authenticated:
                 raise ValidationError(
-                    _("%s requires strong authentication for voting") % self, code="voting_registered_strong"
+                    _("%s requires strong authentication for voting") % self,
+                    code="voting_registered_strong",
                 )
-            elif not request.user.has_strong_auth and not request.user.get_default_organization():
+            elif (
+                not request.user.has_strong_auth
+                and not request.user.get_default_organization()
+            ):
                 raise ValidationError(
-                    _("%s requires strong authentication for voting") % self, code="voting_registered_strong"
+                    _("%s requires strong authentication for voting") % self,
+                    code="voting_registered_strong",
                 )
         elif self.voting == Commenting.OPEN:
             return

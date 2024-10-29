@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('democracy', '0021_add_contact_person'),
+        ("democracy", "0021_add_contact_person"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sectioncomment',
-            name='author_name',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='author name'),
+            model_name="sectioncomment",
+            name="author_name",
+            field=models.CharField(
+                blank=True, max_length=255, null=True, verbose_name="author name"
+            ),
         ),
     ]

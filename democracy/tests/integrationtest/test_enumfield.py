@@ -16,7 +16,7 @@ def test_enum():
     assert ef.to_representation(PeculiarEnum.COOL) == "cool"
     assert ef.to_representation(PeculiarEnum.HOT) == "hot"
     assert ef.to_representation(PeculiarEnum.BLEGBLAGPLEPLOP) == "foo"
-    assert ef.to_representation(None) == None
+    assert ef.to_representation(None) is None
     assert ef.to_internal_value("cool") == PeculiarEnum.COOL
     assert ef.to_internal_value("CooL") == PeculiarEnum.COOL
     assert ef.to_internal_value("HOT") == PeculiarEnum.HOT

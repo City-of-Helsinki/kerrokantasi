@@ -1,5 +1,57 @@
 # Changelog
 
+## [2.0.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.6.0...kerrokantasi-v2.0.0) (2024-10-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* Remove convert_ckeditor_uploads command ([e129e99](https://github.com/City-of-Helsinki/kerrokantasi/commit/e129e9924ed4ef17861b5146e5a66a0323a6187f))
+* Remove django-ckeditor and related views ([3c59452](https://github.com/City-of-Helsinki/kerrokantasi/commit/3c5945227de15758043b310287cad395d15d2237))
+
+### Features
+
+* Add application for audit logging ([64ecc66](https://github.com/City-of-Helsinki/kerrokantasi/commit/64ecc66fc4932290593a0ef6da78ed66a105e6ec))
+* Add audit logging for BaseCommentViewSet ([c09d2d9](https://github.com/City-of-Helsinki/kerrokantasi/commit/c09d2d989e08e35bf4e83472206e97cfac5e1dfb))
+* Add audit logging to ContactPersonViewSet ([3e4b929](https://github.com/City-of-Helsinki/kerrokantasi/commit/3e4b9293fa5e65479bd3ed867db6dac959c22c1d))
+* Add audit logging to FileViewSet ([842fc05](https://github.com/City-of-Helsinki/kerrokantasi/commit/842fc0586d109383c3f5c9141ae2e29706e24130))
+* Add audit logging to HearingViewSet ([49d8ac2](https://github.com/City-of-Helsinki/kerrokantasi/commit/49d8ac29f1971db8cc73019e67dc6023772093d4))
+* Add audit logging to ImageViewSet ([920e80e](https://github.com/City-of-Helsinki/kerrokantasi/commit/920e80e0d7eda9a96d3e446764cdeb5609bc4cb6))
+* Add audit logging to LabelViewSet ([005aa8c](https://github.com/City-of-Helsinki/kerrokantasi/commit/005aa8ca8160e82451c5aa341200466b7edaa829))
+* Configure audit logging for kerrokantasi ([89aa789](https://github.com/City-of-Helsinki/kerrokantasi/commit/89aa789ef9879815ede1f70d79ffcdffc02ad1df))
+* Remove convert_ckeditor_uploads command ([e129e99](https://github.com/City-of-Helsinki/kerrokantasi/commit/e129e9924ed4ef17861b5146e5a66a0323a6187f))
+* Remove django-ckeditor and related views ([3c59452](https://github.com/City-of-Helsinki/kerrokantasi/commit/3c5945227de15758043b310287cad395d15d2237))
+
+
+### Bug Fixes
+
+* Missing filter in ProjectPhaseSerializer.get_has_hearings ([7d2e515](https://github.com/City-of-Helsinki/kerrokantasi/commit/7d2e515b200f11838ad88f1b500b45c477123b70))
+
+
+### Performance Improvements
+
+* Apply sufficient prefetching in HearingViewSet ([13701fd](https://github.com/City-of-Helsinki/kerrokantasi/commit/13701fd7c2ccdb1e6f40ec4c39d28a04f5a56772))
+* Cache hearing for SectionViewSet and prefetch translations ([a958fd9](https://github.com/City-of-Helsinki/kerrokantasi/commit/a958fd9163131a9699813a098b99f6f4ed06ebbe))
+* Optimize TranslatableSerializer translations access via cache ([e37ed03](https://github.com/City-of-Helsinki/kerrokantasi/commit/e37ed03c60360145de48e3935444b226f81166ca))
+* Prefetch translations in FileViewSet ([724e915](https://github.com/City-of-Helsinki/kerrokantasi/commit/724e9155d004bc105d08e92e11258f60d82ba582))
+* Prefetch translations in LabelViewSet ([57b858a](https://github.com/City-of-Helsinki/kerrokantasi/commit/57b858a98a56a1586469d40624b5eefa1f12e620))
+* Use prefetched results in  ProjectPhaseSerializer.get_has_hearings ([09f1e60](https://github.com/City-of-Helsinki/kerrokantasi/commit/09f1e60d0c3ff6467acbdcfa1fd741ee2522071f))
+* Use prefetched results in ProjectPhaseSerializer.get_hearings ([bb63c06](https://github.com/City-of-Helsinki/kerrokantasi/commit/bb63c068851b573af5f0c2dd4b810efc72385092))
+
+
+### Dependencies
+
+* Sync pre-commit and development requirements ([c3a8d00](https://github.com/City-of-Helsinki/kerrokantasi/commit/c3a8d0057f3993af062506529b0d77a3c228c839))
+* Upgrade dependencies ([ceaa041](https://github.com/City-of-Helsinki/kerrokantasi/commit/ceaa04174d5b455c591b1f811cce65b1dce8070b))
+
+
+### Documentation
+
+* **readme:** Update isort url ([0490fbf](https://github.com/City-of-Helsinki/kerrokantasi/commit/0490fbf150c8d2413b809a3f775ef6601ab9b25e))
+
+
+### Build
+* Upgrade python to version 3.9 ([62e957](https://github.com/City-of-Helsinki/kerrokantasi/pull/520/commits/62e95786728acf6aed72128b47fac1c800d19179))
+
 ## [1.6.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.5.0...kerrokantasi-v1.6.0) (2024-08-13)
 
 

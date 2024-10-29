@@ -5,8 +5,8 @@
 
 ### ⚠ BREAKING CHANGES
 
-* remove convert_ckeditor_uploads command
-* remove django-ckeditor and related views
+* Remove convert_ckeditor_uploads command ([e129e99](https://github.com/City-of-Helsinki/kerrokantasi/commit/e129e9924ed4ef17861b5146e5a66a0323a6187f))
+* Remove django-ckeditor and related views ([3c59452](https://github.com/City-of-Helsinki/kerrokantasi/commit/3c5945227de15758043b310287cad395d15d2237))
 
 ### Features
 
@@ -47,6 +47,10 @@
 ### Documentation
 
 * **readme:** Update isort url ([0490fbf](https://github.com/City-of-Helsinki/kerrokantasi/commit/0490fbf150c8d2413b809a3f775ef6601ab9b25e))
+
+
+### Build
+* Upgrade python to version 3.9 ([62e957](https://github.com/City-of-Helsinki/kerrokantasi/pull/520/commits/62e95786728acf6aed72128b47fac1c800d19179))
 
 ## [1.6.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.5.0...kerrokantasi-v1.6.0) (2024-08-13)
 

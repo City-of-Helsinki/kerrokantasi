@@ -1,2 +1,4 @@
 # Reformat code with black, isort and flake8
 852ff44d4620058f45e0016dff40ccb50b8b9bd0
+# style: run Ruff format, apply lint fixes and add noqas
+dd25b1146f246a24000122fa8f65ef5729ca7bea

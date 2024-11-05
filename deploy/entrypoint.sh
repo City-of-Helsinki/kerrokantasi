@@ -24,5 +24,5 @@ elif [[ "$DEV_SERVER" = "true" ]]; then
     exec python -Wd ./manage.py runserver 0.0.0.0:8000
 else
     echo "Starting production server"
-    exec uwsgi -y deploy/uwsgi.yml
+    exec uwsgi -ini deploy/uwsgi.ini
 fi

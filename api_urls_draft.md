@@ -8,7 +8,7 @@ Language used as GET parameter anywhere
  - send #26
 
 ## /account
- 
+
  - register #9
  - update user info #11
 
@@ -152,4 +152,3 @@ List labels. Get detail. Create, update.
 
  - **list** _/api/v1/labels/?hearing=[hearingID]_
  - **CRUD** #23 _/api/v1/labels/[labelID]_
-

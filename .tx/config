@@ -7,4 +7,3 @@ source_file = democracy/locale/django.pot
 source_lang = en
 trans.fi = democracy/locale/fi/LC_MESSAGES/django.po
 type = PO
-

@@ -8,21 +8,21 @@
 ### Breakdown:
 
 #### Kategoria-otsikko
- 1. Tiedosto 
+ 1. Tiedosto
      * Selitys muutoksista
-   
+
  2. Tiedosto
      * Selitys muutoksista
-    
+
  3. Tiedosto
      * Selitys muutoksista
-     
+
 #### Kategoria-otsikko
- 1. Tiedosto 
+ 1. Tiedosto
      * Selitys muutoksista
-   
+
  2. Tiedosto
      * Selitys muutoksista
-    
+
  3. Tiedosto
       * Selitys muutoksista

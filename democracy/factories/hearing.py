@@ -84,9 +84,13 @@ class SectionFactory(factory.django.DjangoModelFactory):
         choices=SectionType.objects.exclude(identifier="main")
     )
     commenting = factory.fuzzy.FuzzyChoice(choices=Commenting)
+    hearing = factory.SubFactory(HearingFactory)
 
     @factory.post_generation
-    def post(self, create, extracted, **kwargs):
+    def create_random_comments(self, create, create_random_comments, **kwargs):
+        """By default, create random comments for the section."""
+        if not create_random_comments:
+            return
         for _x in range(random.randint(1, 5)):
             comment = SectionCommentFactory(section=self)
             logger.info(

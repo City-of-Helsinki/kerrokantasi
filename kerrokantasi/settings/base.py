@@ -92,6 +92,7 @@ env = environ.Env(
     GDPR_API_DELETE_SCOPE=(str, "gdprdelete"),
     # Audit logging
     AUDIT_LOG_ENABLED=(bool, False),
+    DEFAULT_USER_DATA_REMOVAL_THRESHOLD_DAYS=(int, 365 * 5),  # Five years.
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -433,3 +434,7 @@ AUDIT_LOG = {
     "ENABLED": env("AUDIT_LOG_ENABLED"),
     "ORIGIN": "kerrokantasi",
 }
+
+DEFAULT_USER_DATA_REMOVAL_THRESHOLD_DAYS = env(
+    "DEFAULT_USER_DATA_REMOVAL_THRESHOLD_DAYS"
+)

@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.1.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.0.0...kerrokantasi-v2.1.0) (2024-12-03)
+
+
+### Features
+
+* Add command for removing old user data ([9bda14b](https://github.com/City-of-Helsinki/kerrokantasi/commit/9bda14bfdf093e07b3d404bdc784125976c44581))
+* Add user data removal util functions ([3e439f8](https://github.com/City-of-Helsinki/kerrokantasi/commit/3e439f8ff75ee29d2f7848d9e4a3b97c46b70428))
+
+
+### Bug Fixes
+
+* Uwsgi parameter typo ([131216f](https://github.com/City-of-Helsinki/kerrokantasi/commit/131216f6f683f898fea70658001593c168830807))
+
 ## [2.0.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v1.6.0...kerrokantasi-v2.0.0) (2024-10-29)
 
 

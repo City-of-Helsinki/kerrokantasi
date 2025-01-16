@@ -1,5 +1,3 @@
-import shutil
-
 import pytest
 from pytest_factoryboy import register
 from rest_framework.test import APIClient
@@ -32,15 +30,6 @@ def pytest_configure():
 @pytest.fixture
 def audit_log_configure(settings):
     settings.AUDIT_LOG = {"ENABLED": True}
-
-
-@pytest.fixture(autouse=True)
-def setup_test_media(settings):
-    """Create folder for test media/file uploads."""
-    settings.MEDIA_ROOT = "test_media"
-    settings.MEDIA_URL = "/media/"
-    yield
-    shutil.rmtree("test_media", ignore_errors=True)
 
 
 @pytest.fixture

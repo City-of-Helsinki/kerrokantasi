@@ -1,13 +1,11 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-ARG BUILDER_FROM_IMAGE=python:3.9-bookworm
+FROM helsinki.azurecr.io/ubi9/python-39-gdal AS appbase
 
-FROM ${BUILDER_FROM_IMAGE} AS appbase
+WORKDIR /app
 
-RUN useradd -ms /bin/bash -d /kerrokantasi kerrokantasi
-
-WORKDIR /kerrokantasi
+USER root
 
 # Can be used to inquire about running app
 # eg. by running `echo $APP_NAME`
@@ -20,13 +18,8 @@ ENV STATIC_ROOT /srv/static
 # while in Docker. Maybe the buffer is larger?
 ENV PYTHONUNBUFFERED True
 
-# less & netcat-openbsd are there for in-container manual debugging
-# kerrokantasi needs gdal
-RUN apt-get update && apt-get install -y postgresql-client less netcat-openbsd gettext locales gdal-bin python3-gdal
-
-# we need the Finnish locale built
-RUN sed -i 's/^# *\(fi_FI.UTF-8\)/\1/' /etc/locale.gen
-RUN locale-gen
+# Generate Finnish locale
+RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8
 
 RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir uwsgi
@@ -51,9 +44,9 @@ RUN mkdir -p /srv/static && python manage.py collectstatic
 # Keep media in its own directory outside home, in case home
 # directory forms some sort of attack route
 # Usually this would be some sort of volume
-RUN mkdir -p /srv/media && chown kerrokantasi:kerrokantasi /srv/media
+RUN mkdir -p /srv/media
 
-ENTRYPOINT ["/kerrokantasi/deploy/entrypoint.sh"]
+ENTRYPOINT ["/app/deploy/entrypoint.sh"]
 
 # Both production and dev servers listen on port 8000
 EXPOSE 8000
@@ -62,8 +55,9 @@ EXPOSE 8000
 FROM appbase AS development
 
 RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN chgrp -R 0 . && chmod g+w -R .
 
-USER kerrokantasi
+USER default
 
 # And the production image
 FROM appbase AS production
@@ -72,4 +66,4 @@ RUN django-admin compilemessages
 
 ENV DEBUG=False
 
-USER kerrokantasi
+USER default

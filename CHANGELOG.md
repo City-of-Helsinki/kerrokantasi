@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.1.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.1.0...kerrokantasi-v2.1.1) (2025-02-19)
+
+
+### Dependencies
+
+* Bump cryptography from 43.0.1 to 44.0.1 ([6edb048](https://github.com/City-of-Helsinki/kerrokantasi/commit/6edb048fb9e052a8fcc8261b935fad5992c0669d))
+* Bump django from 4.2.16 to 4.2.17 ([e735d7e](https://github.com/City-of-Helsinki/kerrokantasi/commit/e735d7e4321d0e1e13d4541a4861c82cfe487426))
+* Bump django from 4.2.17 to 4.2.18 ([dc74287](https://github.com/City-of-Helsinki/kerrokantasi/commit/dc74287c65fd02720eebb616261ae3bea412ff4a))
+
 ## [2.1.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.0.0...kerrokantasi-v2.1.0) (2024-12-03)
 
 

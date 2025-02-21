@@ -1,0 +1,68 @@
+name: test with uv and pytest-xdist
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SECRET_KEY: topsecret123
+  DATABASE_URL: postgis://test_user:test_password@localhost/test_db
+  # Used by django-searchable-encrypted-fields
+  FIELD_ENCRYPTION_KEYS: abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789
+
+jobs:
+  tests:
+    name: run tests with uv and pytest-xdist
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        # The workflow supports only the PostgreSQL and PostGIS versions used in Platta
+        image: postgis/postgis:14-3.2-alpine
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        # Needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - name: Set up locale
+        run: |
+            sudo locale-gen fi_FI.UTF-8
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Required by SonarCloud
+          fetch-depth: 0
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install libpq-dev gettext
+      - name: Install system packages for PostGIS
+        run: |
+          sudo apt-get install gdal-bin
+      - name: Setup Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install Python dependencies
+        run: uv pip install --system -r requirements.txt -r requirements-dev.txt
+      - name: Compile translations
+        run: |
+          if find . -name "*.po" | grep -q .; then
+            python manage.py compilemessages
+          fi
+      - name: Check migrations
+        run: |
+          python manage.py makemigrations --dry-run --check
+      - name: Run tests
+        run: |
+          pytest -ra -vvv --cov=. --cov-report=xml

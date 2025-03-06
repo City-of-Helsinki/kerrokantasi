@@ -1,3 +1,4 @@
+import helsinki_notification.contrib.rest_framework.urls
 from django.conf import settings
 from django.urls import include, path
 from django.views.generic.base import RedirectView
@@ -11,6 +12,7 @@ urlpatterns = [
     path("", include("helusers.urls")),
     path("", include("social_django.urls", namespace="social")),
     path("v1/", include(urls_v1)),
+    path("v1/", include(helsinki_notification.contrib.rest_framework.urls)),
     path("nested_admin/", include(nested_admin_urls)),
     path("gdpr-api/", include("helsinki_gdpr.urls")),
     path("", RedirectView.as_view(url="v1/")),

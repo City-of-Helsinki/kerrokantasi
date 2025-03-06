@@ -206,6 +206,7 @@ INSTALLED_APPS = [
     "democracy",  # Reusable participatory democracy app
     "parler",
     "django_filters",
+    "helsinki_notification",
 ] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [

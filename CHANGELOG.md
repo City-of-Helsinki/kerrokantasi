@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.1.1...kerrokantasi-v2.2.0) (2025-03-10)
+
+
+### Features
+
+* Add django-helsinki-notification ([d08d796](https://github.com/City-of-Helsinki/kerrokantasi/commit/d08d7962727362f2efc793a9d7fb171c462507a6))
+
+
+### Dependencies
+
+* Bump django from 4.2.18 to 4.2.20 ([c7f6170](https://github.com/City-of-Helsinki/kerrokantasi/commit/c7f61701ae2914cfb2a83571728772e4e1d77e02))
+* Bump python-jose from 3.3.0 to 3.4.0 ([90857c0](https://github.com/City-of-Helsinki/kerrokantasi/commit/90857c0c7d725bd4cff458c73685dab4e2c9cdf6))
+
 ## [2.1.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.1.0...kerrokantasi-v2.1.1) (2025-02-19)
 
 

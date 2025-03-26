@@ -114,28 +114,30 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
 class HearingCreateUpdateSerializer(
     serializers.ModelSerializer, TranslatableSerializer
 ):
-    geojson = GeoJSONField(required=False, allow_null=True)
-
-    # this field is used only for incoming data validation, outgoing data is added manually  # noqa: E501
-    # in to_representation()
-    sections = serializers.ListField(child=serializers.DictField(), write_only=True)
-
-    contact_persons = NestedPKRelatedField(
-        queryset=ContactPerson.objects.all(),
-        many=True,
-        expanded=True,
-        serializer=ContactPersonSerializer,
-    )
     labels = NestedPKRelatedField(
         queryset=Label.objects.all(),
         many=True,
         expanded=True,
         serializer=LabelSerializer,
     )
-
+    geojson = GeoJSONField(required=False, allow_null=True)
     organization = serializers.SlugRelatedField(read_only=True, slug_field="name")
-    project = serializers.DictField(write_only=True, required=False, allow_null=True)
+    main_image = serializers.SerializerMethodField()
+    abstract = serializers.SerializerMethodField()
+    preview_url = serializers.SerializerMethodField()
+    contact_persons = NestedPKRelatedField(
+        queryset=ContactPerson.objects.all(),
+        many=True,
+        expanded=True,
+        serializer=ContactPersonSerializer,
+    )
+    default_to_fullscreen = serializers.SerializerMethodField()
     slug = serializers.SlugField()
+    # NOTE: sections and project are marked as write-only fields, but those fields
+    # are manually added on serialization for whatever reason, so the write-only is
+    # pretty misleading.
+    sections = serializers.ListField(child=serializers.DictField(), write_only=True)
+    project = serializers.DictField(write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = Hearing
@@ -149,14 +151,18 @@ class HearingCreateUpdateSerializer(
             "close_at",
             "created_at",
             "servicemap_url",
-            "sections",
             "closed",
+            "labels",
+            "sections",
             "geojson",
             "organization",
-            "slug",
+            "main_image",
+            "abstract",
+            "preview_url",
             "contact_persons",
-            "labels",
+            "default_to_fullscreen",
             "project",
+            "slug",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -361,6 +367,53 @@ class HearingCreateUpdateSerializer(
         """
         return [phase for phase in project_data["phases"] if phase["is_active"] is True]
 
+    def _get_main_section(self, hearing):
+        prefetched_mains = getattr(hearing, "main_section_list", [])
+        return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
+
+    def get_abstract(self, hearing):
+        main_section = self._get_main_section(hearing)
+        if not main_section:
+            return ""
+        translations = {
+            t.language_code: t.abstract
+            for t in get_translation_list(
+                main_section, language_codes=self.Meta.translation_lang
+            )
+        }
+        abstract = {}
+        for lang_code, translation in translations.items():
+            if translation:
+                abstract[lang_code] = translation
+        return abstract
+
+    def get_main_image(self, hearing):
+        main_section = self._get_main_section(hearing)
+        if not main_section:
+            return None
+
+        main_image = main_section.images.first()
+        if not main_image:
+            return None
+
+        if main_image.published or self.context["request"].user.is_superuser:
+            return SectionImageSerializer(
+                context=self.context, instance=main_image
+            ).data
+        else:
+            return None
+
+    def get_default_to_fullscreen(self, hearing):
+        main_section = self._get_main_section(hearing)
+        return main_section.plugin_fullscreen if main_section else False
+
+    def get_preview_url(self, hearing):
+        is_public = hearing.published and hearing.open_at < timezone.now()
+        if not is_public:
+            return hearing.preview_url
+        else:
+            return None
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["sections"] = SectionSerializer(
@@ -386,6 +439,34 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     contact_persons = ContactPersonSerializer(many=True, read_only=True)
     default_to_fullscreen = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Hearing
+        fields = [
+            "title",
+            "id",
+            "borough",
+            "n_comments",
+            "published",
+            "open_at",
+            "close_at",
+            "created_at",
+            "servicemap_url",
+            "closed",
+            "slug",
+            "labels",
+            "sections",
+            "geojson",
+            "organization",
+            "main_image",
+            "abstract",
+            "preview_url",
+            "contact_persons",
+            "default_to_fullscreen",
+            "project",
+        ]
+        read_only_fields = ["preview_url"]
+        translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
 
     def _get_main_section(self, hearing):
         prefetched_mains = getattr(hearing, "main_section_list", [])
@@ -466,34 +547,6 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "project", self
         )  # this is needed to get context in the serializer
         return serializer.to_representation(project)
-
-    class Meta:
-        model = Hearing
-        fields = [
-            "abstract",
-            "title",
-            "id",
-            "borough",
-            "n_comments",
-            "published",
-            "labels",
-            "open_at",
-            "close_at",
-            "created_at",
-            "servicemap_url",
-            "sections",
-            "preview_url",
-            "project",
-            "closed",
-            "geojson",
-            "organization",
-            "slug",
-            "main_image",
-            "contact_persons",
-            "default_to_fullscreen",
-        ]
-        read_only_fields = ["preview_url"]
-        translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
 
 
 class HearingListSerializer(HearingSerializer):

@@ -200,7 +200,6 @@ def valid_hearing_json(contact_person, default_label):
         "closed": True,
         "organization": None,
         "geojson": None,
-        "main_image": None,
         "contact_persons": [
             {
                 "id": contact_person.id,

@@ -387,6 +387,34 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     default_to_fullscreen = serializers.SerializerMethodField()
     project = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Hearing
+        fields = [
+            "title",
+            "id",
+            "borough",
+            "n_comments",
+            "published",
+            "open_at",
+            "close_at",
+            "created_at",
+            "servicemap_url",
+            "closed",
+            "slug",
+            "labels",
+            "sections",
+            "geojson",
+            "organization",
+            "main_image",
+            "abstract",
+            "preview_url",
+            "contact_persons",
+            "default_to_fullscreen",
+            "project",
+        ]
+        read_only_fields = ["preview_url"]
+        translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
+
     def _get_main_section(self, hearing):
         prefetched_mains = getattr(hearing, "main_section_list", [])
         return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
@@ -466,34 +494,6 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "project", self
         )  # this is needed to get context in the serializer
         return serializer.to_representation(project)
-
-    class Meta:
-        model = Hearing
-        fields = [
-            "abstract",
-            "title",
-            "id",
-            "borough",
-            "n_comments",
-            "published",
-            "labels",
-            "open_at",
-            "close_at",
-            "created_at",
-            "servicemap_url",
-            "sections",
-            "preview_url",
-            "project",
-            "closed",
-            "geojson",
-            "organization",
-            "slug",
-            "main_image",
-            "contact_persons",
-            "default_to_fullscreen",
-        ]
-        read_only_fields = ["preview_url"]
-        translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
 
 
 class HearingListSerializer(HearingSerializer):

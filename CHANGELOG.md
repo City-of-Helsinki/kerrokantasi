@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.3.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.2.0...kerrokantasi-v2.3.0) (2025-03-31)
+
+
+### Features
+
+* Add missing fields in HearingCreateUpdateSerializer ([64b85f4](https://github.com/City-of-Helsinki/kerrokantasi/commit/64b85f408138ebeb565e435cbfd22061e9540876))
+
+
+### Dependencies
+
+* Update django-helsinki-notification ([e0e9347](https://github.com/City-of-Helsinki/kerrokantasi/commit/e0e93471fca58fe92d2a3eb04bbfda64251cee1b))
+
 ## [2.2.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.1.1...kerrokantasi-v2.2.0) (2025-03-10)
 
 

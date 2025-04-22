@@ -31,4 +31,4 @@ social-auth-app-django>=5.0.0
 python-pptx
 ipython
 helsinki-profile-gdpr-api
-django-helsinki-notification[rest_framework]@git+https://github.com/City-of-Helsinki/django-helsinki-notification@django-helsinki-notification-v0.2.0
+django-helsinki-notification[rest_framework]@git+https://github.com/City-of-Helsinki/django-helsinki-notification@v0.3.0

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.3.0...kerrokantasi-v2.3.1) (2025-04-23)
+
+
+### Dependencies
+
+* Update django-helsinki-notification to v0.3.0 ([a41cb45](https://github.com/City-of-Helsinki/kerrokantasi/commit/a41cb45179b610a94d21432f50a2e79c38e25206))
+
 ## [2.3.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.2.0...kerrokantasi-v2.3.0) (2025-03-31)
 
 

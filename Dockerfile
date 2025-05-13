@@ -33,7 +33,7 @@ RUN curl -sL https://sentry.io/get-cli/ | bash
 COPY requirements.txt ./
 
 # deploy/requirements.txt must reference the base requirements
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --require-hashes --no-cache-dir -r requirements.txt
 
 COPY . .
 
@@ -56,7 +56,7 @@ EXPOSE 8000
 # Next, the development & testing extras
 FROM appbase AS development
 
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --require-hashes --no-cache-dir -r requirements-dev.txt
 
 USER default
 

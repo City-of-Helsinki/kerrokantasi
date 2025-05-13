@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.3.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.3.2...kerrokantasi-v2.3.3) (2025-05-13)
+
+
+### Dependencies
+
+* Use hashable django-helsinki-notification requirement ([7f3f5c8](https://github.com/City-of-Helsinki/kerrokantasi/commit/7f3f5c84cd9818b25c18974147f56626a2ca0ae1))
+* Use hashes in requirements ([36d754a](https://github.com/City-of-Helsinki/kerrokantasi/commit/36d754a606f20abaf41a0fdaef10075ce4e4fe6a))
+
 ## [2.3.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.3.1...kerrokantasi-v2.3.2) (2025-05-12)
 
 

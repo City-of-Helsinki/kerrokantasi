@@ -21,6 +21,10 @@ select = [
 ]
 extend-per-file-ignores = { "*/migrations/*" = ["E501"], "*/tests/*" = ["E501", "N802"] }
 
+[tool.pip-tools.compile]
+generate-hashes = true
+strip-extras = true
+
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "kerrokantasi.settings.test_settings"
 norecursedirs = ["bower_components", "node_modules", ".git", "venv"]

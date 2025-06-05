@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.3.3...kerrokantasi-v2.4.0) (2025-06-05)
+
+
+### Features
+
+* Setting to disable password login in admin site ([0d9cf96](https://github.com/City-of-Helsinki/kerrokantasi/commit/0d9cf96405c34a98070f559f9358268025750adc))
+
 ## [2.3.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.3.2...kerrokantasi-v2.3.3) (2025-05-13)
 
 

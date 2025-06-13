@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.2...kerrokantasi-v2.4.3) (2025-06-13)
+
+
+### Bug Fixes
+
+* Make LOGIN_REDIRECT_URL an env var and default to /admin/ ([ac53cc9](https://github.com/City-of-Helsinki/kerrokantasi/commit/ac53cc981bedfd3e49506609521f5a3d4b0424c8))
+
 ## [2.4.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.1...kerrokantasi-v2.4.2) (2025-06-12)
 
 

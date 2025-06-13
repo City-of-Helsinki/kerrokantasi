@@ -203,6 +203,10 @@ charset-normalizer==3.3.2 \
     --hash=sha256:fd1abc0d89e30cc4e02e4064dc67fcc51bd941eb395c502aac3ec19fab46b519 \
     --hash=sha256:ff8fa367d09b717b2a17a052544193ad76cd49979c805768879cb63d9ca50561
     # via requests
+colorama==0.4.6 \
+    --hash=sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44 \
+    --hash=sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6
+    # via ipython
 cryptography==44.0.1 \
     --hash=sha256:00918d859aa4e57db8299607086f793fa7813ae2ff5a4637e318a25ef82730f7 \
     --hash=sha256:1e8d181e90a777b63f3f0caa836844a1182f1f265687fac2115fcf245f5fbec3 \
@@ -263,6 +267,7 @@ django==4.2.23 \
     #   django-helusers
     #   django-js-asset
     #   django-leaflet
+    #   django-logger-extra
     #   django-munigeo
     #   django-parler
     #   django-parler-rest
@@ -319,6 +324,9 @@ django-js-asset==2.2.0 \
 django-leaflet==0.30.1 \
     --hash=sha256:77c350c00f87eec8cf75983a7fb5ecbdae96829fb009de22e67485fb77dbd204 \
     --hash=sha256:8ec1b645c51ed19a1bf4601954a488afc88f3ee6eaaac87aefdba1522a0d4746
+    # via -r requirements.in
+django-logger-extra @ https://github.com/City-of-Helsinki/django-logger-extra/archive/b9f4d0d578887d9b84b1ff758ea72080dd738634.zip \
+    --hash=sha256:050d0b87e557ac88c18ed51abe2ba57fdf64da8124332dd42e26fb5f49893ffb
     # via -r requirements.in
 django-mptt==0.14.0 \
     --hash=sha256:2c92a2b1614c53086278795ccf50580cf1f9b8564f3ff03055dd62bab5987711 \
@@ -571,10 +579,6 @@ parso==0.8.4 \
     --hash=sha256:a418670a20291dacd2dddc80c377c5c3791378ee1e8d12bffc35420643d43f18 \
     --hash=sha256:eb3a7b58240fb99099a345571deecc0f9540ea5f4dd2fe14c2a99d6b281ab92d
     # via jedi
-pexpect==4.9.0 \
-    --hash=sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523 \
-    --hash=sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f
-    # via ipython
 pickleshare==0.7.5 \
     --hash=sha256:87683d47965c1da65cdacaf31c8441d12b8044cdec9aca500cd78fc2c683afca \
     --hash=sha256:9649af414d74d4df115d5d718f82acb59c9d418196b7b4290ed47a12ce62df56
@@ -687,10 +691,6 @@ psycopg2==2.9.9 \
     --hash=sha256:de80739447af31525feddeb8effd640782cf5998e1a4e9192ebdf829717e3913 \
     --hash=sha256:ff432630e510709564c01dafdbe996cb552e0b9f3f065eb89bdce5bd31fabf4c
     # via -r requirements.in
-ptyprocess==0.7.0 \
-    --hash=sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35 \
-    --hash=sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220
-    # via pexpect
 pure-eval==0.2.3 \
     --hash=sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0 \
     --hash=sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42
@@ -893,6 +893,10 @@ typing-extensions==4.12.2 \
     #   cattrs
     #   ipython
     #   python-pptx
+tzdata==2025.2 \
+    --hash=sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8 \
+    --hash=sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9
+    # via django
 url-normalize==1.4.3 \
     --hash=sha256:d23d3a070ac52a67b83a1c59a0e68f8608d1cd538783b401bc9de2c0fac999b2 \
     --hash=sha256:ec3c301f04e5bb676d333a7fa162fa977ad2ca04b7e652bfc9fac4e405728eed

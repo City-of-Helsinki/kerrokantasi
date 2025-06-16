@@ -208,6 +208,7 @@ INSTALLED_APPS = [
     "parler",
     "django_filters",
     "helsinki_notification",
+    "logger_extra",
 ] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [
@@ -292,14 +293,14 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "timestamped_named": {
-            "format": "%(asctime)s %(name)s %(levelname)s: %(message)s",
-        },
+        "json": {
+            "()": "logger_extra.formatter.JSONFormatter",
+        }
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "timestamped_named",
+            "formatter": "json",
         },
         # Just for reference, not used
         "blackhole": {

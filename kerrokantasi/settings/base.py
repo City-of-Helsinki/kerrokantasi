@@ -215,6 +215,7 @@ MIDDLEWARE = [
     # CorsMiddleware should be placed as high as possible and above WhiteNoiseMiddleware
     # in particular
     "corsheaders.middleware.CorsMiddleware",
+    "logger_extra.middleware.XRequestIdMiddleware",
     # Ditto for securitymiddleware
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -292,6 +293,11 @@ REST_FRAMEWORK = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "context": {
+            "()": "logger_extra.filter.LoggerContextFilter",
+        }
+    },
     "formatters": {
         "json": {
             "()": "logger_extra.formatter.JSONFormatter",
@@ -301,6 +307,7 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "json",
+            "filters": ["context"],
         },
         # Just for reference, not used
         "blackhole": {

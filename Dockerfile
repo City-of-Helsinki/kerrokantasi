@@ -22,7 +22,10 @@ ENV PYTHONUNBUFFERED True
 RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8
 
 RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir uwsgi
+    pip install --no-cache-dir uwsgi && \
+    uwsgi --build-plugin https://github.com/City-of-Helsinki/python-uwsgi-common
+
+ADD https://raw.githubusercontent.com/City-of-Helsinki/python-uwsgi-common/main/uwsgi-base.ini /app/
 
 # Sentry CLI for sending events from non-Python processes to Sentry
 # eg. https://docs.sentry.io/cli/send-event/#bash-hook

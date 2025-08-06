@@ -3,14 +3,11 @@
 
 # branch or tag used to pull python-uwsgi-common.
 ARG UWSGI_COMMON_REF=main
-# heads for branch refs, tags for tag refs.
-ARG UWSGI_COMMON_REF_TYPE=heads
 
 FROM helsinki.azurecr.io/ubi9/python-39-gdal AS appbase
 
 # Re-define args, otherwise those aren't available after FROM directive.
 ARG UWSGI_COMMON_REF
-ARG UWSGI_COMMON_REF_TYPE
 
 WORKDIR /app
 
@@ -34,7 +31,7 @@ RUN pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir uwsgi
 
 # Build and copy specific python-uwsgi-common files.
-ADD https://github.com/City-of-Helsinki/python-uwsgi-common/archive/refs/${UWSGI_COMMON_REF_TYPE}/${UWSGI_COMMON_REF}.tar.gz /usr/src/
+ADD https://github.com/City-of-Helsinki/python-uwsgi-common/archive/${UWSGI_COMMON_REF}.tar.gz /usr/src/
 RUN mkdir -p /usr/src/python-uwsgi-common && \
     tar --strip-components=1 -xzf /usr/src/${UWSGI_COMMON_REF}.tar.gz -C /usr/src/python-uwsgi-common && \
     cp /usr/src/python-uwsgi-common/uwsgi-base.ini /app && \

@@ -36,7 +36,8 @@ RUN mkdir -p /usr/src/python-uwsgi-common && \
     tar --strip-components=1 -xzf /usr/src/${UWSGI_COMMON_REF}.tar.gz -C /usr/src/python-uwsgi-common && \
     cp /usr/src/python-uwsgi-common/uwsgi-base.ini /app && \
     uwsgi --build-plugin /usr/src/python-uwsgi-common && \
-    rm /usr/src/${UWSGI_COMMON_REF}.tar.gz
+    rm -rf /usr/src/${UWSGI_COMMON_REF}.tar.gz && \
+    rm -rf /usr/src/python-uwsgi-common
 
 # Sentry CLI for sending events from non-Python processes to Sentry
 # eg. https://docs.sentry.io/cli/send-event/#bash-hook

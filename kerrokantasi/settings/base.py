@@ -209,12 +209,14 @@ INSTALLED_APPS = [
     "parler",
     "django_filters",
     "helsinki_notification",
+    "logger_extra",
 ] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [
     # CorsMiddleware should be placed as high as possible and above WhiteNoiseMiddleware
     # in particular
     "corsheaders.middleware.CorsMiddleware",
+    "logger_extra.middleware.XRequestIdMiddleware",
     # Ditto for securitymiddleware
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -292,15 +294,21 @@ REST_FRAMEWORK = {
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "context": {
+            "()": "logger_extra.filter.LoggerContextFilter",
+        }
+    },
     "formatters": {
-        "timestamped_named": {
-            "format": "%(asctime)s %(name)s %(levelname)s: %(message)s",
-        },
+        "json": {
+            "()": "logger_extra.formatter.JSONFormatter",
+        }
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "timestamped_named",
+            "formatter": "json",
+            "filters": ["context"],
         },
         # Just for reference, not used
         "blackhole": {

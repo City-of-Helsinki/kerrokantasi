@@ -22,7 +22,6 @@ django-geojson
 django-leaflet
 django-autoslug
 django-sendfile
-Babel
 django-parler>=2.2.1
 langdetect
 sentry-sdk

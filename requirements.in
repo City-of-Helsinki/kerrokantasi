@@ -10,7 +10,7 @@ pillow
 psycopg[c]
 easy-thumbnails
 drf-nested-routers
-drf-oidc-auth<1
+drf-oidc-auth
 xlsxwriter
 django-helusers==0.12.0
 pyjwt

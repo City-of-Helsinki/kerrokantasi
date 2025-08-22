@@ -14,7 +14,7 @@ drf-oidc-auth<1
 xlsxwriter
 django-helusers==0.12.0
 pyjwt
-django-enumfields>=0.8
+django-enumfields2
 pytz
 jsonfield
 django-nested-admin

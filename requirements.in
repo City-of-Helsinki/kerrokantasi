@@ -21,7 +21,7 @@ django-nested-admin
 django-geojson
 django-leaflet
 django-autoslug
-django-sendfile
+django-sendfile2
 django-parler>=2.2.1
 langdetect
 sentry-sdk

@@ -68,7 +68,7 @@ env = environ.Env(
     ENABLE_DJANGO_EXTENSIONS=(bool, False),
     # Kerrokantasi specific settings
     DEMOCRACY_UI_BASE_URL=(str, "http://localhost:8086"),
-    SENDFILE_BACKEND=(str, "sendfile.backends.development"),
+    SENDFILE_BACKEND=(str, "django_sendfile.backends.development"),
     PROTECTED_ROOT=(environ.Path(), root("protected_media")),
     PROTECTED_URL=(str, "/protected_media/"),
     DEFAULT_MAP_COORDINATES=(tuple, (60.192059, 24.945831)),  # Coordinates of Helsinki

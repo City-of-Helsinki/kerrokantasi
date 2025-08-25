@@ -8,10 +8,10 @@ from django.utils.functional import cached_property
 from django.utils.timezone import now
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
+from django_sendfile import sendfile
 from easy_thumbnails.files import get_thumbnailer
 from rest_framework import permissions, serializers, viewsets
 from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
-from sendfile import sendfile
 
 from audit_log.views import AuditLogApiView
 from democracy.enums import Commenting, CommentingMapTools, InitialSectionType

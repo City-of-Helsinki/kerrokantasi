@@ -262,7 +262,7 @@ django==5.2.6 \
     #   django-parler
     #   django-parler-rest
     #   django-reversion
-    #   django-sendfile
+    #   django-sendfile2
     #   djangorestframework
     #   drf-nested-routers
     #   drf-oidc-auth
@@ -342,8 +342,9 @@ django-reversion==5.1.0 \
     --hash=sha256:084d4f117d9e2b4e8dfdfaad83ebb34410a03eed6071c96089e6811fdea82ad3 \
     --hash=sha256:3309821e5b6fceedcce6b6975f1a9c7fab6ae7c7d0e1276a90e345946fa0dcb8
     # via -r requirements.in
-django-sendfile==0.3.11 \
-    --hash=sha256:f3065a55e602d002af327fe785449ff0a619b6f46ad2cb84730ccb49b31a73ca
+django-sendfile2==0.7.2 \
+    --hash=sha256:d0939d52217d314b110d0b7b15ace5063d96aeb4980b7e0f94c020c2e25646f8 \
+    --hash=sha256:d1b364c2e0b32de996bb8df30889681c723a7cae13c837c0256dd25f87074530
     # via -r requirements.in
 djangorestframework==3.16.1 \
     --hash=sha256:166809528b1aced0a17dc66c24492af18049f2c9420dbd0be29422029cfc3ff7 \

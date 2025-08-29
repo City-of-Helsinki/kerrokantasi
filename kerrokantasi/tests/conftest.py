@@ -24,8 +24,6 @@ def pytest_configure():
         "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
         "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
         "django.contrib.auth.hashers.BCryptPasswordHasher",
-        "django.contrib.auth.hashers.SHA1PasswordHasher",
-        "django.contrib.auth.hashers.CryptPasswordHasher",
     )
 
 

@@ -1,4 +1,4 @@
-Django~=4.2
+Django~=5.2
 djangorestframework
 django-environ
 django-extensions>=3.1.3
@@ -7,7 +7,7 @@ django-reversion
 django-cors-headers
 django-filter
 pillow
-psycopg2>=2.9
+psycopg[c]
 easy-thumbnails
 drf-nested-routers
 drf-oidc-auth<1

@@ -7,7 +7,6 @@ from django.db.models import ManyToOneRel
 from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.translation import gettext_lazy as _
-from enumfields.fields import EnumIntegerField
 from helsinki_gdpr.models import SerializableMixin
 
 from democracy.enums import Commenting, CommentingMapTools
@@ -172,16 +171,20 @@ class Commentable(models.Model):
         editable=False,
         db_index=True,
     )
-    commenting = EnumIntegerField(
-        Commenting, verbose_name=_("commenting"), default=Commenting.NONE
+    commenting = models.IntegerField(
+        choices=Commenting,
+        verbose_name=_("commenting"),
+        default=Commenting.NONE,
     )
-    commenting_map_tools = EnumIntegerField(
-        CommentingMapTools,
+    commenting_map_tools = models.IntegerField(
+        choices=CommentingMapTools,
         verbose_name=_("commenting_map_tools"),
         default=CommentingMapTools.NONE,
     )
-    voting = EnumIntegerField(
-        Commenting, verbose_name=_("voting"), default=Commenting.REGISTERED
+    voting = models.IntegerField(
+        choices=Commenting,
+        verbose_name=_("voting"),
+        default=Commenting.REGISTERED,
     )
 
     def recache_n_comments(self):

@@ -3,16 +3,12 @@ from __future__ import unicode_literals
 
 import django.db.models.deletion
 import django.utils.timezone
-import enumfields.fields
 import jsonfield.fields
 from django.conf import settings
 from django.db import migrations, models
-from enumfields import Enum
-
-import democracy.enums
 
 
-class SectionType(Enum):
+class SectionType:
     INTRODUCTION = "introduction"
     PLAIN = "plain"
     SCENARIO = "scenario"
@@ -85,8 +81,8 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "commenting",
-                    enumfields.fields.EnumIntegerField(
-                        default=0, enum=democracy.enums.Commenting
+                    models.IntegerField(
+                        default=0,
                     ),
                 ),
                 (
@@ -539,9 +535,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "commenting",
-                    enumfields.fields.EnumIntegerField(
-                        default=0, enum=democracy.enums.Commenting
-                    ),
+                    models.IntegerField(default=0),
                 ),
                 (
                     "ordering",
@@ -551,9 +545,8 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "type",
-                    enumfields.fields.EnumField(
+                    models.CharField(
                         default="plain",
-                        enum=SectionType,
                         max_length=10,
                         verbose_name="type",
                     ),

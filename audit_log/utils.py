@@ -1,13 +1,13 @@
 import json
 import logging
-from typing import Optional
+from typing import Any, Optional, TypedDict
 
 from django.db.models import QuerySet
 from django.utils import timezone
+from resilient_logger.models import ResilientLogEntry
 from rest_framework import status
 
 from audit_log.enums import Operation, Role, Status
-from audit_log.models import AuditLogEntry
 from audit_log.settings import audit_logging_settings
 
 _OPERATION_MAPPING = {
@@ -19,6 +19,17 @@ _OPERATION_MAPPING = {
     "PATCH": Operation.UPDATE.value,
     "DELETE": Operation.DELETE.value,
 }
+
+
+class ActorDetails(TypedDict):
+    role: str
+    uuid: str
+    ip_address: str
+
+
+class TargetDetails(TypedDict):
+    path: str
+    object_ids: list[Any]
 
 
 def get_response_status(response) -> Optional[str]:
@@ -63,7 +74,7 @@ def _get_user_role(user):
     return Role.USER.value
 
 
-def _get_actor_data(request):
+def _get_actor_data(request) -> ActorDetails:
     user = getattr(request, "user", None)
     uuid = getattr(user, "uuid", None)
 
@@ -74,7 +85,7 @@ def _get_actor_data(request):
     }
 
 
-def _get_target(request, audit_logged_object_ids):
+def _get_target(request, audit_logged_object_ids) -> TargetDetails:
     return {"path": request.path, "object_ids": list(audit_logged_object_ids)}
 
 
@@ -88,27 +99,33 @@ def commit_to_audit_log(request, response):
     delattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR)
 
     current_time = timezone.now()
+    date_time_epoch = int(current_time.timestamp() * 1000)
     iso_8601_datetime = f"{current_time.replace(tzinfo=None).isoformat(sep='T', timespec='milliseconds')}Z"  # noqa: E501
 
-    message = {
-        "audit_event": {
-            "origin": audit_logging_settings.ORIGIN,
-            "status": get_response_status(response)
-            or f"Unknown: {response.status_code}",
-            "date_time_epoch": int(current_time.timestamp() * 1000),
-            "date_time": iso_8601_datetime,
-            "actor": _get_actor_data(request),
-            "operation": _get_operation_name(request),
-            "target": _get_target(request, audit_logged_object_ids),
-        }
+    status = get_response_status(response) or f"Unknown: {response.status_code}"
+    actor = _get_actor_data(request)
+    target = _get_target(request, audit_logged_object_ids)
+
+    audit_event = {
+        "origin": audit_logging_settings.ORIGIN,
+        "status": status,
+        "date_time_epoch": date_time_epoch,
+        "date_time": iso_8601_datetime,
+        "actor": actor["uuid"],
+        "actor_details": actor,
+        "operation": _get_operation_name(request),
+        "target": target["path"],
+        "target_details": target,
     }
 
     if audit_logging_settings.LOG_TO_LOGGER_ENABLED:
         logger = logging.getLogger("audit")
-        logger.info(json.dumps(message))
+        logger.info(json.dumps(audit_event))
 
     if audit_logging_settings.LOG_TO_DB_ENABLED:
-        AuditLogEntry.objects.create(message=message)
+        ResilientLogEntry.objects.create(
+            is_sent=False, level=logging.NOTSET, message=status, context=audit_event
+        )
 
 
 def add_audit_logged_object_ids(request, instances):

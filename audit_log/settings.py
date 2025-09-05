@@ -6,7 +6,6 @@ from django.dispatch import receiver
 
 _defaults = dict(
     ENABLED=True,
-    ORIGIN="service",
     LOGGED_ENDPOINTS_RE=re.compile(r"^/(v1|gdpr-api)/"),
     REQUEST_AUDIT_LOG_VAR="_audit_logged_object_ids",
     LOG_TO_DB_ENABLED=True,

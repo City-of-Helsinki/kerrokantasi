@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.4.4](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.3...kerrokantasi-v2.4.4) (2025-09-10)
+
+
+### Dependencies
+
+* Bump django from 4.2.23 to 4.2.24 ([fc2b361](https://github.com/City-of-Helsinki/kerrokantasi/commit/fc2b361638cef7dce794e5a5ab22015fbe6e94c9))
+
 ## [2.4.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.2...kerrokantasi-v2.4.3) (2025-06-13)
 
 

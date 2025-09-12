@@ -95,6 +95,11 @@ env = environ.Env(
     # Audit logging
     AUDIT_LOG_ENABLED=(bool, False),
     DEFAULT_USER_DATA_REMOVAL_THRESHOLD_DAYS=(int, 365 * 5),  # Five years.
+    # Resilient logger config
+    AUDIT_LOG_ES_URL=(str, ""),
+    AUDIT_LOG_ES_INDEX=(str, ""),
+    AUDIT_LOG_ES_USERNAME=(str, ""),
+    AUDIT_LOG_ES_PASSWORD=(str, ""),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -210,6 +215,7 @@ INSTALLED_APPS = [
     "django_filters",
     "helsinki_notification",
     "logger_extra",
+    "resilient_logger",
 ] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [
@@ -290,6 +296,32 @@ REST_FRAMEWORK = {
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
+
+
+RESILIENT_LOGGER = {
+    "origin": "kerrokantasi",
+    "environment": env("SENTRY_ENVIRONMENT"),
+    "sources": [
+        {
+            "class": "resilient_logger.sources.ResilientLogSource",
+        }
+    ],
+    "targets": [
+        {
+            "class": "resilient_logger.targets.ElasticsearchLogTarget",
+            "es_url": env("AUDIT_LOG_ES_URL"),
+            "es_username": env("AUDIT_LOG_ES_USERNAME"),
+            "es_password": env("AUDIT_LOG_ES_PASSWORD"),
+            "es_index": env("AUDIT_LOG_ES_INDEX"),
+            "required": True,
+        }
+    ],
+    "batch_limit": 5000,
+    "chunk_size": 500,
+    "submit_unsent_entries": True,
+    "clear_sent_entries": True,
+}
+
 
 LOGGING = {
     "version": 1,

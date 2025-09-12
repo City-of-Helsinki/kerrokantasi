@@ -6,9 +6,9 @@ from typing import Iterable, Mapping
 
 from django.utils.dateparse import parse_datetime
 from PIL import Image
+from resilient_logger.models import ResilientLogEntry
 
 from audit_log.enums import Operation, Status
-from audit_log.models import AuditLogEntry
 from democracy.models.files import BaseFile
 from democracy.models.images import BaseImage
 from democracy.utils.file_to_base64 import file_to_base64
@@ -234,11 +234,11 @@ def assert_audit_log_entry(
     status: Status = Status.SUCCESS,
     operation: Operation = Operation.CREATE,
 ):
-    assert AuditLogEntry.objects.count() == count
-    audit_log_entry = AuditLogEntry.objects.order_by("-created_at").first()
-    assert path in audit_log_entry.message["audit_event"]["target"]["path"]
-    assert Counter(
-        audit_log_entry.message["audit_event"]["target"]["object_ids"]
-    ) == Counter(object_ids)
-    assert audit_log_entry.message["audit_event"]["status"] == status.value
-    assert audit_log_entry.message["audit_event"]["operation"] == operation.value
+    assert ResilientLogEntry.objects.count() == count
+    audit_log_entry = ResilientLogEntry.objects.order_by("-created_at").first()
+    assert path in audit_log_entry.context["target_details"]["path"]
+    assert Counter(audit_log_entry.context["target_details"]["object_ids"]) == Counter(
+        object_ids
+    )
+    assert audit_log_entry.context["status"] == status.value
+    assert audit_log_entry.context["operation"] == operation.value

@@ -303,8 +303,8 @@ django-geojson==4.1.0 \
     --hash=sha256:27cb3dc94f448300157d05646a8d3ff14e9e36a58181c47a654e307c449fd9da \
     --hash=sha256:d044803ef8ce5039d89a5c53ecf6cb9dd0068acb31ceade041f6c14b1b2a723a
     # via -r requirements.in
-django-helsinki-notification @ https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.3.0.zip \
-    --hash=sha256:55ba18091691ecccf64487ed3080dfd6d2e9aae4c814d2e0a4426c76dec654b8
+django-helsinki-notification @ https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.0.zip \
+    --hash=sha256:c7f957718516eaeb79f08394a571744ea833660a3835f722ededfe1870da8c55
     # via -r requirements.in
 django-helusers==0.12.0 \
     --hash=sha256:2a5fbb5367017387da53c0d3b7f9fbb151e6cd07e25aa6772219316a1b5dec91 \

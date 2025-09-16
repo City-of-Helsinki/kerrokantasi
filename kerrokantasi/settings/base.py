@@ -261,7 +261,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "kerrokantasi.wsgi.application"
 
 LANGUAGE_CODE = "en"
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Helsinki"
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True

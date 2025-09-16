@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.4.5](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.4...kerrokantasi-v2.4.5) (2025-09-16)
+
+
+### Bug Fixes
+
+* Change TIME_ZONE from UTC to Europe/Helsinki ([37f12ad](https://github.com/City-of-Helsinki/kerrokantasi/commit/37f12ad06ea143bf5e8f3dc2c006ee82ec588fb4))
+
+
+### Dependencies
+
+* Bump django-helsinki-notification from 0.3.0 to 0.4.0 ([8aa6967](https://github.com/City-of-Helsinki/kerrokantasi/commit/8aa6967a2e32616d52a8dcecac0f3b3cd217396d))
+
 ## [2.4.4](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.3...kerrokantasi-v2.4.4) (2025-09-10)
 
 

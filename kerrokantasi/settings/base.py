@@ -1,10 +1,11 @@
 import logging
 import os
-import subprocess
 
 import environ
 import sentry_sdk
+from corsheaders.defaults import default_headers
 from sentry_sdk.integrations.django import DjangoIntegration
+from sentry_sdk.types import SamplingContext
 
 gettext = lambda s: s  # noqa makes possible to translate strings here
 
@@ -13,29 +14,6 @@ CONFIG_FILE_NAME = "config_dev.toml"
 # This will get default settings, as Django has not yet initialized
 # logging when importing this file
 logger = logging.getLogger(__name__)
-
-
-def get_git_revision_hash():
-    """
-    We need a way to retrieve git revision hash for sentry reports
-    I assume that if we have a git repository available we will
-    have git-the-command as well
-    """
-    try:
-        # We are not interested in gits complaints
-        git_hash = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, encoding="utf8"
-        )
-    # ie. "git" was not found
-    # should we return a more generic meta hash here?
-    # like "undefined"?
-    except FileNotFoundError:
-        git_hash = "git_not_available"
-    # Ditto
-    except subprocess.CalledProcessError:
-        git_hash = "no_repository"
-    return git_hash.rstrip()
-
 
 root = environ.Path(__file__) - 3  # three levels back in hierarchy
 env = environ.Env(
@@ -59,8 +37,6 @@ env = environ.Env(
     SECURE_PROXY_SSL_HEADER=(tuple, None),
     FILE_UPLOAD_PERMISSIONS=(str, "0o644"),
     # Helsinki Django app settings
-    SENTRY_DSN=(str, ""),
-    SENTRY_ENVIRONMENT=(str, "development"),
     INSTANCE_NAME=(str, "Kerrokantasi"),
     COOKIE_PREFIX=(str, "kerrokantasi"),
     URL_PREFIX=(str, ""),
@@ -95,6 +71,12 @@ env = environ.Env(
     # Audit logging
     AUDIT_LOG_ENABLED=(bool, False),
     DEFAULT_USER_DATA_REMOVAL_THRESHOLD_DAYS=(int, 365 * 5),  # Five years.
+    # Sentry
+    SENTRY_DSN=(str, ""),
+    SENTRY_ENVIRONMENT=(str, "local"),
+    SENTRY_PROFILE_SESSION_SAMPLE_RATE=(float, None),
+    SENTRY_RELEASE=(str, None),
+    SENTRY_TRACES_SAMPLE_RATE=(float, None),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -137,16 +119,37 @@ USE_X_FORWARDED_HOST = env("TRUST_X_FORWARDED_HOST")
 
 INTERNAL_IPS = env("INTERNAL_IPS")
 
-# Helsinki specific settings handling
+# Sentry
 
-# SENTRY_DSN is actually standard for sentry
+SENTRY_TRACES_SAMPLE_RATE = env.float("SENTRY_TRACES_SAMPLE_RATE")
+
+
+def sentry_traces_sampler(sampling_context: SamplingContext) -> float:
+    # Respect parent sampling decision if one exists. Recommended by Sentry.
+    if (parent_sampled := sampling_context.get("parent_sampled")) is not None:
+        return float(parent_sampled)
+
+    # Exclude health check endpoints from tracing
+    path = sampling_context.get("wsgi_environ", {}).get("PATH_INFO", "")
+    if path.rstrip("/") in ["/healthz", "/readiness"]:
+        return 0
+
+    # Use configured sample rate for all other requests
+    return SENTRY_TRACES_SAMPLE_RATE or 0
+
+
 if env("SENTRY_DSN"):
     sentry_sdk.init(
-        dsn=env("SENTRY_DSN"),
-        environment=env("SENTRY_ENVIRONMENT"),
-        release=get_git_revision_hash(),
+        dsn=env.str("SENTRY_DSN"),
+        environment=env.str("SENTRY_ENVIRONMENT"),
+        release=env.str("SENTRY_RELEASE"),
         integrations=[DjangoIntegration()],
+        traces_sampler=sentry_traces_sampler,
+        profile_session_sample_rate=env.str("SENTRY_PROFILE_SESSION_SAMPLE_RATE"),
+        profile_lifecycle="trace",
     )
+
+# Helsinki specific settings handling
 
 CSRF_COOKIE_NAME = "{}-csrftoken".format(env("COOKIE_PREFIX"))
 SESSION_COOKIE_NAME = "{}-sessionid".format(env("COOKIE_PREFIX"))
@@ -272,6 +275,11 @@ LANGUAGES = (
 )
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = (
+    *default_headers,
+    "baggage",
+    "sentry-trace",
+)
 CORS_URLS_REGEX = r"^/[a-z0-9-]*/?v1/.*$"
 
 REST_FRAMEWORK = {

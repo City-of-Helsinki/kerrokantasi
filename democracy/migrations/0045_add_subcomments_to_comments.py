@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 
 import django.core.files.storage
 import django.db.models.deletion
-import enumfields.fields
 from django.db import migrations, models
-
-import democracy.enums
 
 
 class Migration(migrations.Migration):
@@ -44,9 +41,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sectioncomment",
             name="commenting",
-            field=enumfields.fields.EnumIntegerField(
-                default=0, enum=democracy.enums.Commenting, verbose_name="commenting"
-            ),
+            field=models.IntegerField(default=0, verbose_name="commenting"),
         ),
         migrations.AddField(
             model_name="sectioncomment",
@@ -58,9 +53,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="sectioncomment",
             name="voting",
-            field=enumfields.fields.EnumIntegerField(
-                default=1, enum=democracy.enums.Commenting, verbose_name="voting"
-            ),
+            field=models.IntegerField(default=1, verbose_name="voting"),
         ),
         migrations.AlterField(
             model_name="sectionfile",

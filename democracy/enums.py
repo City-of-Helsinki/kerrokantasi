@@ -1,18 +1,12 @@
+from django.db.models import IntegerChoices
 from django.utils.translation import gettext_lazy as _
-from enumfields import Enum
 
 
-class Commenting(Enum):
-    NONE = 0
-    REGISTERED = 1
-    OPEN = 2
-    STRONG = 3
-
-    class Labels:
-        NONE = _("No commenting")
-        REGISTERED = _("Registered users only")
-        OPEN = _("Open commenting")
-        STRONG = _("Strong authentication only")
+class Commenting(IntegerChoices):
+    NONE = 0, _("No commenting")
+    REGISTERED = 1, _("Registered users only")
+    OPEN = 2, _("Open commenting")
+    STRONG = 3, _("Strong authentication only")
 
 
 class InitialSectionType:
@@ -22,12 +16,7 @@ class InitialSectionType:
     CLOSURE_INFO = "closure-info"
 
 
-class CommentingMapTools(Enum):
-    NONE = 0
-    MARKER = 1
-    ALL = 2
-
-    class Labels:
-        NONE = _("none")
-        MARKER = _("marker")
-        ALL = _("all")
+class CommentingMapTools(IntegerChoices):
+    NONE = 0, _("none")
+    MARKER = 1, _("marker")
+    ALL = 2, _("all")

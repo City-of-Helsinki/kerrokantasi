@@ -44,7 +44,7 @@ env = environ.Env(
     ENABLE_DJANGO_EXTENSIONS=(bool, False),
     # Kerrokantasi specific settings
     DEMOCRACY_UI_BASE_URL=(str, "http://localhost:8086"),
-    SENDFILE_BACKEND=(str, "sendfile.backends.development"),
+    SENDFILE_BACKEND=(str, "django_sendfile.backends.development"),
     PROTECTED_ROOT=(environ.Path(), root("protected_media")),
     PROTECTED_URL=(str, "/protected_media/"),
     DEFAULT_MAP_COORDINATES=(tuple, (60.192059, 24.945831)),  # Coordinates of Helsinki
@@ -387,7 +387,7 @@ SOCIAL_AUTH_TUNNISTAMO_KEY = env("SOCIAL_AUTH_TUNNISTAMO_KEY")
 SOCIAL_AUTH_TUNNISTAMO_SECRET = env("SOCIAL_AUTH_TUNNISTAMO_SECRET")
 SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT = env("SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT")
 
-SESSION_SERIALIZER = "django.contrib.sessions.serializers.PickleSerializer"
+SESSION_SERIALIZER = "helusers.sessions.TunnistamoOIDCSerializer"
 
 # Map defaults
 DEFAULT_MAP_COORDINATES = env("DEFAULT_MAP_COORDINATES")

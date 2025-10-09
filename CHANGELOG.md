@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.5.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.5...kerrokantasi-v2.5.0) (2025-10-09)
+
+
+### Features
+
+* Add endpoints for liveness and readiness probes ([16708f9](https://github.com/City-of-Helsinki/kerrokantasi/commit/16708f92506e55ed1a45298d2feae77713d22bfe))
+* **sentry:** Update sentry configuration ([98d37ee](https://github.com/City-of-Helsinki/kerrokantasi/commit/98d37ee610500ea6edf13cea145523edadf6b6a9))
+
 ## [2.4.5](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.4...kerrokantasi-v2.4.5) (2025-09-16)
 
 

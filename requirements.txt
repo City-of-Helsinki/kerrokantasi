@@ -349,8 +349,8 @@ django-parler-rest==2.2 \
     --hash=sha256:3cba9a47ec64771394e99ca49f9bef6f7dd76c1e39634fd634d2c1050fb9630a \
     --hash=sha256:58d0d7155964214dfbdb72783eff6a200c5e786e2d4f3cd74ea463d56cb10e9c
     # via django-munigeo
-django-resilient-logger @ https://github.com/City-of-Helsinki/django-resilient-logger/archive/refs/tags/v0.3.4.zip \
-    --hash=sha256:2bb2f2f808aa97d89939bfea5064e49950bd74315c65a656b4734b1ab8d3c279
+django-resilient-logger @ https://github.com/City-of-Helsinki/django-resilient-logger/archive/refs/tags/v0.3.5.zip \
+    --hash=sha256:826275007004aa65d1eb59d6e271f56ac3349cd02ca487196fa0a3028477d960
     # via -r requirements.in
 django-reversion==5.1.0 \
     --hash=sha256:084d4f117d9e2b4e8dfdfaad83ebb34410a03eed6071c96089e6811fdea82ad3 \

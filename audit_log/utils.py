@@ -3,7 +3,7 @@ import logging
 from typing import Any, Optional, TypedDict
 
 from django.db.models import QuerySet
-from resilient_logger.models import ResilientLogEntry
+from resilient_logger.sources import ResilientLogSource
 from rest_framework import status
 
 from audit_log.enums import Operation, Role, Status
@@ -103,26 +103,20 @@ def commit_to_audit_log(request, response):
         return
 
     delattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR)
-
     status = get_response_status(response) or f"Unknown: {response.status_code}"
-    actor = _get_actor_data(request)
-    target = _get_target(request, audit_logged_object_ids)
 
-    context: AuditLogContext = {
-        "actor": actor,
-        "operation": _get_operation_name(request),
-        "target": target,
-        "status": status,
-    }
+    entry = ResilientLogSource.create_structured(
+        level=logging.NOTSET,
+        message=status,
+        actor=_get_actor_data(request),
+        operation=_get_operation_name(request),
+        target=_get_target(request, audit_logged_object_ids),
+        extra={"status": status},
+    )
 
     if audit_logging_settings.LOG_TO_LOGGER_ENABLED:
         logger = logging.getLogger("audit")
-        logger.info(json.dumps(context))
-
-    if audit_logging_settings.LOG_TO_DB_ENABLED:
-        ResilientLogEntry.objects.create(
-            is_sent=False, level=logging.NOTSET, message=status, context=context
-        )
+        logger.info(json.dumps(entry.get_document()))
 
 
 def add_audit_logged_object_ids(request, instances):

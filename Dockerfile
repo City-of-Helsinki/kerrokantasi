@@ -1,7 +1,7 @@
 # Dockerfile for Kerrokantasi backend
 # Attemps to provide for both local development and server usage
 
-FROM helsinki.azurecr.io/ubi9/python-39-gdal AS appbase
+FROM helsinki.azurecr.io/ubi9/python-312-gdal AS appbase
 
 WORKDIR /app
 

@@ -36,6 +36,7 @@ certifi==2025.10.5 \
     --hash=sha256:0f212c2744a9bb6de0c56639a6f68afe01ecd92d91f14ae897c4fe7bbeeef0de \
     --hash=sha256:47c09d31ccf2acf0be3f701ea53595ee7e0b8fa08801c6624be771df09ae7b43
     # via
+    #   elastic-transport
     #   requests
     #   sentry-sdk
 cffi==2.0.0 \
@@ -329,6 +330,7 @@ django==5.2.7 \
     #   django-munigeo
     #   django-parler
     #   django-parler-rest
+    #   django-resilient-logger
     #   django-reversion
     #   django-sendfile2
     #   djangorestframework
@@ -405,6 +407,9 @@ django-parler-rest==2.2 \
     --hash=sha256:3cba9a47ec64771394e99ca49f9bef6f7dd76c1e39634fd634d2c1050fb9630a \
     --hash=sha256:58d0d7155964214dfbdb72783eff6a200c5e786e2d4f3cd74ea463d56cb10e9c
     # via django-munigeo
+django-resilient-logger @ https://github.com/City-of-Helsinki/django-resilient-logger/archive/refs/tags/v0.3.7.zip \
+    --hash=sha256:abc8c6dacfb1db8bb452e3991d0d820e6ca2a911fd62daca3847c2d9bf56beb7
+    # via -r requirements.in
 django-reversion==5.1.0 \
     --hash=sha256:084d4f117d9e2b4e8dfdfaad83ebb34410a03eed6071c96089e6811fdea82ad3 \
     --hash=sha256:3309821e5b6fceedcce6b6975f1a9c7fab6ae7c7d0e1276a90e345946fa0dcb8
@@ -439,6 +444,14 @@ ecdsa==0.19.1 \
     --hash=sha256:30638e27cf77b7e15c4c4cc1973720149e1033827cfd00661ca5c8cc0cdb24c3 \
     --hash=sha256:478cba7b62555866fcb3bb3fe985e06decbdb68ef55713c4e5ab98c57d508e61
     # via python-jose
+elastic-transport==8.17.1 \
+    --hash=sha256:192718f498f1d10c5e9aa8b9cf32aed405e469a7f0e9d6a8923431dbb2c59fb8 \
+    --hash=sha256:5edef32ac864dca8e2f0a613ef63491ee8d6b8cfb52881fa7313ba9290cac6d2
+    # via elasticsearch
+elasticsearch==8.19.2 \
+    --hash=sha256:622efa6a3e662db45285f16ab57bf198ea73ac9e137e7ed8b1d1d1e47638959d \
+    --hash=sha256:c16ba20c4c76cf6952e836dae7f4e724e00ba7bf31b94b79472b873683accdd4
+    # via django-resilient-logger
 executing==2.2.1 \
     --hash=sha256:3632cc370565f6648cc328b32435bd120a1e4ebb20c77e3fdde9a13cd1e533c4 \
     --hash=sha256:760643d3452b4d777d295bb167ccc74c64a81df23fb5e08eff250c425a4b2017
@@ -754,6 +767,10 @@ pyjwt==2.10.1 \
     # via
     #   -r requirements.in
     #   social-auth-core
+python-dateutil==2.9.0.post0 \
+    --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
+    --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
+    # via elasticsearch
 python-jose==3.5.0 \
     --hash=sha256:abd1202f23d34dfad2c3d28cb8617b90acf34132c7afd60abd0b0b7d3cb55771 \
     --hash=sha256:fb4eaa44dbeb1c26dcc69e4bd7ec54a1cb8dd64d3b4d81ef08d90ff453f2b01b
@@ -878,6 +895,7 @@ six==1.17.0 \
     #   django-munigeo
     #   ecdsa
     #   langdetect
+    #   python-dateutil
 social-auth-app-django==5.6.0 \
     --hash=sha256:43ca88cc5cd9161710896165ced58b3155e8aafaaff847e859879194770f138d \
     --hash=sha256:c695501fcbf6fe87f68f5a79e379abe853662f5129e7ec6cb758a75d5b28c888
@@ -905,6 +923,7 @@ typing-extensions==4.15.0 \
     --hash=sha256:f0fa19c6845758ab08074a0cfa8b7aecb71c999ca73d62883bc25cc018c4e548
     # via
     #   cattrs
+    #   elasticsearch
     #   psycopg
     #   python-pptx
 url-normalize==2.2.1 \
@@ -915,6 +934,7 @@ urllib3==2.5.0 \
     --hash=sha256:3fc47733c7e419d4bc3f6b3dc2b4f890bb743906a30d56ba4a5bfa4bbff92760 \
     --hash=sha256:e6b01673c0fa6a13e374b50871808eb3bf7046c4b125b216f6bf1cc604cff0dc
     # via
+    #   elastic-transport
     #   requests
     #   requests-cache
     #   sentry-sdk

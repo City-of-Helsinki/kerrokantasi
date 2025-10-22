@@ -201,3 +201,9 @@ HEARING_REPORT_PUBLIC_AUTHOR_NAMES=False
 # String representation of an octal number. Default is 0o644
 # https://docs.djangoproject.com/en/4.2/ref/settings/#file-upload-permissions
 # FILE_UPLOAD_PERMISSIONS=0o644
+
+# Resilient logger config
+AUDIT_LOG_ES_URL=
+AUDIT_LOG_ES_USERNAME=
+AUDIT_LOG_ES_PASSWORD=
+AUDIT_LOG_ES_INDEX=

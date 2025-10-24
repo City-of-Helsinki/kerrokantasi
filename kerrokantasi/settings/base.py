@@ -77,6 +77,11 @@ env = environ.Env(
     SENTRY_PROFILE_SESSION_SAMPLE_RATE=(float, None),
     SENTRY_RELEASE=(str, None),
     SENTRY_TRACES_SAMPLE_RATE=(float, None),
+    # Resilient logger config
+    AUDIT_LOG_ES_URL=(str, ""),
+    AUDIT_LOG_ES_INDEX=(str, ""),
+    AUDIT_LOG_ES_USERNAME=(str, ""),
+    AUDIT_LOG_ES_PASSWORD=(str, ""),
 )
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -212,12 +217,15 @@ INSTALLED_APPS = [
     "parler",
     "django_filters",
     "helsinki_notification",
+    "logger_extra",
+    "resilient_logger",
 ] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [
     # CorsMiddleware should be placed as high as possible and above WhiteNoiseMiddleware
     # in particular
     "corsheaders.middleware.CorsMiddleware",
+    "logger_extra.middleware.XRequestIdMiddleware",
     # Ditto for securitymiddleware
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -297,18 +305,50 @@ REST_FRAMEWORK = {
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
 }
 
+
+RESILIENT_LOGGER = {
+    "origin": "kerrokantasi",
+    "environment": env("SENTRY_ENVIRONMENT"),
+    "sources": [
+        {
+            "class": "resilient_logger.sources.ResilientLogSource",
+        }
+    ],
+    "targets": [
+        {
+            "class": "resilient_logger.targets.ElasticsearchLogTarget",
+            "es_url": env("AUDIT_LOG_ES_URL"),
+            "es_username": env("AUDIT_LOG_ES_USERNAME"),
+            "es_password": env("AUDIT_LOG_ES_PASSWORD"),
+            "es_index": env("AUDIT_LOG_ES_INDEX"),
+            "required": True,
+        }
+    ],
+    "batch_limit": 5000,
+    "chunk_size": 500,
+    "submit_unsent_entries": True,
+    "clear_sent_entries": True,
+}
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
+    "filters": {
+        "context": {
+            "()": "logger_extra.filter.LoggerContextFilter",
+        }
+    },
     "formatters": {
-        "timestamped_named": {
-            "format": "%(asctime)s %(name)s %(levelname)s: %(message)s",
-        },
+        "json": {
+            "()": "logger_extra.formatter.JSONFormatter",
+        }
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "timestamped_named",
+            "formatter": "json",
+            "filters": ["context"],
         },
         # Just for reference, not used
         "blackhole": {

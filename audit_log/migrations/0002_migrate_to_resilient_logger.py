@@ -28,7 +28,7 @@ def migrate_to_resilient_logger(apps: Apps, schema_editor):
         type[models.Model], apps.get_model("resilient_logger", "ResilientLogEntry")
     )
 
-    for entry in audit_log_entry.objects.all():
+    for entry in audit_log_entry.objects.filter(is_sent=False):
         entry_id = entry.id  # type: ignore[attr-defined]
         is_sent = entry.is_sent  # type: ignore[attr-defined]
         message = cast(OriginalMessage, entry.message)  # type: ignore[attr-defined]

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.5.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.5.0...kerrokantasi-v2.5.1) (2025-10-25)
+
+
+### Bug Fixes
+
+* Update uwsgi-config for Sentry ([4c6e5b4](https://github.com/City-of-Helsinki/kerrokantasi/commit/4c6e5b4c26b89270689061b185c1ad390508245b))
+
 ## [2.5.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.5...kerrokantasi-v2.5.0) (2025-10-09)
 
 

@@ -89,7 +89,7 @@ class HearingReport(object):
         formatted_name = re.sub(r"\W+|_", " ", section_name[:31]).capitalize()
         if section_index > 0:
             index = str(section_index)
-            return f"{formatted_name[:31-len(index)]}{index}"
+            return f"{formatted_name[: 31 - len(index)]}{index}"
 
         return formatted_name
 

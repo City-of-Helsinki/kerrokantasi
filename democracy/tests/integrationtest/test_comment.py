@@ -1824,9 +1824,9 @@ def test_get_section_comment_edit_delete_rights(
 
     # Check that the properties are correct
     for key, value in expected_items.items():
-        assert (
-            data[0][key] == value
-        ), f"Expected '{key}' to be {value} (was: {data[0][key]})"
+        assert data[0][key] == value, (
+            f"Expected '{key}' to be {value} (was: {data[0][key]})"
+        )
 
 
 @pytest.mark.django_db

@@ -843,6 +843,9 @@ urllib3==2.5.0 \
     #   requests
     #   requests-cache
     #   sentry-sdk
+uwsgi==2.0.31 \
+    --hash=sha256:e8f8b350ccc106ff93a65247b9136f529c14bf96b936ac5b264c6ff9d0c76257
+    # via -r requirements.in
 wcwidth==0.2.13 \
     --hash=sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859 \
     --hash=sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5

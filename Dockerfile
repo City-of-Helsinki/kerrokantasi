@@ -21,8 +21,7 @@ ENV PYTHONUNBUFFERED True
 # Generate Finnish locale
 RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8
 
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir uwsgi
+RUN pip install --upgrade pip setuptools wheel
 
 # Sentry CLI for sending events from non-Python processes to Sentry
 # eg. https://docs.sentry.io/cli/send-event/#bash-hook

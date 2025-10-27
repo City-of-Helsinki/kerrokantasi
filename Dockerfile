@@ -21,18 +21,19 @@ ENV PYTHONUNBUFFERED True
 # Generate Finnish locale
 RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8
 
-RUN pip install --upgrade pip setuptools wheel
-
 # Sentry CLI for sending events from non-Python processes to Sentry
 # eg. https://docs.sentry.io/cli/send-event/#bash-hook
 RUN curl -sL https://sentry.io/get-cli/ | bash
 
 # Copy requirements files to image for preloading dependencies
 # in their own layer
-COPY requirements.txt ./
+COPY requirements.txt .
 
-# deploy/requirements.txt must reference the base requirements
-RUN pip install --require-hashes --no-cache-dir -r requirements.txt
+RUN dnf update -y \
+    && dnf install -y nmap-ncat && \
+    dnf clean all && \
+    pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
@@ -55,7 +56,7 @@ EXPOSE 8000
 # Next, the development & testing extras
 FROM appbase AS development
 
-RUN pip install --require-hashes --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
 USER default
 

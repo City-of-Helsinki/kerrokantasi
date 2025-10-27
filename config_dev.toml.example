@@ -24,8 +24,8 @@ APPLY_MIGRATIONS=true
 # Boolean. Whether to compile translations when launching the container.
 COMPILE_TRANSLATIONS=true
 
-# List of host:ports (separated by spaces) that the container will wait for before starting up.
-WAIT_FOR_IT_HOSTS=postgis:5432
+# Database address that the container will wait for before starting up.
+WAIT_FOR_IT_ADDRESS=postgis
 
 #### Django settings ####
 

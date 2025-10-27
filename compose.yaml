@@ -1,6 +1,6 @@
 services:
     postgis:
-        image: "postgis/postgis:17-3.4-alpine"
+        image: "postgis/postgis:17-3.5-alpine"
         environment:
             POSTGRES_USER: kerrokantasi
             POSTGRES_PASSWORD: kerrokantasi

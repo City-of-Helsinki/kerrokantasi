@@ -27,7 +27,7 @@ services:
         # env_file:
         #     - config_dev.toml
         volumes:
-            - .:/kerrokantasi:cached
+            - .:/app
         ports:
             - "127.0.0.1:8080:8000"
 

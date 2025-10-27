@@ -1,7 +1,7 @@
-Django~=5.2
+Django~=5.2.7
 djangorestframework
 django-environ
-django-extensions>=3.1.3
+django-extensions
 django-munigeo
 django-reversion
 django-cors-headers
@@ -10,9 +10,8 @@ pillow
 psycopg[c]
 easy-thumbnails
 drf-nested-routers
-drf-oidc-auth
 xlsxwriter
-django-helusers==0.12.0
+django-helusers
 pyjwt
 jsonfield
 django-nested-admin
@@ -20,11 +19,11 @@ django-geojson
 django-leaflet
 django-autoslug
 django-sendfile2
-django-parler>=2.2.1
+django-parler
 langdetect
 sentry-sdk
 whitenoise
-social-auth-app-django>=5.0.0
+social-auth-app-django
 python-pptx
 ipython
 helsinki-profile-gdpr-api

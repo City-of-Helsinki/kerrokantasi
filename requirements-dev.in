@@ -12,5 +12,3 @@ pytest-cov
 pytest_django
 pytest-factoryboy
 requests-mock
-# Keep this in sync with .pre-commit-config.yaml
-ruff==0.7.1

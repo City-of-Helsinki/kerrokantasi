@@ -9,3 +9,8 @@ OIDC_API_TOKEN_AUTH["ISSUER"] = ["http://test.local:8000/openid"]
 OIDC_API_TOKEN_AUTH["REQUIRE_API_SCOPE_FOR_AUTHENTICATION"] = False
 
 TIME_ZONE = "UTC"
+
+AUDIT_LOG = {
+    "ENABLED": False,
+    "ORIGIN": "kerrokantasi",
+}

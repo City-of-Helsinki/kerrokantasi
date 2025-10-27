@@ -382,9 +382,9 @@ def test_access_section_file(default_hearing, section_file_orphan, john_doe_api_
             kwargs={"filetype": "sectionfile", "pk": section_file_orphan.pk},
         )
     )
-    assert (
-        response.status_code == 200
-    ), "normal user should be be able to get section file"
+    assert response.status_code == 200, (
+        "normal user should be be able to get section file"
+    )
 
 
 @pytest.mark.django_db

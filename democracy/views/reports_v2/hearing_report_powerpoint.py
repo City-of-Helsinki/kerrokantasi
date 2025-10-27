@@ -77,8 +77,8 @@ class HearingReportPowerPoint:
         )
 
         info.text = (
-            f'{_("Kerrokantasi hearing")} {hearing_timerange}'
-            f'\n{_("Comments")} {self.json["n_comments"]}.'
+            f"{_('Kerrokantasi hearing')} {hearing_timerange}"
+            f"\n{_('Comments')} {self.json['n_comments']}."
         )
 
     def _add_subsection_title_slide(self, section: dict):
@@ -118,7 +118,7 @@ class HearingReportPowerPoint:
                 bullet.text = comment["content"]
         else:
             bullet = text_area.paragraphs[0]
-            bullet.text = f'{_("No comments")}'
+            bullet.text = f"{_('No comments')}"
             bullet.font.italic = True
 
     def _add_comment_slides(self, comments: List[dict]):
@@ -194,7 +194,7 @@ class HearingReportPowerPoint:
         poll_type = poll["type"]
         poll_total_answers = poll["n_answers"]
         info.text = (
-            f'{_("Type")}: {_(poll_type)}, {_("total answers")}: {poll_total_answers}'
+            f"{_('Type')}: {_(poll_type)}, {_('total answers')}: {poll_total_answers}"
         )
 
     def _add_section(self, section: dict):

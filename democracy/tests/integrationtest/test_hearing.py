@@ -1241,9 +1241,9 @@ def test_POST_hearing_with_existing_project(
     assert len(data["project"]["phases"]) == 3
     assert default_project.phases.count() == 3
     for phase in project["phases"]:
-        assert (
-            phase["id"] in default_project_phase_ids
-        ), "Phase ids return must match original default_project phase ids"
+        assert phase["id"] in default_project_phase_ids, (
+            "Phase ids return must match original default_project phase ids"
+        )
 
 
 @pytest.mark.django_db
@@ -1341,20 +1341,20 @@ def test_POST_hearing_delete_phase_with_hearings(
     for idx, phase in enumerate(default_project_json["project"]["phases"]):
         if phase["id"] == default_hearing_phase.pk:
             deleted_phase_data = default_project_json["project"]["phases"].pop(idx)
-    assert (
-        deleted_phase_data is not None
-    ), "Test fixture error: Default hearing should contain a project phase from default project"
+    assert deleted_phase_data is not None, (
+        "Test fixture error: Default hearing should contain a project phase from default project"
+    )
     default_project_json["project"]["phases"][0]["is_active"] = True
     valid_hearing_json.update(default_project_json)
     response = john_smith_api_client.post(
         endpoint, data=valid_hearing_json, format="json"
     )
-    assert (
-        response.status_code == 400
-    ), "Should not be able to delete phase with default_hearing associated to it"
-    assert (
-        default_project.phases.count() == initial_default_project_phase_count
-    ), "Project phase count should not change"
+    assert response.status_code == 400, (
+        "Should not be able to delete phase with default_hearing associated to it"
+    )
+    assert default_project.phases.count() == initial_default_project_phase_count, (
+        "Project phase count should not change"
+    )
     deleted_phase = ProjectPhase.objects.everything().get(pk=deleted_phase_data["id"])
     assert deleted_phase.deleted is False, "Phase should not be soft-deleted"
 
@@ -2182,9 +2182,9 @@ def test_get_project_data_in_hearing(default_hearing, api_client):
     data = get_data_from_response(api_client.get(endpoint))
     assert data["id"] == default_hearing.id
     assert "project" in data, "hearing should contain project data"
-    assert (
-        len(data["project"]["phases"]) == 3
-    ), "default hearing should contain 3 project phases"
+    assert len(data["project"]["phases"]) == 3, (
+        "default hearing should contain 3 project phases"
+    )
     for phase in data["project"]["phases"]:
         is_active_phase = phase["id"] == default_hearing.project_phase_id
         assert phase["has_hearings"] == is_active_phase

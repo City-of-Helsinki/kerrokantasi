@@ -1,5 +1,27 @@
 # Changelog
 
+## [2.5.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.5.0...kerrokantasi-v2.5.1) (2025-10-28)
+
+
+### Bug Fixes
+
+* **docker:** Mount volume to correct folder ([c32d2a0](https://github.com/City-of-Helsinki/kerrokantasi/commit/c32d2a0b4035bcc77b2a9c9d5c813692c3a9a064))
+* Update uwsgi-config for Sentry ([4c6e5b4](https://github.com/City-of-Helsinki/kerrokantasi/commit/4c6e5b4c26b89270689061b185c1ad390508245b))
+
+
+### Dependencies
+
+* Bump bunch of dependencies ([cd6f5d2](https://github.com/City-of-Helsinki/kerrokantasi/commit/cd6f5d2afae09f0bfe8dd1bc908782bf4b0a16ea))
+* Bump requirements ([0fb6465](https://github.com/City-of-Helsinki/kerrokantasi/commit/0fb6465b8315767a77bee7b9b451ddbbafb97061))
+* **compose:** Bump postgis version ([fc2a717](https://github.com/City-of-Helsinki/kerrokantasi/commit/fc2a7176b8c71e674f3cc1a89b17aabb39a9cda1))
+* Move uwsgi from Dockerfile to requirements ([5cddffe](https://github.com/City-of-Helsinki/kerrokantasi/commit/5cddffe67140bb2daeacbaaa8715b92c58b58b97))
+* Remove Babel ([6588988](https://github.com/City-of-Helsinki/kerrokantasi/commit/6588988928e6562f26fbbdab7a3a94ae84de30f2))
+* Remove djangoenumfields2 ([d7020e0](https://github.com/City-of-Helsinki/kerrokantasi/commit/d7020e0c84467ea0e4915c9d4e644a7591494189))
+* Remove pytz ([867085f](https://github.com/City-of-Helsinki/kerrokantasi/commit/867085f61e9cd0ff85f2fe1a2dfaa5f856879a84))
+* Replace django-sendfile with django-sendfile2 ([13fe7aa](https://github.com/City-of-Helsinki/kerrokantasi/commit/13fe7aad6aeb716f0c74f1aa140eb6c10986592b))
+* Upgrade to django 5.2 ([7b80881](https://github.com/City-of-Helsinki/kerrokantasi/commit/7b808814cc0a9411768f31f0fca4c9971be2024d))
+* Upgrade to python 3.12 ([98ccbd7](https://github.com/City-of-Helsinki/kerrokantasi/commit/98ccbd7ea739f2fe42a06c0105fe7936a0bbb02f))
+
 ## [2.5.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.4.5...kerrokantasi-v2.5.0) (2025-10-09)
 
 

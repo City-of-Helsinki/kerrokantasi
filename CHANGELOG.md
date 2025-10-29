@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.6.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.5.1...kerrokantasi-v2.6.0) (2025-10-29)
+
+
+### Features
+
+* Allow dynamic sentry trace ignore paths ([9fe314d](https://github.com/City-of-Helsinki/kerrokantasi/commit/9fe314d7142cbb55b03c03ecdfbd5d9b232dadc5))
+
 ## [2.5.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.5.0...kerrokantasi-v2.5.1) (2025-10-28)
 
 

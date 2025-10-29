@@ -325,6 +325,7 @@ django==5.2.7 \
     #   django-helusers
     #   django-js-asset
     #   django-leaflet
+    #   django-logger-extra
     #   django-munigeo
     #   django-parler
     #   django-parler-rest
@@ -377,6 +378,9 @@ django-js-asset==3.1.2 \
 django-leaflet==0.32.0 \
     --hash=sha256:013ccb06ee08071caec98a65dffd68ab3694dafce72caff34f3d78f35568ae25 \
     --hash=sha256:a17d8e6cc05dd98e8e543fbf198b81dabbf9f195c222e786d1686aeda91c1aa8
+    # via -r requirements.in
+django-logger-extra @ https://github.com/City-of-Helsinki/django-logger-extra/archive/refs/tags/v0.1.0.zip \
+    --hash=sha256:90dc28c88cb26e9684873cf1951568abfa2cda454837fe342b2bf482847bf380
     # via -r requirements.in
 django-mptt==0.17.0 \
     --hash=sha256:e2dca00536450b91bdc80d8fc1454993b84307728394ae42c72947fc09574d3d \

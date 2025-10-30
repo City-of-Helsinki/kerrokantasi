@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.7.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.6.0...kerrokantasi-v2.7.0) (2025-10-30)
+
+
+### Features
+
+* Adapt resilient logger for audit logs ([#567](https://github.com/City-of-Helsinki/kerrokantasi/issues/567)) ([c10e389](https://github.com/City-of-Helsinki/kerrokantasi/commit/c10e3893c8de55f34dfdcb09a54b8d8e49cd5aed))
+* Change logging format to json ([#559](https://github.com/City-of-Helsinki/kerrokantasi/issues/559)) ([05421bb](https://github.com/City-of-Helsinki/kerrokantasi/commit/05421bbb6a135436c158cbb3193c2e16877f7d5e))
+* Configure uwsgi for json logging ([#560](https://github.com/City-of-Helsinki/kerrokantasi/issues/560)) ([ab13745](https://github.com/City-of-Helsinki/kerrokantasi/commit/ab137457f3d72d427391e13266889b0a5e184ae2))
+
 ## [2.6.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.5.1...kerrokantasi-v2.6.0) (2025-10-29)
 
 

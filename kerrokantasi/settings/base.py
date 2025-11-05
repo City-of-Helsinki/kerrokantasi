@@ -79,6 +79,7 @@ env = environ.Env(
     SENTRY_TRACES_SAMPLE_RATE=(float, None),
     SENTRY_TRACES_IGNORE_PATHS=(list, ["/healthz", "/readiness"]),
     # Resilient logger config
+    AUDIT_LOG_ENV=(str, ""),
     AUDIT_LOG_ES_URL=(str, ""),
     AUDIT_LOG_ES_INDEX=(str, ""),
     AUDIT_LOG_ES_USERNAME=(str, ""),
@@ -310,7 +311,7 @@ REST_FRAMEWORK = {
 
 RESILIENT_LOGGER = {
     "origin": "kerrokantasi",
-    "environment": env("SENTRY_ENVIRONMENT"),
+    "environment": env("AUDIT_LOG_ENV"),
     "sources": [
         {
             "class": "resilient_logger.sources.ResilientLogSource",

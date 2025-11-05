@@ -1,4 +1,4 @@
-Django~=5.2.7
+Django~=5.2.8
 djangorestframework
 django-environ
 django-extensions

@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.7.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.7.0...kerrokantasi-v2.7.1) (2025-11-10)
+
+
+### Dependencies
+
+* Bump django from 5.2.7 to 5.2.8 ([c248f52](https://github.com/City-of-Helsinki/kerrokantasi/commit/c248f52bb54217d9fdbcec6dcae2ce6bcc36f570))
+
 ## [2.7.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.6.0...kerrokantasi-v2.7.0) (2025-10-30)
 
 

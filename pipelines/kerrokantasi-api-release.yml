@@ -40,7 +40,7 @@ resources:
 
 extends:
   # Filename in Azure DevOps Repository
-  template: components/kerrokantasi-api/openshift-templates/kerrokantasi-api-release.yml@kerrokantasi-pipelines
+  template: components/kerrokantasi-api/pipelines/kerrokantasi-api-release.yml@kerrokantasi-pipelines
   parameters:
     deployTest: ${{ parameters.deployTest }}
     # Application build arguments and config map values as key value pairs.

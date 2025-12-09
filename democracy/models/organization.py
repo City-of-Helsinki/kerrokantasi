@@ -70,7 +70,11 @@ class ContactPerson(TranslatableModel, StringIdBaseModel):
         on_delete=models.PROTECT,
     )
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_("title"), max_length=255),
+        title=models.CharField(
+            verbose_name=_("title"),
+            max_length=255,
+            help_text=_("Contact person's job title or role"),
+        ),
     )
     name = models.CharField(verbose_name=_("name"), max_length=50)
     phone = models.CharField(verbose_name=_("phone"), max_length=50)

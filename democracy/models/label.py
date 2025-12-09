@@ -8,7 +8,12 @@ from democracy.models.base import BaseModel, BaseModelManager
 
 class Label(BaseModel, TranslatableModel):
     translations = TranslatedFields(
-        label=models.CharField(verbose_name=_("label"), default="", max_length=200),
+        label=models.CharField(
+            verbose_name=_("label"),
+            default="",
+            max_length=200,
+            help_text=_("Label for categorizing and filtering hearings"),
+        ),
     )
     objects = BaseModelManager.from_queryset(TranslatableQuerySet)()
 

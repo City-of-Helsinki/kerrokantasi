@@ -203,13 +203,14 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    # disable Django’s development server static file handling
+    # disable Django's development server static file handling
     "whitenoise.runserver_nostatic",
     "django.contrib.staticfiles",
     "django.contrib.sites",
     "mptt",
     "nested_admin",
     "rest_framework",
+    "drf_spectacular",
     "reversion",
     "corsheaders",
     "easy_thumbnails",
@@ -297,6 +298,7 @@ CORS_ALLOW_HEADERS = (
 CORS_URLS_REGEX = r"^/[a-z0-9-]*/?v1/.*$"
 
 REST_FRAMEWORK = {
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "kerrokantasi.oidc.StrongApiTokenAuthentication",
         "django.contrib.auth.backends.ModelBackend",
@@ -306,9 +308,32 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ],
+    "DEFAULT_RENDERER_CLASSES": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.BrowsableAPIRenderer",
+    ],
     "DEFAULT_VERSION": "1",
     "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.NamespaceVersioning",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Kerrokantasi API",
+    "DESCRIPTION": """Kerrokantasi participatory democracy API.
+
+Authentication:
+- API Token Authentication via OIDC (Bearer token in Authorization header)
+- Session Authentication for browsable API
+- Anonymous read access for public content
+    """,
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_PATCH": True,
+    "SCHEMA_PATH_PREFIX": r"/v1/",
+    "SCHEMA_PATH_PREFIX_TRIM": True,
+    "SERVERS": [
+        {"url": "http://localhost:8086/v1/", "description": "Development server"},
+    ],
 }
 
 

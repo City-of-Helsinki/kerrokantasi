@@ -6,6 +6,11 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.transaction import atomic
 from django.utils.functional import cached_property
 from django.utils.translation import gettext as _
+from drf_spectacular.utils import (
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
@@ -33,6 +38,12 @@ from democracy.views.comment_image import (
     CommentImageSerializer,
 )
 from democracy.views.label import LabelSerializer
+from democracy.views.openapi import (
+    AUTHORIZATION_CODE_PARAM,
+    COMMON_COMMENT_PARAMS,
+    PAGINATION_PARAMS,
+    ROOT_COMMENT_FILTER_PARAMS,
+)
 from democracy.views.utils import (
     GeoJSONField,
     GeometryBboxFilterBackend,
@@ -309,7 +320,76 @@ class SectionCommentSerializer(BaseCommentSerializer):
             return data
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List section comments",
+        description=(
+            "Retrieve paginated list of comments for hearing sections. "
+            "Comments can be filtered and ordered."
+        ),
+        parameters=PAGINATION_PARAMS + COMMON_COMMENT_PARAMS,
+    ),
+    retrieve=extend_schema(
+        summary="Get comment details",
+        description="Retrieve detailed information about a specific comment.",
+        parameters=AUTHORIZATION_CODE_PARAM,
+    ),
+    create=extend_schema(
+        summary="Create comment",
+        description=(
+            "Post a new comment to a hearing section. "
+            "Can include poll answers, images, and geographic data."
+        ),
+        responses={
+            201: SectionCommentCreateUpdateSerializer,
+            400: OpenApiResponse(
+                description=(
+                    "Validation error (e.g., commenting closed, invalid poll answer)"
+                )
+            ),
+            403: OpenApiResponse(description="User not allowed to comment"),
+        },
+    ),
+    update=extend_schema(
+        summary="Update comment",
+        description=(
+            "Update an existing comment. Requires authorization code or ownership."
+        ),
+        responses={
+            200: SectionCommentCreateUpdateSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            403: OpenApiResponse(description="Not authorized to edit this comment"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update comment",
+        description=(
+            "Partially update an existing comment. "
+            "Requires authorization code or ownership."
+        ),
+        responses={
+            200: SectionCommentCreateUpdateSerializer,
+            403: OpenApiResponse(description="Not authorized to edit this comment"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete comment",
+        description="Soft delete a comment. Requires authorization code or ownership.",
+        responses={
+            204: OpenApiResponse(description="Comment successfully deleted"),
+            403: OpenApiResponse(description="Not authorized to delete this comment"),
+        },
+    ),
+)
 class SectionCommentViewSet(BaseCommentViewSet):
+    """
+    API endpoint for section comments.
+
+    Handles comments posted to hearing sections. Supports poll voting, image
+    attachments, geographic data, and threaded replies. Comments can be
+    moderated by organization admins.
+    """
+
     model = SectionComment
     serializer_class = SectionCommentSerializer
     edit_serializer_class = SectionCommentCreateUpdateSerializer
@@ -536,19 +616,36 @@ class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSeriali
 
 
 class CommentFilterSet(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(field_name="section__hearing__id")
-    label = django_filters.Filter(field_name="label__id")
+    hearing = django_filters.CharFilter(
+        field_name="section__hearing__id",
+        help_text="Filter by hearing ID",
+    )
+    label = django_filters.Filter(
+        field_name="label__id",
+        help_text="Filter by label ID",
+    )
     created_at__lt = django_filters.IsoDateTimeFilter(
-        field_name="created_at", lookup_expr="lt"
+        field_name="created_at",
+        lookup_expr="lt",
+        help_text="Filter comments created before this date",
     )
     created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(
-        field_name="created_at", lookup_expr="gt"
+        field_name="created_at",
+        lookup_expr="gt",
+        help_text="Filter comments created after this date",
     )
     comment = django_filters.ModelChoiceFilter(
-        queryset=SectionComment.objects.everything()
+        queryset=SectionComment.objects.everything(),
+        help_text="Filter by parent comment ID",
     )
-    section = django_filters.CharFilter(field_name="section__id")
-    created_by = django_filters.CharFilter(method="filter_created_by")
+    section = django_filters.CharFilter(
+        field_name="section__id",
+        help_text="Filter by section ID",
+    )
+    created_by = django_filters.CharFilter(
+        method="filter_created_by",
+        help_text="Filter by creator ('me' for current user)",
+    )
 
     class Meta:
         model = SectionComment
@@ -571,7 +668,81 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
 
 
 # root level SectionComment endpoint
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all comments",
+        description=(
+            "Retrieve paginated list of comments across all hearings and sections. "
+            "For privacy, author names are removed unless filtered by specific "
+            "hearing, section, or user. Can be filtered and ordered."
+        ),
+        parameters=(
+            PAGINATION_PARAMS + ROOT_COMMENT_FILTER_PARAMS + COMMON_COMMENT_PARAMS
+        ),
+    ),
+    retrieve=extend_schema(
+        summary="Get comment details",
+        description="Retrieve detailed information about a specific comment.",
+        parameters=AUTHORIZATION_CODE_PARAM,
+    ),
+    create=extend_schema(
+        summary="Create comment (root endpoint)",
+        description=(
+            "Post a new comment to any hearing section. "
+            "Can include poll answers, images, and geographic data. "
+            "The section or comment to reply to must be specified in the request body."
+        ),
+        responses={
+            201: RootSectionCommentCreateUpdateSerializer,
+            400: OpenApiResponse(
+                description=(
+                    "Validation error (e.g., commenting closed, invalid poll answer, "
+                    "section not specified)"
+                )
+            ),
+            403: OpenApiResponse(description="User not allowed to comment"),
+        },
+    ),
+    update=extend_schema(
+        summary="Update comment (root endpoint)",
+        description=(
+            "Update an existing comment. Requires authorization code or ownership."
+        ),
+        responses={
+            200: RootSectionCommentCreateUpdateSerializer,
+            400: OpenApiResponse(description="Validation error"),
+            403: OpenApiResponse(description="Not authorized to edit this comment"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update comment (root endpoint)",
+        description=(
+            "Partially update an existing comment. "
+            "Requires authorization code or ownership."
+        ),
+        responses={
+            200: RootSectionCommentCreateUpdateSerializer,
+            403: OpenApiResponse(description="Not authorized to edit this comment"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete comment (root endpoint)",
+        description="Soft delete a comment. Requires authorization code or ownership.",
+        responses={
+            204: OpenApiResponse(description="Comment successfully deleted"),
+            403: OpenApiResponse(description="Not authorized to delete this comment"),
+        },
+    ),
+)
 class CommentViewSet(SectionCommentViewSet):
+    """
+    Root-level API endpoint for comments across all hearings.
+
+    Provides access to all comments with extensive filtering capabilities.
+    Author names are removed for privacy unless the query is filtered by
+    specific hearing, section, or user.
+    """
+
     serializer_class = RootSectionCommentSerializer
     edit_serializer_class = RootSectionCommentCreateUpdateSerializer
     pagination_class = DefaultLimitPagination

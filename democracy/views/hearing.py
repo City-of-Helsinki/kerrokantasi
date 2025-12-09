@@ -594,71 +594,153 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
 @extend_schema_view(
     list=extend_schema(
         summary="List all hearings",
-        description="Retrieve a paginated list of hearings. Supports filtering by various parameters including status, labels, and dates.",
+        description=(
+            "Retrieve a paginated list of hearings. "
+            "Supports filtering by various parameters including status, "
+            "labels, and dates."
+        ),
         parameters=[
-            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
-            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
-            OpenApiParameter("title", OpenApiTypes.STR, description="Filter by title (case-insensitive contains)"),
-            OpenApiParameter("open", OpenApiTypes.BOOL, description="Filter for currently open hearings"),
-            OpenApiParameter("following", OpenApiTypes.BOOL, description="Filter for hearings followed by current user"),
-            OpenApiParameter("label", OpenApiTypes.STR, description="Filter by label ID (comma-separated for multiple)"),
-            OpenApiParameter("open_at_lte", OpenApiTypes.DATETIME, description="Filter hearings opened before this date"),
-            OpenApiParameter("open_at_gt", OpenApiTypes.DATETIME, description="Filter hearings opened after this date"),
-            OpenApiParameter("created_by", OpenApiTypes.STR, description="Filter by creator ('me' for current user)"),
-            OpenApiParameter("ordering", OpenApiTypes.STR, description="Sort field: created_at, close_at, open_at, n_comments (prefix - for desc)"),
-            OpenApiParameter("bbox", OpenApiTypes.STR, description="Bounding box filter for geometry: min_lon,min_lat,max_lon,max_lat"),
-            OpenApiParameter("include", OpenApiTypes.STR, description="Include additional data (e.g., 'geojson')"),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
+            OpenApiParameter(
+                "title",
+                OpenApiTypes.STR,
+                description="Filter by title (case-insensitive contains)",
+            ),
+            OpenApiParameter(
+                "open",
+                OpenApiTypes.BOOL,
+                description="Filter for currently open hearings",
+            ),
+            OpenApiParameter(
+                "following",
+                OpenApiTypes.BOOL,
+                description="Filter for hearings followed by current user",
+            ),
+            OpenApiParameter(
+                "label",
+                OpenApiTypes.STR,
+                description="Filter by label ID (comma-separated for multiple)",
+            ),
+            OpenApiParameter(
+                "open_at_lte",
+                OpenApiTypes.DATETIME,
+                description="Filter hearings opened before this date",
+            ),
+            OpenApiParameter(
+                "open_at_gt",
+                OpenApiTypes.DATETIME,
+                description="Filter hearings opened after this date",
+            ),
+            OpenApiParameter(
+                "created_by",
+                OpenApiTypes.STR,
+                description="Filter by creator ('me' for current user)",
+            ),
+            OpenApiParameter(
+                "ordering",
+                OpenApiTypes.STR,
+                description=(
+                    "Sort field: created_at, close_at, open_at, n_comments "
+                    "(prefix - for desc)"
+                ),
+            ),
+            OpenApiParameter(
+                "bbox",
+                OpenApiTypes.STR,
+                description=(
+                    "Bounding box filter for geometry: min_lon,min_lat,max_lon,max_lat"
+                ),
+            ),
+            OpenApiParameter(
+                "include",
+                OpenApiTypes.STR,
+                description="Include additional data (e.g., 'geojson')",
+            ),
         ],
     ),
     retrieve=extend_schema(
         summary="Get hearing details",
-        description="Retrieve detailed information about a specific hearing by ID or slug. Unpublished hearings require preview code or admin access.",
+        description=(
+            "Retrieve detailed information about a specific hearing by ID or slug. "
+            "Unpublished hearings require preview code or admin access."
+        ),
         parameters=[
-            OpenApiParameter("preview", OpenApiTypes.STR, description="Preview code for unpublished hearings", location=OpenApiParameter.QUERY),
+            OpenApiParameter(
+                "preview",
+                OpenApiTypes.STR,
+                description="Preview code for unpublished hearings",
+                location=OpenApiParameter.QUERY,
+            ),
         ],
     ),
     create=extend_schema(
         summary="Create new hearing",
-        description="Create a new hearing. Requires authentication and user must belong to an organization.",
+        description=(
+            "Create a new hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             201: "HearingCreateUpdateSerializer",
-            403: OpenApiResponse(description="User without organization cannot create hearings"),
+            403: OpenApiResponse(
+                description="User without organization cannot create hearings"
+            ),
         },
     ),
     update=extend_schema(
         summary="Update hearing",
-        description="Update an existing hearing. Requires authentication and user must belong to an organization.",
+        description=(
+            "Update an existing hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             200: "HearingCreateUpdateSerializer",
-            403: OpenApiResponse(description="User without organization cannot update hearings"),
+            403: OpenApiResponse(
+                description="User without organization cannot update hearings"
+            ),
         },
     ),
     partial_update=extend_schema(
         summary="Partially update hearing",
-        description="Partially update an existing hearing. Requires authentication and user must belong to an organization.",
+        description=(
+            "Partially update an existing hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             200: "HearingCreateUpdateSerializer",
-            403: OpenApiResponse(description="User without organization cannot update hearings"),
+            403: OpenApiResponse(
+                description="User without organization cannot update hearings"
+            ),
         },
     ),
     destroy=extend_schema(
         summary="Delete hearing",
-        description="Soft delete an unpublished hearing with no comments. Requires authentication and user must belong to an organization.",
+        description=(
+            "Soft delete an unpublished hearing with no comments. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             200: inline_serializer(
                 name="HearingDeleteResponse",
                 fields={"status": serializers.CharField()},
             ),
-            403: OpenApiResponse(description="Cannot delete published hearings or hearings with comments"),
+            403: OpenApiResponse(
+                description="Cannot delete published hearings or hearings with comments"
+            ),
         },
     ),
 )
 class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
     """
     API endpoint for managing participatory democracy hearings.
-    
+
     Hearings are the core objects representing public consultation processes.
-    They contain sections with content, collect comments, and can be associated with projects.
+    They contain sections with content, collect comments, and can be associated
+    with projects.
     """
 
     model = Hearing
@@ -769,7 +851,10 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
 
     @extend_schema(
         summary="Follow a hearing",
-        description="Add current user as a follower of the hearing. Returns 304 if already following.",
+        description=(
+            "Add current user as a follower of the hearing. "
+            "Returns 304 if already following."
+        ),
         request=None,
         responses={
             201: inline_serializer(
@@ -826,9 +911,14 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
 
     @extend_schema(
         summary="Generate hearing report",
-        description="Generate and download a report for the hearing with all comments and statistics.",
+        description=(
+            "Generate and download a report for the hearing "
+            "with all comments and statistics."
+        ),
         responses={
-            200: OpenApiResponse(description="Report file (format depends on implementation)"),
+            200: OpenApiResponse(
+                description="Report file (format depends on implementation)"
+            ),
         },
     )
     @action(detail=True, methods=["get"])
@@ -841,10 +931,17 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
 
     @extend_schema(
         summary="Generate PowerPoint report",
-        description="Generate and download a PowerPoint presentation report for the hearing. Requires authentication and user must belong to an organization.",
+        description=(
+            "Generate and download a PowerPoint presentation report for the hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             200: OpenApiResponse(description="PowerPoint file"),
-            403: OpenApiResponse(description="User without organization cannot generate PowerPoint reports"),
+            403: OpenApiResponse(
+                description=(
+                    "User without organization cannot generate PowerPoint reports"
+                )
+            ),
         },
     )
     @action(detail=True, methods=["get"])
@@ -863,10 +960,17 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
 
     @extend_schema(
         summary="Get hearings as map data",
-        description="Retrieve hearings in a format suitable for map visualization. Returns simplified hearing data with geographic information.",
+        description=(
+            "Retrieve hearings in a format suitable for map visualization. "
+            "Returns simplified hearing data with geographic information."
+        ),
         parameters=[
-            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
-            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
         ],
     )
     @action(detail=False, methods=["get"])

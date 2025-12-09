@@ -40,7 +40,11 @@ urlpatterns = [
     path("nested_admin/", include(nested_admin_urls)),
     path("gdpr-api/", include("helsinki_gdpr.urls")),
     path("api_docs/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    path("api_docs/swagger_ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path(
+        "api_docs/swagger_ui/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
     path("api_docs/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("healthz", healthz, name="healthz"),
     path("readiness", readiness, name="readiness"),

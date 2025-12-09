@@ -316,7 +316,7 @@ REST_FRAMEWORK = {
 SPECTACULAR_SETTINGS = {
     "TITLE": "Kerrokantasi API",
     "DESCRIPTION": """Kerrokantasi participatory democracy API.
-    
+
 Authentication:
 - API Token Authentication via OIDC (Bearer token in Authorization header)
 - Session Authentication for browsable API

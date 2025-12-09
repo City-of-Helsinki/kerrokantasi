@@ -43,7 +43,7 @@ resources:
 
 extends:
   # Filename in Azure DevOps Repository
-  template: azure-pipelines-kerrokantasi-api-review.yml@kerrokantasi-pipelines
+  template: components/kerrokantasi-api/pipelines/kerrokantasi-api-review.yml@kerrokantasi-pipelines
   # parameters:
     # Application build arguments and config map values as key value pairs.
     # Does not contain all buildArguments or configMap values, the rest located in kerrokantasi-pipelines

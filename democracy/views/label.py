@@ -35,9 +35,17 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
         summary="List labels",
         description="Retrieve paginated list of labels used for categorizing hearings.",
         parameters=[
-            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
-            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
-            OpenApiParameter("label", OpenApiTypes.STR, description="Filter by label text (case-insensitive contains)"),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
+            OpenApiParameter(
+                "label",
+                OpenApiTypes.STR,
+                description="Filter by label text (case-insensitive contains)",
+            ),
         ],
     ),
     retrieve=extend_schema(
@@ -46,10 +54,15 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
     ),
     create=extend_schema(
         summary="Create label",
-        description="Create a new label. Requires authentication and user must belong to an organization.",
+        description=(
+            "Create a new label. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             201: "LabelSerializer",
-            403: OpenApiResponse(description="User without organization cannot create labels"),
+            403: OpenApiResponse(
+                description="User without organization cannot create labels"
+            ),
         },
     ),
 )
@@ -58,9 +71,11 @@ class LabelViewSet(
 ):
     """
     API endpoint for labels.
-    
-    Labels are used to categorize and tag hearings for easier filtering and organization.
+
+    Labels are used to categorize and tag hearings for easier filtering and
+    organization.
     """
+
     serializer_class = LabelSerializer
     queryset = Label.objects.all().prefetch_related("translations")
     pagination_class = DefaultLimitPagination

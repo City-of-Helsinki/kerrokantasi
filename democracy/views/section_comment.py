@@ -12,7 +12,6 @@ from drf_spectacular.utils import (
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
-    inline_serializer,
 )
 from rest_framework import filters, response, serializers, status
 from rest_framework.exceptions import ValidationError
@@ -320,35 +319,74 @@ class SectionCommentSerializer(BaseCommentSerializer):
 @extend_schema_view(
     list=extend_schema(
         summary="List section comments",
-        description="Retrieve paginated list of comments for hearing sections. Comments can be filtered and ordered.",
+        description=(
+            "Retrieve paginated list of comments for hearing sections. "
+            "Comments can be filtered and ordered."
+        ),
         parameters=[
-            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
-            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
-            OpenApiParameter("authorization_code", OpenApiTypes.STR, description="Authorization code for viewing specific comments"),
-            OpenApiParameter("ordering", OpenApiTypes.STR, description="Sort field: created_at, n_votes (prefix - for desc)"),
-            OpenApiParameter("bbox", OpenApiTypes.STR, description="Bounding box filter: min_lon,min_lat,max_lon,max_lat"),
-            OpenApiParameter("include", OpenApiTypes.STR, description="Include additional data (e.g., 'plugin_data', 'geojson')"),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
+            OpenApiParameter(
+                "authorization_code",
+                OpenApiTypes.STR,
+                description="Authorization code for viewing specific comments",
+            ),
+            OpenApiParameter(
+                "ordering",
+                OpenApiTypes.STR,
+                description="Sort field: created_at, n_votes (prefix - for desc)",
+            ),
+            OpenApiParameter(
+                "bbox",
+                OpenApiTypes.STR,
+                description=("Bounding box filter: min_lon,min_lat,max_lon,max_lat"),
+            ),
+            OpenApiParameter(
+                "include",
+                OpenApiTypes.STR,
+                description=(
+                    "Include additional data (e.g., 'plugin_data', 'geojson')"
+                ),
+            ),
         ],
     ),
     retrieve=extend_schema(
         summary="Get comment details",
         description="Retrieve detailed information about a specific comment.",
         parameters=[
-            OpenApiParameter("authorization_code", OpenApiTypes.STR, description="Authorization code for viewing comment", location=OpenApiParameter.QUERY),
+            OpenApiParameter(
+                "authorization_code",
+                OpenApiTypes.STR,
+                description="Authorization code for viewing comment",
+                location=OpenApiParameter.QUERY,
+            ),
         ],
     ),
     create=extend_schema(
         summary="Create comment",
-        description="Post a new comment to a hearing section. Can include poll answers, images, and geographic data.",
+        description=(
+            "Post a new comment to a hearing section. "
+            "Can include poll answers, images, and geographic data."
+        ),
         responses={
             201: "SectionCommentCreateUpdateSerializer",
-            400: OpenApiResponse(description="Validation error (e.g., commenting closed, invalid poll answer)"),
+            400: OpenApiResponse(
+                description=(
+                    "Validation error (e.g., commenting closed, invalid poll answer)"
+                )
+            ),
             403: OpenApiResponse(description="User not allowed to comment"),
         },
     ),
     update=extend_schema(
         summary="Update comment",
-        description="Update an existing comment. Requires authorization code or ownership.",
+        description=(
+            "Update an existing comment. Requires authorization code or ownership."
+        ),
         responses={
             200: "SectionCommentCreateUpdateSerializer",
             400: OpenApiResponse(description="Validation error"),
@@ -357,7 +395,10 @@ class SectionCommentSerializer(BaseCommentSerializer):
     ),
     partial_update=extend_schema(
         summary="Partially update comment",
-        description="Partially update an existing comment. Requires authorization code or ownership.",
+        description=(
+            "Partially update an existing comment. "
+            "Requires authorization code or ownership."
+        ),
         responses={
             200: "SectionCommentCreateUpdateSerializer",
             403: OpenApiResponse(description="Not authorized to edit this comment"),
@@ -375,10 +416,12 @@ class SectionCommentSerializer(BaseCommentSerializer):
 class SectionCommentViewSet(BaseCommentViewSet):
     """
     API endpoint for section comments.
-    
-    Handles comments posted to hearing sections. Supports poll voting, image attachments,
-    geographic data, and threaded replies. Comments can be moderated by organization admins.
+
+    Handles comments posted to hearing sections. Supports poll voting, image
+    attachments, geographic data, and threaded replies. Comments can be
+    moderated by organization admins.
     """
+
     model = SectionComment
     serializer_class = SectionCommentSerializer
     edit_serializer_class = SectionCommentCreateUpdateSerializer

@@ -18,18 +18,23 @@ class OrganizationSerializer(serializers.ModelSerializer):
         summary="List organizations",
         description="Retrieve paginated list of all organizations in the system.",
         parameters=[
-            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
-            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
         ],
     ),
 )
 class OrganizationViewSet(mixins.ListModelMixin, GenericViewSet):
     """
     API endpoint for organizations.
-    
+
     Organizations are entities that create and manage hearings. Read-only endpoint
     for listing available organizations.
     """
+
     serializer_class = OrganizationSerializer
     queryset = Organization.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)

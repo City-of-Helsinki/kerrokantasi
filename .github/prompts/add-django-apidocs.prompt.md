@@ -90,7 +90,7 @@ Replace pattern:
 # Bad - fails during schema generation
 if isinstance(request.accepted_renderer, SomeRenderer):
 
-# Good - safe for schema generation  
+# Good - safe for schema generation
 accepted_renderer = getattr(request, 'accepted_renderer', None)
 if isinstance(accepted_renderer, SomeRenderer):
 ```

@@ -55,38 +55,63 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
 @extend_schema_view(
     list=extend_schema(
         summary="List contact persons",
-        description="Retrieve paginated list of contact persons. Requires authentication and user must belong to an organization.",
+        description=(
+            "Retrieve paginated list of contact persons. "
+            "Requires authentication and user must belong to an organization."
+        ),
         parameters=[
-            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
-            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
         ],
     ),
     retrieve=extend_schema(
         summary="Get contact person details",
-        description="Retrieve detailed information about a specific contact person. Requires authentication and user must belong to an organization.",
+        description=(
+            "Retrieve detailed information about a specific contact person. "
+            "Requires authentication and user must belong to an organization."
+        ),
     ),
     create=extend_schema(
         summary="Create contact person",
-        description="Create a new contact person for the user's organization. If organization is not specified, user's default organization is used.",
+        description=(
+            "Create a new contact person for the user's organization. "
+            "If organization is not specified, user's default organization is used."
+        ),
         responses={
             201: "ContactPersonSerializer",
-            403: OpenApiResponse(description="User without organization cannot create contact persons"),
+            403: OpenApiResponse(
+                description="User without organization cannot create contact persons"
+            ),
         },
     ),
     update=extend_schema(
         summary="Update contact person",
-        description="Update an existing contact person. Requires authentication and user must belong to an organization.",
+        description=(
+            "Update an existing contact person. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             200: "ContactPersonSerializer",
-            403: OpenApiResponse(description="User without organization cannot update contact persons"),
+            403: OpenApiResponse(
+                description="User without organization cannot update contact persons"
+            ),
         },
     ),
     partial_update=extend_schema(
         summary="Partially update contact person",
-        description="Partially update an existing contact person. Requires authentication and user must belong to an organization.",
+        description=(
+            "Partially update an existing contact person. "
+            "Requires authentication and user must belong to an organization."
+        ),
         responses={
             200: "ContactPersonSerializer",
-            403: OpenApiResponse(description="User without organization cannot update contact persons"),
+            403: OpenApiResponse(
+                description="User without organization cannot update contact persons"
+            ),
         },
     ),
 )
@@ -98,10 +123,11 @@ class ContactPersonViewSet(
 ):
     """
     API endpoint for contact persons.
-    
+
     Manages contact persons associated with organizations. Contact persons are used
     in hearings to provide points of contact for the public.
     """
+
     serializer_class = ContactPersonSerializer
     queryset = ContactPerson.objects.select_related("organization").order_by("name")
     permission_classes = [permissions.IsAuthenticated, ContactPersonPermission]

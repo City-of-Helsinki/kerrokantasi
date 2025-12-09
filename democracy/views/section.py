@@ -9,6 +9,13 @@ from django.utils.timezone import now
 from django.views.generic import View
 from django.views.generic.detail import SingleObjectMixin
 from django_sendfile import sendfile
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from easy_thumbnails.files import get_thumbnailer
 from rest_framework import permissions, serializers, viewsets
 from rest_framework.exceptions import ParseError, PermissionDenied, ValidationError
@@ -489,7 +496,23 @@ class SectionCreateUpdateSerializer(
         return data
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List sections for a hearing",
+        description="Retrieve all sections belonging to a specific hearing. Sections contain the content structure of a hearing.",
+    ),
+    retrieve=extend_schema(
+        summary="Get section details",
+        description="Retrieve detailed information about a specific section within a hearing.",
+    ),
+)
 class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for hearing sections.
+    
+    Sections are the content blocks within a hearing. Each hearing has multiple sections
+    that organize the content and can collect comments.
+    """
     serializer_class = SectionSerializer
     model = Section
 
@@ -574,7 +597,66 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
 
 
 # root level SectionImage endpoint
+@extend_schema_view(
+    list=extend_schema(
+        summary="List section images",
+        description="Retrieve paginated list of section images across all hearings. Can be filtered by hearing or section.",
+        parameters=[
+            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
+            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
+            OpenApiParameter("hearing", OpenApiTypes.STR, description="Filter by hearing ID"),
+            OpenApiParameter("section", OpenApiTypes.STR, description="Filter by section ID"),
+            OpenApiParameter("section_type", OpenApiTypes.STR, description="Filter by section type identifier"),
+            OpenApiParameter("dim", OpenApiTypes.STR, description="Image dimensions for thumbnail (e.g., '640x480')"),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get section image details",
+        description="Retrieve details of a specific section image.",
+        parameters=[
+            OpenApiParameter("dim", OpenApiTypes.STR, description="Image dimensions for thumbnail (e.g., '640x480')", location=OpenApiParameter.QUERY),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create section image",
+        description="Upload a new image to a section. Requires organization admin permissions.",
+        responses={
+            201: "RootSectionImageSerializer",
+            403: OpenApiResponse(description="Only organization admin can create section images"),
+        },
+    ),
+    update=extend_schema(
+        summary="Update section image",
+        description="Update an existing section image. Requires organization admin permissions.",
+        responses={
+            200: "RootSectionImageSerializer",
+            403: OpenApiResponse(description="Only organization admin can update section images"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update section image",
+        description="Partially update an existing section image. Requires organization admin permissions.",
+        responses={
+            200: "RootSectionImageSerializer",
+            403: OpenApiResponse(description="Only organization admin can update section images"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete section image",
+        description="Soft delete a section image. Requires organization admin permissions.",
+        responses={
+            204: OpenApiResponse(description="Image successfully deleted"),
+            403: OpenApiResponse(description="Only organization admin can delete section images"),
+        },
+    ),
+)
 class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
+    """
+    API endpoint for section images.
+    
+    Allows management of images attached to hearing sections. Images support thumbnailing
+    via the 'dim' query parameter.
+    """
     model = SectionImage
     serializer_class = RootSectionImageSerializer
     pagination_class = DefaultLimitPagination
@@ -693,7 +775,59 @@ class RootFileBase64Serializer(RootFileSerializer):
     file = Base64FileField()
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List section files",
+        description="Retrieve paginated list of files attached to hearing sections.",
+        parameters=[
+            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
+            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get section file details",
+        description="Retrieve details of a specific section file.",
+    ),
+    create=extend_schema(
+        summary="Upload section file",
+        description="Upload a new file to a section. Supports both multipart/form-data and base64 encoded files. Requires organization admin permissions.",
+        responses={
+            201: "RootFileSerializer",
+            403: OpenApiResponse(description="Only organization admin can create section files"),
+        },
+    ),
+    update=extend_schema(
+        summary="Update section file",
+        description="Update an existing section file. Requires organization admin permissions.",
+        responses={
+            200: "RootFileSerializer",
+            403: OpenApiResponse(description="Only organization admin can update section files"),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update section file",
+        description="Partially update an existing section file. Requires organization admin permissions.",
+        responses={
+            200: "RootFileSerializer",
+            403: OpenApiResponse(description="Only organization admin can update section files"),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete section file",
+        description="Soft delete a section file. Requires organization admin permissions.",
+        responses={
+            204: OpenApiResponse(description="File successfully deleted"),
+            403: OpenApiResponse(description="Only organization admin can delete section files"),
+        },
+    ),
+)
 class FileViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
+    """
+    API endpoint for section files.
+    
+    Allows management of files (PDFs, documents, etc.) attached to hearing sections.
+    Supports both multipart and base64 encoded file uploads.
+    """
     model = SectionFile
     pagination_class = DefaultLimitPagination
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
@@ -812,7 +946,28 @@ def file_qs_for_request(request):
 
 
 # root level Section endpoint
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all sections",
+        description="Retrieve paginated list of all sections across all hearings. Can be filtered by hearing or section type.",
+        parameters=[
+            OpenApiParameter("limit", OpenApiTypes.INT, description="Number of results per page"),
+            OpenApiParameter("offset", OpenApiTypes.INT, description="Offset for pagination"),
+            OpenApiParameter("hearing", OpenApiTypes.STR, description="Filter by hearing ID"),
+            OpenApiParameter("type", OpenApiTypes.STR, description="Filter by section type identifier"),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get section details",
+        description="Retrieve detailed information about a specific section.",
+    ),
+)
 class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
+    """
+    Root-level API endpoint for sections across all hearings.
+    
+    Provides read-only access to all sections with filtering capabilities.
+    """
     serializer_class = RootSectionSerializer
     model = Section
     pagination_class = DefaultLimitPagination

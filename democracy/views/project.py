@@ -1,3 +1,5 @@
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 
@@ -191,7 +193,39 @@ class ProjectCreateUpdateSerializer(
         return serializer.save(project=project)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List projects",
+        description=(
+            "Retrieve paginated list of all projects. "
+            "Projects contain multiple phases, which can have associated hearings."
+        ),
+        parameters=[
+            OpenApiParameter(
+                "limit", OpenApiTypes.INT, description="Number of results per page"
+            ),
+            OpenApiParameter(
+                "offset", OpenApiTypes.INT, description="Offset for pagination"
+            ),
+        ],
+    ),
+    retrieve=extend_schema(
+        summary="Get project details",
+        description=(
+            "Retrieve detailed information about a specific project, "
+            "including all phases and associated hearings."
+        ),
+    ),
+)
 class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for projects.
+
+    Projects are containers for organizing related hearings across multiple phases.
+    Each project can have multiple phases, and each phase can contain multiple hearings.
+    Read-only endpoint.
+    """
+
     serializer_class = ProjectSerializer
     queryset = Project.objects.all()
     pagination_class = DefaultLimitPagination

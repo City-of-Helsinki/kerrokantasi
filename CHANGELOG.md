@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.8.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.7.2...kerrokantasi-v2.8.0) (2025-12-13)
+
+
+### Features
+
+* Use separate AUDIT_LOG_ENV variable ([29648b6](https://github.com/City-of-Helsinki/kerrokantasi/commit/29648b68fb62a4c5c0cc5a23d3b5cf10f3a77b70))
+
+
+### Bug Fixes
+
+* Refactor pipeline ([#591](https://github.com/City-of-Helsinki/kerrokantasi/issues/591)) ([f0cd540](https://github.com/City-of-Helsinki/kerrokantasi/commit/f0cd540cd44d840c1a8e4364b4dfdeab64395fb6))
+
 ## [2.7.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.7.1...kerrokantasi-v2.7.2) (2025-12-04)
 
 

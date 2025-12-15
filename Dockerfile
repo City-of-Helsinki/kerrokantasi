@@ -27,10 +27,6 @@ ENV PYTHONUNBUFFERED True
 # Generate Finnish locale
 RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8
 
-# Sentry CLI for sending events from non-Python processes to Sentry
-# eg. https://docs.sentry.io/cli/send-event/#bash-hook
-RUN curl -sL https://sentry.io/get-cli/ | bash
-
 # Copy requirements files to image for preloading dependencies
 # in their own layer
 COPY requirements.txt .
@@ -48,7 +44,10 @@ RUN mkdir -p /usr/src/python-uwsgi-common && \
     cp /usr/src/python-uwsgi-common/uwsgi-base.ini /app && \
     uwsgi --build-plugin /usr/src/python-uwsgi-common && \
     rm -rf /usr/src/${UWSGI_COMMON_REF}.tar.gz && \
-    rm -rf /usr/src/python-uwsgi-common
+    rm -rf /usr/src/python-uwsgi-common && \
+    uwsgi --build-plugin https://github.com/City-of-Helsinki/uwsgi-sentry && \
+    mkdir -p /usr/local/lib/uwsgi/plugins && \
+    mv sentry_plugin.so /usr/local/lib/uwsgi/plugins
 
 COPY . .
 

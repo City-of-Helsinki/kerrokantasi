@@ -1,6 +1,7 @@
 services:
     postgis:
         image: "postgis/postgis:17-3.5-alpine"
+        platform: linux/amd64
         environment:
             POSTGRES_USER: kerrokantasi
             POSTGRES_PASSWORD: kerrokantasi
@@ -12,6 +13,7 @@ services:
 
     django:
         image: kerrokantasi_dev
+        platform: linux/amd64
         depends_on:
             - postgis
         build:

@@ -9,6 +9,9 @@ from sentry_sdk.types import SamplingContext
 
 gettext = lambda s: s  # noqa makes possible to translate strings here
 
+GDAL_LIBRARY_PATH = os.environ.get("GDAL_LIBRARY_PATH")
+GEOS_LIBRARY_PATH = os.environ.get("GEOS_LIBRARY_PATH")
+
 CONFIG_FILE_NAME = "config_dev.toml"
 
 # This will get default settings, as Django has not yet initialized

@@ -114,13 +114,31 @@ INTERNAL_IPS=127.0.0.1
 
 # Sentry is an error tracking sentry (sentry.io) that can be self hosted
 # or purchased as PaaS. SENTRY_DSN setting specifies the URL where reports
-# for this Linkedevents instance should be sent. You can find this in
+# for this Kerrokantasi instance should be sent. You can find this in
 # your Sentry interface (or through its API)
-#SENTRY_DSN=http://your.sentry.here/fsdafads/13
+# SENTRY_DSN=http://your.sentry.here/fsdafads/12
 
 # Sentry environment is an optional tag that can be included in sentry
 # reports. It is used to separate deployments within Sentry UI
-SENTRY_ENVIRONMENT=local-development-unconfigured
+# SENTRY_ENVIRONMENT=local
+
+# Sentry profile session sample rate determines the percentage of profiling sessions
+# that are sampled for performance monitoring. Set as a float between 0.0 (0%) and 1.0 (100%).
+# You probably want to use a lower rate in production.
+# SENTRY_PROFILE_SESSION_SAMPLE_RATE=1.0
+
+# Sentry traces sample rate determines the percentage of transactions that are sampled
+# for performance monitoring. Set as a float between 0.0 (0%) and 1.0 (100%).
+# You probably want to use a lower rate in production.
+# SENTRY_TRACES_SAMPLE_RATE=0.1
+
+# Sentry traces ignore paths is a comma separated list of URL paths that
+# Sentry should ignore when tracing performance. This is useful for
+# excluding health check endpoints and similar from performance monitoring.
+# SENTRY_TRACES_IGNORE_PATHS=/healthz,/readiness
+
+# Enable Sentry uWSGI plugin for better performance monitoring in uWSGI deployments
+# ENABLE_SENTRY_UWSGI_PLUGIN=True
 
 # Cookie prefix is added to the every cookie set by Kerrokantasi. These are
 # mostly used when accessing the internal Django admin site. This applies

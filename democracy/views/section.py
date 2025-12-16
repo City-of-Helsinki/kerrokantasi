@@ -622,8 +622,14 @@ class RootSectionImageSerializer(
 
 
 class ImageFilterSet(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(field_name="section__hearing__id")
-    section_type = django_filters.CharFilter(field_name="section__type__identifier")
+    hearing = django_filters.CharFilter(
+        field_name="section__hearing__id",
+        help_text="Filter by hearing ID",
+    )
+    section_type = django_filters.CharFilter(
+        field_name="section__type__identifier",
+        help_text="Filter by section type identifier",
+    )
 
     class Meta:
         model = SectionImage
@@ -981,8 +987,14 @@ class RootSectionSerializer(SectionSerializer, TranslatableSerializer):
 
 
 class SectionFilterSet(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(field_name="hearing_id")
-    type = django_filters.CharFilter(field_name="type__identifier")
+    hearing = django_filters.CharFilter(
+        field_name="hearing_id",
+        help_text="Filter by hearing ID",
+    )
+    type = django_filters.CharFilter(
+        field_name="type__identifier",
+        help_text="Filter by section type identifier",
+    )
 
     class Meta:
         model = Section

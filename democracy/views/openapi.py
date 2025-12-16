@@ -47,6 +47,14 @@ ORDERING_PARAM = [
     ),
 ]
 
+HEARING_ORDERING_PARAM = [
+    OpenApiParameter(
+        "ordering",
+        OpenApiTypes.STR,
+        description="Sort field: created_at, close_at, open_at, n_comments (prefix - for desc)",
+    ),
+]
+
 BBOX_PARAM = [
     OpenApiParameter(
         "bbox",

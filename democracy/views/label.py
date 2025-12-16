@@ -17,7 +17,9 @@ from democracy.views.utils import TranslatableSerializer
 
 class LabelFilterSet(django_filters.rest_framework.FilterSet):
     label = django_filters.CharFilter(
-        lookup_expr="icontains", field_name="translations__label"
+        lookup_expr="icontains",
+        field_name="translations__label",
+        help_text="Filter by label text (case-insensitive contains)",
     )
 
     class Meta:

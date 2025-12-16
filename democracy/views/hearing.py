@@ -53,6 +53,7 @@ from democracy.views.section import (
 from democracy.views.openapi import (
     BBOX_PARAM,
     HEARING_FILTER_PARAMS,
+    HEARING_ORDERING_PARAM,
     INCLUDE_PARAM,
     PAGINATION_PARAMS,
     RESPONSE_WITH_STATUS,
@@ -81,23 +82,40 @@ HEARING_ORDERING_PARAM = [
 
 class HearingFilterSet(django_filters.rest_framework.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(
-        field_name="open_at", lookup_expr="lte"
+        field_name="open_at",
+        lookup_expr="lte",
+        help_text="Filter hearings opening at or before this date",
     )
     open_at_gt = django_filters.IsoDateTimeFilter(
-        field_name="open_at", lookup_expr="gt"
+        field_name="open_at",
+        lookup_expr="gt",
+        help_text="Filter hearings opening after this date",
     )
     title = django_filters.CharFilter(
-        lookup_expr="icontains", field_name="translations__title", distinct=True
+        lookup_expr="icontains",
+        field_name="translations__title",
+        distinct=True,
+        help_text="Filter by title (case-insensitive contains)",
     )
     label = django_filters.Filter(
         field_name="labels__id",
         lookup_expr="in",
         distinct=True,
         widget=django_filters.widgets.CSVWidget,
+        help_text="Filter by label ID (comma-separated for multiple)",
     )
-    following = django_filters.BooleanFilter(method="filter_following")
-    open = django_filters.BooleanFilter(method="filter_open")
-    created_by = django_filters.CharFilter(method="filter_created_by")
+    following = django_filters.BooleanFilter(
+        method="filter_following",
+        help_text="Filter hearings followed by current user (requires authentication)",
+    )
+    open = django_filters.BooleanFilter(
+        method="filter_open",
+        help_text="Filter by open/closed status (true for currently open hearings)",
+    )
+    created_by = django_filters.CharFilter(
+        method="filter_created_by",
+        help_text="Filter by creator ('me' for current user or organization name)",
+    )
 
     def filter_following(self, queryset, name, value):
         if value and self.request.user.is_authenticated:

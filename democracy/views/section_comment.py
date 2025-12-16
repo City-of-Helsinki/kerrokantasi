@@ -618,19 +618,36 @@ class RootSectionCommentCreateUpdateSerializer(SectionCommentCreateUpdateSeriali
 
 
 class CommentFilterSet(django_filters.rest_framework.FilterSet):
-    hearing = django_filters.CharFilter(field_name="section__hearing__id")
-    label = django_filters.Filter(field_name="label__id")
+    hearing = django_filters.CharFilter(
+        field_name="section__hearing__id",
+        help_text="Filter by hearing ID",
+    )
+    label = django_filters.Filter(
+        field_name="label__id",
+        help_text="Filter by label ID",
+    )
     created_at__lt = django_filters.IsoDateTimeFilter(
-        field_name="created_at", lookup_expr="lt"
+        field_name="created_at",
+        lookup_expr="lt",
+        help_text="Filter comments created before this date",
     )
     created_at__gt = django_filters.rest_framework.IsoDateTimeFilter(
-        field_name="created_at", lookup_expr="gt"
+        field_name="created_at",
+        lookup_expr="gt",
+        help_text="Filter comments created after this date",
     )
     comment = django_filters.ModelChoiceFilter(
-        queryset=SectionComment.objects.everything()
+        queryset=SectionComment.objects.everything(),
+        help_text="Filter by parent comment ID",
     )
-    section = django_filters.CharFilter(field_name="section__id")
-    created_by = django_filters.CharFilter(method="filter_created_by")
+    section = django_filters.CharFilter(
+        field_name="section__id",
+        help_text="Filter by section ID",
+    )
+    created_by = django_filters.CharFilter(
+        method="filter_created_by",
+        help_text="Filter by creator ('me' for current user)",
+    )
 
     class Meta:
         model = SectionComment

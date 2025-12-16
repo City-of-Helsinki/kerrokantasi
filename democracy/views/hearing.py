@@ -11,7 +11,6 @@ from drf_spectacular.utils import (
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
-    inline_serializer,
 )
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
@@ -51,6 +50,13 @@ from democracy.views.section import (
     file_qs_for_request,
     image_qs_for_request,
 )
+from democracy.views.openapi import (
+    BBOX_PARAM,
+    HEARING_FILTER_PARAMS,
+    INCLUDE_PARAM,
+    PAGINATION_PARAMS,
+    RESPONSE_WITH_STATUS,
+)
 from democracy.views.utils import (
     GeoJSONField,
     GeometryBboxFilterBackend,
@@ -59,6 +65,18 @@ from democracy.views.utils import (
     filter_by_hearing_visible,
     get_translation_list,
 )
+
+# Hearing-specific OpenAPI parameters
+HEARING_ORDERING_PARAM = [
+    OpenApiParameter(
+        "ordering",
+        OpenApiTypes.STR,
+        description=(
+            "Sort field: created_at, close_at, open_at, n_comments "
+            "(prefix - for desc)"
+        ),
+    ),
+]
 
 
 class HearingFilterSet(django_filters.rest_framework.FilterSet):
@@ -599,69 +617,13 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Supports filtering by various parameters including status, "
             "labels, and dates."
         ),
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-            OpenApiParameter(
-                "title",
-                OpenApiTypes.STR,
-                description="Filter by title (case-insensitive contains)",
-            ),
-            OpenApiParameter(
-                "open",
-                OpenApiTypes.BOOL,
-                description="Filter for currently open hearings",
-            ),
-            OpenApiParameter(
-                "following",
-                OpenApiTypes.BOOL,
-                description="Filter for hearings followed by current user",
-            ),
-            OpenApiParameter(
-                "label",
-                OpenApiTypes.STR,
-                description="Filter by label ID (comma-separated for multiple)",
-            ),
-            OpenApiParameter(
-                "open_at_lte",
-                OpenApiTypes.DATETIME,
-                description="Filter hearings opened before this date",
-            ),
-            OpenApiParameter(
-                "open_at_gt",
-                OpenApiTypes.DATETIME,
-                description="Filter hearings opened after this date",
-            ),
-            OpenApiParameter(
-                "created_by",
-                OpenApiTypes.STR,
-                description="Filter by creator ('me' for current user)",
-            ),
-            OpenApiParameter(
-                "ordering",
-                OpenApiTypes.STR,
-                description=(
-                    "Sort field: created_at, close_at, open_at, n_comments "
-                    "(prefix - for desc)"
-                ),
-            ),
-            OpenApiParameter(
-                "bbox",
-                OpenApiTypes.STR,
-                description=(
-                    "Bounding box filter for geometry: min_lon,min_lat,max_lon,max_lat"
-                ),
-            ),
-            OpenApiParameter(
-                "include",
-                OpenApiTypes.STR,
-                description="Include additional data (e.g., 'geojson')",
-            ),
-        ],
+        parameters=(
+            PAGINATION_PARAMS
+            + HEARING_FILTER_PARAMS
+            + HEARING_ORDERING_PARAM
+            + BBOX_PARAM
+            + INCLUDE_PARAM
+        ),
     ),
     retrieve=extend_schema(
         summary="Get hearing details",
@@ -724,10 +686,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Requires authentication and user must belong to an organization."
         ),
         responses={
-            200: inline_serializer(
-                name="HearingDeleteResponse",
-                fields={"status": serializers.CharField()},
-            ),
+            200: RESPONSE_WITH_STATUS,
             403: OpenApiResponse(
                 description="Cannot delete published hearings or hearings with comments"
             ),
@@ -853,14 +812,11 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         summary="Follow a hearing",
         description=(
             "Add current user as a follower of the hearing. "
-            "Returns 304 if already following."
+            "Followed hearings can be filtered using the 'following' parameter."
         ),
         request=None,
         responses={
-            201: inline_serializer(
-                name="FollowResponse",
-                fields={"status": serializers.CharField()},
-            ),
+            201: RESPONSE_WITH_STATUS,
             304: OpenApiResponse(description="Already following this hearing"),
             401: OpenApiResponse(description="Authentication required"),
         },
@@ -964,14 +920,7 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
             "Retrieve hearings in a format suitable for map visualization. "
             "Returns simplified hearing data with geographic information."
         ),
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-        ],
+        parameters=PAGINATION_PARAMS,
     )
     @action(detail=False, methods=["get"])
     def map(self, request):

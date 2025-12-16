@@ -5,6 +5,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from democracy.models import Organization
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.openapi import PAGINATION_PARAMS
 
 
 class OrganizationSerializer(serializers.ModelSerializer):
@@ -17,14 +18,7 @@ class OrganizationSerializer(serializers.ModelSerializer):
     list=extend_schema(
         summary="List organizations",
         description="Retrieve paginated list of all organizations in the system.",
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-        ],
+        parameters=PAGINATION_PARAMS,
     ),
 )
 class OrganizationViewSet(mixins.ListModelMixin, GenericViewSet):

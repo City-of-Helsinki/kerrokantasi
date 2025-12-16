@@ -10,6 +10,7 @@ from rest_framework import mixins, permissions, serializers, viewsets
 from audit_log.views import AuditLogApiView
 from democracy.models import ContactPerson, Organization
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.openapi import PAGINATION_PARAMS
 from democracy.views.utils import TranslatableSerializer
 
 
@@ -59,14 +60,7 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
             "Retrieve paginated list of contact persons. "
             "Requires authentication and user must belong to an organization."
         ),
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-        ],
+        parameters=PAGINATION_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get contact person details",

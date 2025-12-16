@@ -11,6 +11,7 @@ from rest_framework import mixins, permissions, response, serializers, status, v
 from audit_log.views import AuditLogApiView
 from democracy.models import Label
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.openapi import LABEL_FILTER_PARAMS, PAGINATION_PARAMS
 from democracy.views.utils import TranslatableSerializer
 
 
@@ -34,19 +35,7 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
     list=extend_schema(
         summary="List labels",
         description="Retrieve paginated list of labels used for categorizing hearings.",
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-            OpenApiParameter(
-                "label",
-                OpenApiTypes.STR,
-                description="Filter by label text (case-insensitive contains)",
-            ),
-        ],
+        parameters=PAGINATION_PARAMS + LABEL_FILTER_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get label details",

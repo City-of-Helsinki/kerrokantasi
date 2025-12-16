@@ -5,6 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 from democracy.models import Project, ProjectPhase
 from democracy.pagination import DefaultLimitPagination
+from democracy.views.openapi import PAGINATION_PARAMS
 from democracy.views.utils import (
     NestedPKRelatedField,
     TranslatableSerializer,
@@ -200,14 +201,7 @@ class ProjectCreateUpdateSerializer(
             "Retrieve paginated list of all projects. "
             "Projects contain multiple phases, which can have associated hearings."
         ),
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-        ],
+        parameters=PAGINATION_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get project details",

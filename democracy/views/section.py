@@ -38,6 +38,11 @@ from democracy.views.base import (
     BaseFileSerializer,
     BaseImageSerializer,
 )
+from democracy.views.openapi import (
+    PAGINATION_PARAMS,
+    SECTION_FILTER_PARAMS,
+    SECTION_IMAGE_FILTER_PARAMS,
+)
 from democracy.views.utils import (
     Base64FileField,
     Base64ImageField,
@@ -45,6 +50,29 @@ from democracy.views.utils import (
     compare_serialized,
     filter_by_hearing_visible,
 )
+
+# Section-specific OpenAPI parameters
+SECTION_IMAGE_PARAMS = [
+    OpenApiParameter(
+        "section_type",
+        OpenApiTypes.STR,
+        description="Filter by section type identifier",
+    ),
+    OpenApiParameter(
+        "dim",
+        OpenApiTypes.STR,
+        description="Image dimensions for thumbnail (e.g., '640x480')",
+    ),
+]
+
+DIM_PARAM = [
+    OpenApiParameter(
+        "dim",
+        OpenApiTypes.STR,
+        description="Image dimensions for thumbnail (e.g., '640x480')",
+        location=OpenApiParameter.QUERY,
+    ),
+]
 
 
 class ThumbnailImageSerializer(BaseImageSerializer):
@@ -610,42 +638,14 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
             "Retrieve paginated list of section images across all hearings. "
             "Can be filtered by hearing or section."
         ),
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-            OpenApiParameter(
-                "hearing", OpenApiTypes.STR, description="Filter by hearing ID"
-            ),
-            OpenApiParameter(
-                "section", OpenApiTypes.STR, description="Filter by section ID"
-            ),
-            OpenApiParameter(
-                "section_type",
-                OpenApiTypes.STR,
-                description="Filter by section type identifier",
-            ),
-            OpenApiParameter(
-                "dim",
-                OpenApiTypes.STR,
-                description=("Image dimensions for thumbnail (e.g., '640x480')"),
-            ),
-        ],
+        parameters=(
+            PAGINATION_PARAMS + SECTION_IMAGE_FILTER_PARAMS + SECTION_IMAGE_PARAMS
+        ),
     ),
     retrieve=extend_schema(
         summary="Get section image details",
         description="Retrieve details of a specific section image.",
-        parameters=[
-            OpenApiParameter(
-                "dim",
-                OpenApiTypes.STR,
-                description=("Image dimensions for thumbnail (e.g., '640x480')"),
-                location=OpenApiParameter.QUERY,
-            ),
-        ],
+        parameters=DIM_PARAM,
     ),
     create=extend_schema(
         summary="Create section image",
@@ -827,14 +827,7 @@ class RootFileBase64Serializer(RootFileSerializer):
     list=extend_schema(
         summary="List section files",
         description="Retrieve paginated list of files attached to hearing sections.",
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-        ],
+        parameters=PAGINATION_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get section file details",
@@ -1025,22 +1018,7 @@ def file_qs_for_request(request):
             "Retrieve paginated list of all sections across all hearings. "
             "Can be filtered by hearing or section type."
         ),
-        parameters=[
-            OpenApiParameter(
-                "limit", OpenApiTypes.INT, description="Number of results per page"
-            ),
-            OpenApiParameter(
-                "offset", OpenApiTypes.INT, description="Offset for pagination"
-            ),
-            OpenApiParameter(
-                "hearing", OpenApiTypes.STR, description="Filter by hearing ID"
-            ),
-            OpenApiParameter(
-                "type",
-                OpenApiTypes.STR,
-                description="Filter by section type identifier",
-            ),
-        ],
+        parameters=PAGINATION_PARAMS + SECTION_FILTER_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get section details",

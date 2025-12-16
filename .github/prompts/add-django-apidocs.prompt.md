@@ -9,12 +9,11 @@ Complete setup and documentation of all API endpoints using drf-spectacular with
 Add to `requirements.in`:
 ```txt
 drf-spectacular
-PyYAML>=6.0
 ```
 
 Then install:
 ```bash
-.venv/bin/pip install drf-spectacular PyYAML
+.venv/bin/pip install drf-spectacular
 ```
 
 ### 2. Configure Settings
@@ -69,9 +68,9 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     # ... existing patterns
-    path('api_docs/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-    path('api_docs/swagger_ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    path('api_docs/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api-docs/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    path('api-docs/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api-docs/schema/', SpectacularAPIView.as_view(), name='schema'),
     # ... your API routes
 ]
 ```
@@ -109,7 +108,73 @@ Create inventory of:
 - View/action names
 - File locations
 
-### 6. Document Each Endpoint
+### 6. Document Using Native DRF Features First
+
+**Priority: Use native type hints and DRF/Django features that drf-spectacular automatically infers**
+
+drf-spectacular automatically documents:
+
+1. **Model field `help_text`** (inherited by serializers):
+   ```python
+   class Hearing(models.Model):
+       title = models.CharField(max_length=255, help_text="Hearing title")
+       close_at = models.DateTimeField(help_text="When hearing closes for comments")
+   ```
+
+2. **Serializer field `help_text`**:
+   ```python
+   class SectionSerializer(serializers.ModelSerializer):
+       n_comments = serializers.SerializerMethodField(help_text="Total comments on section")
+       images = SectionImageSerializer(many=True, read_only=True, help_text="Attached images")
+   ```
+
+3. **FilterSet field `help_text`**:
+   ```python
+   class HearingFilterSet(django_filters.rest_framework.FilterSet):
+       title = django_filters.CharFilter(
+           lookup_expr="icontains",
+           help_text="Filter by title (case-insensitive)"
+       )
+   ```
+
+4. **Python docstrings** (ViewSets, actions, functions):
+   ```python
+   class HearingViewSet(viewsets.ModelViewSet):
+       """Manage participatory democracy hearings."""
+       
+       def list(self, request, *args, **kwargs):
+           """List all hearings with filtering and pagination."""
+   ```
+
+5. **Type hints**:
+   ```python
+   def custom_action(self, request: Request, pk: Optional[int] = None) -> Response:
+       """Custom action with type-hinted parameters."""
+   ```
+
+6. **Field constraints** (max_length, required, choices, validators, min_value, max_value)
+
+7. **Enum docstrings**:
+   ```python
+   class Commenting(Enum):
+       """Commenting modes: NONE, REGISTERED, OPEN, STRONG"""
+       NONE = "none"
+   ```
+
+**Implementation Priority:**
+1. Add `help_text` to FilterSets (immediate API usability)
+2. Add `help_text` to model fields (base documentation)
+3. Add `help_text` to serializer fields
+4. Add ViewSet/action docstrings
+5. Add Enum docstrings
+
+**Only use `@extend_schema` for:**
+- Complex request/response schemas not in serializers
+- Custom error responses
+- Side effects not obvious from code
+- Operations not following standard CRUD patterns
+
+### 7. Add Explicit @extend_schema Documentation
 
 **For ViewSets:**
 ```python
@@ -188,7 +253,7 @@ def your_view(request):
     pass
 ```
 
-### 7. Documentation Checklist for Each Endpoint
+### 8. Documentation Checklist for Each Endpoint
 
 Required:
 - [ ] `summary` (imperative, <100 chars)
@@ -200,7 +265,7 @@ Required:
 - [ ] Side effects mentioned
 - [ ] Authentication requirements clear
 
-### 8. Common Patterns
+### 9. Common Patterns
 
 **Paginated List:**
 ```python
@@ -239,7 +304,7 @@ responses={
 }
 ```
 
-### 9. Validate and Test
+### 10. Validate and Test
 
 Check known issues in the Troubleshooting section below.
 
@@ -253,7 +318,7 @@ docker compose run --rm django python manage.py spectacular --file openapi-schem
 IMPORTANT: These are the ONLY commands allowed to be used to validate and test the schema.
 Do not use any other commands to validate and test the schema.
 
-### 10. Completion Criteria
+### 11. Completion Criteria
 
 - [ ] Schema generates without errors/warnings
 - [ ] All endpoints visible in /api/docs/
@@ -297,4 +362,4 @@ from rest_framework import serializers
 
 ---
 
-**Execute this command by following steps 1-10 sequentially. Focus on analyzing actual code implementation before writing documentation. Keep the final summary short and concise, list only the changes made.**
+**Execute this command by following steps 1-11 sequentially. Prioritize native DRF features (step 6) before explicit @extend_schema (step 7). Keep summaries concise.**

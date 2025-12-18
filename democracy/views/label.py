@@ -1,7 +1,5 @@
 import django_filters
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
-    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
@@ -50,7 +48,7 @@ class LabelSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Requires authentication and user must belong to an organization."
         ),
         responses={
-            201: "LabelSerializer",
+            201: LabelSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot create labels"
             ),

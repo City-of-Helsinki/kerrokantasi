@@ -43,6 +43,7 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
     provide comments, and participate in polls. Hearings contain sections with
     content, have defined open/close periods, and can be associated with projects.
     """
+
     serialize_fields = (
         {"name": "id"},
         {"name": "title_with_translations"},
@@ -72,8 +73,11 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
             help_text=_("The main title of the hearing"),
         ),
         borough=models.CharField(
-            verbose_name=_("borough"), blank=True, default="", max_length=200,
-            help_text=_("Borough or district where the hearing is located")
+            verbose_name=_("borough"),
+            blank=True,
+            default="",
+            max_length=200,
+            help_text=_("Borough or district where the hearing is located"),
         ),
     )
     servicemap_url = models.CharField(

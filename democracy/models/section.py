@@ -76,6 +76,7 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
     has at least one main section and can have additional sections of different
     types. Sections can contain images, files, polls, and collect comments.
     """
+
     serialize_fields = (
         {"name": "id"},
         {"name": "ordering"},
@@ -121,7 +122,9 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         verbose_name=_("plugin identifier"),
         blank=True,
         max_length=255,
-        help_text=_("Identifier for custom plugin functionality (e.g., map visualization)"),
+        help_text=_(
+            "Identifier for custom plugin functionality (e.g., map visualization)"
+        ),
     )
     plugin_data = models.TextField(
         verbose_name=_("plugin data"),

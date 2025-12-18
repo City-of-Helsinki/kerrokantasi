@@ -1,6 +1,4 @@
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
-    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
@@ -76,7 +74,7 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
             "If organization is not specified, user's default organization is used."
         ),
         responses={
-            201: "ContactPersonSerializer",
+            201: ContactPersonSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot create contact persons"
             ),
@@ -89,7 +87,7 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
             "Requires authentication and user must belong to an organization."
         ),
         responses={
-            200: "ContactPersonSerializer",
+            200: ContactPersonSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot update contact persons"
             ),
@@ -99,10 +97,11 @@ class ContactPersonSerializer(serializers.ModelSerializer, TranslatableSerialize
         summary="Partially update contact person",
         description=(
             "Partially update an existing contact person. "
-            "Requires authentication and user must belong to an organization."
+            "Requires authentication and user must belong to "
+            "an organization."
         ),
         responses={
-            200: "ContactPersonSerializer",
+            200: ContactPersonSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot update contact persons"
             ),

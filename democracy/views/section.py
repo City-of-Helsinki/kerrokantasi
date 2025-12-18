@@ -659,7 +659,7 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
             "Upload a new image to a section. Requires organization admin permissions."
         ),
         responses={
-            201: "RootSectionImageSerializer",
+            201: RootSectionImageSerializer,
             403: OpenApiResponse(
                 description="Only organization admin can create section images"
             ),
@@ -671,7 +671,7 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
             "Update an existing section image. Requires organization admin permissions."
         ),
         responses={
-            200: "RootSectionImageSerializer",
+            200: RootSectionImageSerializer,
             403: OpenApiResponse(
                 description="Only organization admin can update section images"
             ),
@@ -684,7 +684,7 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
             "Requires organization admin permissions."
         ),
         responses={
-            200: "RootSectionImageSerializer",
+            200: RootSectionImageSerializer,
             403: OpenApiResponse(
                 description="Only organization admin can update section images"
             ),
@@ -847,7 +847,7 @@ class RootFileBase64Serializer(RootFileSerializer):
             "Requires organization admin permissions."
         ),
         responses={
-            201: "RootFileSerializer",
+            201: RootFileSerializer,
             403: OpenApiResponse(
                 description="Only organization admin can create section files"
             ),
@@ -859,7 +859,7 @@ class RootFileBase64Serializer(RootFileSerializer):
             "Update an existing section file. Requires organization admin permissions."
         ),
         responses={
-            200: "RootFileSerializer",
+            200: RootFileSerializer,
             403: OpenApiResponse(
                 description="Only organization admin can update section files"
             ),
@@ -872,7 +872,7 @@ class RootFileBase64Serializer(RootFileSerializer):
             "Requires organization admin permissions."
         ),
         responses={
-            200: "RootFileSerializer",
+            200: RootFileSerializer,
             403: OpenApiResponse(
                 description="Only organization admin can update section files"
             ),

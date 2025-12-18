@@ -13,6 +13,7 @@ class Project(StringIdBaseModel, TranslatableModel):
     Projects group related hearings into a coherent timeline with multiple phases.
     Each hearing is associated with exactly one active phase at a time.
     """
+
     identifier = models.CharField(
         max_length=50,
         verbose_name=_("identifier"),
@@ -43,6 +44,7 @@ class ProjectPhase(StringIdBaseModel, TranslatableModel):
     or milestones. Hearings are associated with specific phases, and each
     hearing must have exactly one active phase.
     """
+
     translations = TranslatedFields(
         title=models.CharField(
             verbose_name=_("title"),

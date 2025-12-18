@@ -36,6 +36,14 @@ from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.hearing_report import HearingReport
 from democracy.views.label import LabelSerializer
+from democracy.views.openapi import (
+    BBOX_PARAM,
+    HEARING_FILTER_PARAMS,
+    HEARING_ORDERING_PARAM,
+    INCLUDE_PARAM,
+    PAGINATION_PARAMS,
+    RESPONSE_WITH_STATUS,
+)
 from democracy.views.project import (
     ProjectCreateUpdateSerializer,
     ProjectFieldSerializer,
@@ -50,14 +58,6 @@ from democracy.views.section import (
     file_qs_for_request,
     image_qs_for_request,
 )
-from democracy.views.openapi import (
-    BBOX_PARAM,
-    HEARING_FILTER_PARAMS,
-    HEARING_ORDERING_PARAM,
-    INCLUDE_PARAM,
-    PAGINATION_PARAMS,
-    RESPONSE_WITH_STATUS,
-)
 from democracy.views.utils import (
     GeoJSONField,
     GeometryBboxFilterBackend,
@@ -66,18 +66,6 @@ from democracy.views.utils import (
     filter_by_hearing_visible,
     get_translation_list,
 )
-
-# Hearing-specific OpenAPI parameters
-HEARING_ORDERING_PARAM = [
-    OpenApiParameter(
-        "ordering",
-        OpenApiTypes.STR,
-        description=(
-            "Sort field: created_at, close_at, open_at, n_comments "
-            "(prefix - for desc)"
-        ),
-    ),
-]
 
 
 class HearingFilterSet(django_filters.rest_framework.FilterSet):
@@ -665,7 +653,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Requires authentication and user must belong to an organization."
         ),
         responses={
-            201: "HearingCreateUpdateSerializer",
+            201: HearingCreateUpdateSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot create hearings"
             ),
@@ -678,7 +666,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Requires authentication and user must belong to an organization."
         ),
         responses={
-            200: "HearingCreateUpdateSerializer",
+            200: HearingCreateUpdateSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot update hearings"
             ),
@@ -691,7 +679,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Requires authentication and user must belong to an organization."
         ),
         responses={
-            200: "HearingCreateUpdateSerializer",
+            200: HearingCreateUpdateSerializer,
             403: OpenApiResponse(
                 description="User without organization cannot update hearings"
             ),

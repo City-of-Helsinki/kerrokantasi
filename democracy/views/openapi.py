@@ -51,7 +51,9 @@ HEARING_ORDERING_PARAM = [
     OpenApiParameter(
         "ordering",
         OpenApiTypes.STR,
-        description="Sort field: created_at, close_at, open_at, n_comments (prefix - for desc)",
+        description=(
+            "Sort field: created_at, close_at, open_at, n_comments (prefix - for desc)"
+        ),
     ),
 ]
 
@@ -91,7 +93,9 @@ COMMENT_FILTER_PARAMS = [
     ),
 ]
 
-COMMON_COMMENT_PARAMS = COMMENT_FILTER_PARAMS + COMMENT_ORDERING_PARAM + BBOX_PARAM + INCLUDE_PARAM
+COMMON_COMMENT_PARAMS = (
+    COMMENT_FILTER_PARAMS + COMMENT_ORDERING_PARAM + BBOX_PARAM + INCLUDE_PARAM
+)
 
 # ============================================================================
 # Root-Level Comment Filter Parameters
@@ -235,8 +239,8 @@ LABEL_FILTER_PARAMS = [
 
 # Generic status response used across all endpoints
 # Returns: {"status": "string message"}
-# This consolidated response is used for all actions that return a simple status message,
-# including voting, flagging, following, and deletion operations.
+# This consolidated response is used for all actions that return a simple
+# status message, including voting, flagging, following, and deletion operations.
 RESPONSE_WITH_STATUS = inline_serializer(
     name="StatusResponse",
     fields={"status": serializers.CharField()},

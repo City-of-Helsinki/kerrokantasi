@@ -6,9 +6,7 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db.transaction import atomic
 from django.utils.functional import cached_property
 from django.utils.translation import gettext as _
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
-    OpenApiParameter,
     OpenApiResponse,
     extend_schema,
     extend_schema_view,
@@ -343,7 +341,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             "Can include poll answers, images, and geographic data."
         ),
         responses={
-            201: "SectionCommentCreateUpdateSerializer",
+            201: SectionCommentCreateUpdateSerializer,
             400: OpenApiResponse(
                 description=(
                     "Validation error (e.g., commenting closed, invalid poll answer)"
@@ -358,7 +356,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             "Update an existing comment. Requires authorization code or ownership."
         ),
         responses={
-            200: "SectionCommentCreateUpdateSerializer",
+            200: SectionCommentCreateUpdateSerializer,
             400: OpenApiResponse(description="Validation error"),
             403: OpenApiResponse(description="Not authorized to edit this comment"),
         },
@@ -370,7 +368,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             "Requires authorization code or ownership."
         ),
         responses={
-            200: "SectionCommentCreateUpdateSerializer",
+            200: SectionCommentCreateUpdateSerializer,
             403: OpenApiResponse(description="Not authorized to edit this comment"),
         },
     ),
@@ -675,8 +673,8 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
         summary="List all comments",
         description=(
             "Retrieve paginated list of comments across all hearings and sections. "
-            "For privacy, author names are removed unless filtered by specific hearing, "
-            "section, or user. Can be filtered and ordered."
+            "For privacy, author names are removed unless filtered by specific "
+            "hearing, section, or user. Can be filtered and ordered."
         ),
         parameters=(
             PAGINATION_PARAMS + ROOT_COMMENT_FILTER_PARAMS + COMMON_COMMENT_PARAMS
@@ -695,7 +693,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
             "The section or comment to reply to must be specified in the request body."
         ),
         responses={
-            201: "RootSectionCommentCreateUpdateSerializer",
+            201: RootSectionCommentCreateUpdateSerializer,
             400: OpenApiResponse(
                 description=(
                     "Validation error (e.g., commenting closed, invalid poll answer, "
@@ -711,7 +709,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
             "Update an existing comment. Requires authorization code or ownership."
         ),
         responses={
-            200: "RootSectionCommentCreateUpdateSerializer",
+            200: RootSectionCommentCreateUpdateSerializer,
             400: OpenApiResponse(description="Validation error"),
             403: OpenApiResponse(description="Not authorized to edit this comment"),
         },
@@ -723,7 +721,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
             "Requires authorization code or ownership."
         ),
         responses={
-            200: "RootSectionCommentCreateUpdateSerializer",
+            200: RootSectionCommentCreateUpdateSerializer,
             403: OpenApiResponse(description="Not authorized to edit this comment"),
         },
     ),

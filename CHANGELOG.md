@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.8.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.7.2...kerrokantasi-v2.8.0) (2025-12-27)
+
+
+### Features
+
+* Allow Sentry logging for uWSGI ([7ce144b](https://github.com/City-of-Helsinki/kerrokantasi/commit/7ce144bd593541f59523424d5ba66c5ddf789c0f))
+* Use separate AUDIT_LOG_ENV variable ([29648b6](https://github.com/City-of-Helsinki/kerrokantasi/commit/29648b68fb62a4c5c0cc5a23d3b5cf10f3a77b70))
+
+
+### Bug Fixes
+
+* Auto-utilize GEOS/GDAL library paths if set ([27ff889](https://github.com/City-of-Helsinki/kerrokantasi/commit/27ff88953e79334a2a0871001ac1db616f6c32e8))
+* Refactor pipeline ([#591](https://github.com/City-of-Helsinki/kerrokantasi/issues/591)) ([f0cd540](https://github.com/City-of-Helsinki/kerrokantasi/commit/f0cd540cd44d840c1a8e4364b4dfdeab64395fb6))
+* Remove unused npm-scripts ([aff9e45](https://github.com/City-of-Helsinki/kerrokantasi/commit/aff9e4569b90c08f0209cf9d494690293cee0ff9))
+
 ## [2.7.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.7.1...kerrokantasi-v2.7.2) (2025-12-04)
 
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.1...kerrokantasi-v2.8.2) (2026-02-05)
+
+
+### Dependencies
+
+* Bump django from 5.2.9 to 5.2.11 ([07b3cc3](https://github.com/City-of-Helsinki/kerrokantasi/commit/07b3cc3525cd1c60bacac5733ee7f8878cc0b053))
+* Bump pip from 25.3 to 26.0 ([1ebf48d](https://github.com/City-of-Helsinki/kerrokantasi/commit/1ebf48d7fb5a6e2f5db5ee77efeb37c3b0701465))
+
 ## [2.8.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.0...kerrokantasi-v2.8.1) (2026-01-28)
 
 

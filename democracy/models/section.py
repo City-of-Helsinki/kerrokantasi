@@ -69,6 +69,14 @@ class SectionType(BaseModel):
 
 
 class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMixin):
+    """
+    Content section within a hearing.
+
+    Sections are the main content containers within a hearing. Each hearing
+    has at least one main section and can have additional sections of different
+    types. Sections can contain images, files, polls, and collect comments.
+    """
+
     serialize_fields = (
         {"name": "id"},
         {"name": "ordering"},
@@ -81,7 +89,10 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
     )
 
     hearing = models.ForeignKey(
-        Hearing, related_name="sections", on_delete=models.PROTECT
+        Hearing,
+        related_name="sections",
+        on_delete=models.PROTECT,
+        help_text=_("Hearing this section belongs to"),
     )
     ordering = models.IntegerField(
         verbose_name=_("ordering"), default=1, db_index=True, help_text=ORDERING_HELP
@@ -90,15 +101,40 @@ class Section(Commentable, StringIdBaseModel, TranslatableModel, SerializableMix
         SectionType, related_name="sections", on_delete=models.PROTECT
     )
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_("title"), max_length=255, blank=True),
-        abstract=models.TextField(verbose_name=_("abstract"), blank=True),
-        content=models.TextField(verbose_name=_("content"), blank=True),
+        title=models.CharField(
+            verbose_name=_("title"),
+            max_length=255,
+            blank=True,
+            help_text=_("Section heading displayed in the hearing"),
+        ),
+        abstract=models.TextField(
+            verbose_name=_("abstract"),
+            blank=True,
+            help_text=_("Brief summary of the section content"),
+        ),
+        content=models.TextField(
+            verbose_name=_("content"),
+            blank=True,
+            help_text=_("Main content body of the section (supports rich text)"),
+        ),
     )
     plugin_identifier = models.CharField(
-        verbose_name=_("plugin identifier"), blank=True, max_length=255
+        verbose_name=_("plugin identifier"),
+        blank=True,
+        max_length=255,
+        help_text=_(
+            "Identifier for custom plugin functionality (e.g., map visualization)"
+        ),
     )
-    plugin_data = models.TextField(verbose_name=_("plugin data"), blank=True)
-    plugin_fullscreen = models.BooleanField(default=False)
+    plugin_data = models.TextField(
+        verbose_name=_("plugin data"),
+        blank=True,
+        help_text=_("JSON configuration data for the plugin"),
+    )
+    plugin_fullscreen = models.BooleanField(
+        default=False,
+        help_text=_("Whether the plugin should be displayed in fullscreen mode"),
+    )
     objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
 
     class Meta:
@@ -203,10 +239,24 @@ class SectionImage(
     )
     translations = TranslatedFields(
         title=models.CharField(
-            verbose_name=_("title"), max_length=255, blank=True, default=""
+            verbose_name=_("title"),
+            max_length=255,
+            blank=True,
+            default="",
+            help_text=_("Image title for identification"),
         ),
-        caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
-        alt_text=models.TextField(verbose_name=_("alt text"), blank=True, default=""),
+        caption=models.TextField(
+            verbose_name=_("caption"),
+            blank=True,
+            default="",
+            help_text=_("Image caption displayed to users"),
+        ),
+        alt_text=models.TextField(
+            verbose_name=_("alt text"),
+            blank=True,
+            default="",
+            help_text=_("Alternative text for accessibility and SEO"),
+        ),
     )
     objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
 
@@ -251,9 +301,18 @@ class SectionFile(
     )
     translations = TranslatedFields(
         title=models.CharField(
-            verbose_name=_("title"), max_length=255, blank=True, default=""
+            verbose_name=_("title"),
+            max_length=255,
+            blank=True,
+            default="",
+            help_text=_("File title for identification"),
         ),
-        caption=models.TextField(verbose_name=_("caption"), blank=True, default=""),
+        caption=models.TextField(
+            verbose_name=_("caption"),
+            blank=True,
+            default="",
+            help_text=_("File caption or description"),
+        ),
     )
     objects = SerializableBaseModelManager.from_queryset(TranslatableQuerySet)()
 
@@ -411,7 +470,10 @@ class SectionPoll(BasePoll, SerializableMixin):
     )
     section = models.ForeignKey(Section, related_name="polls", on_delete=models.PROTECT)
     translations = TranslatedFields(
-        text=models.TextField(verbose_name=_("text")),
+        text=models.TextField(
+            verbose_name=_("text"),
+            help_text=_("Poll question text displayed to users"),
+        ),
     )
 
     objects = SerializableBaseModelManager()
@@ -454,7 +516,10 @@ class SectionPollOption(BasePollOption, SerializableMixin):
         SectionPoll, related_name="options", on_delete=models.PROTECT
     )
     translations = TranslatedFields(
-        text=models.TextField(verbose_name=_("option text")),
+        text=models.TextField(
+            verbose_name=_("option text"),
+            help_text=_("Poll option choice text"),
+        ),
     )
 
     objects = SerializableBaseModelManager()

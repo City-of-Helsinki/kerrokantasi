@@ -36,6 +36,14 @@ class HearingQueryset(TranslatableQuerySet):
 
 
 class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
+    """
+    Participatory democracy hearing model.
+
+    Represents a public consultation process where citizens can view information,
+    provide comments, and participate in polls. Hearings contain sections with
+    content, have defined open/close periods, and can be associated with projects.
+    """
+
     serialize_fields = (
         {"name": "id"},
         {"name": "title_with_translations"},
@@ -43,25 +51,53 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
         {"name": "sections"},
     )
 
-    open_at = models.DateTimeField(verbose_name=_("opening time"), default=timezone.now)
+    open_at = models.DateTimeField(
+        verbose_name=_("opening time"),
+        default=timezone.now,
+        help_text=_("Date and time when the hearing opens for public participation"),
+    )
     close_at = models.DateTimeField(
-        verbose_name=_("closing time"), default=timezone.now
+        verbose_name=_("closing time"),
+        default=timezone.now,
+        help_text=_("Date and time when the hearing closes for participation"),
     )
     force_closed = models.BooleanField(
-        verbose_name=_("force hearing closed"), default=False
+        verbose_name=_("force hearing closed"),
+        default=False,
+        help_text=_("Manually close the hearing regardless of open/close dates"),
     )
     translations = TranslatedFields(
-        title=models.CharField(verbose_name=_("title"), max_length=255),
+        title=models.CharField(
+            verbose_name=_("title"),
+            max_length=255,
+            help_text=_("The main title of the hearing"),
+        ),
         borough=models.CharField(
-            verbose_name=_("borough"), blank=True, default="", max_length=200
+            verbose_name=_("borough"),
+            blank=True,
+            default="",
+            max_length=200,
+            help_text=_("Borough or district where the hearing is located"),
         ),
     )
     servicemap_url = models.CharField(
-        verbose_name=_("service map URL"), default="", max_length=255, blank=True
+        verbose_name=_("service map URL"),
+        default="",
+        max_length=255,
+        blank=True,
+        help_text=_("URL to the related location in the service map"),
     )
-    geojson = GeoJSONField(blank=True, null=True, verbose_name=_("area"))
+    geojson = GeoJSONField(
+        blank=True,
+        null=True,
+        verbose_name=_("area"),
+        help_text=_("Geographic area related to this hearing in GeoJSON format"),
+    )
     geometry = models.GeometryCollectionField(
-        blank=True, null=True, verbose_name=_("area geometry")
+        blank=True,
+        null=True,
+        verbose_name=_("area geometry"),
+        help_text=_("PostGIS geometry collection for spatial database queries"),
     )
     organization = models.ForeignKey(
         Organization,
@@ -86,10 +122,14 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
         editable=True,
         unique=True,
         blank=True,
-        help_text=_("You may leave this empty to automatically generate a slug"),
+        help_text=_("URL-friendly identifier. Leave empty to auto-generate from title"),
     )
     n_comments = models.IntegerField(
-        verbose_name=_("number of comments"), blank=True, default=0, editable=False
+        verbose_name=_("number of comments"),
+        blank=True,
+        default=0,
+        editable=False,
+        help_text=_("Cached total count of all comments across all sections"),
     )
     contact_persons = models.ManyToManyField(
         ContactPerson,

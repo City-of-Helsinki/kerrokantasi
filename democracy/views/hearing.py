@@ -5,6 +5,13 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Prefetch, Q
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import (
+    OpenApiParameter,
+    OpenApiResponse,
+    extend_schema,
+    extend_schema_view,
+)
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
@@ -29,6 +36,14 @@ from democracy.views.base import AdminsSeeUnpublishedMixin
 from democracy.views.contact_person import ContactPersonSerializer
 from democracy.views.hearing_report import HearingReport
 from democracy.views.label import LabelSerializer
+from democracy.views.openapi import (
+    BBOX_PARAM,
+    HEARING_FILTER_PARAMS,
+    HEARING_ORDERING_PARAM,
+    INCLUDE_PARAM,
+    PAGINATION_PARAMS,
+    RESPONSE_WITH_STATUS,
+)
 from democracy.views.project import (
     ProjectCreateUpdateSerializer,
     ProjectFieldSerializer,
@@ -55,23 +70,40 @@ from democracy.views.utils import (
 
 class HearingFilterSet(django_filters.rest_framework.FilterSet):
     open_at_lte = django_filters.IsoDateTimeFilter(
-        field_name="open_at", lookup_expr="lte"
+        field_name="open_at",
+        lookup_expr="lte",
+        help_text="Filter hearings opening at or before this date",
     )
     open_at_gt = django_filters.IsoDateTimeFilter(
-        field_name="open_at", lookup_expr="gt"
+        field_name="open_at",
+        lookup_expr="gt",
+        help_text="Filter hearings opening after this date",
     )
     title = django_filters.CharFilter(
-        lookup_expr="icontains", field_name="translations__title", distinct=True
+        lookup_expr="icontains",
+        field_name="translations__title",
+        distinct=True,
+        help_text="Filter by title (case-insensitive contains)",
     )
     label = django_filters.Filter(
         field_name="labels__id",
         lookup_expr="in",
         distinct=True,
         widget=django_filters.widgets.CSVWidget,
+        help_text="Filter by label ID (comma-separated for multiple)",
     )
-    following = django_filters.BooleanFilter(method="filter_following")
-    open = django_filters.BooleanFilter(method="filter_open")
-    created_by = django_filters.CharFilter(method="filter_created_by")
+    following = django_filters.BooleanFilter(
+        method="filter_following",
+        help_text="Filter hearings followed by current user (requires authentication)",
+    )
+    open = django_filters.BooleanFilter(
+        method="filter_open",
+        help_text="Filter by open/closed status (true for currently open hearings)",
+    )
+    created_by = django_filters.CharFilter(
+        method="filter_created_by",
+        help_text="Filter by creator ('me' for current user or organization name)",
+    )
 
     def filter_following(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
@@ -558,8 +590,9 @@ class HearingListSerializer(HearingSerializer):
         fields.pop("contact_persons")
         request = self.context.get("request", None)
         if request:
+            accepted_renderer = getattr(request, "accepted_renderer", None)
             if not request.GET.get("include", None) == "geojson" and not isinstance(
-                request.accepted_renderer, GeoJSONRenderer
+                accepted_renderer, GeoJSONRenderer
             ):
                 fields.pop("geojson")
         return fields
@@ -582,9 +615,97 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
         ]
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="List all hearings",
+        description=(
+            "Retrieve a paginated list of hearings. "
+            "Supports filtering by various parameters including status, "
+            "labels, and dates."
+        ),
+        parameters=(
+            PAGINATION_PARAMS
+            + HEARING_FILTER_PARAMS
+            + HEARING_ORDERING_PARAM
+            + BBOX_PARAM
+            + INCLUDE_PARAM
+        ),
+    ),
+    retrieve=extend_schema(
+        summary="Get hearing details",
+        description=(
+            "Retrieve detailed information about a specific hearing by ID or slug. "
+            "Unpublished hearings require preview code or admin access."
+        ),
+        parameters=[
+            OpenApiParameter(
+                "preview",
+                OpenApiTypes.STR,
+                description="Preview code for unpublished hearings",
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+    ),
+    create=extend_schema(
+        summary="Create new hearing",
+        description=(
+            "Create a new hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
+        responses={
+            201: HearingCreateUpdateSerializer,
+            403: OpenApiResponse(
+                description="User without organization cannot create hearings"
+            ),
+        },
+    ),
+    update=extend_schema(
+        summary="Update hearing",
+        description=(
+            "Update an existing hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
+        responses={
+            200: HearingCreateUpdateSerializer,
+            403: OpenApiResponse(
+                description="User without organization cannot update hearings"
+            ),
+        },
+    ),
+    partial_update=extend_schema(
+        summary="Partially update hearing",
+        description=(
+            "Partially update an existing hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
+        responses={
+            200: HearingCreateUpdateSerializer,
+            403: OpenApiResponse(
+                description="User without organization cannot update hearings"
+            ),
+        },
+    ),
+    destroy=extend_schema(
+        summary="Delete hearing",
+        description=(
+            "Soft delete an unpublished hearing with no comments. "
+            "Requires authentication and user must belong to an organization."
+        ),
+        responses={
+            200: RESPONSE_WITH_STATUS,
+            403: OpenApiResponse(
+                description="Cannot delete published hearings or hearings with comments"
+            ),
+        },
+    ),
+)
 class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelViewSet):
     """
-    API endpoint for hearings.
+    API endpoint for managing participatory democracy hearings.
+
+    Hearings are the core objects representing public consultation processes.
+    They contain sections with content, collect comments, and can be associated
+    with projects.
     """
 
     model = Hearing
@@ -693,6 +814,19 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         self.check_object_permissions(self.request, obj)
         return obj
 
+    @extend_schema(
+        summary="Follow a hearing",
+        description=(
+            "Add current user as a follower of the hearing. "
+            "Followed hearings can be filtered using the 'following' parameter."
+        ),
+        request=None,
+        responses={
+            201: RESPONSE_WITH_STATUS,
+            304: OpenApiResponse(description="Already following this hearing"),
+            401: OpenApiResponse(description="Authentication required"),
+        },
+    )
     @action(detail=True, methods=["post"])
     def follow(self, request, pk=None):
         hearing = self.get_object()
@@ -711,6 +845,16 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
             {"status": "You follow a hearing now"}, status=status.HTTP_201_CREATED
         )
 
+    @extend_schema(
+        summary="Unfollow a hearing",
+        description="Remove current user as a follower of the hearing.",
+        request=None,
+        responses={
+            204: OpenApiResponse(description="Successfully unfollowed"),
+            304: OpenApiResponse(description="Not following this hearing"),
+            401: OpenApiResponse(description="Authentication required"),
+        },
+    )
     @action(detail=True, methods=["post"])
     def unfollow(self, request, pk=None):
         hearing = self.get_object()
@@ -727,6 +871,18 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
             status=status.HTTP_304_NOT_MODIFIED,
         )
 
+    @extend_schema(
+        summary="Generate hearing report",
+        description=(
+            "Generate and download a report for the hearing "
+            "with all comments and statistics."
+        ),
+        responses={
+            200: OpenApiResponse(
+                description="Report file (format depends on implementation)"
+            ),
+        },
+    )
     @action(detail=True, methods=["get"])
     def report(self, request, pk=None):
         context = self.get_serializer_context()
@@ -735,6 +891,21 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         )
         return report.get_response()
 
+    @extend_schema(
+        summary="Generate PowerPoint report",
+        description=(
+            "Generate and download a PowerPoint presentation report for the hearing. "
+            "Requires authentication and user must belong to an organization."
+        ),
+        responses={
+            200: OpenApiResponse(description="PowerPoint file"),
+            403: OpenApiResponse(
+                description=(
+                    "User without organization cannot generate PowerPoint reports"
+                )
+            ),
+        },
+    )
     @action(detail=True, methods=["get"])
     def report_pptx(self, request, pk=None):
         user = request.user
@@ -749,6 +920,14 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         )
         return report.get_response()
 
+    @extend_schema(
+        summary="Get hearings as map data",
+        description=(
+            "Retrieve hearings in a format suitable for map visualization. "
+            "Returns simplified hearing data with geographic information."
+        ),
+        parameters=PAGINATION_PARAMS,
+    )
     @action(detail=False, methods=["get"])
     def map(self, request):
         queryset = self.filter_queryset(self.get_queryset())

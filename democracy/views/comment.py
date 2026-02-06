@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.encoding import force_str as force_text
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
@@ -14,6 +15,7 @@ from audit_log.views import AuditLogApiView
 from democracy.models.comment import BaseComment
 from democracy.renderers import GeoJSONRenderer
 from democracy.views.base import AdminsSeeUnpublishedMixin, CreatedBySerializer
+from democracy.views.openapi import RESPONSE_WITH_STATUS
 from democracy.views.utils import GeoJSONField
 
 COMMENT_FIELDS = [
@@ -295,6 +297,21 @@ class BaseCommentViewSet(
 
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        summary="Vote for a comment",
+        description=(
+            "Add a vote to support a comment. "
+            "Authenticated users can vote once, anonymous users can vote if allowed. "
+            "Requires that voting is enabled for the hearing section."
+        ),
+        request=None,
+        responses={
+            200: RESPONSE_WITH_STATUS,
+            201: RESPONSE_WITH_STATUS,
+            304: OpenApiResponse(description="Already voted for this comment"),
+            403: OpenApiResponse(description="Voting not allowed or closed"),
+        },
+    )
     @action(detail=True, methods=["post"])
     def vote(self, request, **kwargs):
         resp = self._check_may_vote(request)
@@ -326,6 +343,21 @@ class BaseCommentViewSet(
             {"status": "Vote has been added"}, status=status.HTTP_201_CREATED
         )
 
+    @extend_schema(
+        summary="Flag a comment for moderation",
+        description=(
+            "Flag a comment for review by moderators. "
+            "Only organization admins of the hearing's organization can flag comments."
+        ),
+        request=None,
+        responses={
+            200: RESPONSE_WITH_STATUS,
+            304: OpenApiResponse(description="Comment already flagged"),
+            403: OpenApiResponse(
+                description="Not authorized to flag comments in this hearing"
+            ),
+        },
+    )
     @action(detail=True, methods=["post"])
     def flag(self, request, **kwargs):
         instance = self.get_object()
@@ -347,6 +379,19 @@ class BaseCommentViewSet(
         add_audit_logged_object_ids(self.request, instance)
         return response.Response({"status": "comment flagged"})
 
+    @extend_schema(
+        summary="Remove vote from a comment",
+        description=(
+            "Remove previously cast vote from a comment. "
+            "Requires authentication. Only registered users can remove their votes."
+        ),
+        request=None,
+        responses={
+            204: OpenApiResponse(description="Vote successfully removed"),
+            304: OpenApiResponse(description="You have not voted for this comment"),
+            403: OpenApiResponse(description="Authentication required"),
+        },
+    )
     @action(detail=True, methods=["post"])
     def unvote(self, request, **kwargs):
         # Return 403 if user is not authenticated

@@ -31,3 +31,4 @@ django-helsinki-notification[rest_framework]@https://github.com/City-of-Helsinki
 django-logger-extra@https://github.com/City-of-Helsinki/django-logger-extra/archive/refs/tags/v0.1.0.zip
 django-resilient-logger@https://github.com/City-of-Helsinki/django-resilient-logger/archive/refs/tags/v0.3.7.zip
 uwsgi
+drf-spectacular

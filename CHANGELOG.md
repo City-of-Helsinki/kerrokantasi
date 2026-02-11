@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.2...kerrokantasi-v2.8.3) (2026-02-11)
+
+
+### Dependencies
+
+* Bump cryptography from 46.0.3 to 46.0.5 ([525fbda](https://github.com/City-of-Helsinki/kerrokantasi/commit/525fbda3d78a078baa476cd207f3c9d0d9ca3668))
+
 ## [2.8.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.1...kerrokantasi-v2.8.2) (2026-02-05)
 
 

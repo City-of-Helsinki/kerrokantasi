@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.4](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.3...kerrokantasi-v2.8.4) (2026-02-12)
+
+
+### Dependencies
+
+* Bump pillow from 12.0.0 to 12.1.1 ([5bc0019](https://github.com/City-of-Helsinki/kerrokantasi/commit/5bc0019a6abc4a65ff1501106f71cf90bc3ea70a))
+
 ## [2.8.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.2...kerrokantasi-v2.8.3) (2026-02-11)
 
 

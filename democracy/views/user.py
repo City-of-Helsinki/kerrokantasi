@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import permissions, serializers, viewsets
 
 from democracy.models import SectionPollAnswer
@@ -40,7 +41,30 @@ class UserDataSerializer(serializers.ModelSerializer):
         )
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="Get current user data",
+        description=(
+            "Retrieve data for the currently authenticated user. "
+            "Returns only the authenticated user's own data."
+        ),
+    ),
+    retrieve=extend_schema(
+        summary="Get user data by UUID",
+        description=(
+            "Retrieve user data by UUID. Users can only access their own data."
+        ),
+    ),
+)
 class UserDataViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint for user data.
+
+    Provides access to current user's profile data including voting history,
+    followed hearings, and organization memberships. Users can only access
+    their own data.
+    """
+
     serializer_class = UserDataSerializer
     permission_classes = (permissions.IsAuthenticated,)
     lookup_field = "uuid"

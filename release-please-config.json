@@ -5,6 +5,7 @@
     ".": {
       "release-type": "python",
       "package-name": "kerrokantasi",
+      "extra-files": ["pyproject.toml"],
       "changelog-sections": [
         {"type": "feat", "section": "Features"},
         {"type": "fix", "section": "Bug Fixes"},

@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.5](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.4...kerrokantasi-v2.8.5) (2026-03-09)
+
+
+### Dependencies
+
+* Bump authlib from 1.6.6 to 1.6.7 ([3efaabe](https://github.com/City-of-Helsinki/kerrokantasi/commit/3efaabe986dee268540b247f961c4e86fc15c454))
+* Bump django from 5.2.11 to 5.2.12 ([9a17c2c](https://github.com/City-of-Helsinki/kerrokantasi/commit/9a17c2cdde5309ad220400d691350db1bc8ca777))
+
 ## [2.8.4](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.3...kerrokantasi-v2.8.4) (2026-02-12)
 
 

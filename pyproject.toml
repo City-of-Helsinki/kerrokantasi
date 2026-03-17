@@ -1,7 +1,7 @@
 [project]
 name = "kerrokantasi"
 requires-python = ">=3.12, <3.13"
-version = "2.8.5"
+version = "2.8.6"
 
 [tool.ruff]
 target-version = "py312"

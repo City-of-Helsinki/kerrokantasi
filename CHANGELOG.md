@@ -1,5 +1,13 @@
 # Changelog
 
+## [2.8.6](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.5...kerrokantasi-v2.8.6) (2026-03-17)
+
+
+### Dependencies
+
+* Bump authlib from 1.6.7 to 1.6.9 ([4fd77b1](https://github.com/City-of-Helsinki/kerrokantasi/commit/4fd77b11c243ea31b0dee754371fae805a7e3b5e))
+* Bump pyjwt from 2.10.1 to 2.12.0 ([c677bec](https://github.com/City-of-Helsinki/kerrokantasi/commit/c677becab2732d77ecef0cf40da394ccdeb1874b))
+
 ## [2.8.5](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.4...kerrokantasi-v2.8.5) (2026-03-09)
 
 

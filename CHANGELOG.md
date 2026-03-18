@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.8.7](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.6...kerrokantasi-v2.8.7) (2026-03-18)
+
+
+### Dependencies
+
+* Bump pyasn1 from 0.6.2 to 0.6.3 ([c45c4f9](https://github.com/City-of-Helsinki/kerrokantasi/commit/c45c4f98b535559122ad3f3c52fe5a81a4694740))
+
 ## [2.8.6](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.5...kerrokantasi-v2.8.6) (2026-03-17)
 
 

@@ -2,6 +2,7 @@ Django~=5.2.12
 djangorestframework
 django-environ
 django-extensions
+django-helsinki-health-endpoints
 django-munigeo
 django-reversion
 django-cors-headers

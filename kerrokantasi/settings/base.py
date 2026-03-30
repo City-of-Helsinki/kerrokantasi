@@ -129,6 +129,10 @@ USE_X_FORWARDED_HOST = env("TRUST_X_FORWARDED_HOST")
 
 INTERNAL_IPS = env("INTERNAL_IPS")
 
+
+# For helsinki health endpoints
+SENTRY_RELEASE = env.str("SENTRY_RELEASE")
+
 # Sentry
 
 SENTRY_TRACES_SAMPLE_RATE = env.float("SENTRY_TRACES_SAMPLE_RATE")
@@ -153,7 +157,7 @@ if env("SENTRY_DSN"):
     sentry_sdk.init(
         dsn=env.str("SENTRY_DSN"),
         environment=env.str("SENTRY_ENVIRONMENT"),
-        release=env.str("SENTRY_RELEASE"),
+        release=SENTRY_RELEASE,
         integrations=[DjangoIntegration()],
         traces_sampler=sentry_traces_sampler,
         profile_session_sample_rate=env.str("SENTRY_PROFILE_SESSION_SAMPLE_RATE"),
@@ -225,6 +229,7 @@ INSTALLED_APPS = [
     "helsinki_notification",
     "logger_extra",
     "resilient_logger",
+    "helsinki_health_endpoints",
 ] + env("EXTRA_INSTALLED_APPS")
 
 MIDDLEWARE = [

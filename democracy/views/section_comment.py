@@ -41,8 +41,6 @@ from democracy.views.label import LabelSerializer
 from democracy.views.openapi import (
     AUTHORIZATION_CODE_PARAM,
     COMMON_COMMENT_PARAMS,
-    PAGINATION_PARAMS,
-    ROOT_COMMENT_FILTER_PARAMS,
 )
 from democracy.views.utils import (
     GeoJSONField,
@@ -327,7 +325,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
             "Retrieve paginated list of comments for hearing sections. "
             "Comments can be filtered and ordered."
         ),
-        parameters=PAGINATION_PARAMS + COMMON_COMMENT_PARAMS,
+        parameters=COMMON_COMMENT_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get comment details",
@@ -676,9 +674,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
             "For privacy, author names are removed unless filtered by specific "
             "hearing, section, or user. Can be filtered and ordered."
         ),
-        parameters=(
-            PAGINATION_PARAMS + ROOT_COMMENT_FILTER_PARAMS + COMMON_COMMENT_PARAMS
-        ),
+        parameters=COMMON_COMMENT_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get comment details",

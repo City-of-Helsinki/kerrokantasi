@@ -38,10 +38,8 @@ from democracy.views.hearing_report import HearingReport
 from democracy.views.label import LabelSerializer
 from democracy.views.openapi import (
     BBOX_PARAM,
-    HEARING_FILTER_PARAMS,
     HEARING_ORDERING_PARAM,
     INCLUDE_PARAM,
-    PAGINATION_PARAMS,
     RESPONSE_WITH_STATUS,
 )
 from democracy.views.project import (
@@ -624,9 +622,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "labels, and dates."
         ),
         parameters=(
-            PAGINATION_PARAMS
-            + HEARING_FILTER_PARAMS
-            + HEARING_ORDERING_PARAM
+            HEARING_ORDERING_PARAM
             + BBOX_PARAM
             + INCLUDE_PARAM
         ),
@@ -926,7 +922,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
             "Retrieve hearings in a format suitable for map visualization. "
             "Returns simplified hearing data with geographic information."
         ),
-        parameters=PAGINATION_PARAMS,
     )
     @action(detail=False, methods=["get"])
     def map(self, request):

@@ -331,7 +331,7 @@ Authentication:
 - Session Authentication for browsable API
 - Anonymous read access for public content
     """,
-    "VERSION": "1.0.0",
+    "VERSION": None,
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_PATCH": True,
     "SCHEMA_PATH_PREFIX": r"/v1/",

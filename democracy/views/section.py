@@ -38,11 +38,6 @@ from democracy.views.base import (
     BaseFileSerializer,
     BaseImageSerializer,
 )
-from democracy.views.openapi import (
-    PAGINATION_PARAMS,
-    SECTION_FILTER_PARAMS,
-    SECTION_IMAGE_FILTER_PARAMS,
-)
 from democracy.views.utils import (
     Base64FileField,
     Base64ImageField,
@@ -644,9 +639,7 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
             "Retrieve paginated list of section images across all hearings. "
             "Can be filtered by hearing or section."
         ),
-        parameters=(
-            PAGINATION_PARAMS + SECTION_IMAGE_FILTER_PARAMS + SECTION_IMAGE_PARAMS
-        ),
+        parameters=SECTION_IMAGE_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get section image details",
@@ -833,7 +826,6 @@ class RootFileBase64Serializer(RootFileSerializer):
     list=extend_schema(
         summary="List section files",
         description="Retrieve paginated list of files attached to hearing sections.",
-        parameters=PAGINATION_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get section file details",
@@ -1030,7 +1022,6 @@ def file_qs_for_request(request):
             "Retrieve paginated list of all sections across all hearings. "
             "Can be filtered by hearing or section type."
         ),
-        parameters=PAGINATION_PARAMS + SECTION_FILTER_PARAMS,
     ),
     retrieve=extend_schema(
         summary="Get section details",

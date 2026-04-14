@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.9.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.7...kerrokantasi-v2.9.0) (2026-04-14)
+
+
+### Features
+
+* Use django-helsinki-health-endpoints for readiness and healthz ([972e459](https://github.com/City-of-Helsinki/kerrokantasi/commit/972e4593266755f98b6f325dbbfc0ef599bd0abc))
+
+
+### Dependencies
+
+* Bump cryptography from 46.0.5 to 46.0.6 ([d9a115a](https://github.com/City-of-Helsinki/kerrokantasi/commit/d9a115a93afa6dd20c4e03b40d29dd57aa8cab94))
+* Bump cryptography from 46.0.6 to 46.0.7 ([e69ecc0](https://github.com/City-of-Helsinki/kerrokantasi/commit/e69ecc05904acc93e7c133b7910d771707847e81))
+* Bump django from 5.2.12 to 5.2.13 ([77f349e](https://github.com/City-of-Helsinki/kerrokantasi/commit/77f349e99b82271749099f590aa7c791af09110c))
+* Bump ecdsa from 0.19.1 to 0.19.2 ([187eca6](https://github.com/City-of-Helsinki/kerrokantasi/commit/187eca6924bb73db3d8e936ead8d8fb8d0f06915))
+* Bump pillow from 12.1.1 to 12.2.0 ([2b1e5bb](https://github.com/City-of-Helsinki/kerrokantasi/commit/2b1e5bb1a71da9100cd9fe912cf59f54f6ec1b26))
+* Bump pygments ([24f2ece](https://github.com/City-of-Helsinki/kerrokantasi/commit/24f2ece64aa3e22d32dc5ba5e30b218b9e0422b6))
+* Bump pytest from 8.4.2 to 9.0.3 ([5cf0720](https://github.com/City-of-Helsinki/kerrokantasi/commit/5cf0720b23beb0f96bee4c896dac8e73bc7f6e04))
+* Bump requests ([794e8f7](https://github.com/City-of-Helsinki/kerrokantasi/commit/794e8f7916eaca9d5bffb768a389541c656b236c))
+
 ## [2.8.7](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.6...kerrokantasi-v2.8.7) (2026-03-18)
 
 

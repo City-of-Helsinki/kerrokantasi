@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.10.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.9.0...kerrokantasi-v2.10.0) (2026-04-20)
+
+
+### Features
+
+* Enhance API documentation with OpenAPI schemas ([f4fce38](https://github.com/City-of-Helsinki/kerrokantasi/commit/f4fce38c29d9674d22d6d141a4ca856169fbd5dd))
+
+
+### Dependencies
+
+* Bump authlib from 1.6.9 to 1.6.11 ([cd4a1cf](https://github.com/City-of-Helsinki/kerrokantasi/commit/cd4a1cf048b3b4a5ad1223865a785b25e121640b))
+
 ## [2.9.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.8.7...kerrokantasi-v2.9.0) (2026-04-14)
 
 

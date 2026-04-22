@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.0...kerrokantasi-v2.10.1) (2026-04-22)
+
+
+### Dependencies
+
+* Bump lxml from 6.0.1 to 6.1.0 ([c0edab7](https://github.com/City-of-Helsinki/kerrokantasi/commit/c0edab733ca41617774b9a768ebac1f2d6c6cc17))
+
 ## [2.10.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.9.0...kerrokantasi-v2.10.0) (2026-04-20)
 
 

@@ -25,14 +25,12 @@ trigger:
 # Opt out of pull request validation
 pr: none
 
-# By default, use self-hosted agents
-pool: Default
-
 resources:
   repositories:
     # Azure DevOps repository
     - repository: kerrokantasi-pipelines
       type: git
+      ref: sweden_PLATTA-7451
       # Azure DevOps project/repository
       name: kerrokantasi/kerrokantasi-pipelines
 

@@ -1,8 +1,9 @@
+from django.db.models import Prefetch
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import ValidationError
 
-from democracy.models import Project, ProjectPhase
+from democracy.models import Hearing, Project, ProjectPhase
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.utils import (
     NestedPKRelatedField,
@@ -218,5 +219,11 @@ class ProjectViewSet(viewsets.ReadOnlyModelViewSet):
     """
 
     serializer_class = ProjectSerializer
-    queryset = Project.objects.all()
+    queryset = Project.objects.prefetch_related(
+        "translations",
+        "phases",
+        "phases__translations",
+        Prefetch("phases__hearings", queryset=Hearing.objects.with_unpublished()),
+        "phases__hearings__translations",
+    )
     pagination_class = DefaultLimitPagination

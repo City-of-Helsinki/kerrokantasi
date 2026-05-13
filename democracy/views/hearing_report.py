@@ -4,7 +4,7 @@ import re
 
 import xlsxwriter
 from django.conf import settings
-from django.db.models import F
+from django.db.models import F, Prefetch
 from django.db.models.functions import Coalesce
 from django.http import HttpResponse
 from xlsxwriter.utility import xl_rowcol_to_cell
@@ -197,6 +197,18 @@ class HearingReport(object):
             SectionCommentSerializer(c, context=self.context).data
             for c in (
                 SectionComment.objects.filter(section=section["id"])
+                .select_related("created_by", "organization", "section", "label")
+                .prefetch_related(
+                    Prefetch(
+                        "comments",
+                        SectionComment.objects.everything().only("pk", "comment"),
+                    ),
+                    "images",
+                    "poll_answers",
+                    "poll_answers__option",
+                    "poll_answers__option__poll",
+                    "label__translations",
+                )
                 .annotate(
                     parent_created_at=Coalesce(F("comment__created_at"), "created_at")
                 )

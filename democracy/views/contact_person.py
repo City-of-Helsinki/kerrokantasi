@@ -120,6 +120,10 @@ class ContactPersonViewSet(
     """
 
     serializer_class = ContactPersonSerializer
-    queryset = ContactPerson.objects.select_related("organization").order_by("name")
+    queryset = (
+        ContactPerson.objects.select_related("organization")
+        .prefetch_related("translations")
+        .order_by("name")
+    )
     permission_classes = [permissions.IsAuthenticated, ContactPersonPermission]
     pagination_class = DefaultLimitPagination

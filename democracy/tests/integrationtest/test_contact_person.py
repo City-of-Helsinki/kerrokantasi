@@ -1,9 +1,11 @@
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
 from audit_log.enums import Operation
 from democracy.factories.organization import OrganizationFactory
-from democracy.models import Organization
+from democracy.models import ContactPerson, Organization
 from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
     assert_audit_log_entry,
@@ -12,6 +14,16 @@ from democracy.tests.utils import (
 )
 
 LIST_ENDPOINT = reverse("contact_person-list")
+
+
+def create_contact_person(identifier, organization):
+    ContactPerson.objects.create(
+        name=f"Contact {identifier}",
+        title=f"Title {identifier}",
+        phone=f"555-00{identifier}",
+        email=f"contact{identifier}@example.com",
+        organization=organization,
+    )
 
 
 @pytest.fixture
@@ -243,3 +255,27 @@ def test_contact_person_id_is_audit_logged_on_update(
     data = get_data_from_response(response, status_code=200)
 
     assert_audit_log_entry(LIST_ENDPOINT, [data["id"]], operation=Operation.UPDATE)
+
+
+@pytest.mark.django_db
+def test_contact_person_list_no_n_plus_1_query(
+    john_smith_api_client, default_organization
+):
+    """Verify data is prefetched."""
+    for i in range(3):
+        create_contact_person(i, default_organization)
+
+    with CaptureQueriesContext(connection) as ctx_small:
+        response = john_smith_api_client.get(LIST_ENDPOINT)
+        assert get_data_from_response(response, status_code=200)["count"] == 3
+
+    for i in range(3, 9):
+        create_contact_person(i, default_organization)
+
+    with CaptureQueriesContext(connection) as ctx_large:
+        response = john_smith_api_client.get(LIST_ENDPOINT)
+        assert get_data_from_response(response, status_code=200)["count"] == 9
+
+    assert len(ctx_small) == len(ctx_large), (
+        f"Query count grew from {len(ctx_small)} to {len(ctx_large)} with more contact persons (N+1 query)"
+    )

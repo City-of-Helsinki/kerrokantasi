@@ -29,6 +29,8 @@ from democracy.models import (
     Project,
     ProjectPhase,
     Section,
+    SectionPoll,
+    SectionPollOption,
 )
 from democracy.pagination import DefaultLimitPagination
 from democracy.renderers import GeoJSONRenderer
@@ -521,12 +523,23 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
     def get_sections(self, hearing):
         request = self.context["request"]
         queryset = hearing.sections.select_related("type").prefetch_related(
-            "polls",
             "translations",
+            Prefetch(
+                "polls",
+                SectionPoll.objects.prefetch_related(
+                    "translations",
+                    Prefetch(
+                        "options",
+                        SectionPollOption.objects.prefetch_related("translations"),
+                    ),
+                ),
+            ),
             Prefetch(
                 "images", image_qs_for_request(request).prefetch_related("translations")
             ),
-            Prefetch("files", file_qs_for_request(request)),
+            Prefetch(
+                "files", file_qs_for_request(request).prefetch_related("translations")
+            ),
         )
         if not hearing.closed:
             queryset = queryset.exclude(
@@ -621,11 +634,7 @@ class HearingMapSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "Supports filtering by various parameters including status, "
             "labels, and dates."
         ),
-        parameters=(
-            HEARING_ORDERING_PARAM
-            + BBOX_PARAM
-            + INCLUDE_PARAM
-        ),
+        parameters=(HEARING_ORDERING_PARAM + BBOX_PARAM + INCLUDE_PARAM),
     ),
     retrieve=extend_schema(
         summary="Get hearing details",

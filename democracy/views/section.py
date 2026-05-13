@@ -555,12 +555,27 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
             super()
             .get_queryset()
             .filter(hearing=self.hearing)
+            .select_related("type")
             .prefetch_related(
+                "translations",
+                Prefetch(
+                    "polls",
+                    SectionPoll.objects.prefetch_related(
+                        "translations",
+                        Prefetch(
+                            "options",
+                            SectionPollOption.objects.prefetch_related("translations"),
+                        ),
+                    ),
+                ),
                 Prefetch(
                     "images",
                     image_qs_for_request(self.request).prefetch_related("translations"),
                 ),
-                Prefetch("files", file_qs_for_request(self.request)),
+                Prefetch(
+                    "files",
+                    file_qs_for_request(self.request).prefetch_related("translations"),
+                ),
             )
         )
         if not self.hearing.closed:

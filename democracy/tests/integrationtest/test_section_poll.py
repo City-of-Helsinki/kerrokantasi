@@ -3,6 +3,9 @@ from copy import deepcopy
 from sys import platform
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
 
 from democracy.enums import Commenting
 from democracy.factories.poll import SectionPollFactory
@@ -602,6 +605,54 @@ def test_put_section_poll_answer(john_doe_api_client, default_hearing, geojson_f
     assert optionno.n_answers == 1
     for answer in data["answers"]:
         assert answer in updated_data["answers"]
+
+
+@pytest.mark.django_db
+def test_hearing_sections_poll_options_num_queries(api_client, default_hearing):
+    """Regression test: fetching sections must not cause N+1 queries for poll options."""
+    url = reverse("sections-list", kwargs={"hearing_pk": default_hearing.id})
+
+    for section in default_hearing.sections.all():
+        SectionPollFactory(section=section, option_count=3)
+
+    with CaptureQueriesContext(connection) as ctx_small:
+        response = api_client.get(url)
+        assert response.status_code == 200
+
+    for section in default_hearing.sections.all():
+        SectionPollFactory(section=section, option_count=3)
+
+    with CaptureQueriesContext(connection) as ctx_large:
+        response = api_client.get(url)
+        assert response.status_code == 200
+
+    assert len(ctx_small) == len(ctx_large), (
+        f"Query count grew from {len(ctx_small)} to {len(ctx_large)} (N+1 query)."
+    )
+
+
+@pytest.mark.django_db
+def test_hearing_detail_poll_options_num_queries(api_client, default_hearing):
+    """Regression test: fetching hearing detail must not cause N+1 queries for poll options."""
+    url = reverse("hearing-detail", kwargs={"pk": default_hearing.id})
+
+    for section in default_hearing.sections.all():
+        SectionPollFactory(section=section, option_count=3)
+
+    with CaptureQueriesContext(connection) as ctx_small:
+        response = api_client.get(url)
+        assert response.status_code == 200
+
+    for section in default_hearing.sections.all():
+        SectionPollFactory(section=section, option_count=3)
+
+    with CaptureQueriesContext(connection) as ctx_large:
+        response = api_client.get(url)
+        assert response.status_code == 200
+
+    assert len(ctx_small) == len(ctx_large), (
+        f"Query count grew from {len(ctx_small)} to {len(ctx_large)} (N+1 query)."
+    )
 
 
 @pytest.mark.django_db

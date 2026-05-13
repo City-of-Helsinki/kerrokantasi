@@ -759,8 +759,10 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
             )
 
         else:
-            hearing_qs = Hearing.objects.with_unpublished().select_related(
-                "organization", "project_phase__project"
+            hearing_qs = (
+                Hearing.objects.with_unpublished()
+                .select_related("organization", "project_phase__project")
+                .prefetch_related("translations")
             )
 
         qs = hearing_qs.prefetch_related(

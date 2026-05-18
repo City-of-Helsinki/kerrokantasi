@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.10.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.2...kerrokantasi-v2.10.3) (2026-05-18)
+
+
+### Performance Improvements
+
+* **api:** Eliminate N+1 queries for poll options ([b43bf1f](https://github.com/City-of-Helsinki/kerrokantasi/commit/b43bf1fbea858202bc806c91a172181bbd27913d))
+* **api:** Eliminate N+1 queries on /v1/hearing/map/ ([23e2808](https://github.com/City-of-Helsinki/kerrokantasi/commit/23e2808b786a9a8b4a900942cdd7be28c6899e2d))
+* **api:** Fix N+1 query on /v1/project/ endpoint ([b490c35](https://github.com/City-of-Helsinki/kerrokantasi/commit/b490c353ccc564a0e79ef5346482ba0fca9b967a))
+* **api:** Resolve N+1 query for contact persons list ([4e63c21](https://github.com/City-of-Helsinki/kerrokantasi/commit/4e63c21febbe4f4b62a6ecd2e92b2ea31d75e179))
+* **hearing-report:** Eliminate N+1 queries in hearing report generation ([8768e39](https://github.com/City-of-Helsinki/kerrokantasi/commit/8768e3922a2def6a77d70c42554093e004795586))
+
+
+### Dependencies
+
+* Bump authlib from 1.6.11 to 1.6.12 ([b4981ec](https://github.com/City-of-Helsinki/kerrokantasi/commit/b4981ec71b12b9a44ba9af6f8ee2d8be8a80c27d))
+
 ## [2.10.2](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.1...kerrokantasi-v2.10.2) (2026-05-11)
 
 

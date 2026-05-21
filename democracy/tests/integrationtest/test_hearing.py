@@ -1690,6 +1690,29 @@ def test_PUT_hearing_with_project_phase_is_active(
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
 
 
+# Test that a user can clear the project from a hearing via PUT with project: null
+@pytest.mark.django_db
+def test_PUT_hearing_clears_project(
+    valid_hearing_json_with_project, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json_with_project, format="json"
+    )
+    data = get_data_from_response(response, status_code=201)
+    assert data["project"] is not None
+    _update_hearing_data(data)
+
+    data["project"] = None
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, data["id"]), data=data, format="json"
+    )
+    updated_data = get_data_from_response(response, status_code=200)
+
+    assert updated_data["project"] is None
+    hearing = Hearing.objects.get(pk=updated_data["id"])
+    assert hearing.project_phase_id is None
+
+
 # Test that a user cannot PUT a hearing without the translation
 @pytest.mark.django_db
 def test_PUT_hearing_untranslated(valid_hearing_json, john_smith_api_client):
@@ -2062,6 +2085,27 @@ def test_PATCH_hearing_with_project_phase_is_active(
     assert data["closed"] is True
     for index, phase in enumerate(phases):
         assert data["project"]["phases"][index]["is_active"] == phase["is_active"]
+
+
+# Test that a user can clear the project from a hearing via PATCH with project: null
+@pytest.mark.django_db
+def test_PATCH_hearing_clears_project(
+    valid_hearing_json_with_project, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json_with_project, format="json"
+    )
+    data = get_data_from_response(response, status_code=201)
+    assert data["project"] is not None
+
+    response = john_smith_api_client.patch(
+        "%s%s/" % (endpoint, data["id"]), data={"project": None}, format="json"
+    )
+    updated_data = get_data_from_response(response, status_code=200)
+
+    assert updated_data["project"] is None
+    hearing = Hearing.objects.get(pk=updated_data["id"])
+    assert hearing.project_phase_id is None
 
 
 # Test that a user cannot PATCH a hearing without the translation

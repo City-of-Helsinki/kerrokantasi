@@ -15,6 +15,7 @@ from drf_spectacular.utils import (
 from rest_framework import filters, permissions, response, serializers, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from rest_framework.fields import empty
 from rest_framework.settings import api_settings
 
 from audit_log.utils import add_audit_logged_object_ids
@@ -276,12 +277,16 @@ class HearingCreateUpdateSerializer(
         """
         Create or update project associated to a hearing.
         Handles the following cases:
-            - Project is None
+            - Project is empty (field not sent) -> do nothing
+            - Project is None -> clear project_phase
             - A new project with phases is created
             - An existing project with phases is used
             - An existing project with phases is used, but modified
         """
+        if project_data is empty:
+            return None
         if project_data is None:
+            hearing.project_phase = None
             return None
 
         serializer_params = {
@@ -336,12 +341,14 @@ class HearingCreateUpdateSerializer(
                 "Only organization admins can update organization hearings."
             )
 
+        project_data = validated_data.pop("project", empty)
         if self.partial:
-            return super().update(instance, validated_data)
+            super().update(instance, validated_data)
+            self._create_or_update_project(instance, project_data)
+            return instance
 
         contact_person_data = validated_data.pop("contact_persons", None)
         sections_data = validated_data.pop("sections")
-        project_data = validated_data.pop("project", None)
         validated_data["modified_by_id"] = self.context["request"].user.id
         hearing = super().update(instance, validated_data)
         self._create_or_update_contact_persons(hearing, contact_person_data)

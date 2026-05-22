@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.4](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.3...kerrokantasi-v2.10.4) (2026-05-22)
+
+
+### Bug Fixes
+
+* **hearing:** Distinguish absent project field from null in PATCH/PUT ([691f9c7](https://github.com/City-of-Helsinki/kerrokantasi/commit/691f9c7b31c466b96e306575abdcd622ffa71175))
+
 ## [2.10.3](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.2...kerrokantasi-v2.10.3) (2026-05-18)
 
 

@@ -38,9 +38,6 @@ pr:
     - 'pipelines/kerrokantasi-api-dev.yml'
     - 'docker-compose*'
 
-# By default, use self-hosted agents
-pool: Default
-
 resources:
   repositories:
     # Azure DevOps repository

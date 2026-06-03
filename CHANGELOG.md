@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.5](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.4...kerrokantasi-v2.10.5) (2026-06-03)
+
+
+### Dependencies
+
+* Bump idna from 3.11 to 3.15 ([92c82e9](https://github.com/City-of-Helsinki/kerrokantasi/commit/92c82e9826e699183531727de87cb63404795eda))
+* Bump sqlparse from 0.5.3 to 0.5.4 ([71f5877](https://github.com/City-of-Helsinki/kerrokantasi/commit/71f5877f311a21232b0d030e31438e4af138a711))
+* Bump urllib3 from 2.6.3 to 2.7.0 ([6e8990a](https://github.com/City-of-Helsinki/kerrokantasi/commit/6e8990a307cebde7590223811aeee921ab0dc510))
+
 ## [2.10.4](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.3...kerrokantasi-v2.10.4) (2026-05-22)
 
 

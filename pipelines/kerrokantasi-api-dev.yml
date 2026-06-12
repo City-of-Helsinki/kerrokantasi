@@ -1,11 +1,3 @@
-parameters:
-  - name: region
-    displayName: Pool region
-    type: string
-    values:
-      - we
-      - se
-
 # Continuous integration (CI) triggers cause a pipeline to run whenever you push
 # an update to the specified branches or you push specified tags.
 trigger:
@@ -45,8 +37,7 @@ resources:
 extends:
   # Filename in Azure DevOps Repository
   template: components/kerrokantasi-api/pipelines/kerrokantasi-api-dev.yml@kerrokantasi-pipelines
-  parameters:
-    region: ${{ parameters.region }}
+  # parameters:
     # Application build arguments and config map values as key value pairs.
     # Does not contain all buildArguments or configMap values, the rest located in kerrokantasi-pipelines
     # Default value to pythonVersion is set on template.

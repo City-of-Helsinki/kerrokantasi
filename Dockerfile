@@ -1,5 +1,5 @@
 # Dockerfile for Kerrokantasi backend
-# Attemps to provide for both local development and server usage
+# Attempts to provide for both local development and server usage
 
 # branch or tag used to pull python-uwsgi-common.
 ARG UWSGI_COMMON_REF=main
@@ -9,33 +9,36 @@ FROM helsinki.azurecr.io/ubi9/python-312-gdal AS appbase
 # Re-define args, otherwise those aren't available after FROM directive.
 ARG UWSGI_COMMON_REF
 
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.32@sha256:df4cae8f3a96d175e2e5f992e597550000edbe78fdc2594d5cd8de1a217f504c /uv /uvx /usr/local/bin/
+
 WORKDIR /app
 
 USER root
 
 # Can be used to inquire about running app
 # eg. by running `echo $APP_NAME`
-ENV APP_NAME kerrokantasi
-# This is server out by Django itself, but aided
-# by whitenoise by adding cache headers and also delegating
-# much of the work to WSGI-server
-ENV STATIC_ROOT /srv/static
-# For some reason python output buffering buffers much longer
-# while in Docker. Maybe the buffer is larger?
-ENV PYTHONUNBUFFERED True
+ENV APP_NAME=kerrokantasi \
+    STATIC_ROOT=/srv/static \
+    PYTHONUNBUFFERED=True \
+    UV_PROJECT_ENVIRONMENT=/opt/app-root \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy \
+    UV_NO_CACHE=1 \
+    UV_PYTHON_DOWNLOADS=never
 
-# Generate Finnish locale
-RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8
+# Generate Finnish locale and install nmap-ncat for health checks
+RUN localedef -i fi_FI -f UTF-8 fi_FI.UTF-8 \
+    && dnf update -y \
+    && dnf install -y nmap-ncat \
+    && dnf clean all
 
-# Copy requirements files to image for preloading dependencies
+# Copy dependency files to image for preloading dependencies
 # in their own layer
-COPY requirements.txt .
+COPY pyproject.toml uv.lock ./
 
-RUN dnf update -y \
-    && dnf install -y nmap-ncat && \
-    dnf clean all && \
-    pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt
+# Install production dependencies (including prod group for uwsgi/uwsgitop)
+RUN uv sync --locked --no-dev --group prod
 
 # Build and copy specific python-uwsgi-common files.
 ADD https://github.com/City-of-Helsinki/python-uwsgi-common/archive/${UWSGI_COMMON_REF}.tar.gz /usr/src/
@@ -70,7 +73,7 @@ EXPOSE 8000
 # Next, the development & testing extras
 FROM appbase AS development
 
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN uv sync --locked --group prod
 
 USER default
 

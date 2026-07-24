@@ -129,11 +129,11 @@ SOCIAL_AUTH_TUNNISTAMO_OIDC_ENDPOINT=http://tunnistamo-backend:8000/openid
 0. Check you have "Prequisites" listed below
 1. Create database `kerrokantasi` with PostGIS (see "Prepare database" below)
 2. copy `config_dev.toml.example` to `config_dev.toml`. Check the contents (see "Configuration" below)
-3. prepare and activate virtualenv (See "Install" below)
-4. `pip install -r requirements.txt`
-5. `python manage.py compilemessages`
-6. `python manage.py collectstatic` (See "Choose directories for transpiled files" below)
-7. `python manage.py runserver` (See "Running in development" below)
+3. install dependencies with uv (See "Install" below)
+4. `uv sync`
+5. `uv run python manage.py compilemessages`
+6. `uv run python manage.py collectstatic` (See "Choose directories for transpiled files" below)
+7. `uv run python manage.py runserver` (See "Running in development" below)
 
 ## Installation
 
@@ -142,6 +142,7 @@ This applies to both development and simple production scale. Note that you won'
 ### Prerequisites
 
 - Python 3.12
+- [uv](https://docs.astral.sh/uv/) for dependency management
 - PostgreSQL with PostGIS extension
 - Application server implementing WSGI interface (fe. Gunicorn or uwsgi), not needed for development
 
@@ -193,27 +194,28 @@ Kerro kantasi code files can reside anywhere in the file system. Some convention
 
 For development a directory among your other projects is naturally a-ok. You probably already have this code in such a directory.
 
-### Prepare virtualenv
-
-Note that virtualenv can be created in many ways. `virtualenv` command shown here is old-fashioned but generally works well. See here for Python 3 native instructions: <https://docs.python.org/3/tutorial/venv.html>
-
-```sh
-     virtualenv -p python3 venv
-     source venv/bin/activate
-```
-
 ### Install required packages
 
-Install all required packages with pip command:
+This project uses [uv](https://docs.astral.sh/uv/) for dependency management.
+
+**Development** – installs all dependencies including dev tools:
 
 ```sh
-     pip install -r requirements.txt
+     uv sync
+```
+
+This will create a `.venv` virtual environment and install all dependencies from `uv.lock`.
+
+**Production** – installs production dependencies and the `prod` group (uwsgi, uwsgitop), excluding dev tools:
+
+```sh
+     uv sync --no-dev --group prod
 ```
 
 ### Compile translation .mo files
 
 ```sh
-     python manage.py compilemessages
+     uv run python manage.py compilemessages
 ```
 
 You will now need to configure Kerro kantasi. Read on.
@@ -238,7 +240,7 @@ Do note that nothing prevents you from using config_dev.toml in production if yo
 ### Running using development server
 
 Just execute the normal Django development server:
-`python manage.py runserver`
+`uv run python manage.py runserver`
 
 runserver will reload if you change any files in the source tree. No need to restart it (usually).
 
@@ -256,29 +258,30 @@ In addition you will need to server out static files separately. Configure your 
 
 ### Updating requirements
 
-Kerrokantasi uses two files for requirements. The workflow is as follows.
+Kerrokantasi uses [uv](https://docs.astral.sh/uv/) for dependency management. Dependencies are declared
+in `pyproject.toml` and locked in `uv.lock`.
 
-`requirements.txt` is not edited manually, but is generated
-with `pip-compile`.
+To add or update a dependency, edit `pyproject.toml` and run:
 
-`requirements.txt` always contains fully tested, pinned versions
-of the requirements. `requirements.in` contains the primary, unpinned
-requirements of the project without their dependencies.
+```sh
+uv lock
+```
 
-In production, deployments should always use `requirements.txt`
-and the versions pinned therein. In development, new virtualenvs
-and development environments should also be initialised using
-`requirements.txt`. `pip-sync` will synchronize the active
-virtualenv to match exactly the packages in `requirements.txt`.
+To upgrade all dependencies to their latest allowed versions:
 
-In development and testing, to update to the latest versions
-of requirements, use the command `pip-compile`. You can
-use [requires.io](https://requires.io) to monitor the
-pinned versions for updates.
+```sh
+uv lock --upgrade
+```
 
-To remove a dependency, remove it from `requirements.in`,
-run `pip-compile` and then `pip-sync`. If everything works
-as expected, commit the changes.
+To synchronize your local environment with the lock file:
+
+```sh
+uv sync
+```
+
+Production dependencies (excluding dev tools) are in `[project].dependencies`.
+Development dependencies are in `[dependency-groups].dev`.
+Server dependencies (uwsgi, uwsgitop) are in `[dependency-groups].prod`.
 
 ### Testing
 

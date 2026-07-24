@@ -25,6 +25,7 @@
 /*hack*py
 /.idea
 /venv*
+/.venv
 __pycache__/
 build/
 coverage.xml

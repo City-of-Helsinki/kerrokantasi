@@ -18,7 +18,6 @@
 !config_dev.toml
 !manage.py
 !pytest.ini
-!requirements*
-!setup.cfg
+!uv.lock
 !package.json
 !pyproject.toml

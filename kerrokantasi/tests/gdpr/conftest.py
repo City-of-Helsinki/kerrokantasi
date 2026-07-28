@@ -1,8 +1,8 @@
 import datetime
 
+import jwt
 import pytest
 from helusers.settings import api_token_auth_settings
-from jose import jwt
 
 from democracy.factories.hearing import HearingFactory, SectionCommentFactory
 from democracy.models import SectionComment
@@ -66,7 +66,7 @@ def get_api_token_for_user_with_scopes(user, scopes: list, requests_mock):
         "authorization": {"permissions": [{"scopes": scopes}]},
     }
     encoded_jwt = jwt.encode(
-        jwt_data, key=rsa_key.private_key_pem, algorithm=rsa_key.jose_algorithm
+        jwt_data, key=rsa_key.private_key_pem, algorithm=rsa_key.algorithm
     )
 
     requests_mock.get(config_url, json=configuration)

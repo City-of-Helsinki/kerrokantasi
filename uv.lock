@@ -57,11 +57,11 @@ wheels = [
 
 [[package]]
 name = "cachetools"
-version = "7.1.4"
+version = "7.1.6"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f4/8b/0d3945a13955303b81272f759a0331e54c5c793da455e6f5706b89d2639c/cachetools-7.1.4.tar.gz", hash = "sha256:437f55a4e0c1b01a4f3077cc470e6991d47430970e36fbcb77e2be0df4fc1cd6", size = 40085, upload-time = "2026-05-21T22:40:43.376Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/55/af/861ebc2e318a5c3300e3eb63bc4d30f3d70a46d13b360093728ac0705eed/cachetools-7.1.6.tar.gz", hash = "sha256:c7a79e7f30ba9943c1cefd08cc36f006aaae086e017af9166f1d59d6170c47e1", size = 40572, upload-time = "2026-07-23T22:47:53.737Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8c/7b/1fc1c09cc0756cf25861a3be10565915953876da48bb228fb9a672b20a42/cachetools-7.1.4-py3-none-any.whl", hash = "sha256:323dc4127934744db5b54eb4924482d7edafbf9554e820d1531c2e08c0e4ef54", size = 16761, upload-time = "2026-05-21T22:40:41.845Z" },
+    { url = "https://files.pythonhosted.org/packages/9f/f2/2086ba18a925a73586c4d4e61d25f4a6058e56fd00d77ce8f1d361ab4c9b/cachetools-7.1.6-py3-none-any.whl", hash = "sha256:2c12e255780330af28b91bb7fb96cce4c766f04e38396b9a24510190a5827096", size = 16954, upload-time = "2026-07-23T22:47:52.397Z" },
 ]
 
 [[package]]
@@ -79,11 +79,11 @@ wheels = [
 
 [[package]]
 name = "certifi"
-version = "2026.6.17"
+version = "2026.7.22"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c9/c7/424b75da314c1045981bd9777432fad05a9e0c69daa4ed7e308bbaffe405/certifi-2026.6.17.tar.gz", hash = "sha256:024c88eeec92ca068db80f02b8b07c9cef7b9fe261d1d535abfd5abd6f6af432", size = 134594, upload-time = "2026-06-17T10:31:07.894Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/c2/24167ea9858356b47a87a50d39908bfdb72ceeefe0041586e704e5376b3a/certifi-2026.7.22.tar.gz", hash = "sha256:741e2c3b351ddf169a738da9f2c048608ff7f2c5cc02f1ebc6b118bb090d5d55", size = 138112, upload-time = "2026-07-22T03:35:12.644Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ef/2f/c5464532e965badff2f4c4c1a3a83f5697f0d7c407ed0cda44aaa99bb451/certifi-2026.6.17-py3-none-any.whl", hash = "sha256:2227dcbaafe0d2f59279d1762ddddc37783ed4354594f194ffc31d20f41fc3db", size = 133289, upload-time = "2026-06-17T10:31:06.348Z" },
+    { url = "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl", hash = "sha256:62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775", size = 136983, upload-time = "2026-07-22T03:35:11.276Z" },
 ]
 
 [[package]]
@@ -362,12 +362,12 @@ wheels = [
 
 [[package]]
 name = "django-helsinki-notification"
-version = "0.4.0"
-source = { url = "https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.0.zip" }
+version = "0.4.2"
+source = { url = "https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.2.zip" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { hash = "sha256:c7f957718516eaeb79f08394a571744ea833660a3835f722ededfe1870da8c55" }
+sdist = { hash = "sha256:ae88069b23a63788e00f11e479b7965f90d3274991ac7a4367997451d3b582ba" }
 
 [package.optional-dependencies]
 rest-framework = [
@@ -377,7 +377,6 @@ rest-framework = [
 [package.metadata]
 requires-dist = [
     { name = "coverage", extras = ["toml"], marker = "extra == 'test'" },
-    { name = "coverage-enable-subprocess", marker = "extra == 'test'" },
     { name = "django", specifier = ">=4.2" },
     { name = "django-helsinki-notification", extras = ["rest-framework"], marker = "extra == 'all'" },
     { name = "django-helsinki-notification", extras = ["test"], marker = "extra == 'all'" },
@@ -388,27 +387,43 @@ requires-dist = [
     { name = "pytest-django", marker = "extra == 'test'" },
     { name = "pytest-factoryboy", marker = "extra == 'test'" },
     { name = "pytest-mock", marker = "extra == 'test'" },
-    { name = "pytest-randomly", marker = "extra == 'test'" },
-    { name = "pytest-rerunfailures", marker = "extra == 'test'" },
-    { name = "pytest-xdist", extras = ["psutil"], marker = "extra == 'test'" },
 ]
 provides-extras = ["test", "rest-framework", "all"]
 
 [[package]]
 name = "django-helusers"
-version = "1.1.0"
-source = { registry = "https://pypi.org/simple" }
+version = "1.2.0"
+source = { url = "https://github.com/City-of-Helsinki/django-helusers/archive/refs/tags/django-helusers-v1.2.0.zip" }
 dependencies = [
     { name = "cachetools" },
+    { name = "cryptography" },
     { name = "deprecation" },
     { name = "django" },
-    { name = "python-jose" },
+    { name = "pyjwt" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/65/8a3588eae515a7e6e59c112fcdbf20f137bca2f0f3b169533e763af4b9f7/django_helusers-1.1.0.tar.gz", hash = "sha256:73ef1c9f3050cbb3a4f3a35264f26807f60a00b66eef31d8b07cd1ffd61de965", size = 34722, upload-time = "2026-03-24T13:17:43.964Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b4/71/d219aa5845162c6bb1b9549912263212251a04cc99e1d0598f2ee8e85c29/django_helusers-1.1.0-py3-none-any.whl", hash = "sha256:5d6c4d0db11db633a031cfdcef6e754fb26c167d3e179d77882c2edecca60830", size = 43750, upload-time = "2026-03-24T13:17:42.207Z" },
+sdist = { hash = "sha256:aa5e4e420b2e6cb374a5abf22252257808ca0ba08801f03df0c3f8be2137f0cf" }
+
+[package.metadata]
+requires-dist = [
+    { name = "cachetools", specifier = ">=3.0.0" },
+    { name = "coverage", marker = "extra == 'test'" },
+    { name = "cryptography" },
+    { name = "deprecation", specifier = ">=2" },
+    { name = "django", specifier = ">=5.2" },
+    { name = "django-allauth", marker = "extra == 'test'" },
+    { name = "django-helusers", extras = ["test"], marker = "extra == 'all'" },
+    { name = "djangorestframework", marker = "extra == 'test'" },
+    { name = "pyjwt", specifier = ">=2" },
+    { name = "pytest", marker = "extra == 'test'" },
+    { name = "pytest-cov", marker = "extra == 'test'" },
+    { name = "pytest-django", marker = "extra == 'test'" },
+    { name = "pytest-mock", marker = "extra == 'test'" },
+    { name = "requests" },
+    { name = "responses", marker = "extra == 'test'" },
+    { name = "social-auth-app-django", marker = "extra == 'test'" },
 ]
+provides-extras = ["test", "all"]
 
 [[package]]
 name = "django-js-asset"
@@ -436,28 +451,15 @@ wheels = [
 
 [[package]]
 name = "django-logger-extra"
-version = "0.1.0"
-source = { url = "https://github.com/City-of-Helsinki/django-logger-extra/archive/refs/tags/v0.1.0.zip" }
+version = "1.1.2"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
 ]
-sdist = { hash = "sha256:90dc28c88cb26e9684873cf1951568abfa2cda454837fe342b2bf482847bf380" }
-
-[package.metadata]
-requires-dist = [
-    { name = "coverage", extras = ["toml"], marker = "extra == 'test'" },
-    { name = "coverage-enable-subprocess", marker = "extra == 'test'" },
-    { name = "django", specifier = ">=4.2" },
-    { name = "django-auditlog", marker = "extra == 'auditlog'" },
-    { name = "django-logger-extra", extras = ["auditlog"], marker = "extra == 'all'" },
-    { name = "django-logger-extra", extras = ["test"], marker = "extra == 'all'" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-django", marker = "extra == 'test'" },
-    { name = "pytest-randomly", marker = "extra == 'test'" },
-    { name = "pytest-rerunfailures", marker = "extra == 'test'" },
-    { name = "pytest-xdist", extras = ["psutil"], marker = "extra == 'test'" },
+sdist = { url = "https://files.pythonhosted.org/packages/fa/4a/401ce9c4e3ef8a453f84b198bf6904f9959a7567cdca65d2bff76c9c4cde/django_logger_extra-1.1.2.tar.gz", hash = "sha256:b86e2cbf5266997cceb7acb6b645b6916b9fc72cf466c71ef5b5eed672d5ed8b", size = 15776, upload-time = "2026-04-22T11:25:30.396Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e5/3b/b9339afaef62610f195ed5349b26a1c498cefcabfc2f58acde02a7ecec93/django_logger_extra-1.1.2-py2.py3-none-any.whl", hash = "sha256:d71004c4956577e7bff2e3745d9432f55172a6cf29de3f11179e015469ab4d26", size = 10222, upload-time = "2026-04-22T11:25:28.795Z" },
 ]
-provides-extras = ["test", "auditlog", "all"]
 
 [[package]]
 name = "django-mptt"
@@ -530,36 +532,16 @@ wheels = [
 
 [[package]]
 name = "django-resilient-logger"
-version = "0.3.7"
-source = { url = "https://github.com/City-of-Helsinki/django-resilient-logger/archive/refs/tags/v0.3.7.zip" }
+version = "2.3.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
-    { name = "elasticsearch" },
+    { name = "elasticsearch8" },
 ]
-sdist = { hash = "sha256:abc8c6dacfb1db8bb452e3991d0d820e6ca2a911fd62daca3847c2d9bf56beb7" }
-
-[package.metadata]
-requires-dist = [
-    { name = "coverage", extras = ["toml"], marker = "extra == 'all'" },
-    { name = "coverage", extras = ["toml"], marker = "extra == 'test'" },
-    { name = "coverage-enable-subprocess", marker = "extra == 'all'" },
-    { name = "coverage-enable-subprocess", marker = "extra == 'test'" },
-    { name = "django", specifier = ">=4.2" },
-    { name = "django-auditlog", marker = "extra == 'all'" },
-    { name = "django-auditlog", marker = "extra == 'auditlog'" },
-    { name = "elasticsearch", specifier = ">=8.0.0,<9.0.0" },
-    { name = "pytest", marker = "extra == 'all'" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-django", marker = "extra == 'all'" },
-    { name = "pytest-django", marker = "extra == 'test'" },
-    { name = "pytest-randomly", marker = "extra == 'all'" },
-    { name = "pytest-randomly", marker = "extra == 'test'" },
-    { name = "pytest-rerunfailures", marker = "extra == 'all'" },
-    { name = "pytest-rerunfailures", marker = "extra == 'test'" },
-    { name = "pytest-xdist", extras = ["psutil"], marker = "extra == 'all'" },
-    { name = "pytest-xdist", extras = ["psutil"], marker = "extra == 'test'" },
+sdist = { url = "https://files.pythonhosted.org/packages/80/72/23015ce1edbf1c409f14c5fda5e59d60287c23bf0c9645ead832afeb3c81/django_resilient_logger-2.3.0.tar.gz", hash = "sha256:4ed7790574964971c0d6300a1dca81f9ec16e5566340047788fb022fc588b13c", size = 24260, upload-time = "2026-05-27T07:24:01.745Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/85/37/a7984d971692f759c0f46dd2078d1e1f464814b6d79c691f18d72753d0e8/django_resilient_logger-2.3.0-py2.py3-none-any.whl", hash = "sha256:542d2a83f4e8ecc92555bcac1e5d9a10d257e5ba99338e4553e16fe167c6f91e", size = 23692, upload-time = "2026-05-27T07:24:00.109Z" },
 ]
-provides-extras = ["all", "auditlog", "test"]
 
 [[package]]
 name = "django-reversion"
@@ -657,18 +639,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ecdsa"
-version = "0.19.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/25/ca/8de7744cb3bc966c85430ca2d0fcaeea872507c6a4cf6e007f7fe269ed9d/ecdsa-0.19.2.tar.gz", hash = "sha256:62635b0ac1ca2e027f82122b5b81cb706edc38cd91c63dda28e4f3455a2bf930", size = 202432, upload-time = "2026-03-26T09:58:17.675Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/51/79/119091c98e2bf49e24ed9f3ae69f816d715d2904aefa6a2baa039a2ba0b0/ecdsa-0.19.2-py2.py3-none-any.whl", hash = "sha256:840f5dc5e375c68f36c1a7a5b9caad28f95daa65185c9253c0c08dd952bb7399", size = 150818, upload-time = "2026-03-26T09:58:15.808Z" },
-]
-
-[[package]]
 name = "elastic-transport"
 version = "8.19.0"
 source = { registry = "https://pypi.org/simple" }
@@ -682,7 +652,7 @@ wheels = [
 ]
 
 [[package]]
-name = "elasticsearch"
+name = "elasticsearch8"
 version = "8.19.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
@@ -690,9 +660,9 @@ dependencies = [
     { name = "python-dateutil" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6b/79/365e306017a9fcfbbefab1a3b588d2404bea8806b36766ff0f886509a20e/elasticsearch-8.19.3.tar.gz", hash = "sha256:e84dd618a220cac25b962790085045dd27ac72e01c0a5d81bd29a2d47a71f03f", size = 800298, upload-time = "2025-12-23T12:56:00.72Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/53/6a/1a7d54c1aee0a96870aa54375da4b4a6d5390dd767c917de58242d3d49b8/elasticsearch8-8.19.3.tar.gz", hash = "sha256:7effe95b360241b6d56ef68219037a90ad0f56723614db54bbe57d33058402f4", size = 800428, upload-time = "2025-12-23T12:56:01.961Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/56/0f/ac126833c385b06166d41c486e4911f58ad7791fd1a53dd6e0b8d16ff214/elasticsearch-8.19.3-py3-none-any.whl", hash = "sha256:fe1db2555811192e8a1be78b01234d0a49d32b185ea7eeeb6f059331dee32838", size = 952820, upload-time = "2025-12-23T12:55:56.796Z" },
+    { url = "https://files.pythonhosted.org/packages/90/ff/1033bf0048d8492c1bcfcf058511dff119895ba50888c7a6e364aa3b168f/elasticsearch8-8.19.3-py3-none-any.whl", hash = "sha256:4b52e59e68aea6f59bf37c28f6f4512333302dd8a52e26c17d0f10c076d833a1", size = 953171, upload-time = "2025-12-23T12:55:58.781Z" },
 ]
 
 [[package]]
@@ -718,14 +688,14 @@ wheels = [
 
 [[package]]
 name = "faker"
-version = "40.32.0"
+version = "40.36.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tzdata", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/42/cd/bfa4f0a397c4d34f5b6c8e7ac02832f9be5679a1f0c9a7642f2338e85a4e/faker-40.32.0.tar.gz", hash = "sha256:78271bfa3a0e982f1b90e1345b2b8f4a04a132864e0372262074e60c2cddd4ef", size = 2024472, upload-time = "2026-07-20T21:40:12.278Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/98/d2/026af1e002bbc6df534d1f8262b18ec79a974f928e9290bfbfdfe7c7b2af/faker-40.36.0.tar.gz", hash = "sha256:754048c76c03afa7de83eee8f4bcee3cf668cbb7d995f54a4e9678db7f110308", size = 2025903, upload-time = "2026-07-24T21:11:33.088Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/d1/2df16a41d5e3521442ac8713d0488235d54bb81a09d4fd1159e6dd7f3a41/faker-40.32.0-py3-none-any.whl", hash = "sha256:2fd913ad02dabbea84d729937db68f9ca9773dce93cec45f1fd6fe0fd1b41840", size = 2062161, upload-time = "2026-07-20T21:40:10.436Z" },
+    { url = "https://files.pythonhosted.org/packages/50/9a/b947ed175ce9a0dcb070ccf3607f0ce8720cfb5ed1a36166a150b2acd5af/faker-40.36.0-py3-none-any.whl", hash = "sha256:82b9497d9cfe017048075bcf969298a74b1b6e39f5e4dad1211085d1133f7b62", size = 2062829, upload-time = "2026-07-24T21:11:31.37Z" },
 ]
 
 [[package]]
@@ -955,14 +925,14 @@ requires-dist = [
     { name = "django-filter" },
     { name = "django-geojson" },
     { name = "django-helsinki-health-endpoints" },
-    { name = "django-helsinki-notification", extras = ["rest-framework"], url = "https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.0.zip" },
-    { name = "django-helusers" },
+    { name = "django-helsinki-notification", extras = ["rest-framework"], url = "https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.2.zip" },
+    { name = "django-helusers", url = "https://github.com/City-of-Helsinki/django-helusers/archive/refs/tags/django-helusers-v1.2.0.zip" },
     { name = "django-leaflet" },
-    { name = "django-logger-extra", url = "https://github.com/City-of-Helsinki/django-logger-extra/archive/refs/tags/v0.1.0.zip" },
+    { name = "django-logger-extra" },
     { name = "django-munigeo" },
     { name = "django-nested-admin" },
     { name = "django-parler", specifier = "<2.4" },
-    { name = "django-resilient-logger", url = "https://github.com/City-of-Helsinki/django-resilient-logger/archive/refs/tags/v0.3.7.zip" },
+    { name = "django-resilient-logger" },
     { name = "django-reversion" },
     { name = "django-sendfile2" },
     { name = "djangorestframework" },
@@ -1128,11 +1098,11 @@ wheels = [
 
 [[package]]
 name = "platformdirs"
-version = "4.10.1"
+version = "4.11.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/52/cd/4f25b2f95b23f5d2c9c1fe43e49841bff5800562149b2666afc09309aa8f/platformdirs-4.10.1.tar.gz", hash = "sha256:ceab4084426fe6319ce18e86deada8ab1b7487c7aee7040c55e277c9ae793695", size = 31678, upload-time = "2026-07-18T03:53:43.808Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/9b/560e4be8e26f6fd133a03630a8df0c663b9e8d61b4ade152b72005aec83b/platformdirs-4.11.0.tar.gz", hash = "sha256:0555d18370482847566ffabcaa53ad7c6c1c29f195989ae1ed634a05f76ea1e0", size = 31953, upload-time = "2026-07-21T13:09:36.565Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ec/73/6fd0bb9ce84138c3857f12e9de63bc901852975a092d545f18087a204aa2/platformdirs-4.10.1-py3-none-any.whl", hash = "sha256:0e4eff26be2d75293977f7cddc153fd9b8eaa7fb0c7b64ffe4076cb443117443", size = 22906, upload-time = "2026-07-18T03:53:42.576Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/68/d8d58938dfb1370b266a1a729e6d77a985be23689a0496498ee17b2cbf90/platformdirs-4.11.0-py3-none-any.whl", hash = "sha256:360ccded2b7fce0af0ff80cc8f5942a1c5d99b0e856033acb030bfc634709e74", size = 23247, upload-time = "2026-07-21T13:09:35.422Z" },
 ]
 
 [[package]]
@@ -1212,15 +1182,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/cd/05/0a34433a064256a578f1783a10da6df098ceaa4a57bbeaa96a6c0352786b/pure_eval-0.2.3.tar.gz", hash = "sha256:5f4e983f40564c576c7c8635ae88db5956bb2229d7e9237d03b3c0b0190eaf42", size = 19752, upload-time = "2024-07-21T12:58:21.801Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8e/37/efad0257dc6e593a18957422533ff0f87ede7c9c6ea010a2177d738fb82f/pure_eval-0.2.3-py3-none-any.whl", hash = "sha256:1db8e35b67b3d218d818ae653e27f06c3aa420901fa7b081ca98cbedc874e0d0", size = 11842, upload-time = "2024-07-21T12:58:20.04Z" },
-]
-
-[[package]]
-name = "pyasn1"
-version = "0.6.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a4/9a/23310166d960def5897e91fe20e5b724601b02a22e84ba1f94232c0b7f67/pyasn1-0.6.4.tar.gz", hash = "sha256:9c447d8431c947fe4c8febc4ed9e760bc29011a5b01e5c74b67025bd9fb8ce81", size = 151262, upload-time = "2026-07-09T01:12:33.988Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9a/3b/6163796d69c3977d1e4287bea4a6979161cbbdd170ebb430511e8e1999ce/pyasn1-0.6.4-py3-none-any.whl", hash = "sha256:deda9277cfd454080ec40b207fb6df82206a3a2688735233cdcd8d3d565f088b", size = 84410, upload-time = "2026-07-09T01:12:32.92Z" },
 ]
 
 [[package]]
@@ -1323,20 +1284,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
-]
-
-[[package]]
-name = "python-jose"
-version = "3.5.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "ecdsa" },
-    { name = "pyasn1" },
-    { name = "rsa" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c6/77/3a1c9039db7124eb039772b935f2244fbb73fc8ee65b9acf2375da1c07bf/python_jose-3.5.0.tar.gz", hash = "sha256:fb4eaa44dbeb1c26dcc69e4bd7ec54a1cb8dd64d3b4d81ef08d90ff453f2b01b", size = 92726, upload-time = "2025-05-28T17:31:54.288Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/c3/0bd11992072e6a1c513b16500a5d07f91a24017c5909b02c72c62d7ad024/python_jose-3.5.0-py2.py3-none-any.whl", hash = "sha256:abd1202f23d34dfad2c3d28cb8617b90acf34132c7afd60abd0b0b7d3cb55771", size = 34624, upload-time = "2025-05-28T17:31:52.802Z" },
 ]
 
 [[package]]
@@ -1501,28 +1448,16 @@ wheels = [
 ]
 
 [[package]]
-name = "rsa"
-version = "4.9.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyasn1" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/da/8a/22b7beea3ee0d44b1916c0c1cb0ee3af23b700b6da9f04991899d0c555d4/rsa-4.9.1.tar.gz", hash = "sha256:e7bdbfdb5497da4c07dfd35530e1a902659db6ff241e39d9953cad06ebd0ae75", size = 29034, upload-time = "2025-04-16T09:51:18.218Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/64/8d/0133e4eb4beed9e425d9a98ed6e081a55d195481b7632472be1af08d2f6b/rsa-4.9.1-py3-none-any.whl", hash = "sha256:68635866661c6836b8d39430f97a996acbd61bfa49406748ea243539fe239762", size = 34696, upload-time = "2025-04-16T09:51:17.142Z" },
-]
-
-[[package]]
 name = "sentry-sdk"
-version = "2.66.0"
+version = "2.66.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "certifi" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/ff/670abe04c5072719b5060ed93851d0d69525d60f8f2c5810f8becd58f9c1/sentry_sdk-2.66.0.tar.gz", hash = "sha256:9727d35aa83c56cd53294676fe65b96296a334c9ce107fa2142bd70f47acb265", size = 935745, upload-time = "2026-07-16T12:42:04.663Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7f/6f/d59cad0889d15fde85254cf58e701484de3f3f0406003b3197746910b19b/sentry_sdk-2.66.1.tar.gz", hash = "sha256:f882fb08710c5f8bfc603aafa3e901b384009a19cc3f76a572b863392ee81cdc", size = 940543, upload-time = "2026-07-22T12:26:54.553Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/bb/49b10783f29067da2eec179320617e94faf63196609de47aeab3c26c3325/sentry_sdk-2.66.0-py3-none-any.whl", hash = "sha256:096136c214c602be2b323524d30755dc5b30ec5a218a206207f33b12c05c6f11", size = 504769, upload-time = "2026-07-16T12:42:02.919Z" },
+    { url = "https://files.pythonhosted.org/packages/89/d3/726bd88f0eece09ddf431bea4c9191c18e7a8d070b854eb0014d447712ee/sentry_sdk-2.66.1-py3-none-any.whl", hash = "sha256:86002793161d9a95ef04bdd8d442e9bfece5d989b755f05d6360215094a7aff6", size = 505555, upload-time = "2026-07-22T12:26:52.71Z" },
 ]
 
 [[package]]
@@ -1545,16 +1480,16 @@ wheels = [
 
 [[package]]
 name = "social-auth-app-django"
-version = "6.0.0"
+version = "6.0.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "django" },
     { name = "social-auth-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e0/8e/60593750bf1e2734e9b2b3ff85b685038fcc35446c5541e08fa4cdec17b9/social_auth_app_django-6.0.0.tar.gz", hash = "sha256:421916bf136c77a8683cac7505a3b2ecf7d5c8ec18455ffa883f2cb5161847b1", size = 31297, upload-time = "2026-06-23T15:35:44.429Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cd/7a/5d3f1e4a90edaff35824864c233a3c6a291621cc9dd39c157431fbb6376d/social_auth_app_django-6.0.1.tar.gz", hash = "sha256:43002de0530e2ad13ef067f54aba7185a05fc8527310006c5328dc0b5e7a4cfd", size = 31664, upload-time = "2026-07-24T06:55:59.119Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/79/5ae902ba623c906cfd172a2ed21d2e481f7cb1752f89fb5ce305f387d40a/social_auth_app_django-6.0.0-py3-none-any.whl", hash = "sha256:6974cb00bb462149b8384448c0aff6fb8e6c2b00efacca40d0270695d416cceb", size = 29464, upload-time = "2026-06-23T15:35:43.462Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/e9/c0b06b90b76d02b8e45d6989d0adb947df9b6d9b37d3c96e486f2de37bdb/social_auth_app_django-6.0.1-py3-none-any.whl", hash = "sha256:652ec21105ef58a34ffd223a02c338bc03e5f56d357ee69c33283afd08442065", size = 29481, upload-time = "2026-07-24T06:55:58.115Z" },
 ]
 
 [[package]]

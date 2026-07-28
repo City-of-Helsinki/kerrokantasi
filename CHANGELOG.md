@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.10.6](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.5...kerrokantasi-v2.10.6) (2026-07-28)
+
+
+### Dependencies
+
+* Bump cryptography from 46.0.7 to 48.0.1 ([d29dfd2](https://github.com/City-of-Helsinki/kerrokantasi/commit/d29dfd2e54d50ade16b0196153d69f9c2267d49c))
+* Bump django from 5.2.14 to 5.2.15 ([6053926](https://github.com/City-of-Helsinki/kerrokantasi/commit/6053926d8d21f076fb1e3c65730bdd0993fca1ae))
+* Bump pillow from 12.2.0 to 12.3.0 ([edeb698](https://github.com/City-of-Helsinki/kerrokantasi/commit/edeb698b18b2ee1974a0cad4acdc8fd87d7b66d0))
+* Bump pip from 26.1 to 26.1.2 ([a319267](https://github.com/City-of-Helsinki/kerrokantasi/commit/a319267bc2c013102b7607fc3fe9e14832329d58))
+* Bump pyasn1 from 0.6.3 to 0.6.4 ([3d1daa1](https://github.com/City-of-Helsinki/kerrokantasi/commit/3d1daa15756db0afebbad32b81b8936d6971bd6e))
+* Bump pyjwt from 2.12.0 to 2.13.0 ([4b6d65b](https://github.com/City-of-Helsinki/kerrokantasi/commit/4b6d65beeee7cc53dafb79b3f92787ed9d67b248))
+* Bump setuptools from 80.9.0 to 83.0.0 ([8a8fcc8](https://github.com/City-of-Helsinki/kerrokantasi/commit/8a8fcc881de0834bfa4c90942c94630fd0d6e8e6))
+* Uv upgrade ([9a7a930](https://github.com/City-of-Helsinki/kerrokantasi/commit/9a7a930735941dbf820c9ac53dc31a7ac8d1d985))
+* Uv upgrade ([df32b5e](https://github.com/City-of-Helsinki/kerrokantasi/commit/df32b5ecac3df9aca98b699c396c6a33ee90bb5e))
+* Uv upgrade ([eeae82a](https://github.com/City-of-Helsinki/kerrokantasi/commit/eeae82ab900a5e262b4e52609d1e3c684ebbe3b0))
+* Uv upgrade ([5698d93](https://github.com/City-of-Helsinki/kerrokantasi/commit/5698d9381076ee8d58a1e4242d6c963b29feb90e))
+* Uv upgrade ([ae1946a](https://github.com/City-of-Helsinki/kerrokantasi/commit/ae1946a345524543efc31c814fb48de352643b4a))
+* Uv upgrade ([aae60fe](https://github.com/City-of-Helsinki/kerrokantasi/commit/aae60fe7cdeceaa0ea4347d77ae55d7a69def570))
+* Uv upgrade ([1d84891](https://github.com/City-of-Helsinki/kerrokantasi/commit/1d84891711ba50587222eb8c4bfa9e2932029f03))
+* Uv upgrade ([58ee8c5](https://github.com/City-of-Helsinki/kerrokantasi/commit/58ee8c546c20b46d48bf13f47536395c4451d391))
+* Uv upgrade ([be6b28a](https://github.com/City-of-Helsinki/kerrokantasi/commit/be6b28aef6daa2fbc354eb7ba6ec708ad3d1aa97))
+* Uv upgrade ([a4734d5](https://github.com/City-of-Helsinki/kerrokantasi/commit/a4734d5779a6059b5ecbc3b639df50718490cbe9))
+* Uv upgrade ([b6abfbb](https://github.com/City-of-Helsinki/kerrokantasi/commit/b6abfbb6c7c47fe9c9d35a1ba4becbdbd1c41b02))
+* Uv upgrade ([93af277](https://github.com/City-of-Helsinki/kerrokantasi/commit/93af277467a4a6f040a2d35b20650654ffaef2ba))
+
 ## [2.10.5](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.4...kerrokantasi-v2.10.5) (2026-06-03)
 
 

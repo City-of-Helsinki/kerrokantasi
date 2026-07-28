@@ -14,3 +14,6 @@ AUDIT_LOG = {
     "ENABLED": False,
     "ORIGIN": "kerrokantasi",
 }
+
+RESILIENT_LOGGER = globals()["RESILIENT_LOGGER"]
+RESILIENT_LOGGER["environment"] = "test"

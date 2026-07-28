@@ -7,7 +7,9 @@ from typing import Iterable, Mapping
 from django.utils.dateparse import parse_datetime
 from PIL import Image
 from resilient_logger.models import ResilientLogEntry
-from resilient_logger.sources import ResilientLogSource
+from resilient_logger.sources.resilient_log_source_entry import (
+    ResilientLogSourceEntry,
+)
 
 from audit_log.enums import Operation, Status
 from democracy.models.files import BaseFile
@@ -237,7 +239,7 @@ def assert_audit_log_entry(
 ):
     assert ResilientLogEntry.objects.count() == count
     audit_log_entry = ResilientLogEntry.objects.order_by("-created_at").first()
-    log_source = ResilientLogSource(audit_log_entry)
+    log_source = ResilientLogSourceEntry(audit_log_entry)
     document = log_source.get_document()
 
     assert path in document["audit_event"]["target"]["path"]

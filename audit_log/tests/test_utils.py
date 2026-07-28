@@ -8,7 +8,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
 from freezegun import freeze_time
 from resilient_logger.models import ResilientLogEntry
-from resilient_logger.sources import ResilientLogSource
+from resilient_logger.sources.resilient_log_source_entry import (
+    ResilientLogSourceEntry,
+)
 from rest_framework import status
 
 from audit_log.enums import Operation, Role, Status
@@ -25,7 +27,7 @@ from kerrokantasi.tests.factories import UserFactory
 User = get_user_model()
 
 
-def _assert_basic_log_source_data(log_source: ResilientLogSource):
+def _assert_basic_log_source_data(log_source: ResilientLogSourceEntry):
     current_time = datetime.now(tz=timezone.utc)
     iso_8601_date = f"{current_time.replace(tzinfo=None).isoformat(sep='T', timespec='milliseconds')}Z"
 
@@ -98,7 +100,7 @@ def test_commit_to_audit_log_response_status(status_code, audit_status):
 
     assert ResilientLogEntry.objects.count() == 1
     log_entry = ResilientLogEntry.objects.first()
-    log_source = ResilientLogSource(log_entry)
+    log_source = ResilientLogSourceEntry(log_entry)
     document = log_source.get_document()
     assert document["audit_event"]["message"] == audit_status
     assert document["audit_event"]["extra"]["status"] == audit_status
@@ -135,7 +137,7 @@ def test_commit_to_audit_log_crud_operations(http_method, audit_operation):
 
     assert ResilientLogEntry.objects.count() == 1
     log_entry = ResilientLogEntry.objects.first()
-    log_source = ResilientLogSource(log_entry)
+    log_source = ResilientLogSourceEntry(log_entry)
     document = log_source.get_document()
     assert document["audit_event"]["operation"] == audit_operation
     assert document["audit_event"]["target"]["path"] == "/v1/endpoint"
@@ -170,7 +172,7 @@ def test_commit_to_audit_log_actor_data(user_role, audit_role):
 
     assert ResilientLogEntry.objects.count() == 1
     log_entry = ResilientLogEntry.objects.first()
-    log_source = ResilientLogSource(log_entry)
+    log_source = ResilientLogSourceEntry(log_entry)
     document = log_source.get_document()
 
     assert document["audit_event"]["actor"]["role"] == audit_role

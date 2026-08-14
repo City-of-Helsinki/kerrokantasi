@@ -851,7 +851,7 @@ wheels = [
 
 [[package]]
 name = "kerrokantasi"
-version = "2.10.6"
+version = "2.10.7"
 source = { virtual = "." }
 dependencies = [
     { name = "django" },

@@ -465,15 +465,17 @@ class SectionCreateUpdateSerializer(
         poll_has_answers = poll.n_answers > 0
         if not poll_has_answers:
             return
-        try:
-            old_poll_data = SectionPollSerializer(poll).data
-            assert compare_serialized(old_poll_data["text"], poll_data["text"])
-            assert len(old_poll_data["options"]) == len(poll_data["options"])
+        old_poll_data = SectionPollSerializer(poll).data
+        text_unchanged = compare_serialized(old_poll_data["text"], poll_data["text"])
+        options_unchanged = len(old_poll_data["options"]) == len(
+            poll_data["options"]
+        ) and all(
+            compare_serialized(old_option["text"], option["text"])
             for old_option, option in zip(
                 old_poll_data["options"], poll_data["options"]
-            ):
-                assert compare_serialized(old_option["text"], option["text"])
-        except AssertionError:
+            )
+        )
+        if not (text_unchanged and options_unchanged):
             raise ValidationError(
                 "Poll with ID %s has answers - editing it is not allowed"
                 % repr(poll.pk)

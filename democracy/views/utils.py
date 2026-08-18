@@ -436,9 +436,7 @@ class TranslatableSerializer(serializers.Serializer):
         for field in self.Meta.translated_fields:
             translations = {}
             if not self.partial:
-                translations = {
-                    lang_code: "" for lang_code in self.Meta.translation_lang
-                }
+                translations = dict.fromkeys(self.Meta.translation_lang, "")
             translations.update(translated_data.get(field, {}))
 
             for lang_code, value in translations.items():

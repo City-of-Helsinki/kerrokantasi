@@ -214,10 +214,10 @@ class BaseCommentViewSet(
             serializer_class=self.edit_serializer_class, data=request.data
         )
         serializer.is_valid(raise_exception=True)
-        kwargs = {}
+        save_kwargs = {}
         if self.request.user.is_authenticated:
-            kwargs["created_by"] = self.request.user
-        comment = serializer.save(**kwargs)
+            save_kwargs["created_by"] = self.request.user
+        comment = serializer.save(**save_kwargs)
         add_audit_logged_object_ids(self.request, serializer.instance)
         reversion.set_comment("Comment created")
         # and another for the response

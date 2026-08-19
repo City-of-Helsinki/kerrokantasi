@@ -29,7 +29,9 @@ dependencies = [
     "langdetect",
     "sentry-sdk",
     "whitenoise",
-    "social-auth-app-django",
+    # Pin below 6.0.0: 6.x makes social login views POST-only, breaking the
+    # admin Keycloak login GET link (405). See CHANGELOG for social-app-django 6.0.0.
+    "social-auth-app-django>=5.9,<6",
     "python-pptx",
     "helsinki-profile-gdpr-api",
     "django-helsinki-notification[rest_framework] @ https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.2.zip",

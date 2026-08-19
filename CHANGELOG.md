@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.8](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.7...kerrokantasi-v2.10.8) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** Pin social-auth-app-django below 6.0.0 ([985b63f](https://github.com/City-of-Helsinki/kerrokantasi/commit/985b63f803dd409ebc524c4665b757735d3925c5))
+
 ## [2.10.7](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.6...kerrokantasi-v2.10.7) (2026-08-14)
 
 

@@ -543,15 +543,15 @@ class SectionCommentViewSet(BaseCommentViewSet):
                 {
                     "section": [
                         _(
-                            "The comment section has to be specified in URL or by JSON section or comment field."  # noqa: E501
+                            "The comment section has to be specified in URL or by "
+                            "JSON section or comment field."
                         )
                     ]
                 }
             )
 
-        # Unauthenticated user can answer polls in hearings that have open commenting. The following if statement should  # noqa: E501
-        # never be true as unauthenticated users can't post comments if the
-        # hearing doesn't have open commenting.
+        # Unauthenticated users can answer polls only in hearings with open
+        # commenting. This should normally be unreachable for POST requests.
         if (
             len(request.data.get("answers", [])) > 0
             and not request.user.is_authenticated
@@ -559,7 +559,10 @@ class SectionCommentViewSet(BaseCommentViewSet):
         ):
             return response.Response(
                 {
-                    "status": "Unauthenticated users cannot answer polls in hearings that do not have open commenting."  # noqa: E501
+                    "status": (
+                        "Unauthenticated users cannot answer polls in hearings "
+                        "that do not have open commenting."
+                    )
                 },
                 status=status.HTTP_403_FORBIDDEN,
             )

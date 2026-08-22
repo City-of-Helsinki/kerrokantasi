@@ -48,20 +48,13 @@ def get_powerpoint_title_font_size(text: str, is_main_title: bool = True) -> int
     """Returns correct font size for a powerpoint title"""
     text_length = len(text)
     if is_main_title:
-        if text_length <= 40:
-            return Pt(56)
-        if text_length <= 60:
-            return Pt(40)
-        if text_length <= 90:
-            return Pt(36)
-        if text_length <= 160:
-            return Pt(28)
-        return Pt(24)
+        font_sizes = ((40, 56), (60, 40), (90, 36), (160, 28))
+        default_font_size = 24
     else:
-        if text_length <= 100:
-            return Pt(50)
-        if text_length <= 120:
-            return Pt(44)
-        if text_length <= 200:
-            return Pt(36)
-        return Pt(28)
+        font_sizes = ((100, 50), (120, 44), (200, 36))
+        default_font_size = 28
+    font_size = next(
+        (size for max_length, size in font_sizes if text_length <= max_length),
+        default_font_size,
+    )
+    return Pt(font_size)

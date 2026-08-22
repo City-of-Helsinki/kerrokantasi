@@ -37,9 +37,9 @@ class Select2SelectMultiple(SelectMultiple):
         )
 
     def render(self, name, value, attrs=None, renderer=None):
-        id = attrs.get("id", "id_%s" % name)
+        widget_id = attrs.get("id", "id_%s" % name)
         output = [
             super(Select2SelectMultiple, self).render(name, value, attrs, renderer),
-            self.SCRIPT_TEMPLATE.format(id=id),
+            self.SCRIPT_TEMPLATE.format(id=widget_id),
         ]
         return mark_safe("".join(output))

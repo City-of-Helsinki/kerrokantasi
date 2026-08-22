@@ -236,19 +236,21 @@ class BaseCommentViewSet(
         Comment editing is only possible if the comment is created by user OR
         if the user has is_staff rights AND is the creator of the hearing that this comment is in.
         """  # noqa: E501
-        if not instance.can_edit(request):
-            return response.Response(
-                {
-                    "status": "You do not have sufficient rights to edit a comment not owned by you."  # noqa: E501
-                },
-                status=status.HTTP_403_FORBIDDEN,
+        can_edit = instance.can_edit(request)
+        author_name_changed = (
+            request.user.is_authenticated
+            and "author_name" in request.data
+            and request.data["author_name"] != instance.author_name
+        )
+        if not can_edit or author_name_changed:
+            message = (
+                "You do not have sufficient rights to edit a comment not owned by you."
+                if not can_edit
+                else "Authenticated users cannot set author name."
             )
-        if request.user.is_authenticated and "author_name" in request.data:
-            if request.data["author_name"] != instance.author_name:
-                return response.Response(
-                    {"status": "Authenticated users cannot set author name."},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+            return response.Response(
+                {"status": message}, status=status.HTTP_403_FORBIDDEN
+            )
 
         extra_params = {}
         # Comment has beed edited

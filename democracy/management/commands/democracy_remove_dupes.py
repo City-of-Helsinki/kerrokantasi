@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Count
 
 from democracy.models import SectionComment
@@ -60,6 +60,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if not options.pop("nothing_can_go_wrong", False):
-            raise Exception("You don't know what you're doing.")
+            raise CommandError("You don't know what you're doing.")
 
         self._remove_dupes(SectionComment)

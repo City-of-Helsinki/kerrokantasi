@@ -239,20 +239,23 @@ class SectionCommentSerializer(BaseCommentSerializer):
         # Hide content if comment was deleted
 
         if not obj.deleted:
-            return obj.content
+            content = obj.content
         elif obj.deleted_by_id is not None and obj.deleted_by_id == obj.created_by_id:
-            return "Kirjoittaja poisti oman viestinsä."
+            content = "Kirjoittaja poisti oman viestinsä."
         elif obj.deleted_at:
             deleted_time = (
                 f" {obj.deleted_at.strftime('%-d.%-m.%Y %H:%M')}"
                 if obj.deleted_at is not None
                 else ""
             )
-            return (
-                f"Viesti on poistettu{deleted_time}, koska se ei noudattanut Kerrokantasi-palvelun sääntöjä "  # noqa: E501
+            content = (
+                f"Viesti on poistettu{deleted_time}, koska se ei noudattanut "
+                f"Kerrokantasi-palvelun sääntöjä "
                 f"{urljoin(settings.DEMOCRACY_UI_BASE_URL, '/info')}"
             )
-        return "Viesti on poistettu."
+        else:
+            content = "Viesti on poistettu."
+        return content
 
     def get_answers(self, obj):
         polls_by_id = {}

@@ -227,12 +227,14 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
             return True
         if not user.is_authenticated:
             return False
-        if user.is_superuser:
-            return True
-        user_organization = user.get_default_organization()
-        if not (user_organization and self.organization):
-            return False
-        return self.organization in user.admin_organizations.all()
+        user_organization = None
+        if not user.is_superuser:
+            user_organization = user.get_default_organization()
+        return user.is_superuser or (
+            user_organization
+            and self.organization
+            and self.organization in user.admin_organizations.all()
+        )
 
     def soft_delete(self, user=None):
         # we want deleted hearings to give way to new ones, the original slug from a deleted hearing  # noqa: E501

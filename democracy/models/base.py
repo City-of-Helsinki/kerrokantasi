@@ -213,12 +213,7 @@ class Commentable(models.Model):
                     code="commenting_registered",
                 )
         elif self.commenting == Commenting.STRONG:
-            if not is_authenticated:
-                raise ValidationError(
-                    _("%s requires strong authentication for commenting") % self,
-                    code="commenting_registered_strong",
-                )
-            elif (
+            if not is_authenticated or (
                 not request.user.has_strong_auth
                 and not request.user.get_default_organization()
             ):
@@ -250,12 +245,7 @@ class Commentable(models.Model):
                     code="voting_registered",
                 )
         elif self.voting == Commenting.STRONG:
-            if not is_authenticated:
-                raise ValidationError(
-                    _("%s requires strong authentication for voting") % self,
-                    code="voting_registered_strong",
-                )
-            elif (
+            if not is_authenticated or (
                 not request.user.has_strong_auth
                 and not request.user.get_default_organization()
             ):

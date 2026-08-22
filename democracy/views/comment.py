@@ -50,9 +50,8 @@ class BaseCommentSerializer(CreatedBySerializer, serializers.ModelSerializer):
     def to_representation(self, instance):
         r = super().to_representation(instance)
         request = self.context.get("request", None)
-        if request:
-            if request.GET.get("include", None) == "plugin_data":
-                r["plugin_data"] = instance.plugin_data
+        if request and request.GET.get("include", None) == "plugin_data":
+            r["plugin_data"] = instance.plugin_data
         return r
 
     def get_author_name(self, obj):

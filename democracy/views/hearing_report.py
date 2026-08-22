@@ -146,9 +146,12 @@ class HearingReport(object):
     def add_section_comments(self, section, section_worksheet):
         """
         # noqa: E501
-        Author |  Email  | Content        | Subcontent     | Created | Votes | Label   | Map comment        | Geojson    | Images
-        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
-        "name" | "email" | "comment text" | "comment text" | "date"  | num   | "label" | "map comment text" | "geo data" | "url"
+        Author | Email | Content | Subcontent | Created | Votes | Label |
+        Map comment | Geojson | Images
+        "name" | "email" | "comment text" | "comment text" | "date" | num |
+        "label" | "map comment text" | "geo data" | "url"
+        "name" | "email" | "comment text" | "comment text" | "date" | num |
+        "label" | "map comment text" | "geo data" | "url"
         """  # noqa: E501
 
         # add comments title
@@ -221,7 +224,8 @@ class HearingReport(object):
     def add_comment_row(self, comment, section_worksheet):
         """
         # noqa: E501
-        "name" | "email" | "comment text" | "comment text" | "date" | num | "label" | "map comment text" | "geo data" | "url"
+        "name" | "email" | "comment text" | "comment text" | "date" | num |
+        "label" | "map comment text" | "geo data" | "url"
         """  # noqa: E501
         row = self.section_worksheet_active_row
         col_index = 0

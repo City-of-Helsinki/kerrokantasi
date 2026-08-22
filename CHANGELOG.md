@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.9](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.8...kerrokantasi-v2.10.9) (2026-08-22)
+
+
+### Dependencies
+
+* Bump sqlparse from 0.5.5 to 0.6.0 ([3eb459a](https://github.com/City-of-Helsinki/kerrokantasi/commit/3eb459a31a12fd747ef11de0b86c344a7a6efbe2))
+
 ## [2.10.8](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.7...kerrokantasi-v2.10.8) (2026-08-19)
 
 

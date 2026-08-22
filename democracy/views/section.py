@@ -597,9 +597,8 @@ class RootSectionImageSerializer(
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance:
-            if "section" in self.fields:
-                self.fields["section"].required = False
+        if self.instance and "section" in self.fields:
+            self.fields["section"].required = False
 
     class Meta(SectionImageCreateUpdateSerializer.Meta):
         fields = SectionImageCreateUpdateSerializer.Meta.fields + [

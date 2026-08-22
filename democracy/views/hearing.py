@@ -851,7 +851,6 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         # add follower
         hearing.followers.add(request.user)
 
-        # return success
         return response.Response(
             {"status": "You follow a hearing now"}, status=status.HTTP_201_CREATED
         )

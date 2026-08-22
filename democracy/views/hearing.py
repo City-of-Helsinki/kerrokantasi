@@ -802,14 +802,15 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
         )
         return qs
 
-    def get_object(self):
+    def get_object(self, skip_log_ids=False):
         id_or_slug = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
 
         queryset = self.filter_queryset(self.get_queryset())
 
         try:
             obj = queryset.get_by_id_or_slug(id_or_slug)
-            add_audit_logged_object_ids(self.request, obj)
+            if not skip_log_ids:
+                add_audit_logged_object_ids(self.request, obj)
         except Hearing.DoesNotExist:
             raise NotFound()
 

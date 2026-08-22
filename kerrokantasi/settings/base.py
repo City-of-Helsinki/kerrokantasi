@@ -4,6 +4,7 @@ import os
 import environ
 import sentry_sdk
 from corsheaders.defaults import default_headers
+from django.core.exceptions import ImproperlyConfigured
 from sentry_sdk.integrations.django import DjangoIntegration
 from sentry_sdk.types import SamplingContext
 
@@ -480,7 +481,9 @@ SECURE_PROXY_SSL_HEADER = env("SECURE_PROXY_SSL_HEADER")
 # Django SECRET_KEY setting, used for password reset links and such
 SECRET_KEY = env("SECRET_KEY")
 if not DEBUG and not SECRET_KEY:
-    raise Exception("In production, SECRET_KEY must be provided in the environment.")
+    raise ImproperlyConfigured(
+        "In production, SECRET_KEY must be provided in the environment."
+    )
 # If a secret key was not supplied elsewhere, generate a random one and print
 # a warning (logging is not configured yet?). This means that any functionality
 # expecting SECRET_KEY to stay same will break upon restart. Should not be a

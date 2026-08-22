@@ -135,9 +135,9 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
         try:
             # Filter by organization name if organization exists.
             organization = Organization.objects.get(name=value)
-            return queryset.filter(organization=organization)
         except Organization.DoesNotExist:
-            return queryset
+            organization = None
+        return queryset.filter(organization=organization) if organization else queryset
 
     class Meta:
         model = Hearing
@@ -432,15 +432,13 @@ class HearingCreateUpdateSerializer(
             return None
 
         main_image = main_section.images.first()
-        if not main_image:
-            return None
-
-        if main_image.published or self.context["request"].user.is_superuser:
+        if main_image and (
+            main_image.published or self.context["request"].user.is_superuser
+        ):
             return SectionImageSerializer(
                 context=self.context, instance=main_image
             ).data
-        else:
-            return None
+        return None
 
     def get_default_to_fullscreen(self, hearing):
         main_section = self._get_main_section(hearing)

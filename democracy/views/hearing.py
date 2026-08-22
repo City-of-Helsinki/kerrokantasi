@@ -563,15 +563,13 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             return None
 
         main_image = main_section.images.first()
-        if not main_image:
-            return None
-
-        if main_image.published or self.context["request"].user.is_superuser:
+        if main_image and (
+            main_image.published or self.context["request"].user.is_superuser
+        ):
             return SectionImageSerializer(
                 context=self.context, instance=main_image
             ).data
-        else:
-            return None
+        return None
 
     def get_default_to_fullscreen(self, hearing):
         main_section = self._get_main_section(hearing)

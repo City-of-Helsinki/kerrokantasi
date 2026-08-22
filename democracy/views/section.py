@@ -1091,10 +1091,10 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
 
 class ServeFileView(View, SingleObjectMixin):
     def dispatch(self, request, *args, **kwargs):
-        self.model = self.get_model(request, *args, **kwargs)
+        self.model = self.get_model(**kwargs)
         return super(ServeFileView, self).dispatch(request, *args, **kwargs)
 
-    def get_model(self, request, *args, **kwargs):
+    def get_model(self, **kwargs):
         filetype = kwargs.get("filetype", None)
         if filetype == "sectionimage":
             return SectionImage

@@ -285,14 +285,16 @@ class SectionCommentSerializer(BaseCommentSerializer):
 
         if not obj.deleted:
             # Not deleted
-            return None
+            deleted_by_type = None
         elif obj.deleted_by_id is not None and obj.deleted_by_id == obj.created_by_id:
             # Deleted by user themselves
-            return "self"
+            deleted_by_type = "self"
         elif obj.deleted_by_id is not None and obj.deleted_at is not None:
-            return "moderator"
-        # No information about who deleted the comment
-        return "unknown"
+            deleted_by_type = "moderator"
+        else:
+            # No information about who deleted the comment
+            deleted_by_type = "unknown"
+        return deleted_by_type
 
     @cached_property
     def request(self):

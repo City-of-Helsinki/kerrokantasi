@@ -64,7 +64,7 @@ class SectionType(BaseModel):
     def save(self, *args, **kwargs):
         # prevent initial type editing
         if self.identifier in INITIAL_SECTION_TYPE_IDS:
-            raise Exception("Initial section types cannot be edited.")
+            raise ValueError("Initial section types cannot be edited.")
         return super().save(*args, **kwargs)
 
 
@@ -403,13 +403,13 @@ class SectionComment(Commentable, BaseComment, SerializableMixin):
         # we may create a comment by referring to another comment instead of
         # section explicitly
         if not (self.section_id or self.comment_id):
-            raise Exception(
+            raise ValueError(
                 "Section comment must refer to section or another section comment."
             )
         if not self.section_id:
             self.section_id = self.comment.section_id
         if self.comment_id and self.section_id != self.comment.section_id:
-            raise Exception(
+            raise ValueError(
                 "Comment must belong to the same section as the original comment."
             )
         super().save(*args, **kwargs)

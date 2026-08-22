@@ -973,16 +973,12 @@ class HearingViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelV
             )
         hearing = self.get_object()
         if hearing.published:
+            message = "Cannot DELETE published hearing."
+        elif hearing.n_comments > 0:
+            message = "Cannot DELETE hearing with comments."
+        else:
+            hearing.soft_delete(user=request.user)
             return response.Response(
-                {"status": "Cannot DELETE published hearing."},
-                status=status.HTTP_403_FORBIDDEN,
+                {"status": "Hearing deleted"}, status=status.HTTP_200_OK
             )
-        if hearing.n_comments > 0:
-            return response.Response(
-                {"status": "Cannot DELETE hearing with comments."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        hearing.soft_delete(user=request.user)
-        return response.Response(
-            {"status": "Hearing deleted"}, status=status.HTTP_200_OK
-        )
+        return response.Response({"status": message}, status=status.HTTP_403_FORBIDDEN)

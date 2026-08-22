@@ -30,6 +30,9 @@ def delete_data(user: get_user_model(), dry_run: bool) -> Optional[ErrorResponse
     :param dry_run: a boolean telling if this is a dry run of the function or not
     """  # noqa: E501
 
+    if dry_run:
+        return None
+
     user.nickname = ""
     user.first_name = ""
     user.last_name = ""

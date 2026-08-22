@@ -165,9 +165,11 @@ class BaseCommentViewSet(
             return queryset.exclude(published=False)
 
     def create_related(self, request, instance=None):
+        # Subclasses can create related objects after the comment is saved.
         pass
 
     def update_related(self, request, instance=None):
+        # Subclasses can update related objects after the comment is saved.
         pass
 
     def _check_may_comment(self, request):

@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.conf import settings
 from django.utils.dateparse import parse_datetime
 from pptx.util import Pt
@@ -20,7 +18,7 @@ def get_default_translation(field: dict, lang_code: str):
     return ""
 
 
-def get_selected_language(lang: Union[str, None]) -> str:
+def get_selected_language(lang: str | None) -> str:
     """Returns a supported language code based on given lang param or fi by default"""
     if lang == "en":
         return "en"

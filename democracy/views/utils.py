@@ -132,11 +132,11 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
     def to_representation(self, obj):
         if self.expanded:
             return self.related_serializer(obj, context=self.context).data
-        id = super(NestedPKRelatedField, self).to_representation(obj)
-        if id is None:
+        object_id = super(NestedPKRelatedField, self).to_representation(obj)
+        if object_id is None:
             return None
         return {
-            "id": id,
+            "id": object_id,
         }
 
     def to_internal_value(self, value):
@@ -147,13 +147,13 @@ class NestedPKRelatedField(PrimaryKeyRelatedField):
         if "id" not in value:
             raise ValidationError(self.missing_id_error % {"data": value})
 
-        id = value["id"]
-        if not id:
+        object_id = value["id"]
+        if not object_id:
             if self.required:
                 raise ValidationError(self.missing_id_error % {"data": value})
             return None
 
-        return super().to_internal_value(id)
+        return super().to_internal_value(object_id)
 
 
 class GeoJSONField(serializers.JSONField):
@@ -221,11 +221,11 @@ class Base64ImageField(serializers.ImageField):
         if isinstance(data, str) and data.startswith("data:image"):
             # base64 encoded image - decode
             try:
-                format, imgstr = data.split(";base64,")
+                media_type, imgstr = data.split(";base64,")
             except ValueError:
                 raise ValidationError(_("Not a valid base64 image."))
 
-            ext = format.split("/")[-1]  # guess file extension
+            ext = media_type.split("/")[-1]  # guess file extension
 
             data = ContentFile(
                 base64.b64decode(imgstr), name="%s.%s" % (get_random_string(8), ext)
@@ -250,11 +250,11 @@ class Base64FileField(serializers.FileField):
         if isinstance(data, str) and data.startswith("data:application"):
             # base64 encoded file - decode
             try:
-                format, filestr = data.split(";base64,")
+                media_type, filestr = data.split(";base64,")
             except ValueError:
                 raise ValidationError(_("Not a valid base64 file."))
 
-            ext = format.split("/")[-1]  # guess file extension
+            ext = media_type.split("/")[-1]  # guess file extension
 
             data = ContentFile(
                 base64.b64decode(filestr), name="%s.%s" % (get_random_string(8), ext)

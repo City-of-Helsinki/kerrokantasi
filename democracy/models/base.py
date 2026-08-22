@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import models
 from django.db.models import ManyToOneRel
 from django.utils import timezone
@@ -102,10 +102,8 @@ class BaseModel(models.Model):
         if pk_type == "CharField":
             if not self.pk:
                 self.pk = generate_id()
-        elif pk_type == "AutoField":
-            pass
-        else:  # pragma: no cover
-            raise Exception("Unsupported primary key field: %s" % pk_type)
+        elif pk_type != "AutoField":  # pragma: no cover
+            raise ImproperlyConfigured("Unsupported primary key field: %s" % pk_type)
         if not kwargs.pop("no_modified_at_update", False):
             # Useful for importing, etc.
             self.modified_at = timezone.now()

@@ -341,7 +341,6 @@ class BaseCommentViewSet(
         add_audit_logged_object_ids(self.request, comment)
         # update number of votes
         comment.recache_n_votes()
-        # return success
         return response.Response(
             {"status": "Vote has been added"}, status=status.HTTP_201_CREATED
         )
@@ -414,7 +413,6 @@ class BaseCommentViewSet(
             add_audit_logged_object_ids(self.request, comment)
             # update number of votes
             comment.recache_n_votes()
-            # return success
             return response.Response(
                 {"status": "Removed vote"}, status=status.HTTP_204_NO_CONTENT
             )

@@ -403,13 +403,14 @@ LOGGING = {
     },
 }
 
+_DEMOCRACY_PLUGIN_CLASS = "democracy.plugins.Plugin"
 DEMOCRACY_PLUGINS = {
     # TODO: Create an actual class for this once we know the data format
-    "mapdon-hkr": "democracy.plugins.Plugin",
-    "mapdon-ksv": "democracy.plugins.Plugin",
-    "mapdon-ksv-visualize": "democracy.plugins.Plugin",
-    "map-bikeracks": "democracy.plugins.Plugin",
-    "map-winterbiking": "democracy.plugins.Plugin",
+    "mapdon-hkr": _DEMOCRACY_PLUGIN_CLASS,
+    "mapdon-ksv": _DEMOCRACY_PLUGIN_CLASS,
+    "mapdon-ksv-visualize": _DEMOCRACY_PLUGIN_CLASS,
+    "map-bikeracks": _DEMOCRACY_PLUGIN_CLASS,
+    "map-winterbiking": _DEMOCRACY_PLUGIN_CLASS,
 }
 
 PARLER_DEFAULT_LANGUAGE_CODE = "en"

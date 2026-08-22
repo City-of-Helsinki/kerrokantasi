@@ -22,6 +22,10 @@ from rest_framework.relations import (
 )
 from rest_framework.utils import encoders
 
+INVALID_TRANSLATION_FORMAT = _(
+    'Not a valid translation format. Expecting {"lang_code": %(data)s}'
+)
+
 
 def get_translation_list(obj, language_codes=None):
     """
@@ -336,12 +340,7 @@ class TranslatableSerializer(serializers.Serializer):
         if data is None:
             return
         if not isinstance(data, dict):
-            raise ValidationError(
-                _(
-                    'Not a valid translation format. Expecting {"lang_code": %(data)s}'
-                    % {"data": data}
-                )
-            )
+            raise ValidationError(INVALID_TRANSLATION_FORMAT % {"data": data})
         for lang in data:
             if lang not in self.Meta.translation_lang:
                 raise ValidationError(
@@ -385,18 +384,12 @@ class TranslatableSerializer(serializers.Serializer):
                     try:
                         ret[field] = json.loads(v)
                     except json.decoder.JSONDecodeError:
-                        errors[field] = _(
-                            'Not a valid translation format. Expecting {"lang_code": %(data)s}'  # noqa: E501
-                            % {"data": v}
-                        )
+                        errors[field] = INVALID_TRANSLATION_FORMAT % {"data": v}
                 elif isinstance(v, dict):
                     # as well as JSON objects
                     ret[field] = v
                 else:
-                    errors[field] = _(
-                        'Not a valid translation format. Expecting {"lang_code": %(data)s}'  # noqa: E501
-                        % {"data": v}
-                    )
+                    errors[field] = INVALID_TRANSLATION_FORMAT % {"data": v}
 
         if errors:
             # can't raise ValidationError here

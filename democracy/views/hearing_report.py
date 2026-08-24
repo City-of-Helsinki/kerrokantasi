@@ -39,7 +39,8 @@ class HearingReport(object):
         )
         self.hearing_worksheet_active_row += 1
 
-    def _get_default_translation(self, field):
+    @staticmethod
+    def _get_default_translation(field):
         lang = settings.LANGUAGE_CODE
         if field.get(lang):
             return field.get(lang)
@@ -518,7 +519,8 @@ class HearingReport(object):
     # Mitigate formula injection
     # Prefix cell content starting with =, +, -, " or @ with single quote (').
     # The prefix will make the content be read as text instead of formula.
-    def mitigate_cell_formula_injection(self, cell_content):
+    @staticmethod
+    def mitigate_cell_formula_injection(cell_content):
         unallowed_characters = ["=", "+", "-", '"', "@"]
         if cell_content and len(cell_content) > 0:
             if cell_content[0] in unallowed_characters:

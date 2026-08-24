@@ -605,7 +605,7 @@ class HearingListSerializer(HearingSerializer):
         request = self.context.get("request", None)
         if request:
             accepted_renderer = getattr(request, "accepted_renderer", None)
-            if not request.GET.get("include", None) == "geojson" and not isinstance(
+            if request.GET.get("include", None) != "geojson" and not isinstance(
                 accepted_renderer, GeoJSONRenderer
             ):
                 fields.pop("geojson")

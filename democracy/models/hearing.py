@@ -162,7 +162,7 @@ class Hearing(StringIdBaseModel, TranslatableModel, SerializableMixin):
 
     @property
     def closed(self):
-        return self.force_closed or not (self.open_at <= now() <= self.close_at)
+        return self.force_closed or not self.open_at <= now() <= self.close_at
 
     def check_commenting(self, request):
         if self.closed:

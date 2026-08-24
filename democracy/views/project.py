@@ -168,12 +168,12 @@ class ProjectCreateUpdateSerializer(
         [
             self._create_phase(phase, project)
             for phase in phases_data
-            if phase.get("id") not in existing_phases.keys()
+            if phase.get("id") not in existing_phases
         ]
         updated_phases = [
             self._update_phase(existing_phases[phase["id"]], phase, project)
             for phase in phases_data
-            if phase.get("id") in existing_phases.keys()
+            if phase.get("id") in existing_phases
         ]
         # existing phases missing from updated phases are to be deleted
         deleted_phases = set(existing_phases.values()) - set(updated_phases)

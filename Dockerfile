@@ -56,14 +56,9 @@ COPY . .
 
 # Statics are kept inside container image for serving using whitenoise
 ENV DEBUG=True
-RUN mkdir -p /srv/static && python manage.py collectstatic
-
-# Keep media in its own directory outside home, in case home
-# directory forms some sort of attack route
-# Usually this would be some sort of volume
-RUN mkdir -p /srv/media && chown -R default:root /srv/media
-
-RUN chown -R default:root /app
+RUN mkdir -p /srv/static && python manage.py collectstatic && \
+    mkdir -p /srv/media && chown -R default:root /srv/media && \
+    chown -R default:root /app
 
 ENTRYPOINT ["/app/deploy/entrypoint.sh"]
 

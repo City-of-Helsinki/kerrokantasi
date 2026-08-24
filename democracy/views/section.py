@@ -137,7 +137,7 @@ class ThumbnailImageSerializer(BaseImageSerializer):
             width = height = 0
         if not (width > 0 and height > 0):
             raise ValueError("width and height must be positive integers")
-        return (width, height)
+        return width, height
 
 
 class SectionImageSerializer(ThumbnailImageSerializer, TranslatableSerializer):

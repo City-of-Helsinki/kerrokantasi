@@ -10,7 +10,8 @@ class Plugin(object):
     #: The user-friendly displayable name for this plugin.
     display_name = None
 
-    def clean_client_data(self, data):
+    @staticmethod
+    def clean_client_data(data):
         """
         Validate and transmogrify client (comment) data.
 

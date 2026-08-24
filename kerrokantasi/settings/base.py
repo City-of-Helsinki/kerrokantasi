@@ -497,7 +497,7 @@ if not SECRET_KEY:
     SECRET_KEY = "".join(
         [
             system_random.choice("abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)")
-            for i in range(64)
+            for _ in range(64)
         ]
     )
 

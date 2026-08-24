@@ -528,7 +528,8 @@ class HearingReport(object):
 
         return cell_content
 
-    def strip_html_tags(self, text: str) -> str:
+    @staticmethod
+    def strip_html_tags(text: str) -> str:
         """Strips html tags from given text and returns the result"""
-        strip = re.compile("<.*?>")
+        strip = re.compile("<[^>]*>")
         return re.sub(strip, "", text)

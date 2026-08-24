@@ -12,7 +12,7 @@ def get_default_translation(field: dict, lang_code: str):
     lang = lang_code if lang_code else settings.LANGUAGE_CODE
     if field.get(lang):
         return field.get(lang)
-    for _, value in field.items():
+    for value in field.values():
         if value:
             return value
     return ""

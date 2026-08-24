@@ -37,9 +37,11 @@ from democracy.utils.translations import get_translations_dict
 
 CLOSURE_INFO_ORDERING = -10000
 
-INITIAL_SECTION_TYPE_IDS = set(
-    value for key, value in InitialSectionType.__dict__.items() if key[:1] != "_"
-)
+INITIAL_SECTION_TYPE_IDS = {
+    value
+    for key, value in InitialSectionType.__dict__.items()
+    if not key.startswith("_")
+}
 
 logger = logging.getLogger(__name__)
 

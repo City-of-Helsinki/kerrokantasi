@@ -354,7 +354,7 @@ class HearingCreateUpdateSerializer(
         self._create_or_update_contact_persons(hearing, contact_person_data)
         sections = self._create_or_update_sections(hearing, sections_data)
         self._create_or_update_project(hearing, project_data)
-        new_section_ids = set([section.id for section in sections])
+        new_section_ids = {section.id for section in sections}
         for section in hearing.sections.exclude(id__in=new_section_ids):
             for image in section.images.all():
                 image.soft_delete()

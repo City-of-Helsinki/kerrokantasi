@@ -4,12 +4,12 @@ from django.conf import settings
 from django.core.signals import setting_changed
 from django.dispatch import receiver
 
-_defaults = dict(
-    ENABLED=True,
-    LOGGED_ENDPOINTS_RE=re.compile(r"^/(v1|gdpr-api)/"),
-    REQUEST_AUDIT_LOG_VAR="_audit_logged_object_ids",
-    LOG_TO_LOGGER_ENABLED=False,
-)
+_defaults = {
+    "ENABLED": True,
+    "LOGGED_ENDPOINTS_RE": re.compile(r"^/(v1|gdpr-api)/"),
+    "REQUEST_AUDIT_LOG_VAR": "_audit_logged_object_ids",
+    "LOG_TO_LOGGER_ENABLED": False,
+}
 
 _import_strings = []
 

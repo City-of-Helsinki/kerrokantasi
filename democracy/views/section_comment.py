@@ -154,7 +154,7 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
                 raise ValidationError(detail=detail)
             attrs["plugin_identifier"] = section.plugin_identifier
         if not any(
-            [attrs.get(field) for field in SectionComment.fields_to_check_for_data]
+            attrs.get(field) for field in SectionComment.fields_to_check_for_data
         ):
             raise ValidationError(
                 "You must supply at least one of the following data in a comment: "

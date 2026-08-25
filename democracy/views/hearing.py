@@ -153,7 +153,7 @@ class HearingSerializerMixin:
     def get_abstract(self, hearing):
         main_section = self._get_main_section(hearing)
         if not main_section:
-            return ""
+            return {}
         translations = {
             t.language_code: t.abstract
             for t in get_translation_list(

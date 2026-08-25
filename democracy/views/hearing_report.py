@@ -81,7 +81,8 @@ class HearingReport(object):
         self.add_hearing_row("Comments", str(self.json["n_comments"]))
         self.add_hearing_row("Sections", str(len(self.json["sections"])))
 
-    def _get_formatted_sheet_name(self, section_name: str, section_index: int) -> str:
+    @staticmethod
+    def _get_formatted_sheet_name(section_name: str, section_index: int) -> str:
         """
         Returns a sheet name with correct char length, without special chars
         and numbering for subsections to avoid duplicate name errors.

@@ -318,7 +318,7 @@ class TranslatableSerializer(serializers.Serializer):
         if "translations" in (
             cache := getattr(instance, "_prefetched_objects_cache", {})
         ):
-            translations = [translation for translation in cache["translations"]]
+            translations = list(cache["translations"])
             translations.sort(key=attrgetter("language_code"))
 
         else:

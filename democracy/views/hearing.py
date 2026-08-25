@@ -144,8 +144,55 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
         fields = ["published", "open_at_lte", "open_at_gt", "title", "label"]
 
 
+class HearingSerializerMixin:
+    def _get_main_section(self, hearing):
+        prefetched_mains = getattr(hearing, "main_section_list", [])
+        return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
+
+    def get_abstract(self, hearing):
+        main_section = self._get_main_section(hearing)
+        if not main_section:
+            return ""
+        translations = {
+            t.language_code: t.abstract
+            for t in get_translation_list(
+                main_section, language_codes=self.Meta.translation_lang
+            )
+        }
+        abstract = {}
+        for lang_code, translation in translations.items():
+            if translation:
+                abstract[lang_code] = translation
+        return abstract
+
+    def get_main_image(self, hearing):
+        main_section = self._get_main_section(hearing)
+        if not main_section:
+            return None
+
+        main_image = main_section.images.first()
+        if main_image and (
+            main_image.published or self.context["request"].user.is_superuser
+        ):
+            return SectionImageSerializer(
+                context=self.context, instance=main_image
+            ).data
+        return None
+
+    def get_default_to_fullscreen(self, hearing):
+        main_section = self._get_main_section(hearing)
+        return main_section.plugin_fullscreen if main_section else False
+
+    def get_preview_url(self, hearing):
+        is_public = hearing.published and hearing.open_at < timezone.now()
+        if not is_public:
+            return hearing.preview_url
+        else:
+            return None
+
+
 class HearingCreateUpdateSerializer(
-    serializers.ModelSerializer, TranslatableSerializer
+    HearingSerializerMixin, serializers.ModelSerializer, TranslatableSerializer
 ):
     labels = NestedPKRelatedField(
         queryset=Label.objects.all(),
@@ -406,51 +453,6 @@ class HearingCreateUpdateSerializer(
         """
         return [phase for phase in project_data["phases"] if phase["is_active"] is True]
 
-    def _get_main_section(self, hearing):
-        prefetched_mains = getattr(hearing, "main_section_list", [])
-        return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
-
-    def get_abstract(self, hearing):
-        main_section = self._get_main_section(hearing)
-        if not main_section:
-            return ""
-        translations = {
-            t.language_code: t.abstract
-            for t in get_translation_list(
-                main_section, language_codes=self.Meta.translation_lang
-            )
-        }
-        abstract = {}
-        for lang_code, translation in translations.items():
-            if translation:
-                abstract[lang_code] = translation
-        return abstract
-
-    def get_main_image(self, hearing):
-        main_section = self._get_main_section(hearing)
-        if not main_section:
-            return None
-
-        main_image = main_section.images.first()
-        if main_image and (
-            main_image.published or self.context["request"].user.is_superuser
-        ):
-            return SectionImageSerializer(
-                context=self.context, instance=main_image
-            ).data
-        return None
-
-    def get_default_to_fullscreen(self, hearing):
-        main_section = self._get_main_section(hearing)
-        return main_section.plugin_fullscreen if main_section else False
-
-    def get_preview_url(self, hearing):
-        is_public = hearing.published and hearing.open_at < timezone.now()
-        if not is_public:
-            return hearing.preview_url
-        else:
-            return None
-
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["sections"] = SectionSerializer(
@@ -465,7 +467,9 @@ class HearingCreateUpdateSerializer(
         return data
 
 
-class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
+class HearingSerializer(
+    HearingSerializerMixin, serializers.ModelSerializer, TranslatableSerializer
+):
     labels = LabelSerializer(many=True, read_only=True)
     sections = serializers.SerializerMethodField()
     geojson = GeoJSONField()
@@ -505,26 +509,6 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
         read_only_fields = ["preview_url"]
         translation_lang = [lang["code"] for lang in settings.PARLER_LANGUAGES[None]]
 
-    def _get_main_section(self, hearing):
-        prefetched_mains = getattr(hearing, "main_section_list", [])
-        return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
-
-    def get_abstract(self, hearing):
-        main_section = self._get_main_section(hearing)
-        if not main_section:
-            return ""
-        translations = {
-            t.language_code: t.abstract
-            for t in get_translation_list(
-                main_section, language_codes=self.Meta.translation_lang
-            )
-        }
-        abstract = {}
-        for lang_code, translation in translations.items():
-            if translation:
-                abstract[lang_code] = translation
-        return abstract
-
     def get_sections(self, hearing):
         request = self.context["request"]
         queryset = hearing.sections.select_related("type").prefetch_related(
@@ -556,31 +540,6 @@ class HearingSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "sections", self
         )  # this is needed to get context in the serializer
         return serializer.to_representation(queryset)
-
-    def get_main_image(self, hearing):
-        main_section = self._get_main_section(hearing)
-        if not main_section:
-            return None
-
-        main_image = main_section.images.first()
-        if main_image and (
-            main_image.published or self.context["request"].user.is_superuser
-        ):
-            return SectionImageSerializer(
-                context=self.context, instance=main_image
-            ).data
-        return None
-
-    def get_default_to_fullscreen(self, hearing):
-        main_section = self._get_main_section(hearing)
-        return main_section.plugin_fullscreen if main_section else False
-
-    def get_preview_url(self, hearing):
-        is_public = hearing.published and hearing.open_at < timezone.now()
-        if not is_public:
-            return hearing.preview_url
-        else:
-            return None
 
     def get_project(self, hearing):
         if hearing.project_phase is None:

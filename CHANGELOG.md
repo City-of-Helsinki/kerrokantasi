@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.10.9](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.8...kerrokantasi-v2.10.9) (2026-08-25)
+
+
+### Bug Fixes
+
+* Add comments explaining why methods are empty ([584232b](https://github.com/City-of-Helsinki/kerrokantasi/commit/584232bdeb78eb86749b1516faefa765229f4124))
+* Add missing parameter skip_log_ids ([14f50a6](https://github.com/City-of-Helsinki/kerrokantasi/commit/14f50a6d14b23e98943d4334237ca2e96cfd0281))
+* Handle GDPR dry runs explicitly ([9835b78](https://github.com/City-of-Helsinki/kerrokantasi/commit/9835b78fdeb4735dcf1b83c78daf0d26fd83c3ff))
+* Ignore personal github skills directory ([5e1c86c](https://github.com/City-of-Helsinki/kerrokantasi/commit/5e1c86c90f99b05857e36859a4ca49f4d7512639))
+* Quote Docker archive path ([10d90a2](https://github.com/City-of-Helsinki/kerrokantasi/commit/10d90a2c949e44a4fbb71c85559e82ea48f8133a))
+* Raise command errors explicitly ([3ebaa80](https://github.com/City-of-Helsinki/kerrokantasi/commit/3ebaa80d494e8c9947241f1cdfb53e02bf6bbaf6))
+* Raise configuration errors explicitly ([e70ca6f](https://github.com/City-of-Helsinki/kerrokantasi/commit/e70ca6f51d46cf5eadb4224a696ae5632780a237))
+* Raise configuration errors explicitly ([a96680e](https://github.com/City-of-Helsinki/kerrokantasi/commit/a96680e2b246aaa30271684bc9a28f046c142c7b))
+* Use specific section validation errors ([bc216e8](https://github.com/City-of-Helsinki/kerrokantasi/commit/bc216e88392a7aaaf181c5eecb33d2410e57376d))
+
+
+### Dependencies
+
+* Bump sqlparse from 0.5.5 to 0.6.0 ([3eb459a](https://github.com/City-of-Helsinki/kerrokantasi/commit/3eb459a31a12fd747ef11de0b86c344a7a6efbe2))
+
+
+### Reverts
+
+* Wrap hearing report documentation ([89bc390](https://github.com/City-of-Helsinki/kerrokantasi/commit/89bc39006d711ac5fc46789dd10cae95b5943178))
+
 ## [2.10.8](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.7...kerrokantasi-v2.10.8) (2026-08-19)
 
 

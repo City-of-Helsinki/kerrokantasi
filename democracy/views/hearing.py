@@ -145,7 +145,8 @@ class HearingFilterSet(django_filters.rest_framework.FilterSet):
 
 
 class HearingSerializerMixin:
-    def _get_main_section(self, hearing):
+    @staticmethod
+    def _get_main_section(hearing):
         prefetched_mains = getattr(hearing, "main_section_list", [])
         return prefetched_mains[0] if prefetched_mains else hearing.get_main_section()
 
@@ -183,7 +184,8 @@ class HearingSerializerMixin:
         main_section = self._get_main_section(hearing)
         return main_section.plugin_fullscreen if main_section else False
 
-    def get_preview_url(self, hearing):
+    @staticmethod
+    def get_preview_url(hearing):
         is_public = hearing.published and hearing.open_at < timezone.now()
         if not is_public:
             return hearing.preview_url

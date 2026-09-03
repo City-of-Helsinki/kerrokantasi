@@ -35,7 +35,7 @@ resources:
     # Azure DevOps repository
     - repository: kerrokantasi-pipelines
       type: git
-      ref: sweden_PLATTA-7451
+      ref: sweden_PLATTA-7451 
       # Azure DevOps project/repository
       name: kerrokantasi/kerrokantasi-pipelines
 

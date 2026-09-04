@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.10](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.9...kerrokantasi-v2.10.10) (2026-09-04)
+
+
+### Dependencies
+
+* Bump djangorestframework from 3.17.1 to 3.17.2 ([eae8c89](https://github.com/City-of-Helsinki/kerrokantasi/commit/eae8c89a03022e772d946639ea88e922cef28818))
+
 ## [2.10.9](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.8...kerrokantasi-v2.10.9) (2026-08-25)
 
 

@@ -25,7 +25,7 @@ parameters:
   - name: deployTest
     displayName: Deploy test environment
     type: boolean
-    default: true
+    default: false
 
 # By default, use self-hosted agents
 pool: Default

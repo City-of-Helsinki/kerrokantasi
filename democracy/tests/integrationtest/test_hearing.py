@@ -9,6 +9,7 @@ from django.utils.timezone import now
 
 from audit_log.enums import Operation
 from democracy.enums import InitialSectionType
+from democracy.factories.hearing import SectionImageFactory
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
     ContactPerson,
@@ -1175,6 +1176,22 @@ def test_POST_save_hearing_as_new(valid_hearing_json, john_smith_api_client):
         assert (a := get_nested(hearing, keys)) != (
             b := get_nested(new_hearing, keys)
         ), f'{keys} should not match ("{a}" == "{b}")'
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_orphan_image(valid_hearing_json, john_smith_api_client):
+    orphan_image = SectionImageFactory(
+        section=None, created_by=john_smith_api_client.user
+    )
+    hearing_data = deepcopy(valid_hearing_json)
+    hearing_data["sections"][1]["images"] = [{"id": orphan_image.pk}]
+
+    response = john_smith_api_client.post(endpoint, data=hearing_data, format="json")
+    data = get_data_from_response(response, status_code=201)
+
+    orphan_image.refresh_from_db()
+    assert orphan_image.section_id == data["sections"][1]["id"]
+    assert data["sections"][1]["images"][0]["id"] == orphan_image.pk
 
 
 @pytest.mark.django_db

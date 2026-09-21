@@ -378,12 +378,14 @@ class SectionCreateUpdateSerializer(
                     raise ValidationError(
                         "No image with ID %s available in this section" % pk
                     )
+                self._validate_orphan_image_access(image)
             elif reference_id := image_data.get("reference_id"):
                 # Create a new SectionImage based on an existing image.
                 try:
                     image = SectionImage.objects.get(pk=reference_id)
                 except SectionImage.DoesNotExist:
                     raise ValidationError("Image %s does not exist" % reference_id)
+                self._validate_orphan_image_access(image)
                 image.pk = None
 
             serializer = SectionImageCreateUpdateSerializer(
@@ -395,6 +397,20 @@ class SectionCreateUpdateSerializer(
             image_data["serializer"] = serializer
 
         return data
+
+    def _validate_orphan_image_access(self, image):
+        if image.section is not None:
+            return
+
+        if (request := self.context.get("request")) and (
+            request.user.is_superuser
+            or (
+                request.user.is_authenticated and image.created_by_id == request.user.id
+            )
+        ):
+            return
+
+        raise ValidationError("You do not have access to this unattached image")
 
     def validate_files(self, data):
         for index, file_data in enumerate(data):
@@ -594,7 +610,9 @@ class RootSectionImageSerializer(
     Serializer for root level SectionImage endpoint /v1/image/
     """
 
-    hearing = serializers.CharField(source="section.hearing_id", read_only=True)
+    hearing = serializers.CharField(
+        source="section.hearing_id", read_only=True, allow_null=True
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -612,13 +630,33 @@ class RootSectionImageSerializer(
     @transaction.atomic()
     def create(self, validated_data):
         section_image = super().create(validated_data)
-        section_images = section_image.section.images.all()
-        if section_images.exists():
-            section_image.ordering = (
-                section_images.aggregate(Max("ordering"))["ordering__max"] + 1
-            )
-            section_image.save()
+        self._update_ordering(section_image)
         return section_image
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        is_section_changed = instance.section != validated_data.get(
+            "section", instance.section
+        )
+        section_image = super().update(instance, validated_data)
+        if is_section_changed:
+            self._update_ordering(section_image)
+        return section_image
+
+    def _update_ordering(self, section_image):
+        if not section_image.section:
+            return
+
+        existing_section_images = SectionImage.objects.filter(
+            section=section_image.section
+        ).exclude(pk=section_image.pk)
+        if existing_section_images.exists():
+            section_image.ordering = (
+                existing_section_images.aggregate(Max("ordering"))["ordering__max"] + 1
+            )
+        else:
+            section_image.ordering = 1
+        section_image.save()
 
     def to_internal_value(self, value):
         if (
@@ -669,8 +707,9 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
     create=extend_schema(
         summary="Create section image",
         description=(
-            "Upload a new image to a section. Supports multipart/form-data and "
-            "base64 encoded images. Requires organization admin permissions."
+            "Upload a new image, optionally attached to a section. Supports "
+            "multipart/form-data and base64 encoded images. Requires organization "
+            "admin permissions."
         ),
         responses={
             201: RootSectionImageSerializer,
@@ -740,36 +779,77 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
         return RootSectionImageSerializer
 
     def get_queryset(self):
-        queryset = (
+        base_queryset = (
             super()
             .get_queryset()
             .select_related("section__hearing")
             .prefetch_related("translations")
         )
-        queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing")
+        queryset = filter_by_hearing_visible(
+            base_queryset, self.request, "section__hearing"
+        )
+        if self.request.user.is_superuser:
+            queryset = queryset | base_queryset.filter(section__isnull=True)
+        elif self.request.user.is_authenticated:
+            queryset = queryset | base_queryset.filter(
+                section__isnull=True, created_by=self.request.user
+            )
         return queryset.filter(deleted=False)
 
-    def _is_user_organisation_admin(self, section):
-        target_org = section.hearing.organization
-        return (
-            target_org
-            and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+    def _is_user_organisation_admin(self, user, section=None):
+        if user.is_superuser:
+            return True
+        if section:
+            target_org = section.hearing.organization
+            return (
+                target_org
+                and user.admin_organizations.filter(id=target_org.id).exists()
+            )
+        return user.admin_organizations.exists()
+
+    def _can_user_update_image(self, user, image, target_section):
+        if image.section is None:
+            if not (
+                user.is_superuser
+                or (user.is_authenticated and image.created_by_id == user.id)
+            ):
+                return False
+        elif not self._is_user_organisation_admin(user, image.section):
+            return False
+
+        return target_section is None or self._is_user_organisation_admin(
+            user, target_section
         )
 
+    def _can_user_delete_image(self, user, image):
+        if image.section is None:
+            return user.is_superuser or (
+                user.is_authenticated and image.created_by_id == user.id
+            )
+        return self._is_user_organisation_admin(user, image.section)
+
     def perform_create(self, serializer):
-        if self._is_user_organisation_admin(serializer.validated_data["section"]):
+        if self._is_user_organisation_admin(
+            self.request.user, serializer.validated_data.get("section")
+        ):
+            serializer.validated_data["created_by"] = self.request.user
             super().perform_create(serializer)
         else:
             raise PermissionDenied("Only organisation admin can create SectionImages")
 
     def perform_update(self, serializer):
-        if self._is_user_organisation_admin(serializer.instance.section):
+        target_section = serializer.validated_data.get(
+            "section", serializer.instance.section
+        )
+        if self._can_user_update_image(
+            self.request.user, serializer.instance, target_section
+        ):
             super().perform_update(serializer)
         else:
             raise PermissionDenied("Only organisation admin can update SectionImages")
 
     def perform_destroy(self, instance):
-        if self._is_user_organisation_admin(instance.section):
+        if self._can_user_delete_image(self.request.user, instance):
             instance.soft_delete()
         else:
             raise PermissionDenied("Only organisation admin can delete SectionImages")

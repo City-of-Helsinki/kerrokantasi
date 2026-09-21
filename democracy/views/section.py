@@ -44,6 +44,7 @@ from democracy.views.utils import (
     TranslatableSerializer,
     compare_serialized,
     filter_by_hearing_visible,
+    validate_image_size,
 )
 
 # Section-specific OpenAPI parameters
@@ -631,6 +632,10 @@ class RootSectionImageSerializer(
         return ret
 
 
+class RootSectionImageMultipartSerializer(RootSectionImageSerializer):
+    image = serializers.ImageField(validators=[validate_image_size])
+
+
 class ImageFilterSet(django_filters.rest_framework.FilterSet):
     hearing = django_filters.CharFilter(
         field_name="section__hearing__id",
@@ -664,7 +669,8 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
     create=extend_schema(
         summary="Create section image",
         description=(
-            "Upload a new image to a section. Requires organization admin permissions."
+            "Upload a new image to a section. Supports multipart/form-data and "
+            "base64 encoded images. Requires organization admin permissions."
         ),
         responses={
             201: RootSectionImageSerializer,
@@ -715,8 +721,9 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
     """
     API endpoint for section images.
 
-    Allows management of images attached to hearing sections. Images support
-    thumbnailing via the 'dim' query parameter.
+    Allows management of images attached to hearing sections. Supports both
+    multipart and base64 encoded image uploads. Images support thumbnailing via
+    the 'dim' query parameter.
     """
 
     model = SectionImage
@@ -724,6 +731,13 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
     pagination_class = DefaultLimitPagination
     filterset_class = ImageFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def get_serializer_class(self):
+        if "CONTENT_TYPE" in self.request.META and self.request.META[
+            "CONTENT_TYPE"
+        ].startswith("multipart"):
+            return RootSectionImageMultipartSerializer
+        return RootSectionImageSerializer
 
     def get_queryset(self):
         queryset = (

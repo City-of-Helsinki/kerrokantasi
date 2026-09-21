@@ -98,6 +98,30 @@ def sectionfile_multipart_test_data(title_en="Test title"):
     }
 
 
+def sectionimage_multipart_test_data(title_en="Test title"):
+    # multipart POST requires dumping subobjects as strings
+    return {
+        "caption": json.dumps(
+            {
+                "en": "Test",
+                "fi": "Testi",
+            }
+        ),
+        "title": json.dumps(
+            {
+                "en": title_en,
+                "fi": "Finnish test title",
+            }
+        ),
+        "alt_text": json.dumps(
+            {
+                "en": "Map of the area",
+                "fi": "Rakennettavan alueen kartta",
+            }
+        ),
+    }
+
+
 def sectionfile_base64_test_data(title_en="Test title"):
     return {
         "caption": {

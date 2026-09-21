@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from django.utils.timezone import now
 
@@ -13,6 +14,8 @@ from democracy.tests.utils import (
     create_default_images,
     get_data_from_response,
     get_hearing_detail_url,
+    get_image_path,
+    sectionimage_multipart_test_data,
     sectionimage_test_json,
 )
 
@@ -265,6 +268,51 @@ def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
         status_code=201,
     )
     assert data["ordering"] == ordering + 1
+
+
+@pytest.mark.django_db
+def test_POST_image_multipart_root_endpoint(john_smith_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    post_data = sectionimage_multipart_test_data()
+    post_data["section"] = section.pk
+
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+        post_data["image"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            ),
+            status_code=201,
+        )
+
+    assert data["section"] == section.pk
+    assert data["title"]["en"] == "Test title"
+    assert data["caption"]["fi"] == "Testi"
+    assert data["alt_text"]["en"] == "Map of the area"
+
+    image = SectionImage.objects.get(pk=data["id"])
+    assert image.section_id == section.pk
+    assert image.image.name
+    assert image.image.storage.exists(image.image.name)
+    assert image.width > 0
+    assert image.height > 0
+
+
+@pytest.mark.django_db
+def test_POST_image_multipart_root_endpoint_rejects_image_too_big(
+    john_smith_api_client,
+):
+    post_data = sectionimage_multipart_test_data()
+
+    with override_settings(MAX_IMAGE_SIZE=10):
+        with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+            post_data["image"] = fp
+            response = john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            )
+
+    data = get_data_from_response(response, status_code=400)
+    assert data["image"][0] == "Image size should be smaller than 10 bytes."
 
 
 @pytest.mark.django_db

@@ -237,7 +237,11 @@ class SectionImage(
 
     parent_field = "section"
     section = models.ForeignKey(
-        Section, related_name="images", on_delete=models.CASCADE
+        Section,
+        related_name="images",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
     translations = TranslatedFields(
         title=models.CharField(

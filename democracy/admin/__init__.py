@@ -436,7 +436,14 @@ class CommentAdmin(VersionAdmin):
 
     def get_queryset(self, request):
         """Override parent's method in order to return even deleted comments"""
-        qs = self.model._default_manager.everything()
+        qs = (
+            self.model._default_manager.everything()
+            .select_related("section", "section__hearing")
+            .prefetch_related(
+                "section__translations",
+                "section__hearing__translations",
+            )
+        )
 
         if not request.user.is_superuser:
             # Only show comments for user's organizations hearings

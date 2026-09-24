@@ -194,30 +194,7 @@ class HearingReport(object):
 
         self.section_worksheet_active_row += 1
 
-        # loop through comments in current section
-        comments = [
-            SectionCommentSerializer(c, context=self.context).data
-            for c in (
-                SectionComment.objects.filter(section=section["id"])
-                .select_related("created_by", "organization", "section", "label")
-                .prefetch_related(
-                    Prefetch(
-                        "comments",
-                        SectionComment.objects.everything().only("pk", "comment"),
-                    ),
-                    "images",
-                    "poll_answers",
-                    "poll_answers__option",
-                    "poll_answers__option__poll",
-                    "label__translations",
-                )
-                .annotate(
-                    parent_created_at=Coalesce(F("comment__created_at"), "created_at")
-                )
-                .order_by("-parent_created_at", "created_at")
-            )
-        ]
-        for comment in comments:
+        for comment in self.section_comments.get(section["id"], []):
             self.add_comment_row(comment, section_worksheet)
 
     def add_comment_row(self, comment, section_worksheet):
@@ -491,6 +468,32 @@ class HearingReport(object):
         self.generate_hearing_worksheet()
 
         sections = self.json["sections"]
+        section_ids = [section["id"] for section in sections]
+        self.section_comments = {section_id: [] for section_id in section_ids}
+        comments = (
+            SectionComment.objects.filter(section_id__in=section_ids)
+            .select_related("created_by", "organization", "section", "label")
+            .prefetch_related(
+                Prefetch(
+                    "comments",
+                    SectionComment.objects.everything().only("pk", "comment"),
+                ),
+                "images",
+                "poll_answers",
+                "poll_answers__option",
+                "poll_answers__option__poll",
+                "label__translations",
+            )
+            .annotate(
+                parent_created_at=Coalesce(F("comment__created_at"), "created_at")
+            )
+            .order_by("-parent_created_at", "created_at")
+        )
+        for comment in comments:
+            self.section_comments[comment.section_id].append(
+                SectionCommentSerializer(comment, context=self.context).data
+            )
+
         for section_index, section in enumerate(sections, start=0):
             self.add_section_worksheet(section, section_index)
 

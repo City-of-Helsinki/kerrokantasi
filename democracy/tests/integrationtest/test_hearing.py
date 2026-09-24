@@ -1,14 +1,20 @@
 import datetime
+import io
 import json
+import xml.etree.ElementTree as ET
 from copy import deepcopy
+from zipfile import ZipFile
 
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils.encoding import force_str as force_text
 from django.utils.timezone import now
 
 from audit_log.enums import Operation
 from democracy.enums import InitialSectionType
+from democracy.factories.hearing import CommentImageFactory
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
     ContactPerson,
@@ -547,6 +553,48 @@ def test_24_get_report(api_client, default_hearing):
     response = api_client.get("%s%s/report/" % (endpoint, default_hearing.id))
     assert response.status_code == 200
     assert len(response.content) > 0
+
+
+@pytest.mark.django_db
+def test_get_report_batches_comments_and_images(api_client, default_hearing):
+    sections = list(default_hearing.sections.all())
+    expected_comments = [
+        {comment.content for comment in section.comments.all()} for section in sections
+    ]
+    for section in sections:
+        CommentImageFactory(comment=section.comments.first())
+
+    with CaptureQueriesContext(connection) as queries:
+        response = api_client.get("%s%s/report/" % (endpoint, default_hearing.id))
+
+    image_queries = [
+        query["sql"] for query in queries if '"democracy_commentimage"' in query["sql"]
+    ]
+    section_comment_queries = [
+        query["sql"]
+        for query in queries
+        if '"democracy_sectioncomment"."section_id" IN' in query["sql"]
+    ]
+    assert response.status_code == 200
+    assert len(image_queries) == 1
+    assert len(section_comment_queries) == 1
+
+    namespace = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+    with ZipFile(io.BytesIO(response.content)) as workbook:
+        shared_strings = [
+            "".join(item.itertext())
+            for item in ET.fromstring(workbook.read("xl/sharedStrings.xml"))
+        ]
+        for sheet_index, comments in enumerate(expected_comments, start=2):
+            worksheet = ET.fromstring(
+                workbook.read(f"xl/worksheets/sheet{sheet_index}.xml")
+            )
+            worksheet_strings = {
+                shared_strings[int(cell.find(f"{namespace}v").text)]
+                for cell in worksheet.iter(f"{namespace}c")
+                if cell.get("t") == "s"
+            }
+            assert comments <= worksheet_strings
 
 
 @pytest.mark.django_db

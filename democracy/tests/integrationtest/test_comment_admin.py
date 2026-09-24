@@ -1,6 +1,10 @@
 import pytest
+from django.db import connection
+from django.test.utils import CaptureQueriesContext
+from django.urls import reverse
 from reversion.models import Version
 
+from democracy.factories.hearing import SectionCommentFactory
 from democracy.models.section import SectionComment
 
 
@@ -61,3 +65,37 @@ def test_admin_editing_creates_revision(admin_client, default_hearing):
     versions = Version.objects.get_for_object(comment)
     assert len(versions) == 1
     assert versions[0].field_dict["content"] == expected_content
+
+
+@pytest.mark.django_db
+def test_comment_changelist_prefetches_section_translations(
+    admin_client, default_hearing
+):
+    sections = list(default_hearing.sections.all())
+    url = reverse("admin:democracy_sectioncomment_changelist") + "?deleted__exact=0"
+
+    with CaptureQueriesContext(connection) as small_result:
+        response = admin_client.get(url)
+    assert response.status_code == 200
+
+    for section in sections:
+        SectionCommentFactory.create_batch(3, section=section)
+
+    with CaptureQueriesContext(connection) as large_result:
+        response = admin_client.get(url)
+    assert response.status_code == 200
+
+    translation_tables = (
+        "democracy_section_translation",
+        "democracy_hearing_translation",
+    )
+
+    def translation_query_count(queries):
+        return sum(
+            any(table in query["sql"] for table in translation_tables)
+            for query in queries
+        )
+
+    assert translation_query_count(large_result.captured_queries) == (
+        translation_query_count(small_result.captured_queries)
+    )

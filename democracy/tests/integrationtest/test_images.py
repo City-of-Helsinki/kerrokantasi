@@ -174,6 +174,22 @@ def test_get_images_root_endpoint(api_client, default_hearing):
 
 
 @pytest.mark.django_db
+def test_get_images_root_endpoint_excludes_inline_images(john_smith_api_client):
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as image_file:
+        response = john_smith_api_client.post(
+            reverse("image-list"),
+            data={"image": image_file, "purpose": SectionImage.PURPOSE_INLINE},
+            format="multipart",
+        )
+    inline_image = get_data_from_response(response, status_code=201)
+
+    image_results = get_data_from_response(
+        john_smith_api_client.get(reverse("image-list"))
+    )["results"]
+    assert inline_image["id"] not in [image["id"] for image in image_results]
+
+
+@pytest.mark.django_db
 def test_get_thumbnail_images_root_endpoint(api_client, default_hearing):
     data = get_data_from_response(
         api_client.get(f"{reverse('image-list')}?dim=100x100")

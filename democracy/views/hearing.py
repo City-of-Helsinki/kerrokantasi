@@ -30,6 +30,7 @@ from democracy.models import (
     Project,
     ProjectPhase,
     Section,
+    SectionImage,
     SectionPoll,
     SectionPollOption,
 )
@@ -171,7 +172,22 @@ class HearingSerializerMixin:
         if not main_section:
             return None
 
-        main_image = main_section.images.first()
+        prefetched_images = getattr(main_section, "_prefetched_objects_cache", {}).get(
+            "images"
+        )
+        if prefetched_images is not None:
+            main_image = next(
+                (
+                    image
+                    for image in prefetched_images
+                    if image.purpose == SectionImage.PURPOSE_SECTION_LEVEL
+                ),
+                None,
+            )
+        else:
+            main_image = main_section.images.filter(
+                purpose=SectionImage.PURPOSE_SECTION_LEVEL
+            ).first()
         if main_image and (
             main_image.published or self.context["request"].user.is_superuser
         ):
@@ -526,7 +542,9 @@ class HearingSerializer(
                 ),
             ),
             Prefetch(
-                "images", image_qs_for_request(request).prefetch_related("translations")
+                "images",
+                image_qs_for_request(request).prefetch_related("translations"),
+                to_attr="section_level_images",
             ),
             Prefetch(
                 "files", file_qs_for_request(request).prefetch_related("translations")

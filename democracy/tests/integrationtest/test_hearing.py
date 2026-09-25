@@ -888,6 +888,29 @@ def test_hearing_copy(default_hearing, random_label):
     ).exists()
 
 
+@pytest.mark.django_db
+def test_hearing_copy_clones_inline_image_records(default_hearing):
+    source_section = default_hearing.get_main_section()
+    source_image = SectionImageFactory(
+        section=source_section,
+        purpose=SectionImage.PURPOSE_INLINE,
+    )
+    source_section.set_current_language(default_lang_code)
+    source_section.content = f'<p><img src="{source_image.image.url}" /></p>'
+    source_section.save()
+
+    copied_hearing = copy_hearing(default_hearing)
+    copied_section = copied_hearing.sections.get(type=source_section.type)
+    copied_section.set_current_language(default_lang_code)
+    copied_image = copied_section.images.get(purpose=SectionImage.PURPOSE_INLINE)
+
+    assert copied_section.content == source_section.content
+    assert copied_image.pk != source_image.pk
+    assert copied_image.section_id == copied_section.pk
+    assert copied_image.image.name == source_image.image.name
+    assert source_image.section_id == source_section.pk
+
+
 @pytest.mark.parametrize(
     "client, expected",
     [("api_client", False), ("jane_doe_api_client", False), ("admin_api_client", True)],

@@ -1,4 +1,6 @@
 import datetime
+import re
+from pathlib import PurePosixPath
 
 import pytest
 from django.test import override_settings
@@ -49,6 +51,11 @@ def set_images_ordering(images, ordered_image_names):
     for image in images:
         image.ordering = ordered_image_names.index(image.title)
         image.save()
+
+
+def assert_random_image_filename(image):
+    filename = PurePosixPath(image.image.name).name
+    assert re.fullmatch(r"[A-Za-z0-9]{8}\.[a-z0-9]+", filename)
 
 
 @pytest.mark.django_db
@@ -277,6 +284,7 @@ def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
         ),
         status_code=201,
     )
+    assert_random_image_filename(SectionImage.objects.get(pk=data["id"]))
     # Save order of the newly created image
     ordering = data["ordering"]
     # Make sure new image was created
@@ -314,6 +322,7 @@ def test_POST_image_multipart_root_endpoint(john_smith_api_client, default_heari
 
     image = SectionImage.objects.get(pk=data["id"])
     assert image.section_id == section.pk
+    assert_random_image_filename(image)
     assert image.image.name
     assert image.image.storage.exists(image.image.name)
     assert image.width > 0

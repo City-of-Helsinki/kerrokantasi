@@ -1,7 +1,9 @@
 from functools import lru_cache
 from html.parser import HTMLParser
+from urllib.parse import unquote, urlsplit
 
 import django_filters
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import Max, Prefetch, Q
@@ -91,6 +93,18 @@ def get_inline_image_urls(content):
         parser.close()
         urls.update(parser.sources)
     return urls
+
+
+def get_inline_image_name(image_url):
+    media_url_path = urlsplit(settings.MEDIA_URL).path
+    if not media_url_path:
+        return None
+
+    media_url_path = media_url_path.rstrip("/") + "/"
+    path = urlsplit(image_url).path
+    if path.startswith(media_url_path):
+        return unquote(path[len(media_url_path) :])
+    return None
 
 
 class ThumbnailImageSerializer(BaseImageSerializer):
@@ -382,6 +396,7 @@ class SectionCreateUpdateSerializer(
             "ordering",
         ]
 
+    @transaction.atomic()
     def save(self, **kwargs):
         section = super().save(**kwargs)
         self._handle_inline_images(
@@ -468,6 +483,17 @@ class SectionCreateUpdateSerializer(
 
         raise ValidationError("You do not have access to this unattached image")
 
+    def _create_inline_image_record(self, name, section):
+        request = self.context.get("request")
+        return SectionImage.objects.create(
+            image=name,
+            purpose=SectionImage.PURPOSE_INLINE,
+            section=section,
+            created_by=(
+                request.user if request and request.user.is_authenticated else None
+            ),
+        )
+
     def validate_files(self, data):
         for index, file_data in enumerate(data):
             file_data["ordering"] = index
@@ -546,25 +572,38 @@ class SectionCreateUpdateSerializer(
         return None
 
     def _get_inline_image_id_from_url(self, section, image_url):
+        """Resolve an inline image URL to an inline image ID for the section."""
         inline_images = SectionImage.objects.filter(
             purpose=SectionImage.PURPOSE_INLINE,
             deleted=False,
         )
+        # Prefer this section's existing instance before looking elsewhere.
         if matched_image := self._find_matching_image(
             inline_images.filter(section=section), image_url
         ):
             return matched_image.pk
 
-        if request := self.context.get("request"):
-            if request.user.is_authenticated:
-                orphan_images = inline_images.filter(section__isnull=True)
-                if not request.user.is_superuser:
-                    orphan_images = orphan_images.filter(created_by=request.user)
-                if matched_image := self._find_matching_image(
-                    orphan_images, image_url
-                ):
-                    self._validate_orphan_image_access(matched_image)
-                    return matched_image.pk
+        # Second, try an orphan owned by this user (or any orphan for a superuser).
+        if (request := self.context.get("request")) and request.user.is_authenticated:
+            orphan_images = inline_images.filter(section__isnull=True)
+            if not request.user.is_superuser:
+                orphan_images = orphan_images.filter(created_by=request.user)
+            if matched_image := self._find_matching_image(orphan_images, image_url):
+                self._validate_orphan_image_access(matched_image)
+                return matched_image.pk
+
+        # Third, if another section has this image, create a new instance for this
+        # section rather than reassigning the existing instance. Can happen if a
+        # section is copied, for example.
+        if image_name := get_inline_image_name(image_url):
+            other_images = inline_images.filter(
+                section__isnull=False,
+                image=image_name,
+            ).exclude(section=section)
+            if self._find_matching_image(other_images, image_url):
+                new_image = self._create_inline_image_record(image_name, section)
+                return new_image.pk
+
         return None
 
     def _get_inline_image_ids_from_content(self, section):

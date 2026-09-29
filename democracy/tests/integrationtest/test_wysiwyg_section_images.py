@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 from rest_framework.exceptions import ValidationError
+from rest_framework.test import APIRequestFactory
 
 from democracy.factories.hearing import SectionImageFactory
 from democracy.models import SectionImage
@@ -103,15 +104,15 @@ def test_newest_matching_orphan_inline_image_is_attached(
         f'<p><img src="{image_data["url"]}" alt="Example" /></p>'
     )
 
-    response = john_smith_api_client.put(
-        hearing_url, data=hearing, format="json"
-    )
+    response = john_smith_api_client.put(hearing_url, data=hearing, format="json")
 
     assert response.status_code == 200
     first_image.refresh_from_db()
     second_image.refresh_from_db()
     assert first_image.section_id is None
     assert second_image.section_id == section.pk
+
+
 @pytest.mark.django_db
 def test_external_inline_image_url_is_rejected(john_smith_api_client, default_hearing):
     section = default_hearing.get_main_section()
@@ -195,3 +196,84 @@ def test_inline_image_cannot_be_reused_as_section_level_image(default_hearing):
         ValidationError, match=f"Image {inline_image.pk} does not exist"
     ):
         serializer.validate_images([{"reference_id": inline_image.pk}])
+
+
+@pytest.mark.django_db
+def test_copy_section_creates_image_record_from_matching_url(
+    john_smith, john_smith_api_client, default_hearing
+):
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as image_file:
+        response = john_smith_api_client.post(
+            reverse("image-list"),
+            data={"image": image_file, "purpose": SectionImage.PURPOSE_INLINE},
+            format="multipart",
+        )
+    image_data = get_data_from_response(response, status_code=201)
+    source_image = SectionImage.objects.get(pk=image_data["id"])
+    source_image.set_current_language("en")
+    source_image.alt_text = "Source image alt text"
+    source_image.save()
+    source_section = default_hearing.get_main_section()
+
+    hearing_url = get_hearing_detail_url(default_hearing.id)
+    hearing = get_data_from_response(john_smith_api_client.get(hearing_url))
+    source_section_data = next(
+        section_data
+        for section_data in hearing["sections"]
+        if section_data["id"] == source_section.id
+    )
+    source_section_data["content"]["en"] = f'<p><img src="{image_data["url"]}" /></p>'
+    get_data_from_response(
+        john_smith_api_client.put(hearing_url, data=hearing, format="json"),
+        status_code=200,
+    )
+
+    source_image.refresh_from_db()
+    assert source_image.section_id == source_section.pk
+    hearing = get_data_from_response(john_smith_api_client.get(hearing_url))
+    source_section_data = next(
+        section_data
+        for section_data in hearing["sections"]
+        if section_data["id"] == source_section.id
+    )
+    copy_data = {
+        **source_section_data,
+        "images": [],
+        "questions": [],
+        "files": [],
+    }
+    copy_data.pop("id")
+
+    request = APIRequestFactory().post(hearing_url)
+    request.user = john_smith
+    serializer = SectionCreateUpdateSerializer(
+        data=copy_data,
+        context={"request": request},
+    )
+    serializer.is_valid(raise_exception=True)
+    copied_section = serializer.save(hearing=default_hearing)
+
+    copied_image = copied_section.images.get(purpose=SectionImage.PURPOSE_INLINE)
+    assert copied_image.pk != source_image.pk
+    assert copied_image.section_id == copied_section.pk
+    assert copied_image.image.name == source_image.image.name
+    assert not copied_image.translations.exists()
+    assert source_image.section_id == source_section.pk
+
+    update_data = {
+        **copy_data,
+        "content": {"en": "<p>The copied image was removed.</p>"},
+    }
+    update_serializer = SectionCreateUpdateSerializer(
+        copied_section,
+        data=update_data,
+        context={"request": request},
+    )
+    update_serializer.is_valid(raise_exception=True)
+    update_serializer.save()
+
+    copied_image.refresh_from_db()
+    source_image.refresh_from_db()
+    assert copied_image.deleted
+    assert source_image.section_id == source_section.pk
+    assert not source_image.deleted

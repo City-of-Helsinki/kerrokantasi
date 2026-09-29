@@ -3,7 +3,7 @@ from copy import deepcopy
 from django.db import transaction
 
 from democracy.enums import InitialSectionType
-from democracy.models import SectionImage, SectionType
+from democracy.models import SectionType
 
 
 def _copy_translations(new_obj, old_obj):

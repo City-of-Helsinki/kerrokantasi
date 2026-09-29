@@ -33,6 +33,7 @@ from democracy.models.poll import (
     poll_option_recache_on_save,
 )
 from democracy.plugins import get_implementation
+from democracy.utils.image_uploads import upload_image_to
 from democracy.utils.translations import get_translations_dict
 
 CLOSURE_INFO_ORDERING = -10000
@@ -221,6 +222,12 @@ class SectionImage(
     BaseImage, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin
 ):
     field_to_use_as_url_field = "image"
+    image = models.ImageField(
+        verbose_name=_("image"),
+        upload_to=upload_image_to,
+        width_field="width",
+        height_field="height",
+    )
     PURPOSE_SECTION_LEVEL = "section_level"
     PURPOSE_INLINE = "inline"
     PURPOSE_CHOICES = (

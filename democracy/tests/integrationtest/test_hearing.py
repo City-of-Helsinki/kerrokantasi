@@ -1692,13 +1692,61 @@ def test_PUT_hearing_success(valid_hearing_json, john_smith_api_client):
     )
     data = get_data_from_response(response, status_code=201)
     created_at = data["created_at"]
+    image_id = data["sections"][1]["images"][0]["id"]
     _update_hearing_data(data)
     response = john_smith_api_client.put(
         "%s%s/" % (endpoint, data["id"]), data=data, format="json"
     )
     updated_data = get_data_from_response(response, status_code=200)
     assert updated_data["created_at"] == created_at
+    image = SectionImage.objects.get(pk=image_id)
+    assert image.modified_by_id == john_smith_api_client.user.id
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_tracks_section_image_deletion(
+    valid_hearing_json, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
+    hearing_data = get_data_from_response(response, status_code=201)
+    image_id = hearing_data["sections"][1]["images"][0]["id"]
+    hearing_data["sections"][1]["images"] = []
+
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, hearing_data["id"]),
+        data=hearing_data,
+        format="json",
+    )
+    assert response.status_code == 200
+    image = SectionImage.objects.everything().get(pk=image_id)
+    assert image.deleted_by_id == john_smith_api_client.user.id
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_tracks_removed_section_deletion(
+    valid_hearing_json, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
+    hearing_data = get_data_from_response(response, status_code=201)
+    removed_section = hearing_data["sections"].pop(2)
+    section_id = removed_section["id"]
+    image_id = removed_section["images"][0]["id"]
+
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, hearing_data["id"]),
+        data=hearing_data,
+        format="json",
+    )
+    assert response.status_code == 200
+    section = Section.objects.everything().get(pk=section_id)
+    image = SectionImage.objects.everything().get(pk=image_id)
+    assert section.deleted_by_id == john_smith_api_client.user.id
+    assert image.deleted_by_id == john_smith_api_client.user.id
 
 
 # Test that updating hearing with project returns a response with phases' is_active value

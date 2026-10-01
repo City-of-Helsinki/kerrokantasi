@@ -366,6 +366,7 @@ def test_POST_image_multipart_root_endpoint_without_section(
     image = SectionImage.objects.get(pk=data["id"])
     assert image.section is None
     assert image.created_by_id == john_smith_api_client.user.id
+    assert image.modified_by_id is None
     assert image.image.storage.exists(image.image.name)
 
 
@@ -453,7 +454,12 @@ def test_owner_can_update_and_delete_orphan_image(john_smith_api_client):
         ).status_code
         == 200
     )
+    image.refresh_from_db()
+    assert image.modified_by_id == john_smith_api_client.user.id
+
     assert john_smith_api_client.delete(url).status_code == 204
+    image = SectionImage.objects.everything().get(pk=image.pk)
+    assert image.deleted_by_id == john_smith_api_client.user.id
 
 
 @pytest.mark.django_db

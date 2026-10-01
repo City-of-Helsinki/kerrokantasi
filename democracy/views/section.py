@@ -534,33 +534,44 @@ class SectionCreateUpdateSerializer(
         return data
 
     def _handle_images(self, section, data):
+        request = self.context.get("request")
+        user = request.user if request and request.user.is_authenticated else None
         new_image_ids = set()
 
         for image_data in data:
             serializer = image_data.pop("serializer")
-            image = serializer.save(section=section)
+            save_kwargs = {"section": section}
+            if user and serializer.instance and serializer.instance.pk:
+                save_kwargs["modified_by"] = user
+            image = serializer.save(**save_kwargs)
             new_image_ids.add(image.id)
 
         for image in section.images.filter(
             purpose=SectionImage.PURPOSE_SECTION_LEVEL
         ).exclude(id__in=new_image_ids):
-            image.soft_delete()
+            image.soft_delete(user=user)
 
         return section
 
     def _handle_inline_images(self, section, image_ids):
+        request = self.context.get("request")
+        user = request.user if request and request.user.is_authenticated else None
         image_ids = set(image_ids)
-        section.images.filter(purpose=SectionImage.PURPOSE_INLINE).exclude(
-            id__in=image_ids
-        ).update(
-            deleted=True,
-            deleted_at=now(),
-        )
-        SectionImage.objects.filter(
+        images_to_delete = section.images.filter(
+            purpose=SectionImage.PURPOSE_INLINE
+        ).exclude(id__in=image_ids)
+        for image in images_to_delete:
+            image.soft_delete(user=user)
+
+        images_to_attach = SectionImage.objects.filter(
             pk__in=image_ids,
             purpose=SectionImage.PURPOSE_INLINE,
             section__isnull=True,
-        ).update(section=section)
+        )
+        update_fields = {"section": section}
+        if user:
+            update_fields["modified_by"] = user
+        images_to_attach.update(**update_fields)
 
     def _find_matching_image(self, images, target_url):
         for image in images.order_by("-created_at", "-pk"):
@@ -1013,13 +1024,14 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
         if self._can_user_update_image(
             self.request.user, serializer.instance, target_section
         ):
+            serializer.validated_data["modified_by"] = self.request.user
             super().perform_update(serializer)
         else:
             raise PermissionDenied("Only organisation admin can update SectionImages")
 
     def perform_destroy(self, instance):
         if self._can_user_delete_image(self.request.user, instance):
-            instance.soft_delete()
+            instance.soft_delete(user=self.request.user)
         else:
             raise PermissionDenied("Only organisation admin can delete SectionImages")
 

@@ -414,7 +414,8 @@ class HearingCreateUpdateSerializer(
 
         contact_person_data = validated_data.pop("contact_persons", None)
         sections_data = validated_data.pop("sections")
-        validated_data["modified_by_id"] = self.context["request"].user.id
+        user = self.context["request"].user
+        validated_data["modified_by_id"] = user.id
         hearing = super().update(instance, validated_data)
         self._create_or_update_contact_persons(hearing, contact_person_data)
         sections = self._create_or_update_sections(hearing, sections_data)
@@ -422,8 +423,8 @@ class HearingCreateUpdateSerializer(
         new_section_ids = {section.id for section in sections}
         for section in hearing.sections.exclude(id__in=new_section_ids):
             for image in section.images.all():
-                image.soft_delete()
-            section.soft_delete()
+                image.soft_delete(user=user)
+            section.soft_delete(user=user)
 
         return hearing
 

@@ -48,6 +48,7 @@ def test_inline_images_are_associated_from_src_url(
 
     image.refresh_from_db()
     assert image.section_id == section.pk
+    assert image.modified_by_id == john_smith_api_client.user.id
     updated_section = next(
         section_data
         for section_data in updated_hearing["sections"]
@@ -70,6 +71,7 @@ def test_inline_images_are_associated_from_src_url(
     image.refresh_from_db()
     assert image.section_id == section.pk
     assert image.deleted
+    assert image.deleted_by_id == john_smith_api_client.user.id
 
 
 @pytest.mark.django_db

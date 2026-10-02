@@ -33,6 +33,7 @@ from democracy.models.poll import (
     poll_option_recache_on_save,
 )
 from democracy.plugins import get_implementation
+from democracy.utils.image_uploads import upload_image_to
 from democracy.utils.translations import get_translations_dict
 
 CLOSURE_INFO_ORDERING = -10000
@@ -221,6 +222,18 @@ class SectionImage(
     BaseImage, TranslatableModel, SerializableMixin, FileFieldUrlSerializerMixin
 ):
     field_to_use_as_url_field = "image"
+    image = models.ImageField(
+        verbose_name=_("image"),
+        upload_to=upload_image_to,
+        width_field="width",
+        height_field="height",
+    )
+    PURPOSE_SECTION_LEVEL = "section_level"
+    PURPOSE_INLINE = "inline"
+    PURPOSE_CHOICES = (
+        (PURPOSE_SECTION_LEVEL, _("section-level image")),
+        (PURPOSE_INLINE, _("inline image used within section content")),
+    )
 
     serialize_fields = (
         {"name": "id"},
@@ -236,8 +249,21 @@ class SectionImage(
     )
 
     parent_field = "section"
+    purpose = models.CharField(
+        verbose_name=_("purpose"),
+        help_text=_(
+            "Distinguishes section-level images from images used in section content."
+        ),
+        choices=PURPOSE_CHOICES,
+        default=PURPOSE_SECTION_LEVEL,
+        max_length=32,
+    )
     section = models.ForeignKey(
-        Section, related_name="images", on_delete=models.CASCADE
+        Section,
+        related_name="images",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
     )
     translations = TranslatedFields(
         title=models.CharField(
@@ -278,6 +304,13 @@ class SectionImage(
     @property
     def alt_text_with_translations(self):
         return get_translations_dict(self, "alt_text")
+
+    def save(self, *args, **kwargs):
+        if self.purpose == self.PURPOSE_INLINE:
+            self.ordering = 0
+            if (update_fields := kwargs.get("update_fields")) is not None:
+                kwargs["update_fields"] = set(update_fields) | {"ordering"}
+        return super().save(*args, **kwargs)
 
 
 class SectionFile(

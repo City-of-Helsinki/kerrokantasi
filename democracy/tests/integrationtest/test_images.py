@@ -1,10 +1,19 @@
 import datetime
+import re
+from pathlib import PurePosixPath
 
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from django.utils.timezone import now
 
 from audit_log.enums import Operation
+from democracy.factories.hearing import (
+    HearingFactory,
+    SectionFactory,
+    SectionImageFactory,
+)
+from democracy.factories.organization import OrganizationFactory
 from democracy.models import SectionImage
 from democracy.tests.conftest import default_lang_code
 from democracy.tests.utils import (
@@ -13,6 +22,8 @@ from democracy.tests.utils import (
     create_default_images,
     get_data_from_response,
     get_hearing_detail_url,
+    get_image_path,
+    sectionimage_multipart_test_data,
     sectionimage_test_json,
 )
 
@@ -40,6 +51,11 @@ def set_images_ordering(images, ordered_image_names):
     for image in images:
         image.ordering = ordered_image_names.index(image.title)
         image.save()
+
+
+def assert_random_image_filename(image):
+    filename = PurePosixPath(image.image.name).name
+    assert re.fullmatch(r"[A-Za-z0-9]{8}\.[a-z0-9]+", filename)
 
 
 @pytest.mark.django_db
@@ -165,6 +181,22 @@ def test_get_images_root_endpoint(api_client, default_hearing):
 
 
 @pytest.mark.django_db
+def test_get_images_root_endpoint_excludes_inline_images(john_smith_api_client):
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as image_file:
+        response = john_smith_api_client.post(
+            reverse("image-list"),
+            data={"image": image_file, "purpose": SectionImage.PURPOSE_INLINE},
+            format="multipart",
+        )
+    inline_image = get_data_from_response(response, status_code=201)
+
+    image_results = get_data_from_response(
+        john_smith_api_client.get(reverse("image-list"))
+    )["results"]
+    assert inline_image["id"] not in [image["id"] for image in image_results]
+
+
+@pytest.mark.django_db
 def test_get_thumbnail_images_root_endpoint(api_client, default_hearing):
     data = get_data_from_response(
         api_client.get(f"{reverse('image-list')}?dim=100x100")
@@ -252,6 +284,7 @@ def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
         ),
         status_code=201,
     )
+    assert_random_image_filename(SectionImage.objects.get(pk=data["id"]))
     # Save order of the newly created image
     ordering = data["ordering"]
     # Make sure new image was created
@@ -265,6 +298,245 @@ def test_POST_image_root_endpoint(john_smith_api_client, default_hearing):
         status_code=201,
     )
     assert data["ordering"] == ordering + 1
+
+
+@pytest.mark.django_db
+def test_POST_image_multipart_root_endpoint(john_smith_api_client, default_hearing):
+    section = default_hearing.sections.first()
+    post_data = sectionimage_multipart_test_data()
+    post_data["section"] = section.pk
+
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+        post_data["image"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            ),
+            status_code=201,
+        )
+
+    assert data["section"] == section.pk
+    assert data["title"]["en"] == "Test title"
+    assert data["caption"]["fi"] == "Testi"
+    assert data["alt_text"]["en"] == "Map of the area"
+
+    image = SectionImage.objects.get(pk=data["id"])
+    assert image.section_id == section.pk
+    assert_random_image_filename(image)
+    assert image.image.name
+    assert image.image.storage.exists(image.image.name)
+    assert image.width > 0
+    assert image.height > 0
+
+
+@pytest.mark.django_db
+def test_POST_image_multipart_root_endpoint_rejects_image_too_big(
+    john_smith_api_client,
+):
+    post_data = sectionimage_multipart_test_data()
+
+    with override_settings(MAX_IMAGE_SIZE=10):
+        with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+            post_data["image"] = fp
+            response = john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            )
+
+    data = get_data_from_response(response, status_code=400)
+    assert data["image"][0] == "Image size should be smaller than 10 bytes."
+
+
+@pytest.mark.django_db
+def test_POST_image_multipart_root_endpoint_without_section(
+    john_smith_api_client, default_hearing
+):
+    post_data = sectionimage_multipart_test_data()
+
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+        post_data["image"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            ),
+            status_code=201,
+        )
+
+    assert data["section"] is None
+    assert data["hearing"] is None
+    image = SectionImage.objects.get(pk=data["id"])
+    assert image.section is None
+    assert image.created_by_id == john_smith_api_client.user.id
+    assert image.modified_by_id is None
+    assert image.image.storage.exists(image.image.name)
+
+
+@pytest.mark.django_db
+def test_GET_image_root_endpoint_hides_another_users_orphan(
+    john_smith_api_client, john_doe_api_client, default_hearing
+):
+    post_data = sectionimage_multipart_test_data()
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+        post_data["image"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            ),
+            status_code=201,
+        )
+
+    response = john_doe_api_client.get(
+        reverse("image-detail", kwargs={"pk": data["id"]})
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_PATCH_image_root_endpoint_attach_orphan(
+    john_smith_api_client, default_hearing
+):
+    post_data = sectionimage_multipart_test_data()
+    with open(get_image_path(IMAGES["ORIGINAL"]), "rb") as fp:
+        post_data["image"] = fp
+        data = get_data_from_response(
+            john_smith_api_client.post(
+                reverse("image-list"), data=post_data, format="multipart"
+            ),
+            status_code=201,
+        )
+
+    section = default_hearing.sections.first()
+    data = get_data_from_response(
+        john_smith_api_client.patch(
+            reverse("image-detail", kwargs={"pk": data["id"]}),
+            data={"section": section.pk},
+            format="json",
+        ),
+        status_code=200,
+    )
+
+    assert data["section"] == section.pk
+    assert data["hearing"] == default_hearing.pk
+    image = SectionImage.objects.get(pk=data["id"])
+    assert image.section_id == section.pk
+
+
+@pytest.mark.django_db
+def test_POST_image_base64_root_endpoint_without_section(
+    john_smith_api_client, john_doe_api_client
+):
+    data = get_data_from_response(
+        john_smith_api_client.post(
+            reverse("image-list"), data=sectionimage_test_json(), format="json"
+        ),
+        status_code=201,
+    )
+
+    assert data["section"] is None
+    assert SectionImage.objects.get(pk=data["id"]).created_by_id == (
+        john_smith_api_client.user.id
+    )
+    assert (
+        john_doe_api_client.get(
+            reverse("image-detail", kwargs={"pk": data["id"]})
+        ).status_code
+        == 404
+    )
+
+
+@pytest.mark.django_db
+def test_owner_can_update_and_delete_orphan_image(john_smith_api_client):
+    image = SectionImageFactory(section=None, created_by=john_smith_api_client.user)
+    url = reverse("image-detail", kwargs={"pk": image.pk})
+
+    assert (
+        john_smith_api_client.patch(
+            url, data={"title": {"en": "Updated"}}, format="json"
+        ).status_code
+        == 200
+    )
+    image.refresh_from_db()
+    assert image.modified_by_id == john_smith_api_client.user.id
+
+    assert john_smith_api_client.delete(url).status_code == 204
+    image = SectionImage.objects.everything().get(pk=image.pk)
+    assert image.deleted_by_id == john_smith_api_client.user.id
+
+
+@pytest.mark.django_db
+def test_other_user_cannot_update_or_delete_orphan_image(
+    john_smith_api_client, john_doe_api_client
+):
+    image = SectionImageFactory(section=None, created_by=john_smith_api_client.user)
+    url = reverse("image-detail", kwargs={"pk": image.pk})
+
+    assert (
+        john_doe_api_client.patch(
+            url, data={"title": {"en": "Updated"}}, format="json"
+        ).status_code
+        == 404
+    )
+    assert john_doe_api_client.delete(url).status_code == 404
+
+
+@pytest.mark.django_db
+def test_superuser_can_manage_another_users_orphan_image(
+    admin_api_client, john_smith_api_client
+):
+    image = SectionImageFactory(section=None, created_by=john_smith_api_client.user)
+    url = reverse("image-detail", kwargs={"pk": image.pk})
+
+    assert admin_api_client.get(url).status_code == 200
+    assert (
+        admin_api_client.patch(
+            url, data={"title": {"en": "Updated"}}, format="json"
+        ).status_code
+        == 200
+    )
+    assert admin_api_client.delete(url).status_code == 204
+
+
+@pytest.mark.django_db
+def test_image_cannot_be_attached_to_another_organization(
+    john_smith_api_client, default_hearing
+):
+    other_hearing = HearingFactory(organization=OrganizationFactory())
+    target_section = other_hearing.get_main_section()
+    orphan_image = SectionImageFactory(
+        section=None, created_by=john_smith_api_client.user
+    )
+    orphan_url = reverse("image-detail", kwargs={"pk": orphan_image.pk})
+
+    assert (
+        john_smith_api_client.patch(
+            orphan_url, data={"section": target_section.pk}, format="json"
+        ).status_code
+        == 403
+    )
+
+    attached_image = default_hearing.sections.first().images.first()
+    attached_url = reverse("image-detail", kwargs={"pk": attached_image.pk})
+    assert (
+        john_smith_api_client.patch(
+            attached_url, data={"section": target_section.pk}, format="json"
+        ).status_code
+        == 403
+    )
+
+
+@pytest.mark.django_db
+def test_non_admin_cannot_save_hearing_with_orphan_image(
+    john_smith_api_client, john_doe_api_client, default_hearing
+):
+    orphan_image = SectionImageFactory(
+        section=None, created_by=john_smith_api_client.user
+    )
+    response = john_doe_api_client.put(
+        get_hearing_detail_url(default_hearing.id),
+        data={"sections": [{"images": [{"id": orphan_image.pk}]}]},
+        format="json",
+    )
+
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db
@@ -303,6 +575,28 @@ def test_PATCH_image_root_endpoint(john_smith_api_client, default_hearing):
     assert changed_section_image["title"]["en"] == "changed_title"
     assert changed_section_image["caption"]["en"] == "changed_caption"
     assert changed_section_image["alt_text"]["en"] == "changed_alt_text"
+
+
+@pytest.mark.django_db
+def test_PATCH_image_into_empty_section_resets_ordering(
+    john_smith_api_client, default_hearing
+):
+    source_section = default_hearing.sections.first()
+    target_section = SectionFactory(
+        hearing=default_hearing, create_random_comments=False
+    )
+    image = SectionImageFactory(section=source_section, ordering=5)
+    detail_url = reverse("image-detail", kwargs={"pk": image.pk})
+
+    data = get_data_from_response(
+        john_smith_api_client.patch(
+            detail_url, data={"section": target_section.pk}, format="json"
+        ),
+        status_code=200,
+    )
+
+    assert data["section"] == target_section.pk
+    assert data["ordering"] == 1
 
 
 @pytest.mark.django_db

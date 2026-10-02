@@ -9,6 +9,7 @@ from django.utils.timezone import now
 
 from audit_log.enums import Operation
 from democracy.enums import InitialSectionType
+from democracy.factories.hearing import SectionImageFactory
 from democracy.factories.organization import OrganizationFactory
 from democracy.models import (
     ContactPerson,
@@ -887,6 +888,29 @@ def test_hearing_copy(default_hearing, random_label):
     ).exists()
 
 
+@pytest.mark.django_db
+def test_hearing_copy_clones_inline_image_records(default_hearing):
+    source_section = default_hearing.get_main_section()
+    source_image = SectionImageFactory(
+        section=source_section,
+        purpose=SectionImage.PURPOSE_INLINE,
+    )
+    source_section.set_current_language(default_lang_code)
+    source_section.content = f'<p><img src="{source_image.image.url}" /></p>'
+    source_section.save()
+
+    copied_hearing = copy_hearing(default_hearing)
+    copied_section = copied_hearing.sections.get(type=source_section.type)
+    copied_section.set_current_language(default_lang_code)
+    copied_image = copied_section.images.get(purpose=SectionImage.PURPOSE_INLINE)
+
+    assert copied_section.content == source_section.content
+    assert copied_image.pk != source_image.pk
+    assert copied_image.section_id == copied_section.pk
+    assert copied_image.image.name == source_image.image.name
+    assert source_image.section_id == source_section.pk
+
+
 @pytest.mark.parametrize(
     "client, expected",
     [("api_client", False), ("jane_doe_api_client", False), ("admin_api_client", True)],
@@ -1175,6 +1199,22 @@ def test_POST_save_hearing_as_new(valid_hearing_json, john_smith_api_client):
         assert (a := get_nested(hearing, keys)) != (
             b := get_nested(new_hearing, keys)
         ), f'{keys} should not match ("{a}" == "{b}")'
+
+
+@pytest.mark.django_db
+def test_POST_hearing_with_orphan_image(valid_hearing_json, john_smith_api_client):
+    orphan_image = SectionImageFactory(
+        section=None, created_by=john_smith_api_client.user
+    )
+    hearing_data = deepcopy(valid_hearing_json)
+    hearing_data["sections"][1]["images"] = [{"id": orphan_image.pk}]
+
+    response = john_smith_api_client.post(endpoint, data=hearing_data, format="json")
+    data = get_data_from_response(response, status_code=201)
+
+    orphan_image.refresh_from_db()
+    assert orphan_image.section_id == data["sections"][1]["id"]
+    assert data["sections"][1]["images"][0]["id"] == orphan_image.pk
 
 
 @pytest.mark.django_db
@@ -1652,13 +1692,61 @@ def test_PUT_hearing_success(valid_hearing_json, john_smith_api_client):
     )
     data = get_data_from_response(response, status_code=201)
     created_at = data["created_at"]
+    image_id = data["sections"][1]["images"][0]["id"]
     _update_hearing_data(data)
     response = john_smith_api_client.put(
         "%s%s/" % (endpoint, data["id"]), data=data, format="json"
     )
     updated_data = get_data_from_response(response, status_code=200)
     assert updated_data["created_at"] == created_at
+    image = SectionImage.objects.get(pk=image_id)
+    assert image.modified_by_id == john_smith_api_client.user.id
     assert_hearing_equals(data, updated_data, john_smith_api_client.user, create=False)
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_tracks_section_image_deletion(
+    valid_hearing_json, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
+    hearing_data = get_data_from_response(response, status_code=201)
+    image_id = hearing_data["sections"][1]["images"][0]["id"]
+    hearing_data["sections"][1]["images"] = []
+
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, hearing_data["id"]),
+        data=hearing_data,
+        format="json",
+    )
+    assert response.status_code == 200
+    image = SectionImage.objects.everything().get(pk=image_id)
+    assert image.deleted_by_id == john_smith_api_client.user.id
+
+
+@pytest.mark.django_db
+def test_PUT_hearing_tracks_removed_section_deletion(
+    valid_hearing_json, john_smith_api_client
+):
+    response = john_smith_api_client.post(
+        endpoint, data=valid_hearing_json, format="json"
+    )
+    hearing_data = get_data_from_response(response, status_code=201)
+    removed_section = hearing_data["sections"].pop(2)
+    section_id = removed_section["id"]
+    image_id = removed_section["images"][0]["id"]
+
+    response = john_smith_api_client.put(
+        "%s%s/" % (endpoint, hearing_data["id"]),
+        data=hearing_data,
+        format="json",
+    )
+    assert response.status_code == 200
+    section = Section.objects.everything().get(pk=section_id)
+    image = SectionImage.objects.everything().get(pk=image_id)
+    assert section.deleted_by_id == john_smith_api_client.user.id
+    assert image.deleted_by_id == john_smith_api_client.user.id
 
 
 # Test that updating hearing with project returns a response with phases' is_active value

@@ -1,8 +1,10 @@
 import json
 import logging
 from typing import Any, Optional, TypedDict
+from uuid import UUID
 
 from django.db.models import QuerySet
+from logger_extra.logger_context import get_logger_context, logger_context
 from resilient_logger.sources import ResilientLogSource
 from rest_framework import status
 
@@ -105,14 +107,19 @@ def commit_to_audit_log(request, response):
     delattr(request, audit_logging_settings.REQUEST_AUDIT_LOG_VAR)
     status = get_response_status(response) or f"Unknown: {response.status_code}"
 
-    entry = ResilientLogSource.create_structured(
-        level=logging.NOTSET,
-        message=status,
-        actor=_get_actor_data(request),
-        operation=_get_operation_name(request),
-        target=_get_target(request, audit_logged_object_ids),
-        extra={"status": status},
+    request_id = get_logger_context().get("request_id")
+    context_overrides = (
+        {"request_id": str(request_id)} if isinstance(request_id, UUID) else {}
     )
+    with logger_context(context_overrides):
+        entry = ResilientLogSource.create_structured(
+            level=logging.NOTSET,
+            message=status,
+            actor=_get_actor_data(request),
+            operation=_get_operation_name(request),
+            target=_get_target(request, audit_logged_object_ids),
+            extra={"status": status},
+        )
 
     if audit_logging_settings.LOG_TO_LOGGER_ENABLED:
         logger = logging.getLogger("audit")

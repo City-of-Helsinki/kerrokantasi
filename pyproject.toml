@@ -17,7 +17,7 @@ dependencies = [
     "easy-thumbnails",
     "drf-nested-routers",
     "xlsxwriter",
-    "django-helusers @ https://github.com/City-of-Helsinki/django-helusers/archive/refs/tags/django-helusers-v1.2.0.zip",
+    "django-helusers",
     "pyjwt[crypto]",
     "jsonfield",
     "django-nested-admin",
@@ -29,9 +29,7 @@ dependencies = [
     "langdetect",
     "sentry-sdk",
     "whitenoise",
-    # Pin below 6.0.0: 6.x makes social login views POST-only, breaking the
-    # admin Keycloak login GET link (405). See CHANGELOG for social-app-django 6.0.0.
-    "social-auth-app-django>=5.9,<6",
+    "social-auth-app-django",
     "python-pptx",
     "helsinki-profile-gdpr-api",
     "django-helsinki-notification[rest_framework] @ https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.2.zip",

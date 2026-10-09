@@ -392,8 +392,8 @@ provides-extras = ["test", "rest-framework", "all"]
 
 [[package]]
 name = "django-helusers"
-version = "1.2.0"
-source = { url = "https://github.com/City-of-Helsinki/django-helusers/archive/refs/tags/django-helusers-v1.2.0.zip" }
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cachetools" },
     { name = "cryptography" },
@@ -402,28 +402,10 @@ dependencies = [
     { name = "pyjwt" },
     { name = "requests" },
 ]
-sdist = { hash = "sha256:aa5e4e420b2e6cb374a5abf22252257808ca0ba08801f03df0c3f8be2137f0cf" }
-
-[package.metadata]
-requires-dist = [
-    { name = "cachetools", specifier = ">=3.0.0" },
-    { name = "coverage", marker = "extra == 'test'" },
-    { name = "cryptography" },
-    { name = "deprecation", specifier = ">=2" },
-    { name = "django", specifier = ">=5.2" },
-    { name = "django-allauth", marker = "extra == 'test'" },
-    { name = "django-helusers", extras = ["test"], marker = "extra == 'all'" },
-    { name = "djangorestframework", marker = "extra == 'test'" },
-    { name = "pyjwt", specifier = ">=2" },
-    { name = "pytest", marker = "extra == 'test'" },
-    { name = "pytest-cov", marker = "extra == 'test'" },
-    { name = "pytest-django", marker = "extra == 'test'" },
-    { name = "pytest-mock", marker = "extra == 'test'" },
-    { name = "requests" },
-    { name = "responses", marker = "extra == 'test'" },
-    { name = "social-auth-app-django", marker = "extra == 'test'" },
+sdist = { url = "https://files.pythonhosted.org/packages/1b/f5/e30297196803b22dd7194d5006b9203e06af741add38b16c54ab304a043e/django_helusers-1.3.0.tar.gz", hash = "sha256:2f741d6ac588f871fe464c684a3f91caa7b1e79687dccb02385973648e8ac61d", size = 38936, upload-time = "2026-08-24T13:34:09.861Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e6/7c/eb84af2c6e0485a366b6f9c495e35aa7d7a9163435016471c15b02eb6339/django_helusers-1.3.0-py3-none-any.whl", hash = "sha256:c10c63ee4287259d0c4a7d167f660799287bea19309b68a3ca6aa08f1025b999", size = 44985, upload-time = "2026-08-24T13:34:08.625Z" },
 ]
-provides-extras = ["test", "all"]
 
 [[package]]
 name = "django-js-asset"
@@ -919,7 +901,7 @@ requires-dist = [
     { name = "django-geojson" },
     { name = "django-helsinki-health-endpoints" },
     { name = "django-helsinki-notification", extras = ["rest-framework"], url = "https://github.com/City-of-Helsinki/django-helsinki-notification/archive/refs/tags/v0.4.2.zip" },
-    { name = "django-helusers", url = "https://github.com/City-of-Helsinki/django-helusers/archive/refs/tags/django-helusers-v1.2.0.zip" },
+    { name = "django-helusers" },
     { name = "django-leaflet" },
     { name = "django-logger-extra" },
     { name = "django-munigeo" },
@@ -940,7 +922,7 @@ requires-dist = [
     { name = "pyjwt", extras = ["crypto"] },
     { name = "python-pptx" },
     { name = "sentry-sdk" },
-    { name = "social-auth-app-django", specifier = ">=5.9,<6" },
+    { name = "social-auth-app-django" },
     { name = "whitenoise" },
     { name = "xlsxwriter" },
 ]
@@ -1472,21 +1454,21 @@ wheels = [
 
 [[package]]
 name = "social-auth-app-django"
-version = "5.9.0"
+version = "6.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "asgiref" },
     { name = "django" },
     { name = "social-auth-core" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/62/f9/c761cf93cb0a102ddd59498ea560b398be6bd14b8d6a4c493cc011b4bb80/social_auth_app_django-5.9.0.tar.gz", hash = "sha256:5b79c53321f9528334d53ddb154452a3b7e598b7ff4c2c1302be9a76b1349e8d", size = 29751, upload-time = "2026-04-29T14:52:50.715Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/29/8c/813d5fdcc1b81500b4803bd4807825321c307fc45bae9efcfa5d660d4aa8/social_auth_app_django-6.1.0.tar.gz", hash = "sha256:7ce0489710f450dafd652833eea833505ccf5dacda6b188daa8bf90038986557", size = 47148, upload-time = "2026-09-30T16:42:17.508Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f0/8c/5a06761549ea5e7e3c6e87d25ed2029ed5ba9ba39c493bc8a591548d6575/social_auth_app_django-5.9.0-py3-none-any.whl", hash = "sha256:80edf5c207d871f2225a0fc6bb414004c0342c30deb3a217eb38a63b66e749bb", size = 28568, upload-time = "2026-04-29T14:52:49.473Z" },
+    { url = "https://files.pythonhosted.org/packages/fd/18/e64decbe38a820c6e844658d079c6f37108035161cb95352ffa6a79a03fc/social_auth_app_django-6.1.0-py3-none-any.whl", hash = "sha256:b192b1f7c432c7d5d552ac44f43d07c7c01bfd528c6dfa0f7605df5a8495afd8", size = 38879, upload-time = "2026-09-30T16:42:16.49Z" },
 ]
 
 [[package]]
 name = "social-auth-core"
-version = "4.9.1"
+version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cryptography" },
@@ -1497,9 +1479,9 @@ dependencies = [
     { name = "requests" },
     { name = "requests-oauthlib" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/32/2e/15fd3e5bfd7eba91b04e3ebf2dac8a2d1237ba69e63752567b0dc2586a4a/social_auth_core-4.9.1.tar.gz", hash = "sha256:34ee16bddc10b8bf5d6a90c3a033f6e5bb1300197984ad66a4d363783f23bcd8", size = 252961, upload-time = "2026-04-30T07:16:18.62Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/31/0b/8d5137b3a020719702e1d159a68c6c4dd863e1ae57fd4875a4a68b2855fe/social_auth_core-5.2.0.tar.gz", hash = "sha256:72d3c52fe87d07c0db8421fee5f5ec33b3dacce449975b8a572cd0691e3de315", size = 292820, upload-time = "2026-09-30T15:55:58.723Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ff/f2/0cb91ff294282800cc5ec7cefdfa3d87068c805d30920e3842fc859853ac/social_auth_core-4.9.1-py3-none-any.whl", hash = "sha256:2eca8a6ae678bae7e24e5aa3c72f99c77983012a09b8916ce9791dcfccade725", size = 457143, upload-time = "2026-04-30T07:16:17.235Z" },
+    { url = "https://files.pythonhosted.org/packages/6a/31/245e19405808689b60810ec8ebd0a4d6be51d73e69c810e686fb7aede33a/social_auth_core-5.2.0-py3-none-any.whl", hash = "sha256:e7b9990450291488deffce8d92d14d4396021b8d3c4a0ac5c32ec03bfaccc496", size = 492771, upload-time = "2026-09-30T15:55:57.372Z" },
 ]
 
 [[package]]

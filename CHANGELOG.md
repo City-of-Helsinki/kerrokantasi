@@ -1,5 +1,22 @@
 # Changelog
 
+## [2.10.11](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.10...kerrokantasi-v2.10.11) (2026-10-10)
+
+
+### Performance Improvements
+
+* Batch hearing report comment queries ([00389f4](https://github.com/City-of-Helsinki/kerrokantasi/commit/00389f41fa4f915157347f897e3dc9ed5646d13b))
+* Prefetch comment admin translations ([ec3b514](https://github.com/City-of-Helsinki/kerrokantasi/commit/ec3b51407ca7e30527bac729b5565f7dbfe0b54c))
+
+
+### Dependencies
+
+* Bump oauthlib from 3.3.1 to 4.0.0 ([a924669](https://github.com/City-of-Helsinki/kerrokantasi/commit/a9246698d3ef58f8561b95811fdb4230b914a9b2))
+* Bump pyjwt from 2.13.0 to 2.15.0 ([df6ce99](https://github.com/City-of-Helsinki/kerrokantasi/commit/df6ce9992aa83d5d16c5f8cb2d6484432d6b5b76))
+* Bump urllib3 from 2.7.0 to 2.8.0 ([60d0729](https://github.com/City-of-Helsinki/kerrokantasi/commit/60d0729571ddb744956f879c88e4affd2aef264d))
+* Upgrade django-helusers and social-auth-app-django ([bdc1dcc](https://github.com/City-of-Helsinki/kerrokantasi/commit/bdc1dcc8b3f462cb0780e1286e6ff6c1d9d7a0d0))
+* Upgrade resilient logger and normalize audit request IDs ([1cfcbb2](https://github.com/City-of-Helsinki/kerrokantasi/commit/1cfcbb2ea1824b4de216b7b945e828c60fa5cc23))
+
 ## [2.10.10](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.9...kerrokantasi-v2.10.10) (2026-09-04)
 
 

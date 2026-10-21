@@ -3,6 +3,7 @@ import re
 from pathlib import PurePosixPath
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.test import override_settings
 from django.urls import reverse
 from django.utils.timezone import now
@@ -26,6 +27,7 @@ from democracy.tests.utils import (
     sectionimage_multipart_test_data,
     sectionimage_test_json,
 )
+from democracy.views.section import ImageViewSet
 
 
 def check_entity_images(entity, images_field=True):
@@ -476,6 +478,39 @@ def test_other_user_cannot_update_or_delete_orphan_image(
         == 404
     )
     assert john_doe_api_client.delete(url).status_code == 404
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("anonymous", [False, True])
+def test_orphan_image_update_permission_rejects_non_owner(
+    john_smith, john_doe, anonymous
+):
+    image = SectionImageFactory(section=None, created_by=john_smith)
+    user = AnonymousUser() if anonymous else john_doe
+
+    assert ImageViewSet()._can_user_update_image(user, image, None) is False
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("with_section", [False, True])
+def test_superuser_can_create_image_without_organization_membership(
+    admin_api_client, default_hearing, with_section
+):
+    user = admin_api_client.user
+    assert user.is_superuser
+    user.admin_organizations.clear()
+    section = default_hearing.get_main_section() if with_section else None
+    post_data = sectionimage_test_json()
+    post_data["section"] = section.pk if section else None
+
+    data = get_data_from_response(
+        admin_api_client.post(reverse("image-list"), data=post_data, format="json"),
+        status_code=201,
+    )
+
+    image = SectionImage.objects.get(pk=data["id"])
+    assert image.section_id == post_data["section"]
+    assert image.created_by_id == user.pk
 
 
 @pytest.mark.django_db

@@ -11,7 +11,16 @@ from democracy.tests.utils import (
     get_hearing_detail_url,
     get_image_path,
 )
-from democracy.views.section import SectionCreateUpdateSerializer
+from democracy.views.section import (
+    SectionCreateUpdateSerializer,
+    get_inline_image_name,
+)
+
+
+def test_inline_image_name_is_none_when_media_url_has_no_path(settings):
+    settings.MEDIA_URL = "https://media.example.com"
+
+    assert get_inline_image_name("https://media.example.com/images/example.png") is None
 
 
 @pytest.mark.django_db
@@ -116,6 +125,48 @@ def test_newest_matching_orphan_inline_image_is_attached(
 
 
 @pytest.mark.django_db
+def test_existing_section_inline_image_is_preferred_over_matching_orphan(
+    john_smith_api_client, default_hearing
+):
+    section = default_hearing.get_main_section()
+    existing_image = SectionImageFactory(
+        section=section,
+        purpose=SectionImage.PURPOSE_INLINE,
+        created_by=john_smith_api_client.user,
+    )
+    orphan_image = SectionImage.objects.create(
+        image=existing_image.image.name,
+        purpose=SectionImage.PURPOSE_INLINE,
+        created_by=john_smith_api_client.user,
+    )
+    hearing_url = get_hearing_detail_url(default_hearing.id)
+    hearing = get_data_from_response(john_smith_api_client.get(hearing_url))
+    section_data = next(
+        section_data
+        for section_data in hearing["sections"]
+        if section_data["id"] == section.id
+    )
+    section_data["content"]["en"] = f'<p><img src="{existing_image.image.url}" /></p>'
+
+    get_data_from_response(
+        john_smith_api_client.put(hearing_url, data=hearing, format="json"),
+        status_code=200,
+    )
+
+    existing_image.refresh_from_db()
+    orphan_image.refresh_from_db()
+    assert existing_image.section_id == section.pk
+    assert not existing_image.deleted
+    assert orphan_image.section_id is None
+    assert not orphan_image.deleted
+    assert list(
+        section.images.filter(purpose=SectionImage.PURPOSE_INLINE).values_list(
+            "pk", flat=True
+        )
+    ) == [existing_image.pk]
+
+
+@pytest.mark.django_db
 def test_external_inline_image_url_is_rejected(john_smith_api_client, default_hearing):
     section = default_hearing.get_main_section()
     hearing_url = get_hearing_detail_url(default_hearing.id)
@@ -184,6 +235,26 @@ def test_legacy_data_uri_inline_image_remains_editable(
         if section_data["id"] == section.id
     )
     assert updated_section["content"]["en"] == edited_content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("image_reference_field", ["id", "reference_id"])
+def test_section_image_validation_rejects_another_users_orphan(
+    john_smith, john_doe, image_reference_field
+):
+    image = SectionImageFactory(
+        section=None,
+        purpose=SectionImage.PURPOSE_SECTION_LEVEL,
+        created_by=john_doe,
+    )
+    request = APIRequestFactory().post("/")
+    request.user = john_smith
+    serializer = SectionCreateUpdateSerializer(context={"request": request})
+
+    with pytest.raises(
+        ValidationError, match="You do not have access to this unattached image"
+    ):
+        serializer.validate_images([{image_reference_field: image.pk}])
 
 
 @pytest.mark.django_db

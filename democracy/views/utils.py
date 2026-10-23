@@ -216,6 +216,14 @@ class GeometryBboxFilterBackend(BaseFilterBackend):
         return queryset
 
 
+def validate_image_size(data):
+    max_size = getattr(settings, "MAX_IMAGE_SIZE", data.size)
+    if data.size > max_size:
+        raise ValidationError(
+            _("Image size should be smaller than {} bytes.".format(max_size))
+        )
+
+
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith("data:image"):
@@ -230,18 +238,8 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(
                 base64.b64decode(imgstr), name="%s.%s" % (get_random_string(8), ext)
             )
-
-            # Do not limit image size if there is no settings for that
-            if data.size <= getattr(settings, "MAX_IMAGE_SIZE", data.size):
-                return super(Base64ImageField, self).to_internal_value(data)
-            else:
-                raise ValidationError(
-                    _(
-                        "Image size should be smaller than {} bytes.".format(
-                            settings.MAX_IMAGE_SIZE
-                        )
-                    )
-                )
+            validate_image_size(data)
+            return super(Base64ImageField, self).to_internal_value(data)
         raise ValidationError(_('Invalid content. Expected "data:image"'))
 
 

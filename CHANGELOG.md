@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.10.12](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.11...kerrokantasi-v2.10.12) (2026-10-23)
+
+
+### Bug Fixes
+
+* Bump uv version to 0.13.5 ([ad37258](https://github.com/City-of-Helsinki/kerrokantasi/commit/ad37258c632cb5c50381fa65dc3e3b3a68e21723))
+
+
+### Dependencies
+
+* Bump certifi to 2026.10.19 ([d44e36a](https://github.com/City-of-Helsinki/kerrokantasi/commit/d44e36aad825e81786e0510484abfdbc56ab0f7d))
+
 ## [2.10.11](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.10...kerrokantasi-v2.10.11) (2026-10-10)
 
 

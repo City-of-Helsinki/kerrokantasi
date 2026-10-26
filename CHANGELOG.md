@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.13](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.12...kerrokantasi-v2.10.13) (2026-10-26)
+
+
+### Dependencies
+
+* Bump pillow from 12.3.0 to 13.0.0 ([7c8db10](https://github.com/City-of-Helsinki/kerrokantasi/commit/7c8db10bf4735b3231763d6fb0d778aea7752876))
+
 ## [2.10.12](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.11...kerrokantasi-v2.10.12) (2026-10-23)
 
 

@@ -30,6 +30,7 @@ from democracy.models import (
     Project,
     ProjectPhase,
     Section,
+    SectionImage,
     SectionPoll,
     SectionPollOption,
 )
@@ -171,7 +172,22 @@ class HearingSerializerMixin:
         if not main_section:
             return None
 
-        main_image = main_section.images.first()
+        prefetched_images = getattr(main_section, "_prefetched_objects_cache", {}).get(
+            "images"
+        )
+        if prefetched_images is not None:
+            main_image = next(
+                (
+                    image
+                    for image in prefetched_images
+                    if image.purpose == SectionImage.PURPOSE_SECTION_LEVEL
+                ),
+                None,
+            )
+        else:
+            main_image = main_section.images.filter(
+                purpose=SectionImage.PURPOSE_SECTION_LEVEL
+            ).first()
         if main_image and (
             main_image.published or self.context["request"].user.is_superuser
         ):
@@ -398,7 +414,8 @@ class HearingCreateUpdateSerializer(
 
         contact_person_data = validated_data.pop("contact_persons", None)
         sections_data = validated_data.pop("sections")
-        validated_data["modified_by_id"] = self.context["request"].user.id
+        user = self.context["request"].user
+        validated_data["modified_by_id"] = user.id
         hearing = super().update(instance, validated_data)
         self._create_or_update_contact_persons(hearing, contact_person_data)
         sections = self._create_or_update_sections(hearing, sections_data)
@@ -406,8 +423,8 @@ class HearingCreateUpdateSerializer(
         new_section_ids = {section.id for section in sections}
         for section in hearing.sections.exclude(id__in=new_section_ids):
             for image in section.images.all():
-                image.soft_delete()
-            section.soft_delete()
+                image.soft_delete(user=user)
+            section.soft_delete(user=user)
 
         return hearing
 
@@ -526,7 +543,9 @@ class HearingSerializer(
                 ),
             ),
             Prefetch(
-                "images", image_qs_for_request(request).prefetch_related("translations")
+                "images",
+                image_qs_for_request(request).prefetch_related("translations"),
+                to_attr="section_level_images",
             ),
             Prefetch(
                 "files", file_qs_for_request(request).prefetch_related("translations")

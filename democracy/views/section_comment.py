@@ -26,17 +26,13 @@ from democracy.models import (
     SectionPollAnswer,
     SectionPollOption,
 )
-from democracy.models.section import CommentImage
 from democracy.pagination import DefaultLimitPagination
 from democracy.views.comment import (
     COMMENT_FIELDS,
     BaseCommentSerializer,
     BaseCommentViewSet,
 )
-from democracy.views.comment_image import (
-    CommentImageCreateSerializer,
-    CommentImageSerializer,
-)
+from democracy.views.comment_image import CommentImageSerializer
 from democracy.views.label import LabelSerializer
 from democracy.views.openapi import (
     AUTHORIZATION_CODE_PARAM,
@@ -64,7 +60,6 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
         expanded=True,
     )
     geojson = GeoJSONField(required=False, allow_null=True)
-    images = CommentImageCreateSerializer(required=False, many=True)
     answers = (
         serializers.SerializerMethodField()
     )  # this makes the field read-only, create answers manually
@@ -82,7 +77,6 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
             "authorization_code",
             "author_name",
             "label",
-            "images",
             "answers",
             "geojson",
             "language_code",
@@ -108,8 +102,6 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         if data.get("plugin_data") is None:
             data["plugin_data"] = ""
-        if data.get("images") is None:
-            data["images"] = []
         return super().to_internal_value(data)
 
     def validate_section(self, value):
@@ -172,25 +164,19 @@ class SectionCommentCreateUpdateSerializer(serializers.ModelSerializer):
 
     @atomic
     def create(self, validated_data):
-        images = validated_data.pop("images", [])
         user = self.context["request"].user
         if user and not user.is_anonymous:
             validated_data["created_by_id"] = self.context["request"].user.id
         comment = SectionComment.objects.create(**validated_data)
-        for image in images:
-            CommentImage.objects.get_or_create(comment=comment, **image)
         return comment
 
     @atomic
     def update(self, instance, validated_data):
-        images = validated_data.pop("images", [])
         # do not process extra fields created by rootsectioncommentserializer
         validated_data.pop("hearing_pk", None)
         validated_data.pop("comment_parent_pk", None)
         validated_data.pop("pk", None)
         instance = super().update(instance, validated_data)
-        for image in images:
-            CommentImage.objects.update(comment=instance, **image)
         return instance
 
 
@@ -341,7 +327,7 @@ class SectionCommentSerializer(BaseCommentSerializer):
         summary="Create comment",
         description=(
             "Post a new comment to a hearing section. "
-            "Can include poll answers, images, and geographic data."
+            "Can include poll answers and geographic data."
         ),
         responses={
             201: SectionCommentCreateUpdateSerializer,
@@ -693,7 +679,7 @@ class CommentFilterSet(django_filters.rest_framework.FilterSet):
         summary="Create comment (root endpoint)",
         description=(
             "Post a new comment to any hearing section. "
-            "Can include poll answers, images, and geographic data. "
+            "Can include poll answers and geographic data. "
             "The section or comment to reply to must be specified in the request body."
         ),
         responses={

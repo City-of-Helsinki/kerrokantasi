@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.10.14](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.13...kerrokantasi-v2.10.14) (2026-11-07)
+
+
+### Dependencies
+
+* Bump authlib from 1.7.2 to 1.9.1 ([92a9c1b](https://github.com/City-of-Helsinki/kerrokantasi/commit/92a9c1b326676842458298852b9e61cf9d130691))
+* Bump joserfc from 1.7.4 to 1.7.6 ([2d90e6d](https://github.com/City-of-Helsinki/kerrokantasi/commit/2d90e6db9f34498715e1705e190caa6f7d8ba257))
+* Bump oauthlib from 4.0.0 to 4.0.1 ([162d1fe](https://github.com/City-of-Helsinki/kerrokantasi/commit/162d1febde114557372e25c140b6b3c4b78689d9))
+
 ## [2.10.13](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.12...kerrokantasi-v2.10.13) (2026-10-26)
 
 

@@ -1,6 +1,5 @@
 import datetime
 import urllib
-from copy import deepcopy
 from urllib.parse import urlparse
 
 import pytest
@@ -16,7 +15,12 @@ from democracy.enums import Commenting, InitialSectionType
 from democracy.factories.hearing import SectionCommentFactory
 from democracy.factories.poll import SectionPollFactory
 from democracy.models import Hearing, Label, Section, SectionType
-from democracy.models.section import SectionComment, SectionPoll, SectionPollAnswer
+from democracy.models.section import (
+    CommentImage,
+    SectionComment,
+    SectionPoll,
+    SectionPollAnswer,
+)
 from democracy.tests.conftest import default_comment_content, default_lang_code
 from democracy.tests.utils import (
     assert_audit_log_entry,
@@ -24,6 +28,10 @@ from democracy.tests.utils import (
     get_data_from_response,
     get_hearing_detail_url,
     image_test_json,
+)
+from democracy.views.section_comment import (
+    SectionCommentCreateUpdateSerializer,
+    SectionCommentSerializer,
 )
 from kerrokantasi.tests.conftest import default_geojson_feature
 
@@ -645,115 +653,69 @@ def test_56_add_comment_with_no_label_id(
     }
 
 
+def test_comment_write_serializer_omits_image_field():
+    """Existing image responses stay read-only; comment writes omit images."""
+    serializer = SectionCommentCreateUpdateSerializer(
+        data={"images": [{"image": "not-an-image"}]}
+    )
+
+    assert not serializer.is_valid()
+    assert "images" not in serializer.errors
+    assert "images" not in serializer.fields
+    assert SectionCommentSerializer().fields["images"].read_only
+
+
 @pytest.mark.django_db
-def test_56_add_comment_with_images_to_section(
+def test_comment_image_upload_input_is_ignored_on_create(
     john_doe_api_client, default_hearing, get_comments_url_and_data
 ):
+    """Legacy image input is ignored and does not create an attachment."""
     section = default_hearing.sections.first()
-    url, data = get_comments_url_and_data(default_hearing, section)
-    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+    url, comment_data = get_comments_url_and_data(default_hearing, section)
+    comment_data["images"] = [image_test_json()]
+    old_comment_count = SectionComment.objects.count()
+    old_image_count = CommentImage.objects.count()
 
-    # If pagination is used the actual data is in "results"
-    if "results" in old_comment_list:
-        old_comment_list = old_comment_list["results"]
-
-    # set section explicitly
-    comment_data = get_comment_data(section=section.pk, images=[image_test_json()])
     response = john_doe_api_client.post(url, data=comment_data, format="json")
     data = get_data_from_response(response, status_code=201)
 
-    assert "images" in data
-    assert data["images"][0]["url"].startswith("http://testserver/media/images/")
-    # Check that the comment is available in the comment endpoint now
-    new_comment_list = get_data_from_response(john_doe_api_client.get(url))
-
-    # If pagination is used the actual data is in "results"
-    if "results" in new_comment_list:
-        new_comment_list = new_comment_list["results"]
-
-    # Replace the images with the list of URL returned by the creation
-    response_data = deepcopy(comment_data)
-    response_data["images"][0].pop("image")
-    response_data["images"][0].update(
-        {
-            "url": data["images"][0]["url"],
-            "height": 635,
-            "width": 952,
-        }
-    )
-
-    assert len(new_comment_list) == len(old_comment_list) + 1
-    new_comment = [c for c in new_comment_list if c["id"] == data["id"]][0]
-    new_comment["images"][0].pop("id")
-    assert_common_keys_equal(new_comment, response_data)
-    assert new_comment["is_registered"] is True
-    assert new_comment["author_name"] is None
+    assert data["images"] == []
+    assert SectionComment.objects.count() == old_comment_count + 1
+    assert CommentImage.objects.count() == old_image_count
 
 
 @pytest.mark.django_db
-def test_56_add_comment_with_empty_image_field_to_section(
+def test_comment_with_empty_images_is_accepted(
     john_doe_api_client, default_hearing, get_comments_url_and_data
 ):
+    """Legacy null and empty image lists remain harmless."""
     section = default_hearing.sections.first()
-    url, data = get_comments_url_and_data(default_hearing, section)
-    old_comment_list = get_data_from_response(john_doe_api_client.get(url))
+    url, comment_data = get_comments_url_and_data(default_hearing, section)
 
-    # If pagination is used the actual data is in "results"
-    if "results" in old_comment_list:
-        old_comment_list = old_comment_list["results"]
-
-    # set section explicitly
-    # allow null images field
-    comment_data = get_comment_data(section=section.pk, images=None)
-    response = john_doe_api_client.post(url, data=comment_data, format="json")
-    get_data_from_response(response, status_code=201)
-
-    # allow empty images array
-    comment_data = get_comment_data(section=section.pk, images=[])
-    response = john_doe_api_client.post(url, data=comment_data, format="json")
-    get_data_from_response(response, status_code=201)
-
-
-@pytest.mark.django_db
-def test_56_add_comment_with_invalid_content_as_images(
-    john_doe_api_client, default_hearing, get_comments_url_and_data
-):
-    section = default_hearing.sections.first()
-    url, data = get_comments_url_and_data(default_hearing, section)
-
-    invalid_image = image_test_json()
-    invalid_image.update({"image": "not a b64 image"})
-    comment_data = get_comment_data(section=section.pk, images=[invalid_image])
-    response = john_doe_api_client.post(url, data=comment_data, format="json")
-    data = get_data_from_response(response, status_code=400)
-    assert data["images"][0]["image"][0] == 'Invalid content. Expected "data:image"'
-
-    invalid_image.update({"image": "data:image/jpeg;base64,not a b64 image"})
-    comment_data = get_comment_data(section=section.pk, images=[invalid_image])
-    response = john_doe_api_client.post(url, data=comment_data, format="json")
-    data = get_data_from_response(response, status_code=400)
-    error = data["images"][0]["image"][0]
-    assert (
-        error
-        == "Upload a valid image. The file you uploaded was either not an image or a corrupted image."
-    )
-
-
-@pytest.mark.django_db
-def test_56_add_comment_with_image_too_big(
-    john_doe_api_client, default_hearing, get_comments_url_and_data
-):
-    section = default_hearing.sections.first()
-    url, data = get_comments_url_and_data(default_hearing, section)
-
-    comment_data = get_comment_data(section=section.pk, images=[image_test_json()])
-    # 10 bytes max
-    with override_settings(MAX_IMAGE_SIZE=10):
+    for images in (None, []):
+        comment_data["images"] = images
         response = john_doe_api_client.post(url, data=comment_data, format="json")
-    data = get_data_from_response(response, status_code=400)
-    assert (
-        data["images"][0]["image"][0] == "Image size should be smaller than 10 bytes."
+        get_data_from_response(response, status_code=201)
+
+
+@pytest.mark.django_db
+def test_comment_image_upload_input_is_ignored_on_update(
+    john_doe_api_client, comment_image, get_detail_url
+):
+    """Legacy image input cannot change an existing comment image."""
+    comment = comment_image.comment
+    url = get_detail_url(comment)
+    response = john_doe_api_client.patch(
+        url,
+        data={"content": comment.content, "images": [image_test_json()]},
+        format="json",
     )
+    data = get_data_from_response(response, status_code=200)
+
+    assert data["images"][0]["id"] == comment_image.id
+    comment_image.refresh_from_db()
+    assert comment_image.deleted is False
+    assert comment.images.count() == 1
 
 
 @pytest.mark.django_db
@@ -1463,6 +1425,11 @@ def test_comment_delete(
     assert answer.deleted is False
     assert comment.images.all().count() == 1
     assert comment.poll_answers.all().count() == 1
+
+    active_comment_data = get_data_from_response(
+        john_doe_api_client.get(url), status_code=200
+    )
+    assert active_comment_data["images"][0]["id"] == comment_image.id
 
     # Delete comment
     response = john_doe_api_client.delete(url)

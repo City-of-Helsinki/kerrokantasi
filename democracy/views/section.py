@@ -1,6 +1,9 @@
 from functools import lru_cache
+from html.parser import HTMLParser
+from urllib.parse import unquote, urlsplit
 
 import django_filters
+from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 from django.db.models import Max, Prefetch, Q
@@ -14,6 +17,7 @@ from drf_spectacular.utils import (
     OpenApiParameter,
     OpenApiResponse,
     extend_schema,
+    extend_schema_field,
     extend_schema_view,
 )
 from easy_thumbnails.files import get_thumbnailer
@@ -44,6 +48,7 @@ from democracy.views.utils import (
     TranslatableSerializer,
     compare_serialized,
     filter_by_hearing_visible,
+    validate_image_size,
 )
 
 # Section-specific OpenAPI parameters
@@ -68,6 +73,38 @@ DIM_PARAM = [
         location=OpenApiParameter.QUERY,
     ),
 ]
+
+
+class InlineImageSourceParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.sources = set()
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() == "img" and (source := dict(attrs).get("src")):
+            self.sources.add(source)
+
+
+def get_inline_image_urls(content):
+    urls = set()
+    for html in content.values():
+        parser = InlineImageSourceParser()
+        parser.feed(html or "")
+        parser.close()
+        urls.update(parser.sources)
+    return urls
+
+
+def get_inline_image_name(image_url):
+    media_url_path = urlsplit(settings.MEDIA_URL).path
+    if not media_url_path:
+        return None
+
+    media_url_path = media_url_path.rstrip("/") + "/"
+    path = urlsplit(image_url).path
+    if path.startswith(media_url_path):
+        return unquote(path[len(media_url_path) :])
+    return None
 
 
 class ThumbnailImageSerializer(BaseImageSerializer):
@@ -143,7 +180,15 @@ class ThumbnailImageSerializer(BaseImageSerializer):
 class SectionImageSerializer(ThumbnailImageSerializer, TranslatableSerializer):
     class Meta:
         model = SectionImage
-        fields = ["id", "title", "url", "width", "height", "caption", "alt_text"]
+        fields = [
+            "id",
+            "title",
+            "url",
+            "width",
+            "height",
+            "caption",
+            "alt_text",
+        ]
 
 
 class SectionImageCreateUpdateSerializer(BaseImageSerializer, TranslatableSerializer):
@@ -240,12 +285,19 @@ class SectionPollSerializer(serializers.ModelSerializer, TranslatableSerializer)
         return data
 
 
+def section_level_images_for(section):
+    images = getattr(section, "section_level_images", None)
+    if images is not None:
+        return images
+    return section.images.filter(purpose=SectionImage.PURPOSE_SECTION_LEVEL)
+
+
 class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
     """
     Serializer for section instance.
     """
 
-    images = SectionImageSerializer(many=True, read_only=True)
+    images = serializers.SerializerMethodField()
     files = SectionFileSerializer(many=True, read_only=True)
     questions = SectionPollSerializer(many=True, read_only=True, source="polls")
     type = serializers.SlugRelatedField(slug_field="identifier", read_only=True)
@@ -281,6 +333,14 @@ class SectionSerializer(serializers.ModelSerializer, TranslatableSerializer):
             "plugin_data",
             "plugin_fullscreen",
         ]
+
+    @extend_schema_field(SectionImageSerializer(many=True))
+    def get_images(self, instance):
+        return SectionImageSerializer(
+            section_level_images_for(instance),
+            many=True,
+            context=self.context,
+        ).data
 
 
 class SectionFieldSerializer(serializers.RelatedField):
@@ -337,6 +397,14 @@ class SectionCreateUpdateSerializer(
         ]
 
     @transaction.atomic()
+    def save(self, **kwargs):
+        section = super().save(**kwargs)
+        self._handle_inline_images(
+            section, self._get_inline_image_ids_from_content(section)
+        )
+        return section
+
+    @transaction.atomic()
     def create(self, validated_data):
         images_data = validated_data.pop("images", [])
         polls_data = validated_data.pop("questions", [])
@@ -371,18 +439,24 @@ class SectionCreateUpdateSerializer(
                 try:
                     # only allow orphan images or images within this section already
                     image = SectionImage.objects.filter(
-                        Q(section=None) | Q(section=self.instance)
+                        Q(section=None) | Q(section=self.instance),
+                        purpose=SectionImage.PURPOSE_SECTION_LEVEL,
                     ).get(pk=pk)
                 except SectionImage.DoesNotExist:
                     raise ValidationError(
                         "No image with ID %s available in this section" % pk
                     )
+                self._validate_orphan_image_access(image)
             elif reference_id := image_data.get("reference_id"):
                 # Create a new SectionImage based on an existing image.
                 try:
-                    image = SectionImage.objects.get(pk=reference_id)
+                    image = SectionImage.objects.get(
+                        pk=reference_id,
+                        purpose=SectionImage.PURPOSE_SECTION_LEVEL,
+                    )
                 except SectionImage.DoesNotExist:
                     raise ValidationError("Image %s does not exist" % reference_id)
+                self._validate_orphan_image_access(image)
                 image.pk = None
 
             serializer = SectionImageCreateUpdateSerializer(
@@ -394,6 +468,31 @@ class SectionCreateUpdateSerializer(
             image_data["serializer"] = serializer
 
         return data
+
+    def _validate_orphan_image_access(self, image):
+        if image.section is not None:
+            return
+
+        if (request := self.context.get("request")) and (
+            request.user.is_superuser
+            or (
+                request.user.is_authenticated and image.created_by_id == request.user.id
+            )
+        ):
+            return
+
+        raise ValidationError("You do not have access to this unattached image")
+
+    def _create_inline_image_record(self, name, section):
+        request = self.context.get("request")
+        return SectionImage.objects.create(
+            image=name,
+            purpose=SectionImage.PURPOSE_INLINE,
+            section=section,
+            created_by=(
+                request.user if request and request.user.is_authenticated else None
+            ),
+        )
 
     def validate_files(self, data):
         for index, file_data in enumerate(data):
@@ -435,17 +534,104 @@ class SectionCreateUpdateSerializer(
         return data
 
     def _handle_images(self, section, data):
+        request = self.context.get("request")
+        user = request.user if request and request.user.is_authenticated else None
         new_image_ids = set()
 
         for image_data in data:
             serializer = image_data.pop("serializer")
-            image = serializer.save(section=section)
+            save_kwargs = {"section": section}
+            if user and serializer.instance and serializer.instance.pk:
+                save_kwargs["modified_by"] = user
+            image = serializer.save(**save_kwargs)
             new_image_ids.add(image.id)
 
-        for image in section.images.exclude(id__in=new_image_ids):
-            image.soft_delete()
+        for image in section.images.filter(
+            purpose=SectionImage.PURPOSE_SECTION_LEVEL
+        ).exclude(id__in=new_image_ids):
+            image.soft_delete(user=user)
 
         return section
+
+    def _handle_inline_images(self, section, image_ids):
+        request = self.context.get("request")
+        user = request.user if request and request.user.is_authenticated else None
+        image_ids = set(image_ids)
+        images_to_delete = section.images.filter(
+            purpose=SectionImage.PURPOSE_INLINE
+        ).exclude(id__in=image_ids)
+        for image in images_to_delete:
+            image.soft_delete(user=user)
+
+        images_to_attach = SectionImage.objects.filter(
+            pk__in=image_ids,
+            purpose=SectionImage.PURPOSE_INLINE,
+            section__isnull=True,
+        )
+        update_fields = {"section": section}
+        if user:
+            update_fields["modified_by"] = user
+        images_to_attach.update(**update_fields)
+
+    def _find_matching_image(self, images, target_url):
+        for image in images.order_by("-created_at", "-pk"):
+            image_url = image.image.url
+            if request := self.context.get("request"):
+                image_url = request.build_absolute_uri(image_url)
+            if image_url == target_url:
+                return image
+        return None
+
+    def _get_inline_image_id_from_url(self, section, image_url):
+        """Resolve an inline image URL to an inline image ID for the section."""
+        inline_images = SectionImage.objects.filter(
+            purpose=SectionImage.PURPOSE_INLINE,
+            deleted=False,
+        )
+        # Prefer this section's existing instance before looking elsewhere.
+        if matched_image := self._find_matching_image(
+            inline_images.filter(section=section), image_url
+        ):
+            return matched_image.pk
+
+        # Second, try an orphan owned by this user (or any orphan for a superuser).
+        if (request := self.context.get("request")) and request.user.is_authenticated:
+            orphan_images = inline_images.filter(section__isnull=True)
+            if not request.user.is_superuser:
+                orphan_images = orphan_images.filter(created_by=request.user)
+            if matched_image := self._find_matching_image(orphan_images, image_url):
+                self._validate_orphan_image_access(matched_image)
+                return matched_image.pk
+
+        # Third, if another section has this image, create a new instance for this
+        # section rather than reassigning the existing instance. Can happen if a
+        # section is copied, for example.
+        if image_name := get_inline_image_name(image_url):
+            other_images = inline_images.filter(
+                section__isnull=False,
+                image=image_name,
+            ).exclude(section=section)
+            if self._find_matching_image(other_images, image_url):
+                new_image = self._create_inline_image_record(image_name, section)
+                return new_image.pk
+
+        return None
+
+    def _get_inline_image_ids_from_content(self, section):
+        image_urls = get_inline_image_urls(section.content_with_translations)
+        image_ids = set()
+        for image_url in image_urls:
+            if image_url.lower().startswith("data:"):
+                continue
+            if request := self.context.get("request"):
+                image_url = request.build_absolute_uri(image_url)
+            if image_id := self._get_inline_image_id_from_url(section, image_url):
+                image_ids.add(image_id)
+            else:
+                raise serializers.ValidationError(
+                    "Inline images must be uploaded to this backend."
+                )
+        return image_ids
 
     def _handle_files(self, section, data):
         new_file_ids = set()
@@ -512,7 +698,7 @@ class SectionCreateUpdateSerializer(
     def to_representation(self, instance):
         data = super().to_representation(instance)
         data["images"] = SectionImageSerializer(
-            instance.images.all(),
+            section_level_images_for(instance),
             many=True,
             context=self.context,
         ).data
@@ -572,6 +758,7 @@ class SectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSet):
                 Prefetch(
                     "images",
                     image_qs_for_request(self.request).prefetch_related("translations"),
+                    to_attr="section_level_images",
                 ),
                 Prefetch(
                     "files",
@@ -593,7 +780,14 @@ class RootSectionImageSerializer(
     Serializer for root level SectionImage endpoint /v1/image/
     """
 
-    hearing = serializers.CharField(source="section.hearing_id", read_only=True)
+    hearing = serializers.CharField(
+        source="section.hearing_id", read_only=True, allow_null=True
+    )
+    purpose = serializers.ChoiceField(
+        choices=SectionImage.PURPOSE_CHOICES,
+        required=False,
+        write_only=True,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -606,18 +800,40 @@ class RootSectionImageSerializer(
             "section",
             "hearing",
             "ordering",
+            "purpose",
         ]
 
     @transaction.atomic()
     def create(self, validated_data):
         section_image = super().create(validated_data)
-        section_images = section_image.section.images.all()
-        if section_images.exists():
-            section_image.ordering = (
-                section_images.aggregate(Max("ordering"))["ordering__max"] + 1
-            )
-            section_image.save()
+        self._update_ordering(section_image)
         return section_image
+
+    @transaction.atomic()
+    def update(self, instance, validated_data):
+        is_section_changed = instance.section != validated_data.get(
+            "section", instance.section
+        )
+        section_image = super().update(instance, validated_data)
+        if is_section_changed:
+            self._update_ordering(section_image)
+        return section_image
+
+    def _update_ordering(self, section_image):
+        if not section_image.section:
+            return
+
+        existing_section_images = SectionImage.objects.filter(
+            section=section_image.section,
+            purpose=SectionImage.PURPOSE_SECTION_LEVEL,
+        ).exclude(pk=section_image.pk)
+        if existing_section_images.exists():
+            section_image.ordering = (
+                existing_section_images.aggregate(Max("ordering"))["ordering__max"] + 1
+            )
+        else:
+            section_image.ordering = 1
+        section_image.save()
 
     def to_internal_value(self, value):
         if (
@@ -629,6 +845,10 @@ class RootSectionImageSerializer(
             del value["image"]
         ret = super().to_internal_value(value)
         return ret
+
+
+class RootSectionImageMultipartSerializer(RootSectionImageSerializer):
+    image = serializers.ImageField(validators=[validate_image_size])
 
 
 class ImageFilterSet(django_filters.rest_framework.FilterSet):
@@ -651,8 +871,8 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
     list=extend_schema(
         summary="List section images",
         description=(
-            "Retrieve paginated list of section images across all hearings. "
-            "Can be filtered by hearing or section."
+            "Retrieve a paginated list of section-level images across all hearings. "
+            "Results can be filtered by hearing, section, or section type."
         ),
         parameters=SECTION_IMAGE_PARAMS,
     ),
@@ -664,7 +884,10 @@ class ImageFilterSet(django_filters.rest_framework.FilterSet):
     create=extend_schema(
         summary="Create section image",
         description=(
-            "Upload a new image to a section. Requires organization admin permissions."
+            "Upload a new image, optionally attached to a section. Supports "
+            "multipart/form-data and base64 encoded images. Requires organization "
+            "admin permissions. Set purpose to 'inline' for a WYSIWYG image; "
+            "inline images are not included in section-level images."
         ),
         responses={
             201: RootSectionImageSerializer,
@@ -715,8 +938,9 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
     """
     API endpoint for section images.
 
-    Allows management of images attached to hearing sections. Images support
-    thumbnailing via the 'dim' query parameter.
+    Allows management of images attached to hearing sections. Supports both
+    multipart and base64 encoded image uploads. Images support thumbnailing via
+    the 'dim' query parameter.
     """
 
     model = SectionImage
@@ -725,38 +949,89 @@ class ImageViewSet(AdminsSeeUnpublishedMixin, AuditLogApiView, viewsets.ModelVie
     filterset_class = ImageFilterSet
     permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
+    def get_serializer_class(self):
+        if "CONTENT_TYPE" in self.request.META and self.request.META[
+            "CONTENT_TYPE"
+        ].startswith("multipart"):
+            return RootSectionImageMultipartSerializer
+        return RootSectionImageSerializer
+
     def get_queryset(self):
-        queryset = (
+        base_queryset = (
             super()
             .get_queryset()
             .select_related("section__hearing")
             .prefetch_related("translations")
         )
-        queryset = filter_by_hearing_visible(queryset, self.request, "section__hearing")
+        queryset = filter_by_hearing_visible(
+            base_queryset, self.request, "section__hearing"
+        )
+        if self.request.user.is_superuser:
+            queryset = queryset | base_queryset.filter(section__isnull=True)
+        elif self.request.user.is_authenticated:
+            queryset = queryset | base_queryset.filter(
+                section__isnull=True, created_by=self.request.user
+            )
+        if self.action == "list":
+            queryset = queryset.filter(purpose=SectionImage.PURPOSE_SECTION_LEVEL)
         return queryset.filter(deleted=False)
 
-    def _is_user_organisation_admin(self, section):
-        target_org = section.hearing.organization
-        return (
-            target_org
-            and self.request.user.admin_organizations.filter(id=target_org.id).exists()
+    def _is_user_organisation_admin(self, user, section=None):
+        if user.is_superuser:
+            return True
+        if section:
+            target_org = section.hearing.organization
+            return (
+                target_org
+                and user.admin_organizations.filter(id=target_org.id).exists()
+            )
+        return user.admin_organizations.exists()
+
+    def _can_user_update_image(self, user, image, target_section):
+        if image.section is None:
+            if not (
+                user.is_superuser
+                or (user.is_authenticated and image.created_by_id == user.id)
+            ):
+                return False
+        elif not self._is_user_organisation_admin(user, image.section):
+            return False
+
+        return target_section is None or self._is_user_organisation_admin(
+            user, target_section
         )
 
+    def _can_user_delete_image(self, user, image):
+        if image.section is None:
+            return user.is_superuser or (
+                user.is_authenticated and image.created_by_id == user.id
+            )
+        return self._is_user_organisation_admin(user, image.section)
+
     def perform_create(self, serializer):
-        if self._is_user_organisation_admin(serializer.validated_data["section"]):
+        if self._is_user_organisation_admin(
+            self.request.user, serializer.validated_data.get("section")
+        ):
+            serializer.validated_data["created_by"] = self.request.user
             super().perform_create(serializer)
         else:
             raise PermissionDenied("Only organisation admin can create SectionImages")
 
     def perform_update(self, serializer):
-        if self._is_user_organisation_admin(serializer.instance.section):
+        target_section = serializer.validated_data.get(
+            "section", serializer.instance.section
+        )
+        if self._can_user_update_image(
+            self.request.user, serializer.instance, target_section
+        ):
+            serializer.validated_data["modified_by"] = self.request.user
             super().perform_update(serializer)
         else:
             raise PermissionDenied("Only organisation admin can update SectionImages")
 
     def perform_destroy(self, instance):
-        if self._is_user_organisation_admin(instance.section):
-            instance.soft_delete()
+        if self._can_user_delete_image(self.request.user, instance):
+            instance.soft_delete(user=self.request.user)
         else:
             raise PermissionDenied("Only organisation admin can delete SectionImages")
 
@@ -1018,9 +1293,12 @@ def show_unpublished_for_request(request):
 
 
 def image_qs_for_request(request):
+    queryset = SectionImage.objects.with_unpublished().filter(
+        purpose=SectionImage.PURPOSE_SECTION_LEVEL
+    )
     if show_unpublished_for_request(request):
-        return SectionImage.objects.with_unpublished()
-    return SectionImage.objects.public()
+        return queryset
+    return queryset.filter(published=True)
 
 
 def file_qs_for_request(request):
@@ -1067,6 +1345,7 @@ class RootSectionViewSet(AdminsSeeUnpublishedMixin, viewsets.ReadOnlyModelViewSe
                 Prefetch(
                     "images",
                     image_qs_for_request(self.request).prefetch_related("translations"),
+                    to_attr="section_level_images",
                 ),
                 Prefetch(
                     "files",

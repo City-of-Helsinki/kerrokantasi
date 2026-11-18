@@ -1,5 +1,21 @@
 # Changelog
 
+## [3.0.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.14...kerrokantasi-v3.0.0) (2026-11-18)
+
+
+### ⚠ BREAKING CHANGES
+
+* remove image upload for comments
+
+### Features
+
+* Remove image upload for comments ([f8c092d](https://github.com/City-of-Helsinki/kerrokantasi/commit/f8c092d87bbd3370b2328c58c195cbdf5cd1c00f))
+
+
+### Dependencies
+
+* Bump djangorestframework from 3.17.2 to 3.18.2 ([4fca76e](https://github.com/City-of-Helsinki/kerrokantasi/commit/4fca76e458d613553ff68bc8b3beca1bf21950be))
+
 ## [2.10.14](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.13...kerrokantasi-v2.10.14) (2026-11-10)
 
 

@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.1.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v3.0.0...kerrokantasi-v3.1.0) (2026-11-18)
+
+
+### Features
+
+* Add cleanup command for orphan section images ([5881883](https://github.com/City-of-Helsinki/kerrokantasi/commit/588188361aea92b1f45b58f0e08b475e4390d87d))
+* Add multipart upload support to root image endpoint ([2e3c62f](https://github.com/City-of-Helsinki/kerrokantasi/commit/2e3c62fe3506f0c2a27d138b713edc13bef975ba))
+* Allow section image uploads without a section ([c6d2326](https://github.com/City-of-Helsinki/kerrokantasi/commit/c6d23263556b3670ac8ff213ea17ac32f2193ac1))
+* Duplicate inline image instances when copying hearings ([659aaa9](https://github.com/City-of-Helsinki/kerrokantasi/commit/659aaa9098b79de74420f58577c0f467f1b9f36a))
+* Randomize image upload filenames ([e216ce8](https://github.com/City-of-Helsinki/kerrokantasi/commit/e216ce8e2495655f43b629d8c125cc4516dac1b1))
+* Support separate uploads for WYSIWYG editor inline images ([55bc7f5](https://github.com/City-of-Helsinki/kerrokantasi/commit/55bc7f5e021edb4cfe7b690d532de3c8ce5c4d8a))
+
+
+### Bug Fixes
+
+* Properly track users who modify or delete images and sections ([455b2e2](https://github.com/City-of-Helsinki/kerrokantasi/commit/455b2e272b87da9379cde997c82e3de6975dcdac))
+
 ## [3.0.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v2.10.14...kerrokantasi-v3.0.0) (2026-11-18)
 
 

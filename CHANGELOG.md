@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.1](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v3.1.0...kerrokantasi-v3.1.1) (2026-11-23)
+
+
+### Bug Fixes
+
+* Handle public media CORS and Sentry preflight in uWSGI ([6f799fa](https://github.com/City-of-Helsinki/kerrokantasi/commit/6f799fa7ddf4187c05d9366bb2ddf3cea7d0efd9))
+
 ## [3.1.0](https://github.com/City-of-Helsinki/kerrokantasi/compare/kerrokantasi-v3.0.0...kerrokantasi-v3.1.0) (2026-11-18)
 
 
